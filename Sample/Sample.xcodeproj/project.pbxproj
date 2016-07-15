@@ -1,0 +1,381 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7C8C2DE51D38C345009345EB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DE41D38C345009345EB /* main.m */; };
+		7C8C2DE81D38C345009345EB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DE71D38C345009345EB /* AppDelegate.m */; };
+		7C8C2DEB1D38C345009345EB /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DEA1D38C345009345EB /* ViewController.m */; };
+		7C8C2DEE1D38C345009345EB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2DEC1D38C345009345EB /* Main.storyboard */; };
+		7C8C2DF01D38C345009345EB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2DEF1D38C345009345EB /* Assets.xcassets */; };
+		7C8C2DF31D38C345009345EB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2DF11D38C345009345EB /* LaunchScreen.storyboard */; };
+		7C8C2E021D38C3AE009345EB /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C8C2DFF1D38C3A2009345EB /* libLuaScriptCore.a */; };
+		7C8C2E061D38C428009345EB /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2E041D38C428009345EB /* dkjson.lua */; };
+		7C8C2E071D38C428009345EB /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2E051D38C428009345EB /* main.lua */; };
+		7C8C2E091D38C8CB009345EB /* todo.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2E081D38C8CB009345EB /* todo.lua */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7C8C2DFE1D38C3A2009345EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7C8C2D511D38C0C0009345EB;
+			remoteInfo = LuaScriptCore;
+		};
+		7C8C2E001D38C3A9009345EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7C8C2D501D38C0C0009345EB;
+			remoteInfo = LuaScriptCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		7C8C2DE01D38C345009345EB /* Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sample.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C8C2DE41D38C345009345EB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		7C8C2DE61D38C345009345EB /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		7C8C2DE71D38C345009345EB /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		7C8C2DE91D38C345009345EB /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		7C8C2DEA1D38C345009345EB /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		7C8C2DED1D38C345009345EB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		7C8C2DEF1D38C345009345EB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7C8C2DF21D38C345009345EB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		7C8C2DF41D38C345009345EB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LuaScriptCore.xcodeproj; path = ../../LuaScriptCore.xcodeproj; sourceTree = "<group>"; };
+		7C8C2E041D38C428009345EB /* dkjson.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dkjson.lua; sourceTree = "<group>"; };
+		7C8C2E051D38C428009345EB /* main.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.lua; sourceTree = "<group>"; };
+		7C8C2E081D38C8CB009345EB /* todo.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = todo.lua; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7C8C2DDD1D38C345009345EB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C8C2E021D38C3AE009345EB /* libLuaScriptCore.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7C8C2DD71D38C345009345EB = {
+			isa = PBXGroup;
+			children = (
+				7C8C2DE21D38C345009345EB /* Sample */,
+				7C8C2DE11D38C345009345EB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7C8C2DE11D38C345009345EB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7C8C2DE01D38C345009345EB /* Sample.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7C8C2DE21D38C345009345EB /* Sample */ = {
+			isa = PBXGroup;
+			children = (
+				7C8C2E031D38C428009345EB /* Lua */,
+				7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */,
+				7C8C2DE61D38C345009345EB /* AppDelegate.h */,
+				7C8C2DE71D38C345009345EB /* AppDelegate.m */,
+				7C8C2DE91D38C345009345EB /* ViewController.h */,
+				7C8C2DEA1D38C345009345EB /* ViewController.m */,
+				7C8C2DEC1D38C345009345EB /* Main.storyboard */,
+				7C8C2DEF1D38C345009345EB /* Assets.xcassets */,
+				7C8C2DF11D38C345009345EB /* LaunchScreen.storyboard */,
+				7C8C2DF41D38C345009345EB /* Info.plist */,
+				7C8C2DE31D38C345009345EB /* Supporting Files */,
+			);
+			path = Sample;
+			sourceTree = "<group>";
+		};
+		7C8C2DE31D38C345009345EB /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				7C8C2DE41D38C345009345EB /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		7C8C2DFB1D38C3A2009345EB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7C8C2DFF1D38C3A2009345EB /* libLuaScriptCore.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7C8C2E031D38C428009345EB /* Lua */ = {
+			isa = PBXGroup;
+			children = (
+				7C8C2E041D38C428009345EB /* dkjson.lua */,
+				7C8C2E051D38C428009345EB /* main.lua */,
+				7C8C2E081D38C8CB009345EB /* todo.lua */,
+			);
+			path = Lua;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7C8C2DDF1D38C345009345EB /* Sample */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C8C2DF71D38C345009345EB /* Build configuration list for PBXNativeTarget "Sample" */;
+			buildPhases = (
+				7C8C2DDC1D38C345009345EB /* Sources */,
+				7C8C2DDD1D38C345009345EB /* Frameworks */,
+				7C8C2DDE1D38C345009345EB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7C8C2E011D38C3A9009345EB /* PBXTargetDependency */,
+			);
+			name = Sample;
+			productName = Sample;
+			productReference = 7C8C2DE01D38C345009345EB /* Sample.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7C8C2DD81D38C345009345EB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0730;
+				ORGANIZATIONNAME = vimfung;
+				TargetAttributes = {
+					7C8C2DDF1D38C345009345EB = {
+						CreatedOnToolsVersion = 7.3;
+					};
+				};
+			};
+			buildConfigurationList = 7C8C2DDB1D38C345009345EB /* Build configuration list for PBXProject "Sample" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 7C8C2DD71D38C345009345EB;
+			productRefGroup = 7C8C2DE11D38C345009345EB /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 7C8C2DFB1D38C3A2009345EB /* Products */;
+					ProjectRef = 7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				7C8C2DDF1D38C345009345EB /* Sample */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		7C8C2DFF1D38C3A2009345EB /* libLuaScriptCore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libLuaScriptCore.a;
+			remoteRef = 7C8C2DFE1D38C3A2009345EB /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7C8C2DDE1D38C345009345EB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C8C2E071D38C428009345EB /* main.lua in Resources */,
+				7C8C2DF31D38C345009345EB /* LaunchScreen.storyboard in Resources */,
+				7C8C2DF01D38C345009345EB /* Assets.xcassets in Resources */,
+				7C8C2DEE1D38C345009345EB /* Main.storyboard in Resources */,
+				7C8C2E091D38C8CB009345EB /* todo.lua in Resources */,
+				7C8C2E061D38C428009345EB /* dkjson.lua in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7C8C2DDC1D38C345009345EB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C8C2DEB1D38C345009345EB /* ViewController.m in Sources */,
+				7C8C2DE81D38C345009345EB /* AppDelegate.m in Sources */,
+				7C8C2DE51D38C345009345EB /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7C8C2E011D38C3A9009345EB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LuaScriptCore;
+			targetProxy = 7C8C2E001D38C3A9009345EB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		7C8C2DEC1D38C345009345EB /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7C8C2DED1D38C345009345EB /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		7C8C2DF11D38C345009345EB /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7C8C2DF21D38C345009345EB /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		7C8C2DF51D38C345009345EB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		7C8C2DF61D38C345009345EB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7C8C2DF81D38C345009345EB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = Sample/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = cn.vimfung.Sample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		7C8C2DF91D38C345009345EB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				INFOPLIST_FILE = Sample/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = cn.vimfung.Sample;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7C8C2DDB1D38C345009345EB /* Build configuration list for PBXProject "Sample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C8C2DF51D38C345009345EB /* Debug */,
+				7C8C2DF61D38C345009345EB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7C8C2DF71D38C345009345EB /* Build configuration list for PBXNativeTarget "Sample" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C8C2DF81D38C345009345EB /* Debug */,
+				7C8C2DF91D38C345009345EB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7C8C2DD81D38C345009345EB /* Project object */;
+}
