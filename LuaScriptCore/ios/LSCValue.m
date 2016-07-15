@@ -61,6 +61,28 @@
     return [[LSCValue alloc] initWithType:LUAValueTypeTable value:dictionaryValue];
 }
 
++ (instancetype)objectValue:(id)objectValue
+{
+    if ([objectValue isKindOfClass:[NSDictionary class]])
+    {
+        return [self dictionaryValue:objectValue];
+    }
+    else if ([objectValue isKindOfClass:[NSArray class]])
+    {
+        return [self arrayValue:objectValue];
+    }
+    else if ([objectValue isKindOfClass:[NSNumber class]])
+    {
+        return [self numberValue:objectValue];
+    }
+    else if ([objectValue isKindOfClass:[NSString class]])
+    {
+        return [self stringValue:objectValue];
+    }
+    
+    return [self nilValue];
+}
+
 - (instancetype)init
 {
     if (self = [super init])
@@ -176,8 +198,9 @@
         lua_newtable(state);
         [(NSArray *)value enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
            
+            //lua数组下标从1开始
             [theValue pushTable:state value:obj];
-            NameDef(lua_setfield)(state, -2, [[NSString stringWithFormat:@"%lu", idx] UTF8String]);
+            NameDef(lua_rawseti)(state, -2, idx + 1);
             
         }];
     }

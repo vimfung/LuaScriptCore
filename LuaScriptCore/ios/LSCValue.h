@@ -93,6 +93,15 @@ typedef NS_ENUM(NSUInteger, LUAValueType)
 + (instancetype)dictionaryValue:(NSDictionary *)dictionaryValue;
 
 /**
+ *  创建一个任意类型的值对象
+ *
+ *  @param objectValue 对象
+ *
+ *  @return 值对象
+ */
++ (instancetype)objectValue:(id)objectValue;
+
+/**
  *  转换为对象
  *
  *  @return 对象

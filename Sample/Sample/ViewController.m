@@ -76,7 +76,9 @@
     [self.context evalScriptFromFile:[[NSBundle mainBundle] pathForResource:@"todo" ofType:@"lua"]];
     
     //调用Lua方法
-    LSCValue *value = [self.context callMethodWithName:@"add" arguments:@[[LSCValue integerValue:1000], [LSCValue integerValue:24]]];
+    LSCValue *value = [self.context callMethodWithName:@"add"
+                                             arguments:@[[LSCValue integerValue:1000],
+                                                         [LSCValue integerValue:24]]];
     NSLog(@"result = %@", [value toNumber]);
 }
 
