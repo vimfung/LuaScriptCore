@@ -8,17 +8,17 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM(NSUInteger, LUAValueType)
+typedef NS_ENUM(NSUInteger, LSCValueType)
 {
-    LUAValueTypeNil = 0,
-    LUAValueTypeNumber = 1,
-    LUAValueTypeBoolean = 2,
-    LUAValueTypeString = 3,
-    LUAValueTypeTable = 4,
-    LUAValueTypeFunction = 5,
-    LUAValueTypeThread = 6,
-    LUAValueTypeUserData = 7,
-    LUAValueTypeInteger = 8,
+    LSCValueTypeNil = 0,
+    LSCValueTypeNumber = 1,
+    LSCValueTypeBoolean = 2,
+    LSCValueTypeString = 3,
+    LSCValueTypeTable = 4,
+    LSCValueTypeFunction = 5,
+    LSCValueTypeThread = 6,
+    LSCValueTypeUserData = 7,
+    LSCValueTypeInteger = 8,
 };
 
 /**
@@ -29,7 +29,7 @@ typedef NS_ENUM(NSUInteger, LUAValueType)
 /**
  *  数值类型
  */
-@property (nonatomic, readonly) LUAValueType valueType;
+@property (nonatomic, readonly) LSCValueType valueType;
 
 /**
  *  创建一个空值对象

@@ -251,6 +251,7 @@ static int cfuncRouteHandler (NameDef(lua_State) *state)
         case LUA_TTABLE:
         {
             NSMutableDictionary *dictValue = [NSMutableDictionary dictionary];
+            NSMutableArray *arrayValue = [NSMutableArray array];
             
             NameDef(lua_pushnil(self.state));
             while (NameDef(lua_next)(self.state, -2))
@@ -258,12 +259,47 @@ static int cfuncRouteHandler (NameDef(lua_State) *state)
                 LSCValue *value = [self getValueByIndex:-1];
                 LSCValue *key = [self getValueByIndex:-2];
                 
+                if (arrayValue)
+                {
+                    if (key.valueType != LSCValueTypeNumber)
+                    {
+                        //非数组对象，释放数组
+                        arrayValue = nil;
+                    }
+                    else if (key.valueType == LSCValueTypeNumber)
+                    {
+                        NSInteger index = [[key toNumber] integerValue];
+                        if (index <= 0)
+                        {
+                            //非数组对象，释放数组
+                            arrayValue = nil;
+                        }
+                        else if (index - 1 != arrayValue.count)
+                        {
+                            //非数组对象，释放数组
+                            arrayValue = nil;
+                        }
+                        else
+                        {
+                            [arrayValue addObject:[value toObject]];
+                        }
+                    }
+                }
+                
                 [dictValue setObject:[value toObject] forKey:[key toString]];
                 
                 lua_pop(self.state, 1);
             }
             
-            value = [LSCValue dictionaryValue:dictValue];
+            if (arrayValue)
+            {
+                value = [LSCValue arrayValue:arrayValue];
+            }
+            else
+            {
+                value = [LSCValue dictionaryValue:dictValue];
+            }
+            
             break;
         }
         default:

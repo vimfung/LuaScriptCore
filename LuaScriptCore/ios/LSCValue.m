@@ -20,7 +20,7 @@
 /**
  *  数值类型
  */
-@property (nonatomic) LUAValueType valueType;
+@property (nonatomic) LSCValueType valueType;
 
 @end
 
@@ -28,37 +28,37 @@
 
 + (instancetype)nilValue
 {
-    return [[LSCValue alloc] initWithType:LUAValueTypeNil value:[NSNull null]];
+    return [[LSCValue alloc] initWithType:LSCValueTypeNil value:[NSNull null]];
 }
 
 + (instancetype)numberValue:(NSNumber *)numberValue
 {
-    return [[LSCValue alloc] initWithType:LUAValueTypeNumber value:numberValue];
+    return [[LSCValue alloc] initWithType:LSCValueTypeNumber value:numberValue];
 }
 
 + (instancetype)booleanValue:(BOOL)boolValue
 {
-    return [[LSCValue alloc] initWithType:LUAValueTypeBoolean value:@(boolValue)];
+    return [[LSCValue alloc] initWithType:LSCValueTypeBoolean value:@(boolValue)];
 }
 
 + (instancetype)stringValue:(NSString *)stringValue
 {
-    return [[LSCValue alloc] initWithType:LUAValueTypeString value:[stringValue copy]];
+    return [[LSCValue alloc] initWithType:LSCValueTypeString value:[stringValue copy]];
 }
 
 + (instancetype)integerValue:(NSInteger)integerValue
 {
-    return [[LSCValue alloc] initWithType:LUAValueTypeInteger value:@(integerValue)];
+    return [[LSCValue alloc] initWithType:LSCValueTypeInteger value:@(integerValue)];
 }
 
 + (instancetype)arrayValue:(NSArray *)arrayValue
 {
-    return [[LSCValue alloc] initWithType:LUAValueTypeTable value:arrayValue];
+    return [[LSCValue alloc] initWithType:LSCValueTypeTable value:arrayValue];
 }
 
 + (instancetype)dictionaryValue:(NSDictionary *)dictionaryValue
 {
-    return [[LSCValue alloc] initWithType:LUAValueTypeTable value:dictionaryValue];
+    return [[LSCValue alloc] initWithType:LSCValueTypeTable value:dictionaryValue];
 }
 
 + (instancetype)objectValue:(id)objectValue
@@ -97,22 +97,22 @@
 {
     switch (self.valueType)
     {
-        case LUAValueTypeInteger:
+        case LSCValueTypeInteger:
             NameDef(lua_pushinteger)(state, [self.valueContainer integerValue]);
             break;
-        case LUAValueTypeNumber:
+        case LSCValueTypeNumber:
             NameDef(lua_pushnumber)(state, [self.valueContainer doubleValue]);
             break;
-        case LUAValueTypeNil:
+        case LSCValueTypeNil:
             NameDef(lua_pushnil)(state);
             break;
-        case LUAValueTypeString:
+        case LSCValueTypeString:
             NameDef(lua_pushstring)(state, [self.valueContainer UTF8String]);
             break;
-        case LUAValueTypeBoolean:
+        case LSCValueTypeBoolean:
             NameDef(lua_pushboolean)(state, [self.valueContainer boolValue]);
             break;
-        case LUAValueTypeTable:
+        case LSCValueTypeTable:
         {
             [self pushTable:state value:self.valueContainer];
             break;
@@ -136,11 +136,11 @@
 {
     switch (self.valueType)
     {
-        case LUAValueTypeNumber:
-        case LUAValueTypeInteger:
-        case LUAValueTypeBoolean:
+        case LSCValueTypeNumber:
+        case LSCValueTypeInteger:
+        case LSCValueTypeBoolean:
             return self.valueContainer;
-        case LUAValueTypeString:
+        case LSCValueTypeString:
             return @([(NSString *)self.valueContainer doubleValue]);
         default:
             return nil;
@@ -162,7 +162,7 @@
  *
  *  @return 值对象
  */
-- (instancetype)initWithType:(LUAValueType)type value:(id)value
+- (instancetype)initWithType:(LSCValueType)type value:(id)value
 {
     if (self = [super init])
     {
