@@ -19,6 +19,7 @@ typedef NS_ENUM(NSUInteger, LSCValueType)
     LSCValueTypeThread = 6,
     LSCValueTypeUserData = 7,
     LSCValueTypeInteger = 8,
+    LSCValueTypeData = 9
 };
 
 /**
@@ -91,6 +92,15 @@ typedef NS_ENUM(NSUInteger, LSCValueType)
  *  @return 值对象
  */
 + (instancetype)dictionaryValue:(NSDictionary *)dictionaryValue;
+
+/**
+ *  创建一个数据对象
+ *
+ *  @param dataValue 数据
+ *
+ *  @return 值对象
+ */
++ (instancetype)dataValue:(NSData *)dataValue;
 
 /**
  *  创建一个任意类型的值对象

@@ -204,7 +204,7 @@ static int cfuncRouteHandler (NameDef(lua_State) *state)
         for (int i = 0; i < top; i++)
         {
             LSCValue *value = [context getValueByIndex:- i - 1];
-            [arguments addObject:value];
+            [arguments insertObject:value atIndex:0];
         }
         
         LSCValue *retValue = handler (arguments);
@@ -245,7 +245,21 @@ static int cfuncRouteHandler (NameDef(lua_State) *state)
         case LUA_TSTRING:
         {
             NSString *strValue = [NSString stringWithCString:lua_tostring(self.state, (int)index) encoding:NSUTF8StringEncoding];
-            value = [LSCValue stringValue:strValue];
+            if (strValue)
+            {
+                //为NSString
+                value = [LSCValue stringValue:strValue];
+            }
+            else
+            {
+                //为NSData
+                size_t len = 0;
+                const char *bytes = NameDef(lua_tolstring)(self.state, (int)index, &len);
+                NSData *data = [NSData dataWithBytes:bytes length:len];
+                
+                value = [LSCValue dataValue:data];
+            }
+            
             break;
         }
         case LUA_TTABLE:

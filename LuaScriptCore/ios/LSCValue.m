@@ -61,6 +61,11 @@
     return [[LSCValue alloc] initWithType:LSCValueTypeTable value:dictionaryValue];
 }
 
++ (instancetype)dataValue:(NSData *)dataValue
+{
+    return [[LSCValue alloc] initWithType:LSCValueTypeData value:dataValue];
+}
+
 + (instancetype)objectValue:(id)objectValue
 {
     if ([objectValue isKindOfClass:[NSDictionary class]])
@@ -78,6 +83,10 @@
     else if ([objectValue isKindOfClass:[NSString class]])
     {
         return [self stringValue:objectValue];
+    }
+    else if ([objectValue isKindOfClass:[NSData class]])
+    {
+        return [self dataValue:objectValue];
     }
     
     return [self nilValue];
@@ -115,6 +124,11 @@
         case LSCValueTypeTable:
         {
             [self pushTable:state value:self.valueContainer];
+            break;
+        }
+        case LSCValueTypeData:
+        {
+            NameDef(lua_pushlstring)(state, [self.valueContainer bytes], [self.valueContainer length]);
             break;
         }
         default:
