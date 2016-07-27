@@ -1,5 +1,5 @@
 /*
-** $Id: lstrlib.c,v 1.229 2015/05/20 17:39:23 roberto Exp $
+** $Id: lstrlib.c,v 1.251 2016/05/20 14:13:21 roberto Exp $
 ** Standard library for string operations and pattern-matching
 ** See Copyright Notice in lua.h
 */
@@ -7,14 +7,13 @@
 #define lstrlib_c
 #define LUA_LIB
 
-#include "LuaDefine.h"
-
 #include "lprefix.h"
 
 
 #include <ctype.h>
 #include <float.h>
 #include <limits.h>
+#include <locale.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +27,8 @@
 
 /*
 ** maximum number of captures that a pattern can do during
-** pattern-matching. This limit is arbitrary.
+** pattern-matching. This limit is arbitrary, but must fit in
+** an unsigned char.
 */
 #if !defined(LUA_MAXCAPTURES)
 #define LUA_MAXCAPTURES		32
@@ -43,8 +43,10 @@
 ** Some sizes are better limited to fit in 'int', but must also fit in
 ** 'size_t'. (We assume that 'lua_Integer' cannot be smaller than 'int'.)
 */
+#define MAX_SIZET	((size_t)(~(size_t)0))
+
 #define MAXSIZE  \
-	(sizeof(size_t) < sizeof(int) ? (~(size_t)0) : (size_t)(INT_MAX))
+	(sizeof(size_t) < sizeof(int) ? MAX_SIZET : (size_t)(INT_MAX))
 
 
 
@@ -210,12 +212,12 @@ static int str_dump (NameDef(lua_State) *L) {
 
 
 typedef struct NameDef(MatchState) {
-  int matchdepth;  /* control for recursive depth (to avoid C stack overflow) */
   const char *src_init;  /* init of source string */
   const char *src_end;  /* end ('\0') of source string */
   const char *p_end;  /* end ('\0') of pattern */
   NameDef(lua_State) *L;
-  int level;  /* total number of captures (finished or unfinished) */
+  int matchdepth;  /* control for recursive depth (to avoid C stack overflow) */
+  unsigned char level;  /* total number of captures (finished or unfinished) */
   struct {
     const char *init;
     ptrdiff_t len;
@@ -586,6 +588,22 @@ static int nospecials (const char *p, size_t l) {
 }
 
 
+static void prepstate (NameDef(MatchState) *ms, NameDef(lua_State) *L,
+                       const char *s, size_t ls, const char *p, size_t lp) {
+  ms->L = L;
+  ms->matchdepth = MAXCCALLS;
+  ms->src_init = s;
+  ms->src_end = s + ls;
+  ms->p_end = p + lp;
+}
+
+
+static void reprepstate (NameDef(MatchState) *ms) {
+  ms->level = 0;
+  lua_assert(ms->matchdepth == MAXCCALLS);
+}
+
+
 static int str_find_aux (NameDef(lua_State) *L, int find) {
   size_t ls, lp;
   const char *s = NameDef(luaL_checklstring)(L, 1, &ls);
@@ -613,15 +631,10 @@ static int str_find_aux (NameDef(lua_State) *L, int find) {
     if (anchor) {
       p++; lp--;  /* skip anchor character */
     }
-    ms.L = L;
-    ms.matchdepth = MAXCCALLS;
-    ms.src_init = s;
-    ms.src_end = s + ls;
-    ms.p_end = p + lp;
+    prepstate(&ms, L, s, ls, p, lp);
     do {
       const char *res;
-      ms.level = 0;
-      lua_assert(ms.matchdepth == MAXCCALLS);
+      reprepstate(&ms);
       if ((res=match(&ms, s1, p)) != NULL) {
         if (find) {
           NameDef(lua_pushinteger)(L, (s1 - s) + 1);  /* start */
@@ -648,29 +661,25 @@ static int str_match (NameDef(lua_State) *L) {
 }
 
 
+/* state for 'gmatch' */
+typedef struct NameDef(GMatchState) {
+  const char *src;  /* current position */
+  const char *p;  /* pattern */
+  const char *lastmatch;  /* end of last match */
+  NameDef(MatchState) ms;  /* match state */
+} NameDef(GMatchState);
+
+
 static int gmatch_aux (NameDef(lua_State) *L) {
-  NameDef(MatchState) ms;
-  size_t ls, lp;
-  const char *s = NameDef(lua_tolstring)(L, lua_upvalueindex(1), &ls);
-  const char *p = NameDef(lua_tolstring)(L, lua_upvalueindex(2), &lp);
+  NameDef(GMatchState) *gm = (NameDef(GMatchState) *)NameDef(lua_touserdata)(L, lua_upvalueindex(3));
   const char *src;
-  ms.L = L;
-  ms.matchdepth = MAXCCALLS;
-  ms.src_init = s;
-  ms.src_end = s+ls;
-  ms.p_end = p + lp;
-  for (src = s + (size_t)lua_tointeger(L, lua_upvalueindex(3));
-       src <= ms.src_end;
-       src++) {
+  gm->ms.L = L;
+  for (src = gm->src; src <= gm->ms.src_end; src++) {
     const char *e;
-    ms.level = 0;
-    lua_assert(ms.matchdepth == MAXCCALLS);
-    if ((e = match(&ms, src, p)) != NULL) {
-      NameDef(lua_Integer) newstart = e-s;
-      if (e == src) newstart++;  /* empty match? go at least one position */
-      NameDef(lua_pushinteger)(L, newstart);
-      lua_replace(L, lua_upvalueindex(3));
-      return push_captures(&ms, src, e);
+    reprepstate(&gm->ms);
+    if ((e = match(&gm->ms, src, gm->p)) != NULL && e != gm->lastmatch) {
+      gm->src = gm->lastmatch = e;
+      return push_captures(&gm->ms, src, e);
     }
   }
   return 0;  /* not found */
@@ -678,10 +687,14 @@ static int gmatch_aux (NameDef(lua_State) *L) {
 
 
 static int gmatch (NameDef(lua_State) *L) {
-  luaL_checkstring(L, 1);
-  luaL_checkstring(L, 2);
-  NameDef(lua_settop)(L, 2);
-  NameDef(lua_pushinteger)(L, 0);
+  size_t ls, lp;
+  const char *s = NameDef(luaL_checklstring)(L, 1, &ls);
+  const char *p = NameDef(luaL_checklstring)(L, 2, &lp);
+  NameDef(GMatchState) *gm;
+  NameDef(lua_settop)(L, 2);  /* keep them on closure to avoid being collected */
+  gm = (NameDef(GMatchState) *)NameDef(lua_newuserdata)(L, sizeof(NameDef(GMatchState)));
+  prepstate(&gm->ms, L, s, ls, p, lp);
+  gm->src = s; gm->p = p; gm->lastmatch = NULL;
   NameDef(lua_pushcclosure)(L, gmatch_aux, 3);
   return 1;
 }
@@ -748,12 +761,13 @@ static void add_value (NameDef(MatchState) *ms, NameDef(luaL_Buffer) *b, const c
 
 static int str_gsub (NameDef(lua_State) *L) {
   size_t srcl, lp;
-  const char *src = NameDef(luaL_checklstring)(L, 1, &srcl);
-  const char *p = NameDef(luaL_checklstring)(L, 2, &lp);
-  int tr = NameDef(lua_type)(L, 3);
-  NameDef(lua_Integer) max_s = NameDef(luaL_optinteger)(L, 4, srcl + 1);
+  const char *src = NameDef(luaL_checklstring)(L, 1, &srcl);  /* subject */
+  const char *p = NameDef(luaL_checklstring)(L, 2, &lp);  /* pattern */
+  const char *lastmatch = NULL;  /* end of last match */
+  int tr = NameDef(lua_type)(L, 3);  /* replacement type */
+  NameDef(lua_Integer) max_s = NameDef(luaL_optinteger)(L, 4, srcl + 1);  /* max replacements */
   int anchor = (*p == '^');
-  NameDef(lua_Integer) n = 0;
+  NameDef(lua_Integer) n = 0;  /* replacement count */
   NameDef(MatchState) ms;
   NameDef(luaL_Buffer) b;
   luaL_argcheck(L, tr == LUA_TNUMBER || tr == LUA_TSTRING ||
@@ -763,25 +777,18 @@ static int str_gsub (NameDef(lua_State) *L) {
   if (anchor) {
     p++; lp--;  /* skip anchor character */
   }
-  ms.L = L;
-  ms.matchdepth = MAXCCALLS;
-  ms.src_init = src;
-  ms.src_end = src+srcl;
-  ms.p_end = p + lp;
+  prepstate(&ms, L, src, srcl, p, lp);
   while (n < max_s) {
     const char *e;
-    ms.level = 0;
-    lua_assert(ms.matchdepth == MAXCCALLS);
-    e = match(&ms, src, p);
-    if (e) {
+    reprepstate(&ms);  /* (re)prepare state for new match */
+    if ((e = match(&ms, src, p)) != NULL && e != lastmatch) {  /* match? */
       n++;
-      add_value(&ms, &b, src, e, tr);
+      add_value(&ms, &b, src, e, tr);  /* add replacement to buffer */
+      src = lastmatch = e;
     }
-    if (e && e>src) /* non empty match? */
-      src = e;  /* skip it */
-    else if (src < ms.src_end)
+    else if (src < ms.src_end)  /* otherwise, skip one character */
       luaL_addchar(&b, *src++);
-    else break;
+    else break;  /* end of subject */
     if (anchor) break;
   }
   NameDef(luaL_addlstring)(&b, src, ms.src_end-src);
@@ -806,7 +813,6 @@ static int str_gsub (NameDef(lua_State) *L) {
 ** Hexadecimal floating-point formatter
 */
 
-#include <locale.h>
 #include <math.h>
 
 #define SIZELENMOD	(sizeof(LUA_NUMBER_FRMLEN)/sizeof(char))
@@ -824,25 +830,24 @@ static int str_gsub (NameDef(lua_State) *L) {
 /*
 ** Add integer part of 'x' to buffer and return new 'x'
 */
-static lua_Number adddigit (char *buff, int n, lua_Number x) {
-  lua_Number dd = l_mathop(floor)(x);  /* get integer part from 'x' */
+static NameDef(lua_Number) adddigit (char *buff, int n, NameDef(lua_Number) x) {
+  NameDef(lua_Number) dd = l_mathop(floor)(x);  /* get integer part from 'x' */
   int d = (int)dd;
   buff[n] = (d < 10 ? d + '0' : d - 10 + 'a');  /* add to buffer */
   return x - dd;  /* return what is left */
 }
 
 
-static int num2straux (char *buff, lua_Number x) {
+static int num2straux (char *buff, int sz, NameDef(lua_Number) x) {
   if (x != x || x == HUGE_VAL || x == -HUGE_VAL)  /* inf or NaN? */
-    return sprintf(buff, LUA_NUMBER_FMT, x);  /* equal to '%g' */
+    return l_sprintf(buff, sz, LUA_NUMBER_FMT, x);  /* equal to '%g' */
   else if (x == 0) {  /* can be -0... */
-    sprintf(buff, LUA_NUMBER_FMT, x);
-    strcat(buff, "x0p+0");  /* reuses '0/-0' from 'sprintf'... */
-    return strlen(buff);
+    /* create "0" or "-0" followed by exponent */
+    return l_sprintf(buff, sz, LUA_NUMBER_FMT "x0p+0", x);
   }
   else {
     int e;
-    lua_Number m = l_mathop(frexp)(x, &e);  /* 'x' fraction and exponent */
+    NameDef(lua_Number) m = l_mathop(frexp)(x, &e);  /* 'x' fraction and exponent */
     int n = 0;  /* character count */
     if (m < 0) {  /* is number negative? */
       buff[n++] = '-';  /* add signal */
@@ -857,15 +862,16 @@ static int num2straux (char *buff, lua_Number x) {
         m = adddigit(buff, n++, m * 16);
       } while (m > 0);
     }
-    n += sprintf(buff + n, "p%+d", e);  /* add exponent */
+    n += l_sprintf(buff + n, sz - n, "p%+d", e);  /* add exponent */
+    lua_assert(n < sz);
     return n;
   }
 }
 
 
-static int lua_number2strx (lua_State *L, char *buff, const char *fmt,
-                            lua_Number x) {
-  int n = num2straux(buff, x);
+static int lua_number2strx (NameDef(lua_State) *L, char *buff, int sz,
+                            const char *fmt, NameDef(lua_Number) x) {
+  int n = num2straux(buff, sz, x);
   if (fmt[SIZELENMOD] == 'A') {
     int i;
     for (i = 0; i < n; i++)
@@ -881,10 +887,12 @@ static int lua_number2strx (lua_State *L, char *buff, const char *fmt,
 
 /*
 ** Maximum size of each formatted item. This maximum size is produced
-** by format('%.99f', minfloat), and is equal to 99 + 2 ('-' and '.') +
-** number of decimal digits to represent minfloat.
+** by format('%.99f', -maxfloat), and is equal to 99 + 3 ('-', '.',
+** and '\0') + number of decimal digits to represent maxfloat (which
+** is maximum exponent + 1). (99+3+1 then rounded to 120 for "extra
+** expenses", such as locale-dependent stuff)
 */
-#define MAX_ITEM	(120 + l_mathlim(MAX_10_EXP))
+#define MAX_ITEM        (120 + l_mathlim(MAX_10_EXP))
 
 
 /* valid flags in a format specification */
@@ -896,21 +904,19 @@ static int lua_number2strx (lua_State *L, char *buff, const char *fmt,
 #define MAX_FORMAT	32
 
 
-static void addquoted (NameDef(lua_State) *L, NameDef(luaL_Buffer) *b, int arg) {
-  size_t l;
-  const char *s = NameDef(luaL_checklstring)(L, arg, &l);
+static void addquoted (NameDef(luaL_Buffer) *b, const char *s, size_t len) {
   luaL_addchar(b, '"');
-  while (l--) {
+  while (len--) {
     if (*s == '"' || *s == '\\' || *s == '\n') {
       luaL_addchar(b, '\\');
       luaL_addchar(b, *s);
     }
-    else if (*s == '\0' || iscntrl(uchar(*s))) {
+    else if (iscntrl(uchar(*s))) {
       char buff[10];
       if (!isdigit(uchar(*(s+1))))
-        sprintf(buff, "\\%d", (int)uchar(*s));
+        l_sprintf(buff, sizeof(buff), "\\%d", (int)uchar(*s));
       else
-        sprintf(buff, "\\%03d", (int)uchar(*s));
+        l_sprintf(buff, sizeof(buff), "\\%03d", (int)uchar(*s));
       NameDef(luaL_addstring)(b, buff);
     }
     else
@@ -919,6 +925,57 @@ static void addquoted (NameDef(lua_State) *L, NameDef(luaL_Buffer) *b, int arg) 
   }
   luaL_addchar(b, '"');
 }
+
+
+/*
+** Ensures the 'buff' string uses a dot as the radix character.
+*/
+static void checkdp (char *buff, int nb) {
+  if (memchr(buff, '.', nb) == NULL) {  /* no dot? */
+    char point = lua_getlocaledecpoint();  /* try locale point */
+    char *ppoint = memchr(buff, point, nb);
+    if (ppoint) *ppoint = '.';  /* change it to a dot */
+  }
+}
+
+
+static void addliteral (NameDef(lua_State) *L, NameDef(luaL_Buffer) *b, int arg) {
+  switch (NameDef(lua_type)(L, arg)) {
+    case LUA_TSTRING: {
+      size_t len;
+      const char *s = NameDef(lua_tolstring)(L, arg, &len);
+      addquoted(b, s, len);
+      break;
+    }
+    case LUA_TNUMBER: {
+      char *buff = NameDef(luaL_prepbuffsize)(b, MAX_ITEM);
+      int nb;
+      if (!NameDef(lua_isinteger)(L, arg)) {  /* float? */
+        NameDef(lua_Number) n = lua_tonumber(L, arg);  /* write as hexa ('%a') */
+        nb = lua_number2strx(L, buff, MAX_ITEM, "%" LUA_NUMBER_FRMLEN "a", n);
+        checkdp(buff, nb);  /* ensure it uses a dot */
+      }
+      else {  /* integers */
+        NameDef(lua_Integer) n = lua_tointeger(L, arg);
+        const char *format = (n == LUA_MININTEGER)  /* corner case? */
+                           ? "0x%" LUA_INTEGER_FRMLEN "x"  /* use hexa */
+                           : LUA_INTEGER_FMT;  /* else use default format */
+        nb = l_sprintf(buff, MAX_ITEM, format, n);
+      }
+      luaL_addsize(b, nb);
+      break;
+    }
+    case LUA_TNIL: case LUA_TBOOLEAN: {
+      NameDef(luaL_tolstring)(L, arg, NULL);
+      NameDef(luaL_addvalue)(b);
+      break;
+    }
+    default: {
+      NameDef(luaL_argerror)(L, arg, "value has no literal form");
+    }
+  }
+}
+
 
 static const char *scanformat (NameDef(lua_State) *L, const char *strfrmt, char *form) {
   const char *p = strfrmt;
@@ -977,41 +1034,46 @@ static int str_format (NameDef(lua_State) *L) {
       strfrmt = scanformat(L, strfrmt, form);
       switch (*strfrmt++) {
         case 'c': {
-          nb = sprintf(buff, form, (int)NameDef(luaL_checkinteger)(L, arg));
+          nb = l_sprintf(buff, MAX_ITEM, form, (int)NameDef(luaL_checkinteger)(L, arg));
           break;
         }
         case 'd': case 'i':
         case 'o': case 'u': case 'x': case 'X': {
           NameDef(lua_Integer) n = NameDef(luaL_checkinteger)(L, arg);
           addlenmod(form, LUA_INTEGER_FRMLEN);
-          nb = sprintf(buff, form, n);
+          nb = l_sprintf(buff, MAX_ITEM, form, n);
           break;
         }
         case 'a': case 'A':
           addlenmod(form, LUA_NUMBER_FRMLEN);
-          nb = lua_number2strx(L, buff, form, NameDef(luaL_checknumber)(L, arg));
+          nb = lua_number2strx(L, buff, MAX_ITEM, form,
+                                  NameDef(luaL_checknumber)(L, arg));
           break;
         case 'e': case 'E': case 'f':
         case 'g': case 'G': {
           addlenmod(form, LUA_NUMBER_FRMLEN);
-          nb = sprintf(buff, form, NameDef(luaL_checknumber)(L, arg));
+          nb = l_sprintf(buff, MAX_ITEM, form, NameDef(luaL_checknumber)(L, arg));
           break;
         }
         case 'q': {
-          addquoted(L, &b, arg);
+          addliteral(L, &b, arg);
           break;
         }
         case 's': {
           size_t l;
           const char *s = NameDef(luaL_tolstring)(L, arg, &l);
-          if (!strchr(form, '.') && l >= 100) {
-            /* no precision and string is too long to be formatted;
-               keep original string */
-            NameDef(luaL_addvalue)(&b);
-          }
+          if (form[2] == '\0')  /* no modifiers? */
+            NameDef(luaL_addvalue)(&b);  /* keep entire string */
           else {
-            nb = sprintf(buff, form, s);
-            lua_pop(L, 1);  /* remove result from 'luaL_tolstring' */
+            luaL_argcheck(L, l == strlen(s), arg, "string contains zeros");
+            if (!strchr(form, '.') && l >= 100) {
+              /* no precision and string is too long to be formatted */
+              NameDef(luaL_addvalue)(&b);  /* keep entire string */
+            }
+            else {  /* format the string into 'buff' */
+              nb = l_sprintf(buff, MAX_ITEM, form, s);
+              lua_pop(L, 1);  /* remove result from 'luaL_tolstring' */
+            }
           }
           break;
         }
@@ -1020,6 +1082,7 @@ static int str_format (NameDef(lua_State) *L) {
                                *(strfrmt - 1));
         }
       }
+      lua_assert(nb < MAX_ITEM);
       luaL_addsize(&b, nb);
     }
   }
@@ -1038,8 +1101,8 @@ static int str_format (NameDef(lua_State) *L) {
 
 
 /* value used for padding */
-#if !defined(LUA_PACKPADBYTE)
-#define LUA_PACKPADBYTE		0x00
+#if !defined(LUAL_PACKPADBYTE)
+#define LUAL_PACKPADBYTE		0x00
 #endif
 
 /* maximum size for the binary representation of an integer */
@@ -1059,7 +1122,7 @@ static int str_format (NameDef(lua_State) *L) {
 static const union {
   int dummy;
   char little;  /* true iff machine is little endian */
-} NameDef(nativeendian) = {1};
+} nativeendian = {1};
 
 
 /* dummy structure to get native alignment requirements */
@@ -1096,15 +1159,15 @@ typedef struct NameDef(Header) {
 ** options for pack/unpack
 */
 typedef enum NameDef(KOption) {
-  NameDef(Kint),		/* signed integers */
-  NameDef(Kuint),	/* unsigned integers */
-  NameDef(Kfloat),	/* floating-point numbers */
-  NameDef(Kchar),	/* fixed-length strings */
-  NameDef(Kstring),	/* strings with prefixed length */
-  NameDef(Kzstr),	/* zero-terminated strings */
-  NameDef(Kpadding),	/* padding */
-  NameDef(Kpaddalign),	/* padding for alignment */
-  NameDef(Knop)		/* no-op (configuration or spaces) */
+  Kint,		/* signed integers */
+  Kuint,	/* unsigned integers */
+  Kfloat,	/* floating-point numbers */
+  Kchar,	/* fixed-length strings */
+  Kstring,	/* strings with prefixed length */
+  Kzstr,	/* zero-terminated strings */
+  Kpadding,	/* padding */
+  Kpaddalign,	/* padding for alignment */
+  Knop		/* no-op (configuration or spaces) */
 } NameDef(KOption);
 
 
@@ -1145,7 +1208,7 @@ static int getnumlimit (NameDef(Header) *h, const char **fmt, int df) {
 */
 static void initheader (NameDef(lua_State) *L, NameDef(Header) *h) {
   h->L = L;
-  h->islittle = NameDef(nativeendian).little;
+  h->islittle = nativeendian.little;
   h->maxalign = 1;
 }
 
@@ -1157,37 +1220,37 @@ static NameDef(KOption) getoption (NameDef(Header) *h, const char **fmt, int *si
   int opt = *((*fmt)++);
   *size = 0;  /* default */
   switch (opt) {
-    case 'b': *size = sizeof(char); return NameDef(Kint);
-    case 'B': *size = sizeof(char); return NameDef(Kuint);
-    case 'h': *size = sizeof(short); return NameDef(Kint);
-    case 'H': *size = sizeof(short); return NameDef(Kuint);
-    case 'l': *size = sizeof(long); return NameDef(Kint);
-    case 'L': *size = sizeof(long); return NameDef(Kuint);
-    case 'j': *size = sizeof(NameDef(lua_Integer)); return NameDef(Kint);
-    case 'J': *size = sizeof(NameDef(lua_Integer)); return NameDef(Kuint);
-    case 'T': *size = sizeof(size_t); return NameDef(Kuint);
-    case 'f': *size = sizeof(float); return NameDef(Kfloat);
-    case 'd': *size = sizeof(double); return NameDef(Kfloat);
-    case 'n': *size = sizeof(NameDef(lua_Number)); return NameDef(Kfloat);
-    case 'i': *size = getnumlimit(h, fmt, sizeof(int)); return NameDef(Kint);
-    case 'I': *size = getnumlimit(h, fmt, sizeof(int)); return NameDef(Kuint);
-    case 's': *size = getnumlimit(h, fmt, sizeof(size_t)); return NameDef(Kstring);
+    case 'b': *size = sizeof(char); return Kint;
+    case 'B': *size = sizeof(char); return Kuint;
+    case 'h': *size = sizeof(short); return Kint;
+    case 'H': *size = sizeof(short); return Kuint;
+    case 'l': *size = sizeof(long); return Kint;
+    case 'L': *size = sizeof(long); return Kuint;
+    case 'j': *size = sizeof(NameDef(lua_Integer)); return Kint;
+    case 'J': *size = sizeof(NameDef(lua_Integer)); return Kuint;
+    case 'T': *size = sizeof(size_t); return Kuint;
+    case 'f': *size = sizeof(float); return Kfloat;
+    case 'd': *size = sizeof(double); return Kfloat;
+    case 'n': *size = sizeof(NameDef(lua_Number)); return Kfloat;
+    case 'i': *size = getnumlimit(h, fmt, sizeof(int)); return Kint;
+    case 'I': *size = getnumlimit(h, fmt, sizeof(int)); return Kuint;
+    case 's': *size = getnumlimit(h, fmt, sizeof(size_t)); return Kstring;
     case 'c':
       *size = getnum(fmt, -1);
       if (*size == -1)
         NameDef(luaL_error)(h->L, "missing size for format option 'c'");
-      return NameDef(Kchar);
-    case 'z': return NameDef(Kzstr);
-    case 'x': *size = 1; return NameDef(Kpadding);
-    case 'X': return NameDef(Kpaddalign);
+      return Kchar;
+    case 'z': return Kzstr;
+    case 'x': *size = 1; return Kpadding;
+    case 'X': return Kpaddalign;
     case ' ': break;
     case '<': h->islittle = 1; break;
     case '>': h->islittle = 0; break;
-    case '=': h->islittle = NameDef(nativeendian).little; break;
+    case '=': h->islittle = nativeendian.little; break;
     case '!': h->maxalign = getnumlimit(h, fmt, MAXALIGN); break;
     default: NameDef(luaL_error)(h->L, "invalid format option '%c'", opt);
   }
-  return NameDef(Knop);
+  return Knop;
 }
 
 
@@ -1204,11 +1267,11 @@ static NameDef(KOption) getdetails (NameDef(Header) *h, size_t totalsize,
                            const char **fmt, int *psize, int *ntoalign) {
   NameDef(KOption) opt = getoption(h, fmt, psize);
   int align = *psize;  /* usually, alignment follows size */
-  if (opt == NameDef(Kpaddalign)) {  /* 'X' gets alignment from following option */
-    if (**fmt == '\0' || getoption(h, fmt, &align) == NameDef(Kchar) || align == 0)
+  if (opt == Kpaddalign) {  /* 'X' gets alignment from following option */
+    if (**fmt == '\0' || getoption(h, fmt, &align) == Kchar || align == 0)
       NameDef(luaL_argerror)(h->L, 1, "invalid next option for option 'X'");
   }
-  if (align <= 1 || opt == NameDef(Kchar))  /* need no alignment? */
+  if (align <= 1 || opt == Kchar)  /* need no alignment? */
     *ntoalign = 0;
   else {
     if (align > h->maxalign)  /* enforce maximum alignment */
@@ -1250,7 +1313,7 @@ static void packint (NameDef(luaL_Buffer) *b, NameDef(lua_Unsigned) n,
 */
 static void copywithendian (volatile char *dest, volatile const char *src,
                             int size, int islittle) {
-  if (islittle == NameDef(nativeendian).little) {
+  if (islittle == nativeendian.little) {
     while (size-- != 0)
       *(dest++) = *(src++);
   }
@@ -1276,10 +1339,10 @@ static int str_pack (NameDef(lua_State) *L) {
     NameDef(KOption) opt = getdetails(&h, totalsize, &fmt, &size, &ntoalign);
     totalsize += ntoalign + size;
     while (ntoalign-- > 0)
-     luaL_addchar(&b, LUA_PACKPADBYTE);  /* fill alignment */
+     luaL_addchar(&b, LUAL_PACKPADBYTE);  /* fill alignment */
     arg++;
     switch (opt) {
-      case NameDef(Kint): {  /* signed integers */
+      case Kint: {  /* signed integers */
         NameDef(lua_Integer) n = NameDef(luaL_checkinteger)(L, arg);
         if (size < SZINT) {  /* need overflow check? */
           NameDef(lua_Integer) lim = (NameDef(lua_Integer))1 << ((size * NB) - 1);
@@ -1288,7 +1351,7 @@ static int str_pack (NameDef(lua_State) *L) {
         packint(&b, (NameDef(lua_Unsigned))n, h.islittle, size, (n < 0));
         break;
       }
-      case NameDef(Kuint): {  /* unsigned integers */
+      case Kuint: {  /* unsigned integers */
         NameDef(lua_Integer) n = NameDef(luaL_checkinteger)(L, arg);
         if (size < SZINT)  /* need overflow check? */
           luaL_argcheck(L, (NameDef(lua_Unsigned))n < ((NameDef(lua_Unsigned))1 << (size * NB)),
@@ -1296,7 +1359,7 @@ static int str_pack (NameDef(lua_State) *L) {
         packint(&b, (NameDef(lua_Unsigned))n, h.islittle, size, 0);
         break;
       }
-      case NameDef(Kfloat): {  /* floating-point options */
+      case Kfloat: {  /* floating-point options */
         volatile NameDef(Ftypes) u;
         char *buff = NameDef(luaL_prepbuffsize)(&b, size);
         NameDef(lua_Number) n = NameDef(luaL_checknumber)(L, arg);  /* get argument */
@@ -1308,14 +1371,17 @@ static int str_pack (NameDef(lua_State) *L) {
         luaL_addsize(&b, size);
         break;
       }
-      case NameDef(Kchar): {  /* fixed-size string */
+      case Kchar: {  /* fixed-size string */
         size_t len;
         const char *s = NameDef(luaL_checklstring)(L, arg, &len);
-        luaL_argcheck(L, len == (size_t)size, arg, "wrong length");
-        NameDef(luaL_addlstring)(&b, s, size);
+        luaL_argcheck(L, len <= (size_t)size, arg,
+                         "string longer than given size");
+        NameDef(luaL_addlstring)(&b, s, len);  /* add string */
+        while (len++ < (size_t)size)  /* pad extra space */
+          luaL_addchar(&b, LUAL_PACKPADBYTE);
         break;
       }
-      case NameDef(Kstring): {  /* strings with length count */
+      case Kstring: {  /* strings with length count */
         size_t len;
         const char *s = NameDef(luaL_checklstring)(L, arg, &len);
         luaL_argcheck(L, size >= (int)sizeof(size_t) ||
@@ -1326,7 +1392,7 @@ static int str_pack (NameDef(lua_State) *L) {
         totalsize += len;
         break;
       }
-      case NameDef(Kzstr): {  /* zero-terminated string */
+      case Kzstr: {  /* zero-terminated string */
         size_t len;
         const char *s = NameDef(luaL_checklstring)(L, arg, &len);
         luaL_argcheck(L, strlen(s) == len, arg, "string contains zeros");
@@ -1335,8 +1401,8 @@ static int str_pack (NameDef(lua_State) *L) {
         totalsize += len + 1;
         break;
       }
-      case NameDef(Kpadding): luaL_addchar(&b, LUA_PACKPADBYTE);  /* FALLTHROUGH */
-      case NameDef(Kpaddalign): case NameDef(Knop):
+      case Kpadding: luaL_addchar(&b, LUAL_PACKPADBYTE);  /* FALLTHROUGH */
+      case Kpaddalign: case Knop:
         arg--;  /* undo increment */
         break;
     }
@@ -1359,10 +1425,10 @@ static int str_packsize (NameDef(lua_State) *L) {
                      "format result too large");
     totalsize += size;
     switch (opt) {
-      case NameDef(Kstring):  /* strings with length count */
-      case NameDef(Kzstr):    /* zero-terminated string */
+      case Kstring:  /* strings with length count */
+      case Kzstr:    /* zero-terminated string */
         NameDef(luaL_argerror)(L, 1, "variable-length format");
-        break;
+        /* call never return, but to avoid warnings: *//* FALLTHROUGH */
       default:  break;
     }
   }
@@ -1424,14 +1490,14 @@ static int str_unpack (NameDef(lua_State) *L) {
     NameDef(luaL_checkstack)(L, 2, "too many results");
     n++;
     switch (opt) {
-      case NameDef(Kint):
-      case NameDef(Kuint): {
+      case Kint:
+      case Kuint: {
         NameDef(lua_Integer) res = unpackint(L, data + pos, h.islittle, size,
-                                       (opt == NameDef(Kint)));
+                                       (opt == Kint));
         NameDef(lua_pushinteger)(L, res);
         break;
       }
-      case NameDef(Kfloat): {
+      case Kfloat: {
         volatile NameDef(Ftypes) u;
         NameDef(lua_Number) num;
         copywithendian(u.buff, data + pos, size, h.islittle);
@@ -1441,24 +1507,24 @@ static int str_unpack (NameDef(lua_State) *L) {
         NameDef(lua_pushnumber)(L, num);
         break;
       }
-      case NameDef(Kchar): {
+      case Kchar: {
         NameDef(lua_pushlstring)(L, data + pos, size);
         break;
       }
-      case NameDef(Kstring): {
+      case Kstring: {
         size_t len = (size_t)unpackint(L, data + pos, h.islittle, size, 0);
         luaL_argcheck(L, pos + len + size <= ld, 2, "data string too short");
         NameDef(lua_pushlstring)(L, data + pos + size, len);
         pos += len;  /* skip string */
         break;
       }
-      case NameDef(Kzstr): {
+      case Kzstr: {
         size_t len = (int)strlen(data + pos);
         NameDef(lua_pushlstring)(L, data + pos, len);
         pos += len + 1;  /* skip string plus final '\0' */
         break;
       }
-      case NameDef(Kpaddalign): case NameDef(Kpadding): case NameDef(Knop):
+      case Kpaddalign: case Kpadding: case Knop:
         n--;  /* undo increment */
         break;
     }

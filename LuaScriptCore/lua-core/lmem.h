@@ -7,7 +7,6 @@
 #ifndef lmem_h
 #define lmem_h
 
-#include "LuaDefine.h"
 
 #include <stddef.h>
 

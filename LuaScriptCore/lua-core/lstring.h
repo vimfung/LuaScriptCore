@@ -1,13 +1,11 @@
 /*
-** $Id: lstring.h,v 1.59 2015/03/25 13:42:19 roberto Exp $
+** $Id: lstring.h,v 1.61 2015/11/03 15:36:01 roberto Exp $
 ** String table (keep all strings handled by Lua)
 ** See Copyright Notice in lua.h
 */
 
 #ifndef lstring_h
 #define lstring_h
-
-#include "LuaDefine.h"
 
 #include "lgc.h"
 #include "lobject.h"
@@ -35,15 +33,17 @@
 #define eqshrstr(a,b)	check_exp((a)->tt == LUA_TSHRSTR, (a) == (b))
 
 
-LUAI_FUNC unsigned int  NameDef(luaS_hash) (const char *str, size_t l, unsigned int seed);
-LUAI_FUNC int  NameDef(luaS_eqlngstr) (NameDef(TString) *a, NameDef(TString) *b);
-LUAI_FUNC void  NameDef(luaS_resize) (NameDef(lua_State) *L, int newsize);
-LUAI_FUNC void  NameDef(luaS_clearcache) (NameDef(global_State) *g);
-LUAI_FUNC void  NameDef(luaS_init) (NameDef(lua_State) *L);
-LUAI_FUNC void  NameDef(luaS_remove) (NameDef(lua_State) *L, NameDef(TString) *ts);
-LUAI_FUNC NameDef(Udata) * NameDef(luaS_newudata) (NameDef(lua_State) *L, size_t s);
-LUAI_FUNC NameDef(TString) * NameDef(luaS_newlstr) (NameDef(lua_State) *L, const char *str, size_t l);
-LUAI_FUNC NameDef(TString) * NameDef(luaS_new) (NameDef(lua_State) *L, const char *str);
+LUAI_FUNC unsigned int NameDef(luaS_hash) (const char *str, size_t l, unsigned int seed);
+LUAI_FUNC unsigned int NameDef(luaS_hashlongstr) (NameDef(TString) *ts);
+LUAI_FUNC int NameDef(luaS_eqlngstr) (NameDef(TString) *a, NameDef(TString) *b);
+LUAI_FUNC void NameDef(luaS_resize) (NameDef(lua_State) *L, int newsize);
+LUAI_FUNC void NameDef(luaS_clearcache) (NameDef(global_State) *g);
+LUAI_FUNC void NameDef(luaS_init) (NameDef(lua_State) *L);
+LUAI_FUNC void NameDef(luaS_remove) (NameDef(lua_State) *L, NameDef(TString) *ts);
+LUAI_FUNC NameDef(Udata) *NameDef(luaS_newudata) (NameDef(lua_State) *L, size_t s);
+LUAI_FUNC NameDef(TString) *NameDef(luaS_newlstr) (NameDef(lua_State) *L, const char *str, size_t l);
+LUAI_FUNC NameDef(TString) *NameDef(luaS_new) (NameDef(lua_State) *L, const char *str);
+LUAI_FUNC NameDef(TString) *NameDef(luaS_createlngstrobj) (NameDef(lua_State) *L, size_t l);
 
 
 #endif

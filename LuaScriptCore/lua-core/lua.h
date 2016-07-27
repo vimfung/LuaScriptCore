@@ -1,5 +1,5 @@
 /*
-** $Id: lua.h,v 1.328 2015/06/03 13:03:38 roberto Exp $
+** $Id: lua.h,v 1.331 2016/05/30 15:53:28 roberto Exp $
 ** Lua - A Scripting Language
 ** Lua.org, PUC-Rio, Brazil (http://www.lua.org)
 ** See Copyright Notice at the end of this file
@@ -8,8 +8,6 @@
 
 #ifndef lua_h
 #define lua_h
-
-#include "LuaDefine.h"
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -21,11 +19,11 @@
 #define LUA_VERSION_MAJOR	"5"
 #define LUA_VERSION_MINOR	"3"
 #define LUA_VERSION_NUM		503
-#define LUA_VERSION_RELEASE	"1"
+#define LUA_VERSION_RELEASE	"3"
 
 #define LUA_VERSION	"Lua " LUA_VERSION_MAJOR "." LUA_VERSION_MINOR
 #define LUA_RELEASE	LUA_VERSION "." LUA_VERSION_RELEASE
-#define LUA_COPYRIGHT	LUA_RELEASE "  Copyright (C) 1994-2015 Lua.org, PUC-Rio"
+#define LUA_COPYRIGHT	LUA_RELEASE "  Copyright (C) 1994-2016 Lua.org, PUC-Rio"
 #define LUA_AUTHORS	"R. Ierusalimschy, L. H. de Figueiredo, W. Celes"
 
 
@@ -347,7 +345,7 @@ LUA_API void      (NameDef(lua_setallocf)) (NameDef(lua_State) *L, NameDef(lua_A
 
 #define lua_newtable(L)		NameDef(lua_createtable)(L, 0, 0)
 
-#define lua_register(L,n,f) (lua_pushcfunction(L, (f)), lua_setglobal(L, (n)))
+#define lua_register(L,n,f) (lua_pushcfunction(L, (f)), NameDef(lua_setglobal)(L, (n)))
 
 #define lua_pushcfunction(L,f)	NameDef(lua_pushcclosure)(L, (f), 0)
 
@@ -363,7 +361,7 @@ LUA_API void      (NameDef(lua_setallocf)) (NameDef(lua_State) *L, NameDef(lua_A
 #define lua_pushliteral(L, s)	NameDef(lua_pushstring)(L, "" s)
 
 #define lua_pushglobaltable(L)  \
-	NameDef(lua_rawgeti)(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS)
+	((void)NameDef(lua_rawgeti)(L, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS))
 
 #define lua_tostring(L,i)	NameDef(lua_tolstring)(L, (i), NULL)
 
@@ -384,8 +382,8 @@ LUA_API void      (NameDef(lua_setallocf)) (NameDef(lua_State) *L, NameDef(lua_A
 */
 #if defined(LUA_COMPAT_APIINTCASTS)
 
-#define lua_pushunsigned(L,n)	lua_pushinteger(L, (lua_Integer)(n))
-#define lua_tounsignedx(L,i,is)	((lua_Unsigned)lua_tointegerx(L,i,is))
+#define lua_pushunsigned(L,n)	NameDef(lua_pushinteger)(L, (NameDef(lua_Integer))(n))
+#define lua_tounsignedx(L,i,is)	((NameDef(lua_Unsigned))NameDef(lua_tointegerx)(L,i,is))
 #define lua_tounsigned(L,i)	lua_tounsignedx(L,(i),NULL)
 
 #endif
@@ -462,7 +460,7 @@ struct NameDef(lua_Debug) {
 
 
 /******************************************************************************
-* Copyright (C) 1994-2015 Lua.org, PUC-Rio.
+* Copyright (C) 1994-2016 Lua.org, PUC-Rio.
 *
 * Permission is hereby granted, free of charge, to any person obtaining
 * a copy of this software and associated documentation files (the

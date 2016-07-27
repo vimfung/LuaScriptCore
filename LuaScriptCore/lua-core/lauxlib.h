@@ -1,5 +1,5 @@
 /*
-** $Id: lauxlib.h,v 1.128 2014/10/29 16:11:17 roberto Exp $
+** $Id: lauxlib.h,v 1.129 2015/11/23 11:29:43 roberto Exp $
 ** Auxiliary functions for building Lua libraries
 ** See Copyright Notice in lua.h
 */
@@ -8,7 +8,6 @@
 #ifndef lauxlib_h
 #define lauxlib_h
 
-#include "LuaDefine.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -66,7 +65,7 @@ LUALIB_API int (NameDef(luaL_checkoption)) (NameDef(lua_State) *L, int arg, cons
 LUALIB_API int (NameDef(luaL_fileresult)) (NameDef(lua_State) *L, int stat, const char *fname);
 LUALIB_API int (NameDef(luaL_execresult)) (NameDef(lua_State) *L, int stat);
 
-/* pre-defined references */
+/* predefined references */
 #define LUA_NOREF       (-2)
 #define LUA_REFNIL      (-1)
 
@@ -93,7 +92,7 @@ LUALIB_API void (NameDef(luaL_setfuncs)) (NameDef(lua_State) *L, const NameDef(l
 
 LUALIB_API int (NameDef(luaL_getsubtable)) (NameDef(lua_State) *L, int idx, const char *fname);
 
-LUALIB_API void (NameDef(luaL_traceback)) (NameDef(lua_State )*L, NameDef(lua_State) *L1,
+LUALIB_API void (NameDef(luaL_traceback)) (NameDef(lua_State) *L, NameDef(lua_State) *L1,
                                   const char *msg, int level);
 
 LUALIB_API void (NameDef(luaL_requiref)) (NameDef(lua_State) *L, const char *modname,
@@ -195,9 +194,9 @@ typedef struct NameDef(luaL_Stream) {
 /* compatibility with old module system */
 #if defined(LUA_COMPAT_MODULE)
 
-LUALIB_API void (NameDef(luaL_pushmodule)) (lua_State *L, const char *modname,
+LUALIB_API void (NameDef(luaL_pushmodule)) (NameDef(lua_State) *L, const char *modname,
                                    int sizehint);
-LUALIB_API void (NameDef(luaL_openlib)) (lua_State *L, const char *libname,
+LUALIB_API void (NameDef(luaL_openlib)) (NameDef(lua_State) *L, const char *libname,
                                 const luaL_Reg *l, int nup);
 
 #define luaL_register(L,n,l)	(luaL_openlib(L,(n),(l),0))
@@ -237,9 +236,9 @@ LUALIB_API void (NameDef(luaL_openlib)) (lua_State *L, const char *libname,
 */
 #if defined(LUA_COMPAT_APIINTCASTS)
 
-#define luaL_checkunsigned(L,a)	((lua_Unsigned)luaL_checkinteger(L,a))
+#define luaL_checkunsigned(L,a)	((NameDef(lua_Unsigned))luaL_checkinteger(L,a))
 #define luaL_optunsigned(L,a,d)	\
-	((lua_Unsigned)luaL_optinteger(L,a,(lua_Integer)(d)))
+	((NameDef(lua_Unsigned))luaL_optinteger(L,a,(NameDef(lua_Integer))(d)))
 
 #define luaL_checkint(L,n)	((int)luaL_checkinteger(L, (n)))
 #define luaL_optint(L,n,d)	((int)luaL_optinteger(L, (n), (d)))

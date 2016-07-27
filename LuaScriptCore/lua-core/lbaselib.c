@@ -1,13 +1,11 @@
 /*
-** $Id: lbaselib.c,v 1.310 2015/03/28 19:14:47 roberto Exp $
+** $Id: lbaselib.c,v 1.313 2016/04/11 19:18:40 roberto Exp $
 ** Basic library
 ** See Copyright Notice in lua.h
 */
 
 #define lbaselib_c
 #define LUA_LIB
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -88,8 +86,8 @@ static int luaB_tonumber (NameDef(lua_State) *L) {
     const char *s;
     NameDef(lua_Integer) n = 0;  /* to avoid warnings */
     NameDef(lua_Integer) base = NameDef(luaL_checkinteger)(L, 2);
-    NameDef(luaL_checktype)(L, 1, LUA_TSTRING);  /* before 'luaL_checklstring'! */
-    s = NameDef(luaL_checklstring)(L, 1, &l);
+    NameDef(luaL_checktype)(L, 1, LUA_TSTRING);  /* no numbers as strings */
+    s = NameDef(lua_tolstring)(L, 1, &l);
     luaL_argcheck(L, 2 <= base && base <= 36, 2, "base out of range");
     if (b_str2int(s, (int)base, &n) == s + l) {
       NameDef(lua_pushinteger)(L, n);
@@ -104,8 +102,8 @@ static int luaB_tonumber (NameDef(lua_State) *L) {
 static int luaB_error (NameDef(lua_State) *L) {
   int level = (int)NameDef(luaL_optinteger)(L, 2, 1);
   NameDef(lua_settop)(L, 1);
-  if (NameDef(lua_isstring)(L, 1) && level > 0) {  /* add extra information? */
-    NameDef(luaL_where)(L, level);
+  if (NameDef(lua_type)(L, 1) == LUA_TSTRING && level > 0) {
+    NameDef(luaL_where)(L, level);   /* add extra information */
     NameDef(lua_pushvalue)(L, 1);
     NameDef(lua_concat)(L, 2);
   }
@@ -200,12 +198,10 @@ static int luaB_collectgarbage (NameDef(lua_State) *L) {
 }
 
 
-/*
-** This function has all type names as upvalues, to maximize performance.
-*/
 static int luaB_type (NameDef(lua_State) *L) {
-  NameDef(luaL_checkany)(L, 1);
-  NameDef(lua_pushvalue)(L, lua_upvalueindex(NameDef(lua_type)(L, 1) + 1));
+  int t = NameDef(lua_type)(L, 1);
+  luaL_argcheck(L, t != LUA_TNONE, 1, "value expected");
+  NameDef(lua_pushstring)(L, NameDef(lua_typename)(L, t));
   return 1;
 }
 
@@ -245,18 +241,7 @@ static int luaB_pairs (NameDef(lua_State) *L) {
 
 
 /*
-** Traversal function for 'ipairs' for raw tables
-*/
-static int ipairsaux_raw (NameDef(lua_State) *L) {
-  NameDef(lua_Integer) i = NameDef(luaL_checkinteger)(L, 2) + 1;
-  NameDef(luaL_checktype)(L, 1, LUA_TTABLE);
-  NameDef(lua_pushinteger)(L, i);
-  return (NameDef(lua_rawgeti)(L, 1, i) == LUA_TNIL) ? 1 : 2;
-}
-
-
-/*
-** Traversal function for 'ipairs' for tables with metamethods
+** Traversal function for 'ipairs'
 */
 static int ipairsaux (NameDef(lua_State) *L) {
   NameDef(lua_Integer) i = NameDef(luaL_checkinteger)(L, 2) + 1;
@@ -266,18 +251,15 @@ static int ipairsaux (NameDef(lua_State) *L) {
 
 
 /*
-** This function will use either 'ipairsaux' or 'ipairsaux_raw' to
-** traverse a table, depending on whether the table has metamethods
-** that can affect the traversal.
+** 'ipairs' function. Returns 'ipairsaux', given "table", 0.
+** (The given "table" may not be a table.)
 */
 static int luaB_ipairs (NameDef(lua_State) *L) {
-  NameDef(lua_CFunction) iter = (NameDef(luaL_getmetafield)(L, 1, "__index") != LUA_TNIL)
-                       ? ipairsaux : ipairsaux_raw;
 #if defined(LUA_COMPAT_IPAIRS)
-  return pairsmeta(L, "__ipairs", 1, iter);
+  return pairsmeta(L, "__ipairs", 1, ipairsaux);
 #else
   NameDef(luaL_checkany)(L, 1);
-  lua_pushcfunction(L, iter);  /* iteration function */
+  lua_pushcfunction(L, ipairsaux);  /* iteration function */
   NameDef(lua_pushvalue)(L, 1);  /* state */
   NameDef(lua_pushinteger)(L, 0);  /* initial value */
   return 3;
@@ -492,9 +474,9 @@ static const NameDef(luaL_Reg) base_funcs[] = {
   {"setmetatable", luaB_setmetatable},
   {"tonumber", luaB_tonumber},
   {"tostring", luaB_tostring},
+  {"type", luaB_type},
   {"xpcall", luaB_xpcall},
   /* placeholders */
-  {"type", NULL},
   {"_G", NULL},
   {"_VERSION", NULL},
   {NULL, NULL}
@@ -502,7 +484,6 @@ static const NameDef(luaL_Reg) base_funcs[] = {
 
 
 LUAMOD_API int NameDef(luaopen_base) (NameDef(lua_State) *L) {
-  int i;
   /* open lib into global table */
   lua_pushglobaltable(L);
   NameDef(luaL_setfuncs)(L, base_funcs, 0);
@@ -512,11 +493,6 @@ LUAMOD_API int NameDef(luaopen_base) (NameDef(lua_State) *L) {
   /* set global _VERSION */
   lua_pushliteral(L, LUA_VERSION);
   NameDef(lua_setfield)(L, -2, "_VERSION");
-  /* set function 'type' with proper upvalues */
-  for (i = 0; i < LUA_NUMTAGS; i++)  /* push all type names as upvalues */
-    NameDef(lua_pushstring)(L, NameDef(lua_typename)(L, i));
-  NameDef(lua_pushcclosure)(L, luaB_type, LUA_NUMTAGS);
-  NameDef(lua_setfield)(L, -2, "type");
   return 1;
 }
 

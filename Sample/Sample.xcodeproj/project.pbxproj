@@ -374,6 +374,7 @@
 				7C8C2DF91D38C345009345EB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

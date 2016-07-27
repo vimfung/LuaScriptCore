@@ -1,13 +1,11 @@
 /*
-** $Id: liolib.c,v 2.144 2015/04/03 18:41:57 roberto Exp $
+** $Id: liolib.c,v 2.149 2016/05/02 14:03:19 roberto Exp $
 ** Standard I/O (and system) library
 ** See Copyright Notice in lua.h
 */
 
 #define liolib_c
 #define LUA_LIB
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -25,18 +23,24 @@
 #include "lualib.h"
 
 
-#if !defined(l_checkmode)
+
 
 /*
-** Check whether 'mode' matches '[rwa]%+?b?'.
 ** Change this macro to accept other modes for 'fopen' besides
 ** the standard ones.
 */
+#if !defined(l_checkmode)
+
+/* accepted extensions to 'mode' in 'fopen' */
+#if !defined(L_MODEEXT)
+#define L_MODEEXT	"b"
+#endif
+
+/* Check whether 'mode' matches '[rwa]%+?[L_MODEEXT]*' */
 #define l_checkmode(mode) \
 	(*mode != '\0' && strchr("rwa", *(mode++)) != NULL &&	\
-	(*mode != '+' || ++mode) &&  /* skip if char is '+' */	\
-	(*mode != 'b' || ++mode) &&  /* skip if char is 'b' */	\
-	(*mode == '\0'))
+	(*mode != '+' || (++mode, 1)) &&  /* skip if char is '+' */	\
+	(strspn(mode, L_MODEEXT) == strlen(mode)))
 
 #endif
 
@@ -134,18 +138,18 @@
 #define IO_OUTPUT	(IO_PREFIX "output")
 
 
-typedef NameDef(luaL_Stream) LStream;
+typedef NameDef(luaL_Stream) NameDef(LStream);
 
 
-#define tolstream(L)	((LStream *)NameDef(luaL_checkudata)(L, 1, LUA_FILEHANDLE))
+#define tolstream(L)	((NameDef(LStream) *)NameDef(luaL_checkudata)(L, 1, LUA_FILEHANDLE))
 
 #define isclosed(p)	((p)->closef == NULL)
 
 
 static int io_type (NameDef(lua_State) *L) {
-  LStream *p;
+  NameDef(LStream) *p;
   NameDef(luaL_checkany)(L, 1);
-  p = (LStream *)NameDef(luaL_testudata)(L, 1, LUA_FILEHANDLE);
+  p = (NameDef(LStream) *)NameDef(luaL_testudata)(L, 1, LUA_FILEHANDLE);
   if (p == NULL)
     NameDef(lua_pushnil)(L);  /* not a file */
   else if (isclosed(p))
@@ -157,7 +161,7 @@ static int io_type (NameDef(lua_State) *L) {
 
 
 static int f_tostring (NameDef(lua_State) *L) {
-  LStream *p = tolstream(L);
+  NameDef(LStream) *p = tolstream(L);
   if (isclosed(p))
     lua_pushliteral(L, "file (closed)");
   else
@@ -167,7 +171,7 @@ static int f_tostring (NameDef(lua_State) *L) {
 
 
 static FILE *tofile (NameDef(lua_State) *L) {
-  LStream *p = tolstream(L);
+  NameDef(LStream) *p = tolstream(L);
   if (isclosed(p))
     NameDef(luaL_error)(L, "attempt to use a closed file");
   lua_assert(p->f);
@@ -178,10 +182,10 @@ static FILE *tofile (NameDef(lua_State) *L) {
 /*
 ** When creating file handles, always creates a 'closed' file handle
 ** before opening the actual file; so, if there is a memory error, the
-** file is not left opened.
+** handle is in a consistent state.
 */
-static LStream *newprefile (NameDef(lua_State) *L) {
-  LStream *p = (LStream *)NameDef(lua_newuserdata)(L, sizeof(LStream));
+static NameDef(LStream) *newprefile (NameDef(lua_State) *L) {
+  NameDef(LStream) *p = (NameDef(LStream) *)NameDef(lua_newuserdata)(L, sizeof(NameDef(LStream)));
   p->closef = NULL;  /* mark file handle as 'closed' */
   NameDef(luaL_setmetatable)(L, LUA_FILEHANDLE);
   return p;
@@ -194,7 +198,7 @@ static LStream *newprefile (NameDef(lua_State) *L) {
 ** 32 bits).
 */
 static int aux_close (NameDef(lua_State) *L) {
-  LStream *p = tolstream(L);
+  NameDef(LStream) *p = tolstream(L);
   volatile NameDef(lua_CFunction) cf = p->closef;
   p->closef = NULL;  /* mark stream as closed */
   return (*cf)(L);  /* close it */
@@ -210,7 +214,7 @@ static int io_close (NameDef(lua_State) *L) {
 
 
 static int f_gc (NameDef(lua_State) *L) {
-  LStream *p = tolstream(L);
+  NameDef(LStream) *p = tolstream(L);
   if (!isclosed(p) && p->f != NULL)
     aux_close(L);  /* ignore closed and incompletely open files */
   return 0;
@@ -221,14 +225,14 @@ static int f_gc (NameDef(lua_State) *L) {
 ** function to close regular files
 */
 static int io_fclose (NameDef(lua_State) *L) {
-  LStream *p = tolstream(L);
+  NameDef(LStream) *p = tolstream(L);
   int res = fclose(p->f);
   return NameDef(luaL_fileresult)(L, (res == 0), NULL);
 }
 
 
-static LStream *newfile (NameDef(lua_State) *L) {
-  LStream *p = newprefile(L);
+static NameDef(LStream) *newfile (NameDef(lua_State) *L) {
+  NameDef(LStream) *p = newprefile(L);
   p->f = NULL;
   p->closef = &io_fclose;
   return p;
@@ -236,7 +240,7 @@ static LStream *newfile (NameDef(lua_State) *L) {
 
 
 static void opencheck (NameDef(lua_State) *L, const char *fname, const char *mode) {
-  LStream *p = newfile(L);
+  NameDef(LStream) *p = newfile(L);
   p->f = fopen(fname, mode);
   if (p->f == NULL)
     NameDef(luaL_error)(L, "cannot open file '%s' (%s)", fname, strerror(errno));
@@ -246,7 +250,7 @@ static void opencheck (NameDef(lua_State) *L, const char *fname, const char *mod
 static int io_open (NameDef(lua_State) *L) {
   const char *filename = luaL_checkstring(L, 1);
   const char *mode = luaL_optstring(L, 2, "r");
-  LStream *p = newfile(L);
+  NameDef(LStream) *p = newfile(L);
   const char *md = mode;  /* to traverse/check mode */
   luaL_argcheck(L, l_checkmode(md), 2, "invalid mode");
   p->f = fopen(filename, mode);
@@ -258,7 +262,7 @@ static int io_open (NameDef(lua_State) *L) {
 ** function to close 'popen' files
 */
 static int io_pclose (NameDef(lua_State) *L) {
-  LStream *p = tolstream(L);
+  NameDef(LStream) *p = tolstream(L);
   return NameDef(luaL_execresult)(L, l_pclose(L, p->f));
 }
 
@@ -266,7 +270,7 @@ static int io_pclose (NameDef(lua_State) *L) {
 static int io_popen (NameDef(lua_State) *L) {
   const char *filename = luaL_checkstring(L, 1);
   const char *mode = luaL_optstring(L, 2, "r");
-  LStream *p = newprefile(L);
+  NameDef(LStream) *p = newprefile(L);
   p->f = l_popen(L, filename, mode);
   p->closef = &io_pclose;
   return (p->f == NULL) ? NameDef(luaL_fileresult)(L, 0, filename) : 1;
@@ -274,16 +278,16 @@ static int io_popen (NameDef(lua_State) *L) {
 
 
 static int io_tmpfile (NameDef(lua_State) *L) {
-  LStream *p = newfile(L);
+  NameDef(LStream) *p = newfile(L);
   p->f = tmpfile();
   return (p->f == NULL) ? NameDef(luaL_fileresult)(L, 0, NULL) : 1;
 }
 
 
 static FILE *getiofile (NameDef(lua_State) *L, const char *findex) {
-  LStream *p;
+  NameDef(LStream) *p;
   NameDef(lua_getfield)(L, LUA_REGISTRYINDEX, findex);
-  p = (LStream *)NameDef(lua_touserdata)(L, -1);
+  p = (NameDef(LStream) *)NameDef(lua_touserdata)(L, -1);
   if (isclosed(p))
     NameDef(luaL_error)(L, "standard %s file is closed", findex + IOPREF_LEN);
   return p->f;
@@ -320,8 +324,15 @@ static int io_output (NameDef(lua_State) *L) {
 static int io_readline (NameDef(lua_State) *L);
 
 
+/*
+** maximum number of arguments to 'f:lines'/'io.lines' (it + 3 must fit
+** in the limit for upvalues of a closure)
+*/
+#define MAXARGLINE	250
+
 static void aux_lines (NameDef(lua_State) *L, int toclose) {
   int n = NameDef(lua_gettop)(L) - 1;  /* number of arguments to read */
+  luaL_argcheck(L, n <= MAXARGLINE, MAXARGLINE + 2, "too many arguments");
   NameDef(lua_pushinteger)(L, n);  /* number of arguments to read */
   NameDef(lua_pushboolean)(L, toclose);  /* close/not close file when finished */
   NameDef(lua_rotate)(L, 2, 2);  /* move 'n' and 'toclose' to their positions */
@@ -364,14 +375,17 @@ static int io_lines (NameDef(lua_State) *L) {
 
 
 /* maximum length of a numeral */
-#define MAXRN		200
+#if !defined (L_MAXLENNUM)
+#define L_MAXLENNUM     200
+#endif
+
 
 /* auxiliary structure used by 'read_number' */
 typedef struct {
   FILE *f;  /* file being read */
   int c;  /* current character (look ahead) */
   int n;  /* number of elements in buffer 'buff' */
-  char buff[MAXRN + 1];  /* +1 for ending '\0' */
+  char buff[L_MAXLENNUM + 1];  /* +1 for ending '\0' */
 } NameDef(RN);
 
 
@@ -379,7 +393,7 @@ typedef struct {
 ** Add current char to buffer (if not out of space) and read next one
 */
 static int nextc (NameDef(RN) *rn) {
-  if (rn->n >= MAXRN) {  /* buffer overflow? */
+  if (rn->n >= L_MAXLENNUM) {  /* buffer overflow? */
     rn->buff[0] = '\0';  /* invalidate result */
     return 0;  /* fail */
   }
@@ -392,10 +406,10 @@ static int nextc (NameDef(RN) *rn) {
 
 
 /*
-** Accept current char if it is in 'set' (of size 1 or 2)
+** Accept current char if it is in 'set' (of size 2)
 */
 static int test2 (NameDef(RN) *rn, const char *set) {
-  if (rn->c == set[0] || (rn->c == set[1] && rn->c != '\0'))
+  if (rn->c == set[0] || rn->c == set[1])
     return nextc(rn);
   else return 0;
 }
@@ -424,11 +438,11 @@ static int read_number (NameDef(lua_State) *L, FILE *f) {
   char decp[2];
   rn.f = f; rn.n = 0;
   decp[0] = lua_getlocaledecpoint();  /* get decimal point from locale */
-  decp[1] = '\0';
+  decp[1] = '.';  /* always accept a dot */
   l_lockfile(rn.f);
   do { rn.c = l_getc(rn.f); } while (isspace(rn.c));  /* skip spaces */
   test2(&rn, "-+");  /* optional signal */
-  if (test2(&rn, "0")) {
+  if (test2(&rn, "00")) {
     if (test2(&rn, "xX")) hex = 1;  /* numeral is hexadecimal */
     else count = 1;  /* count initial '0' as a valid digit */
   }
@@ -464,7 +478,7 @@ static int read_line (NameDef(lua_State) *L, FILE *f, int chop) {
   int c = '\0';
   NameDef(luaL_buffinit)(L, &b);
   while (c != EOF && c != '\n') {  /* repeat until end of line */
-    char *buff = luaL_prepbuffer(&b);  /* pre-allocate buffer */
+    char *buff = luaL_prepbuffer(&b);  /* preallocate buffer */
     int i = 0;
     l_lockfile(f);  /* no memory errors can happen inside the lock */
     while (i < LUAL_BUFFERSIZE && (c = l_getc(f)) != EOF && c != '\n')
@@ -485,7 +499,7 @@ static void read_all (NameDef(lua_State) *L, FILE *f) {
   NameDef(luaL_Buffer) b;
   NameDef(luaL_buffinit)(L, &b);
   do {  /* read file in chunks of LUAL_BUFFERSIZE bytes */
-    char *p = NameDef(luaL_prepbuffsize)(&b, LUAL_BUFFERSIZE);
+    char *p = luaL_prepbuffer(&b);
     nr = fread(p, sizeof(char), LUAL_BUFFERSIZE, f);
     luaL_addsize(&b, nr);
   } while (nr == LUAL_BUFFERSIZE);
@@ -567,7 +581,7 @@ static int f_read (NameDef(lua_State) *L) {
 
 
 static int io_readline (NameDef(lua_State) *L) {
-  LStream *p = (LStream *)NameDef(lua_touserdata)(L, lua_upvalueindex(1));
+  NameDef(LStream) *p = (NameDef(LStream) *)NameDef(lua_touserdata)(L, lua_upvalueindex(1));
   int i;
   int n = (int)lua_tointeger(L, lua_upvalueindex(2));
   if (isclosed(p))  /* file is already closed? */
@@ -721,7 +735,7 @@ static void createmeta (NameDef(lua_State) *L) {
 ** function to (not) close the standard files stdin, stdout, and stderr
 */
 static int io_noclose (NameDef(lua_State) *L) {
-  LStream *p = tolstream(L);
+  NameDef(LStream) *p = tolstream(L);
   p->closef = &io_noclose;  /* keep file opened */
   NameDef(lua_pushnil)(L);
   lua_pushliteral(L, "cannot close standard file");
@@ -731,7 +745,7 @@ static int io_noclose (NameDef(lua_State) *L) {
 
 static void createstdfile (NameDef(lua_State) *L, FILE *f, const char *k,
                            const char *fname) {
-  LStream *p = newprefile(L);
+  NameDef(LStream) *p = newprefile(L);
   p->f = f;
   p->closef = &io_noclose;
   if (k != NULL) {

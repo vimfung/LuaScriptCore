@@ -1,13 +1,11 @@
 /*
-** $Id: lgc.c,v 2.205 2015/03/25 13:42:19 roberto Exp $
+** $Id: lgc.c,v 2.212 2016/03/31 19:02:03 roberto Exp $
 ** Garbage Collector
 ** See Copyright Notice in lua.h
 */
 
 #define lgc_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -116,8 +114,13 @@ static void reallymarkobject (NameDef(global_State) *g, NameDef(GCObject) *o);
 
 
 /*
-** if key is not marked, mark its entry as dead (therefore removing it
-** from the table)
+** If key is not marked, mark its entry as dead. This allows key to be
+** collected, but keeps its entry in the table.  A dead node is needed
+** when Lua looks up for a key (it may be part of a chain) and when
+** traversing a weak table (key might be removed from the table during
+** traversal). Other places never manipulate dead keys, because its
+** associated nil value is enough to signal that the entry is logically
+** empty.
 */
 static void removeentry (NameDef(Node) *n) {
   lua_assert(ttisnil(gval(n)));
@@ -149,7 +152,7 @@ static int iscleared (NameDef(global_State) *g, const NameDef(TValue) *o) {
 ** object to white [sweep it] to avoid other barrier calls for this
 ** same object.)
 */
-void NameDef(luaC_barrier_) (NameDef(lua_State )*L, NameDef(GCObject) *o, NameDef(GCObject) *v) {
+void NameDef(luaC_barrier_) (NameDef(lua_State) *L, NameDef(GCObject) *o, NameDef(GCObject) *v) {
   NameDef(global_State) *g = G(L);
   lua_assert(isblack(o) && iswhite(v) && !isdead(g, v) && !isdead(g, o));
   if (keepinvariant(g))  /* must keep invariant? */
@@ -544,7 +547,8 @@ static NameDef(lu_mem) traversethread (NameDef(global_State) *g, NameDef(lua_Sta
   }
   else if (g->gckind != KGC_EMERGENCY)
     NameDef(luaD_shrinkstack)(th); /* do not change stack in emergency cycle */
-  return (sizeof(NameDef(lua_State)) + sizeof(NameDef(TValue)) * th->stacksize);
+  return (sizeof(NameDef(lua_State)) + sizeof(NameDef(TValue)) * th->stacksize +
+          sizeof(NameDef(CallInfo)) * th->nci);
 }
 
 
@@ -750,14 +754,11 @@ static NameDef(GCObject) **sweeplist (NameDef(lua_State) *L, NameDef(GCObject) *
 /*
 ** sweep a list until a live object (or end of list)
 */
-static NameDef(GCObject) **sweeptolive (NameDef(lua_State) *L, NameDef(GCObject) **p, int *n) {
+static NameDef(GCObject) **sweeptolive (NameDef(lua_State) *L, NameDef(GCObject) **p) {
   NameDef(GCObject) **old = p;
-  int i = 0;
   do {
-    i++;
     p = sweeplist(L, p, 1);
   } while (p == old);
-  if (n) *n += i;
   return p;
 }
 
@@ -771,12 +772,11 @@ static NameDef(GCObject) **sweeptolive (NameDef(lua_State) *L, NameDef(GCObject)
 */
 
 /*
-** If possible, free concatenation buffer and shrink string table
+** If possible, shrink string table
 */
 static void checkSizes (NameDef(lua_State) *L, NameDef(global_State) *g) {
   if (g->gckind != KGC_EMERGENCY) {
     NameDef(l_mem) olddebt = g->GCdebt;
-    luaZ_freebuffer(L, &g->buff);  /* free concatenation buffer */
     if (g->strt.nuse < g->strt.size / 4)  /* string table too big? */
       NameDef(luaS_resize)(L, g->strt.size / 2);  /* shrink it a little */
     g->GCestimate += g->GCdebt - olddebt;  /* update estimate */
@@ -799,7 +799,7 @@ static NameDef(GCObject) *udata2finalize (NameDef(global_State) *g) {
 
 static void dothecall (NameDef(lua_State) *L, void *ud) {
   UNUSED(ud);
-  NameDef(luaD_call)(L, L->top - 2, 0, 0);
+  NameDef(luaD_callnoyield)(L, L->top - 2, 0);
 }
 
 
@@ -853,10 +853,10 @@ static int runafewfinalizers (NameDef(lua_State) *L) {
 /*
 ** call all pending finalizers
 */
-static void callallpendingfinalizers (NameDef(lua_State) *L, int propagateerrors) {
+static void callallpendingfinalizers (NameDef(lua_State) *L) {
   NameDef(global_State) *g = G(L);
   while (g->tobefnz)
-    GCTM(L, propagateerrors);
+    GCTM(L, 0);
 }
 
 
@@ -906,7 +906,7 @@ void NameDef(luaC_checkfinalizer) (NameDef(lua_State) *L, NameDef(GCObject) *o, 
     if (issweepphase(g)) {
       makewhite(g, o);  /* "sweep" object 'o' */
       if (g->sweepgc == &o->next)  /* should not remove 'sweepgc' object */
-        g->sweepgc = sweeptolive(L, g->sweepgc, NULL);  /* change 'sweepgc' */
+        g->sweepgc = sweeptolive(L, g->sweepgc);  /* change 'sweepgc' */
     }
     /* search for pointer pointing to 'o' */
     for (p = &g->allgc; *p != o; p = &(*p)->next) { /* empty */ }
@@ -948,19 +948,16 @@ static void setpause (NameDef(global_State) *g) {
 
 /*
 ** Enter first sweep phase.
-** The call to 'sweeptolive' makes pointer point to an object inside
-** the list (instead of to the header), so that the real sweep do not
-** need to skip objects created between "now" and the start of the real
-** sweep.
-** Returns how many objects it swept.
+** The call to 'sweeplist' tries to make pointer point to an object
+** inside the list (instead of to the header), so that the real sweep do
+** not need to skip objects created between "now" and the start of the
+** real sweep.
 */
-static int entersweep (NameDef(lua_State) *L) {
+static void entersweep (NameDef(lua_State) *L) {
   NameDef(global_State) *g = G(L);
-  int n = 0;
   g->gcstate = GCSswpallgc;
   lua_assert(g->sweepgc == NULL);
-  g->sweepgc = sweeptolive(L, &g->allgc, &n);
-  return n;
+  g->sweepgc = sweeplist(L, &g->allgc, 1);
 }
 
 
@@ -968,7 +965,7 @@ void NameDef(luaC_freeallobjects) (NameDef(lua_State) *L) {
   NameDef(global_State) *g = G(L);
   separatetobefnz(g, 1);  /* separate all objects with finalizers */
   lua_assert(g->finobj == NULL);
-  callallpendingfinalizers(L, 0);
+  callallpendingfinalizers(L);
   lua_assert(g->tobefnz == NULL);
   g->currentwhite = WHITEBITS; /* this "white" makes all objects look dead */
   g->gckind = KGC_NORMAL;
@@ -1061,12 +1058,11 @@ static NameDef(lu_mem) singlestep (NameDef(lua_State) *L) {
     }
     case GCSatomic: {
       NameDef(lu_mem) work;
-      int sw;
       propagateall(g);  /* make sure gray list is empty */
       work = atomic(L);  /* work is what was traversed by 'atomic' */
-      sw = entersweep(L);
+      entersweep(L);
       g->GCestimate = gettotalbytes(g);  /* first estimate */;
-      return work + sw * GCSWEEPCOST;
+      return work;
     }
     case GCSswpallgc: {  /* sweep "regular" objects */
       return sweepstep(L, g, GCSswpfinobj, &g->finobj);
@@ -1116,9 +1112,12 @@ void NameDef(luaC_runtilstate) (NameDef(lua_State) *L, int statesmask) {
 static NameDef(l_mem) getdebt (NameDef(global_State) *g) {
   NameDef(l_mem) debt = g->GCdebt;
   int stepmul = g->gcstepmul;
-  debt = (debt / STEPMULADJ) + 1;
-  debt = (debt < MAX_LMEM / stepmul) ? debt * stepmul : MAX_LMEM;
-  return debt;
+  if (debt <= 0) return 0;  /* minimal debt */
+  else {
+    debt = (debt / STEPMULADJ) + 1;
+    debt = (debt < MAX_LMEM / stepmul) ? debt * stepmul : MAX_LMEM;
+    return debt;
+  }
 }
 
 /*

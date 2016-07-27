@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C4579271D48CA76005A0295 /* LSCContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DCC1D38C190009345EB /* LSCContext.m */; };
+		7C4579281D48CA76005A0295 /* LSCValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DD11D38C190009345EB /* LSCValue.m */; };
 		7C8C2DA71D38C184009345EB /* lapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2D681D38C184009345EB /* lapi.c */; };
 		7C8C2DA81D38C184009345EB /* lauxlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2D6A1D38C184009345EB /* lauxlib.c */; };
 		7C8C2DA91D38C184009345EB /* lbaselib.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2D6C1D38C184009345EB /* lbaselib.c */; };
@@ -43,8 +45,6 @@
 		7C8C2DC81D38C184009345EB /* lvm.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DA21D38C184009345EB /* lvm.c */; };
 		7C8C2DC91D38C184009345EB /* lzio.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DA41D38C184009345EB /* lzio.c */; };
 		7C8C2DCA1D38C184009345EB /* Makefile in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DA61D38C184009345EB /* Makefile */; };
-		7C8C2DD21D38C190009345EB /* LSCContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DCC1D38C190009345EB /* LSCContext.m */; };
-		7C8C2DD31D38C190009345EB /* LSCValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DD11D38C190009345EB /* LSCValue.m */; };
 		7C8C2DD41D38C19D009345EB /* LSCContext.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8C2DCB1D38C190009345EB /* LSCContext.h */; };
 		7C8C2DD51D38C19D009345EB /* LuaScriptCore.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8C2DCE1D38C190009345EB /* LuaScriptCore.h */; };
 		7C8C2DD61D38C19D009345EB /* LSCValue.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8C2DD01D38C190009345EB /* LSCValue.h */; };
@@ -120,7 +120,6 @@
 		7C8C2D9A1D38C184009345EB /* lua.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = lua.hpp; sourceTree = "<group>"; };
 		7C8C2D9B1D38C184009345EB /* luac.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = luac.c; sourceTree = "<group>"; };
 		7C8C2D9C1D38C184009345EB /* luaconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = luaconf.h; sourceTree = "<group>"; };
-		7C8C2D9D1D38C184009345EB /* LuaDefine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaDefine.h; sourceTree = "<group>"; };
 		7C8C2D9E1D38C184009345EB /* lualib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lualib.h; sourceTree = "<group>"; };
 		7C8C2D9F1D38C184009345EB /* lundump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lundump.c; sourceTree = "<group>"; };
 		7C8C2DA01D38C184009345EB /* lundump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lundump.h; sourceTree = "<group>"; };
@@ -136,6 +135,8 @@
 		7C8C2DCF1D38C190009345EB /* LSCValue_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCValue_Private.h; path = ios/LSCValue_Private.h; sourceTree = "<group>"; };
 		7C8C2DD01D38C190009345EB /* LSCValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCValue.h; path = ios/LSCValue.h; sourceTree = "<group>"; };
 		7C8C2DD11D38C190009345EB /* LSCValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCValue.m; path = ios/LSCValue.m; sourceTree = "<group>"; };
+		7CF153801D3F83D000ED4C61 /* LuaDefine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaDefine.h; sourceTree = "<group>"; };
+		7CF153811D3F83ED00ED4C61 /* PrefixHeader.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PrefixHeader.pch; path = ios/PrefixHeader.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,6 +169,8 @@
 		7C8C2D531D38C0C1009345EB /* LuaScriptCore */ = {
 			isa = PBXGroup;
 			children = (
+				7CF153811D3F83ED00ED4C61 /* PrefixHeader.pch */,
+				7CF153801D3F83D000ED4C61 /* LuaDefine.h */,
 				7C8C2DCB1D38C190009345EB /* LSCContext.h */,
 				7C8C2DCC1D38C190009345EB /* LSCContext.m */,
 				7C8C2DCE1D38C190009345EB /* LuaScriptCore.h */,
@@ -235,7 +238,6 @@
 				7C8C2D9A1D38C184009345EB /* lua.hpp */,
 				7C8C2D9B1D38C184009345EB /* luac.c */,
 				7C8C2D9C1D38C184009345EB /* luaconf.h */,
-				7C8C2D9D1D38C184009345EB /* LuaDefine.h */,
 				7C8C2D9E1D38C184009345EB /* lualib.h */,
 				7C8C2D9F1D38C184009345EB /* lundump.c */,
 				7C8C2DA01D38C184009345EB /* lundump.h */,
@@ -305,6 +307,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C4579271D48CA76005A0295 /* LSCContext.m in Sources */,
+				7C4579281D48CA76005A0295 /* LSCValue.m in Sources */,
 				7C8C2DC11D38C184009345EB /* ltable.c in Sources */,
 				7C8C2DB21D38C184009345EB /* lfunc.c in Sources */,
 				7C8C2DAD1D38C184009345EB /* lctype.c in Sources */,
@@ -331,8 +335,6 @@
 				7C8C2DC01D38C184009345EB /* lstrlib.c in Sources */,
 				7C8C2DBA1D38C184009345EB /* lobject.c in Sources */,
 				7C8C2DAF1D38C184009345EB /* ldebug.c in Sources */,
-				7C8C2DD31D38C190009345EB /* LSCValue.m in Sources */,
-				7C8C2DD21D38C190009345EB /* LSCContext.m in Sources */,
 				7C8C2DC21D38C184009345EB /* ltablib.c in Sources */,
 				7C8C2DBF1D38C184009345EB /* lstring.c in Sources */,
 				7C8C2DB41D38C184009345EB /* linit.c in Sources */,
@@ -434,6 +436,8 @@
 		7C8C2D5B1D38C0C1009345EB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "${PROJECT_DIR}/LuaScriptCore/ios/PrefixHeader.pch";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -443,6 +447,8 @@
 		7C8C2D5C1D38C0C1009345EB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "${PROJECT_DIR}/LuaScriptCore/ios/PrefixHeader.pch";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

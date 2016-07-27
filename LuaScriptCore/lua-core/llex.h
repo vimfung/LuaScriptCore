@@ -1,13 +1,11 @@
 /*
-** $Id: llex.h,v 1.78 2014/10/29 15:38:24 roberto Exp $
+** $Id: llex.h,v 1.79 2016/05/02 14:02:12 roberto Exp $
 ** Lexical Analyzer
 ** See Copyright Notice in lua.h
 */
 
 #ifndef llex_h
 #define llex_h
-
-#include "LuaDefine.h"
 
 #include "lobject.h"
 #include "lzio.h"
@@ -32,7 +30,7 @@ enum NameDef(RESERVED) {
   NameDef(TK_GOTO), NameDef(TK_IF), NameDef(TK_IN), NameDef(TK_LOCAL), NameDef(TK_NIL), NameDef(TK_NOT), NameDef(TK_OR), NameDef(TK_REPEAT),
   NameDef(TK_RETURN), NameDef(TK_THEN), NameDef(TK_TRUE), NameDef(TK_UNTIL), NameDef(TK_WHILE),
   /* other terminal symbols */
-  NameDef(TK_IDIV), NameDef(TK_CONCAT), NameDef(TK_DOTS), NameDef(TK_EQ), NameDef(TK_GE), NameDef(TK_LE), NameDef(TK_NE),
+  NameDef(TK_IDIV), NameDef(TK_CONCAT),NameDef(TK_DOTS), NameDef(TK_EQ), NameDef(TK_GE), NameDef(TK_LE), NameDef(TK_NE),
   NameDef(TK_SHL), NameDef(TK_SHR),
   NameDef(TK_DBCOLON), NameDef(TK_EOS),
   NameDef(TK_FLT), NameDef(TK_INT), NameDef(TK_NAME), NameDef(TK_STRING)
@@ -52,7 +50,7 @@ typedef union {
 typedef struct NameDef(Token) {
   int token;
   NameDef(SemInfo) seminfo;
-} Token;
+} NameDef(Token);
 
 
 /* state of the lexer plus state of the parser when shared by all
@@ -61,8 +59,8 @@ typedef struct NameDef(LexState) {
   int current;  /* current character (charint) */
   int linenumber;  /* input line counter */
   int lastline;  /* line of last token 'consumed' */
-  Token t;  /* current token */
-  Token lookahead;  /* look ahead token */
+  NameDef(Token) t;  /* current token */
+  NameDef(Token) lookahead;  /* look ahead token */
   struct NameDef(FuncState) *fs;  /* current function (parser) */
   struct NameDef(lua_State) *L;
   NameDef(ZIO) *z;  /* input stream */
@@ -71,7 +69,6 @@ typedef struct NameDef(LexState) {
   struct NameDef(Dyndata) *dyd;  /* dynamic structures used by the parser */
   NameDef(TString) *source;  /* current source name */
   NameDef(TString) *envn;  /* environment variable name */
-  char decpoint;  /* locale decimal point */
 } NameDef(LexState);
 
 

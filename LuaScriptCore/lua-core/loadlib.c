@@ -1,5 +1,5 @@
 /*
-** $Id: loadlib.c,v 1.126 2015/02/16 13:14:33 roberto Exp $
+** $Id: loadlib.c,v 1.127 2015/11/23 11:30:45 roberto Exp $
 ** Dynamic library loader for Lua
 ** See Copyright Notice in lua.h
 **
@@ -10,8 +10,6 @@
 
 #define loadlib_c
 #define LUA_LIB
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -144,9 +142,9 @@ static NameDef(lua_CFunction) lsys_sym (NameDef(lua_State) *L, void *lib, const 
 ** (The '__extension__' in gnu compilers is only to avoid warnings.)
 */
 #if defined(__GNUC__)
-#define cast_func(p) (__extension__ (lua_CFunction)(p))
+#define cast_func(p) (__extension__ (NameDef(lua_CFunction))(p))
 #else
-#define cast_func(p) ((lua_CFunction)(p))
+#define cast_func(p) ((NameDef(lua_CFunction))(p))
 #endif
 
 
@@ -155,16 +153,16 @@ static void lsys_unloadlib (void *lib) {
 }
 
 
-static void *lsys_load (lua_State *L, const char *path, int seeglb) {
+static void *lsys_load (NameDef(lua_State) *L, const char *path, int seeglb) {
   void *lib = dlopen(path, RTLD_NOW | (seeglb ? RTLD_GLOBAL : RTLD_LOCAL));
-  if (lib == NULL) lua_pushstring(L, dlerror());
+  if (lib == NULL) NameDef(lua_pushstring)(L, dlerror());
   return lib;
 }
 
 
-static lua_CFunction lsys_sym (lua_State *L, void *lib, const char *sym) {
-  lua_CFunction f = cast_func(dlsym(lib, sym));
-  if (f == NULL) lua_pushstring(L, dlerror());
+static NameDef(lua_CFunction) lsys_sym (NameDef(lua_State) *L, void *lib, const char *sym) {
+  NameDef(lua_CFunction) f = cast_func(dlsym(lib, sym));
+  if (f == NULL) NameDef(lua_pushstring)(L, dlerror());
   return f;
 }
 
@@ -191,7 +189,7 @@ static lua_CFunction lsys_sym (lua_State *L, void *lib, const char *sym) {
 #endif
 
 
-static void setprogdir (lua_State *L) {
+static void setprogdir (NameDef(lua_State) *L) {
   char buff[MAX_PATH + 1];
   char *lb;
   DWORD nsize = sizeof(buff)/sizeof(char);
@@ -206,14 +204,14 @@ static void setprogdir (lua_State *L) {
 }
 
 
-static void pusherror (lua_State *L) {
+static void pusherror (NameDef(lua_State) *L) {
   int error = GetLastError();
   char buffer[128];
   if (FormatMessageA(FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_FROM_SYSTEM,
       NULL, error, 0, buffer, sizeof(buffer)/sizeof(char), NULL))
-    lua_pushstring(L, buffer);
+    NameDef(lua_pushstring)(L, buffer);
   else
-    lua_pushfstring(L, "system error %d\n", error);
+    NameDef(lua_pushfstring)(L, "system error %d\n", error);
 }
 
 static void lsys_unloadlib (void *lib) {
@@ -221,7 +219,7 @@ static void lsys_unloadlib (void *lib) {
 }
 
 
-static void *lsys_load (lua_State *L, const char *path, int seeglb) {
+static void *lsys_load (NameDef(lua_State) *L, const char *path, int seeglb) {
   HMODULE lib = LoadLibraryExA(path, NULL, LUA_LLE_FLAGS);
   (void)(seeglb);  /* not used: symbols are 'global' by default */
   if (lib == NULL) pusherror(L);
@@ -229,8 +227,8 @@ static void *lsys_load (lua_State *L, const char *path, int seeglb) {
 }
 
 
-static lua_CFunction lsys_sym (lua_State *L, void *lib, const char *sym) {
-  lua_CFunction f = (lua_CFunction)GetProcAddress((HMODULE)lib, sym);
+static NameDef(lua_CFunction) lsys_sym (NameDef(lua_State) *L, void *lib, const char *sym) {
+  NameDef(lua_CFunction) f = (NameDef(lua_CFunction))GetProcAddress((HMODULE)lib, sym);
   if (f == NULL) pusherror(L);
   return f;
 }
@@ -594,72 +592,72 @@ static int ll_require (NameDef(lua_State) *L) {
 /*
 ** changes the environment variable of calling function
 */
-static void set_env (lua_State *L) {
-  lua_Debug ar;
-  if (lua_getstack(L, 1, &ar) == 0 ||
-      lua_getinfo(L, "f", &ar) == 0 ||  /* get calling function */
-      lua_iscfunction(L, -1))
+static void set_env (NameDef(lua_State) *L) {
+  NameDef(lua_Debug) ar;
+  if (NameDef(lua_getstack)(L, 1, &ar) == 0 ||
+      NameDef(lua_getinfo)(L, "f", &ar) == 0 ||  /* get calling function */
+      NameDef(lua_iscfunction)(L, -1))
     luaL_error(L, "'module' not called from a Lua function");
-  lua_pushvalue(L, -2);  /* copy new environment table to top */
-  lua_setupvalue(L, -2, 1);
+  NameDef(lua_pushvalue)(L, -2);  /* copy new environment table to top */
+  NameDef(lua_setupvalue)(L, -2, 1);
   lua_pop(L, 1);  /* remove function */
 }
 
 
-static void dooptions (lua_State *L, int n) {
+static void dooptions (NameDef(lua_State) *L, int n) {
   int i;
   for (i = 2; i <= n; i++) {
     if (lua_isfunction(L, i)) {  /* avoid 'calling' extra info. */
-      lua_pushvalue(L, i);  /* get option (a function) */
-      lua_pushvalue(L, -2);  /* module */
+      NameDef(lua_pushvalue)(L, i);  /* get option (a function) */
+      NameDef(lua_pushvalue)(L, -2);  /* module */
       lua_call(L, 1, 0);
     }
   }
 }
 
 
-static void modinit (lua_State *L, const char *modname) {
+static void modinit (NameDef(lua_State) *L, const char *modname) {
   const char *dot;
-  lua_pushvalue(L, -1);
-  lua_setfield(L, -2, "_M");  /* module._M = module */
-  lua_pushstring(L, modname);
-  lua_setfield(L, -2, "_NAME");
+  NameDef(lua_pushvalue)(L, -1);
+  NameDef(lua_setfield)(L, -2, "_M");  /* module._M = module */
+  NameDef(lua_pushstring)(L, modname);
+  NameDef(lua_setfield)(L, -2, "_NAME");
   dot = strrchr(modname, '.');  /* look for last dot in module name */
   if (dot == NULL) dot = modname;
   else dot++;
   /* set _PACKAGE as package name (full module name minus last part) */
-  lua_pushlstring(L, modname, dot - modname);
-  lua_setfield(L, -2, "_PACKAGE");
+  NameDef(lua_pushlstring)(L, modname, dot - modname);
+  NameDef(lua_setfield)(L, -2, "_PACKAGE");
 }
 
 
-static int ll_module (lua_State *L) {
+static int ll_module (NameDef(lua_State) *L) {
   const char *modname = luaL_checkstring(L, 1);
-  int lastarg = lua_gettop(L);  /* last parameter */
+  int lastarg = NameDef(lua_gettop)(L);  /* last parameter */
   luaL_pushmodule(L, modname, 1);  /* get/create module table */
   /* check whether table already has a _NAME field */
-  if (lua_getfield(L, -1, "_NAME") != LUA_TNIL)
+  if (NameDef(lua_getfield)(L, -1, "_NAME") != LUA_TNIL)
     lua_pop(L, 1);  /* table is an initialized module */
   else {  /* no; initialize it */
     lua_pop(L, 1);
     modinit(L, modname);
   }
-  lua_pushvalue(L, -1);
+  NameDef(lua_pushvalue)(L, -1);
   set_env(L);
   dooptions(L, lastarg);
   return 1;
 }
 
 
-static int ll_seeall (lua_State *L) {
+static int ll_seeall (NameDef(lua_State) *L) {
   luaL_checktype(L, 1, LUA_TTABLE);
-  if (!lua_getmetatable(L, 1)) {
-    lua_createtable(L, 0, 1); /* create new metatable */
-    lua_pushvalue(L, -1);
-    lua_setmetatable(L, 1);
+  if (!NameDef(lua_getmetatable)(L, 1)) {
+    NameDef(lua_createtable)(L, 0, 1); /* create new metatable */
+    NameDef(lua_pushvalue)(L, -1);
+    NameDef(lua_setmetatable)(L, 1);
   }
   lua_pushglobaltable(L);
-  lua_setfield(L, -2, "__index");  /* mt.__index = _G */
+  NameDef(lua_setfield)(L, -2, "__index");  /* mt.__index = _G */
   return 0;
 }
 
@@ -734,7 +732,7 @@ static void createsearcherstable (NameDef(lua_State) *L) {
   int i;
   /* create 'searchers' table */
   NameDef(lua_createtable)(L, sizeof(searchers)/sizeof(searchers[0]) - 1, 0);
-  /* fill it with pre-defined searchers */
+  /* fill it with predefined searchers */
   for (i=0; searchers[i] != NULL; i++) {
     NameDef(lua_pushvalue)(L, -2);  /* set 'package' as upvalue for all searchers */
     NameDef(lua_pushcclosure)(L, searchers[i], 1);

@@ -1,12 +1,10 @@
 /*
-** $Id: lua.c,v 1.225 2015/03/30 15:42:59 roberto Exp $
+** $Id: lua.c,v 1.226 2015/08/14 19:11:20 roberto Exp $
 ** Lua stand-alone interpreter
 ** See Copyright Notice in lua.h
 */
 
 #define lua_c
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -326,24 +324,20 @@ static int pushline (NameDef(lua_State) *L, int firstline) {
 
 
 /*
-** Try to compile line on the stack as 'return <line>'; on return, stack
+** Try to compile line on the stack as 'return <line>;'; on return, stack
 ** has either compiled chunk or original line (if compilation failed).
 */
 static int addreturn (NameDef(lua_State) *L) {
-  int status;
-  size_t len; const char *line;
-  lua_pushliteral(L, "return ");
-  NameDef(lua_pushvalue)(L, -2);  /* duplicate line */
-  NameDef(lua_concat)(L, 2);  /* new line is "return ..." */
-  line = NameDef(lua_tolstring)(L, -1, &len);
-  if ((status = luaL_loadbuffer(L, line, len, "=stdin")) == LUA_OK) {
-    lua_remove(L, -3);  /* remove original line */
-    line += sizeof("return")/sizeof(char);  /* remove 'return' for history */
+  const char *line = lua_tostring(L, -1);  /* original line */
+  const char *retline = NameDef(lua_pushfstring)(L, "return %s;", line);
+  int status = luaL_loadbuffer(L, retline, strlen(retline), "=stdin");
+  if (status == LUA_OK) {
+    lua_remove(L, -2);  /* remove modified line */
     if (line[0] != '\0')  /* non empty? */
       lua_saveline(L, line);  /* keep history */
   }
   else
-    lua_pop(L, 2);  /* remove result from 'luaL_loadbuffer' and new line */
+    lua_pop(L, 2);  /* pop result from 'luaL_loadbuffer' and modified line */
   return status;
 }
 
@@ -381,7 +375,7 @@ static int loadline (NameDef(lua_State) *L) {
   if ((status = addreturn(L)) != LUA_OK)  /* 'return ...' did not work? */
     status = multiline(L);  /* try as command, maybe with continuation lines */
   lua_remove(L, 1);  /* remove line from the stack */
-  lua_assert(lua_gettop(L) == 1);
+  lua_assert(NameDef(lua_gettop)(L) == 1);
   return status;
 }
 

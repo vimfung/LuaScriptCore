@@ -1,13 +1,11 @@
 /*
-** $Id: ltm.c,v 2.34 2015/03/30 15:42:27 roberto Exp $
+** $Id: ltm.c,v 2.37 2016/02/26 19:20:15 roberto Exp $
 ** Tag methods
 ** See Copyright Notice in lua.h
 */
 
 #define ltm_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -59,8 +57,8 @@ void NameDef(luaT_init) (NameDef(lua_State) *L) {
 ** tag methods
 */
 const NameDef(TValue) *NameDef(luaT_gettm) (NameDef(Table) *events, NameDef(TMS) event, NameDef(TString) *ename) {
-  const NameDef(TValue) *tm = NameDef(luaH_getstr)(events, ename);
-  lua_assert(event <= TM_EQ);
+  const NameDef(TValue) *tm = NameDef(luaH_getshortstr)(events, ename);
+  lua_assert(event <= NameDef(TM_EQ));
   if (ttisnil(tm)) {  /* no tag method? */
     events->flags |= cast_byte(1u<<event);  /* cache this fact */
     return NULL;
@@ -81,20 +79,41 @@ const NameDef(TValue) *NameDef(luaT_gettmbyobj) (NameDef(lua_State) *L, const Na
     default:
       mt = G(L)->mt[ttnov(o)];
   }
-  return (mt ? NameDef(luaH_getstr)(mt, G(L)->tmname[event]) : luaO_nilobject);
+  return (mt ? NameDef(luaH_getshortstr)(mt, G(L)->tmname[event]) : luaO_nilobject);
+}
+
+
+/*
+** Return the name of the type of an object. For tables and userdata
+** with metatable, use their '__name' metafield, if present.
+*/
+const char *NameDef(luaT_objtypename) (NameDef(lua_State) *L, const NameDef(TValue) *o) {
+  NameDef(Table) *mt;
+  if ((ttistable(o) && (mt = hvalue(o)->metatable) != NULL) ||
+      (ttisfulluserdata(o) && (mt = uvalue(o)->metatable) != NULL)) {
+    const NameDef(TValue) *name = NameDef(luaH_getshortstr)(mt, NameDef(luaS_new)(L, "__name"));
+    if (ttisstring(name))  /* is '__name' a string? */
+      return getstr(tsvalue(name));  /* use it as type name */
+  }
+  return ttypename(ttnov(o));  /* else use standard type name */
 }
 
 
 void NameDef(luaT_callTM) (NameDef(lua_State) *L, const NameDef(TValue) *f, const NameDef(TValue) *p1,
                   const NameDef(TValue) *p2, NameDef(TValue) *p3, int hasres) {
   ptrdiff_t result = savestack(L, p3);
-  setobj2s(L, L->top++, f);  /* push function (assume EXTRA_STACK) */
-  setobj2s(L, L->top++, p1);  /* 1st argument */
-  setobj2s(L, L->top++, p2);  /* 2nd argument */
+  NameDef(StkId) func = L->top;
+  setobj2s(L, func, f);  /* push function (assume EXTRA_STACK) */
+  setobj2s(L, func + 1, p1);  /* 1st argument */
+  setobj2s(L, func + 2, p2);  /* 2nd argument */
+  L->top += 3;
   if (!hasres)  /* no result? 'p3' is third argument */
     setobj2s(L, L->top++, p3);  /* 3rd argument */
   /* metamethod may yield only when called from Lua code */
-  NameDef(luaD_call)(L, L->top - (4 - hasres), hasres, isLua(L->ci));
+  if (isLua(L->ci))
+    NameDef(luaD_call)(L, func, hasres);
+  else
+    NameDef(luaD_callnoyield)(L, func, hasres);
   if (hasres) {  /* if has result, move it to its place */
     p3 = restorestack(L, result);
     setobjs2s(L, p3, --L->top);

@@ -1,13 +1,11 @@
 /*
-** $Id: llex.c,v 2.93 2015/05/22 17:45:56 roberto Exp $
+** $Id: llex.c,v 2.96 2016/05/02 14:02:12 roberto Exp $
 ** Lexical Analyzer
 ** See Copyright Notice in lua.h
 */
 
 #define llex_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -164,7 +162,6 @@ static void inclinenumber (NameDef(LexState) *ls) {
 void NameDef(luaX_setinput) (NameDef(lua_State) *L, NameDef(LexState) *ls, NameDef(ZIO) *z, NameDef(TString) *source,
                     int firstchar) {
   ls->t.token = 0;
-  ls->decpoint = '.';
   ls->L = L;
   ls->current = firstchar;
   ls->lookahead.token = NameDef(TK_EOS);  /* no look-ahead token */
@@ -209,37 +206,6 @@ static int check_next2 (NameDef(LexState) *ls, const char *set) {
 }
 
 
-/*
-** change all characters 'from' in buffer to 'to'
-*/
-static void buffreplace (NameDef(LexState) *ls, char from, char to) {
-  if (from != to) {
-    size_t n = luaZ_bufflen(ls->buff);
-    char *p = luaZ_buffer(ls->buff);
-    while (n--)
-      if (p[n] == from) p[n] = to;
-  }
-}
-
-
-#define buff2num(b,o)	(NameDef(luaO_str2num)(luaZ_buffer(b), o) != 0)
-
-/*
-** in case of format error, try to change decimal point separator to
-** the one defined in the current locale and check again
-*/
-static void trydecpoint (NameDef(LexState) *ls, NameDef(TValue) *o) {
-  char old = ls->decpoint;
-  ls->decpoint = lua_getlocaledecpoint();
-  buffreplace(ls, old, ls->decpoint);  /* try new decimal separator */
-  if (!buff2num(ls->buff, o)) {
-    /* format error with correct decimal point: no more options */
-    buffreplace(ls, ls->decpoint, '.');  /* undo change (for error message) */
-    lexerror(ls, "malformed number", NameDef(TK_FLT));
-  }
-}
-
-
 /* LUA_NUMBER */
 /*
 ** this function is quite liberal in what it accepts, as 'luaO_str2num'
@@ -263,9 +229,8 @@ static int read_numeral (NameDef(LexState) *ls, NameDef(SemInfo) *seminfo) {
     else break;
   }
   save(ls, '\0');
-  buffreplace(ls, '.', ls->decpoint);  /* follow locale for decimal point */
-  if (!buff2num(ls->buff, &obj))  /* format error? */
-    trydecpoint(ls, &obj); /* try to update decimal point separator */
+  if (NameDef(luaO_str2num)(luaZ_buffer(ls->buff), &obj) == 0)  /* format error? */
+    lexerror(ls, "malformed number", NameDef(TK_FLT));
   if (ttisinteger(&obj)) {
     seminfo->i = ivalue(&obj);
     return NameDef(TK_INT);
@@ -279,7 +244,7 @@ static int read_numeral (NameDef(LexState) *ls, NameDef(SemInfo) *seminfo) {
 
 
 /*
-** skip a sequence '[=*[' or ']=*]'; if sequence is wellformed, return
+** skip a sequence '[=*[' or ']=*]'; if sequence is well formed, return
 ** its number of '='s; otherwise, return a negative number (-1 iff there
 ** are no '='s after initial bracket)
 */
@@ -593,7 +558,7 @@ void NameDef(luaX_next) (NameDef(LexState) *ls) {
 
 
 int NameDef(luaX_lookahead) (NameDef(LexState) *ls) {
-  lua_assert(ls->lookahead.token == NameDef(TK_EOS));
+  lua_assert(ls->lookahead.token == TK_EOS);
   ls->lookahead.token = llex(ls, &ls->lookahead.seminfo);
   return ls->lookahead.token;
 }

@@ -1,13 +1,11 @@
 /*
-** $Id: lstate.h,v 2.122 2015/06/01 16:34:37 roberto Exp $
+** $Id: lstate.h,v 2.130 2015/12/16 16:39:38 roberto Exp $
 ** Global State
 ** See Copyright Notice in lua.h
 */
 
 #ifndef lstate_h
 #define lstate_h
-
-#include "LuaDefine.h"
 
 #include "lua.h"
 
@@ -34,6 +32,15 @@
 
 struct NameDef(lua_longjmp);  /* defined in ldo.c */
 
+
+/*
+** Atomic type (relative to signals) to better ensure that 'lua_sethook' 
+** is thread safe
+*/
+#if !defined(l_signalT)
+#include <signal.h>
+#define l_signalT	sig_atomic_t
+#endif
 
 
 /* extra stack space to handle TM calls and some other extras */
@@ -65,7 +72,7 @@ typedef struct NameDef(stringtable) {
 ** function can be called with the correct top.
 */
 typedef struct NameDef(CallInfo) {
-  NameDef(StkId) func;  /* function index in the stack */
+    NameDef(StkId) func;  /* function index in the stack */
   NameDef(StkId)	top;  /* top for this function */
   struct NameDef(CallInfo) *previous, *next;  /* dynamic call link */
   union {
@@ -91,8 +98,8 @@ typedef struct NameDef(CallInfo) {
 #define CIST_OAH	(1<<0)	/* original value of 'allowhook' */
 #define CIST_LUA	(1<<1)	/* call is running a Lua function */
 #define CIST_HOOKED	(1<<2)	/* call is running a debug hook */
-#define CIST_REENTRY	(1<<3)	/* call is running on same invocation of
-                                   luaV_execute of previous call */
+#define CIST_FRESH	(1<<3)	/* call is running on a fresh invocation
+                                   of luaV_execute */
 #define CIST_YPCALL	(1<<4)	/* call is a yieldable protected call */
 #define CIST_TAIL	(1<<5)	/* call was tail called */
 #define CIST_HOOKYIELD	(1<<6)	/* last hook called yielded */
@@ -111,7 +118,7 @@ typedef struct NameDef(CallInfo) {
 typedef struct NameDef(global_State) {
   NameDef(lua_Alloc) frealloc;  /* function to reallocate memory */
   void *ud;         /* auxiliary data to 'frealloc' */
-  NameDef(lu_mem) totalbytes;  /* number of bytes currently allocated - GCdebt */
+  NameDef(l_mem) totalbytes;  /* number of bytes currently allocated - GCdebt */
   NameDef(l_mem) GCdebt;  /* bytes allocated not yet compensated by the collector */
   NameDef(lu_mem) GCmemtrav;  /* memory traversed by the GC */
   NameDef(lu_mem) GCestimate;  /* an estimate of the non-garbage memory in use */
@@ -133,7 +140,6 @@ typedef struct NameDef(global_State) {
   NameDef(GCObject) *tobefnz;  /* list of userdata to be GC */
   NameDef(GCObject) *fixedgc;  /* list of objects not to be collected */
   struct NameDef(lua_State) *twups;  /* list of threads with open upvalues */
-  NameDef(Mbuffer) buff;  /* temporary buffer for string concatenation */
   unsigned int gcfinnum;  /* number of finalizers to call in each GC step */
   int gcpause;  /* size of pause between successive GCs */
   int gcstepmul;  /* GC 'granularity' */
@@ -143,7 +149,7 @@ typedef struct NameDef(global_State) {
   NameDef(TString) *memerrmsg;  /* memory-error message */
   NameDef(TString) *tmname[NameDef(TM_N)];  /* array with tag-method names */
   struct NameDef(Table) *mt[LUA_NUMTAGS];  /* metatables for basic types */
-  NameDef(TString) *strcache[STRCACHE_SIZE][1];  /* cache for strings in API */
+  NameDef(TString) *strcache[STRCACHE_N][STRCACHE_M];  /* cache for strings in API */
 } NameDef(global_State);
 
 
@@ -152,6 +158,7 @@ typedef struct NameDef(global_State) {
 */
 struct NameDef(lua_State) {
   CommonHeader;
+  unsigned short nci;  /* number of items in 'ci' list */
   NameDef(lu_byte) status;
   NameDef(StkId) top;  /* first free slot in the stack */
   NameDef(global_State) *l_G;
@@ -164,14 +171,14 @@ struct NameDef(lua_State) {
   struct NameDef(lua_State) *twups;  /* list of threads with open upvalues */
   struct NameDef(lua_longjmp) *errorJmp;  /* current error recover point */
   NameDef(CallInfo) base_ci;  /* CallInfo for first level (C calling Lua) */
-  NameDef(lua_Hook) hook;
+  volatile NameDef(lua_Hook) hook;
   ptrdiff_t errfunc;  /* current error handling function (stack index) */
   int stacksize;
   int basehookcount;
   int hookcount;
   unsigned short nny;  /* number of non-yieldable calls in stack */
   unsigned short nCcalls;  /* number of nested C calls */
-  NameDef(lu_byte) hookmask;
+  l_signalT hookmask;
   NameDef(lu_byte) allowhook;
 };
 
@@ -214,7 +221,7 @@ union NameDef(GCUnion) {
 
 
 /* actual number of total bytes allocated */
-#define gettotalbytes(g)	((g)->totalbytes + (g)->GCdebt)
+#define gettotalbytes(g)	cast(NameDef(lu_mem), (g)->totalbytes + (g)->GCdebt)
 
 LUAI_FUNC void NameDef(luaE_setdebt) (NameDef(global_State) *g, NameDef(l_mem) debt);
 LUAI_FUNC void NameDef(luaE_freethread) (NameDef(lua_State) *L, NameDef(lua_State) *L1);

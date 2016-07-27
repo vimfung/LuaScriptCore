@@ -7,7 +7,6 @@
 #ifndef lfunc_h
 #define lfunc_h
 
-#include "LuaDefine.h"
 
 #include "lobject.h"
 

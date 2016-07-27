@@ -1,5 +1,5 @@
 /*
-** $Id: lapi.c,v 2.249 2015/04/06 12:23:48 roberto Exp $
+** $Id: lapi.c,v 2.259 2016/02/29 14:27:14 roberto Exp $
 ** Lua API
 ** See Copyright Notice in lua.h
 */
@@ -12,8 +12,6 @@
 
 #include <stdarg.h>
 #include <string.h>
-
-#include "LuaDefine.h"
 
 #include "lua.h"
 
@@ -123,11 +121,11 @@ LUA_API void NameDef(lua_xmove) (NameDef(lua_State) *from, NameDef(lua_State) *t
   lua_lock(to);
   api_checknelems(from, n);
   api_check(from, G(from) == G(to), "moving among independent states");
-  api_check(from, to->ci->top - to->top >= n, "not enough elements to move");
+  api_check(from, to->ci->top - to->top >= n, "stack overflow");
   from->top -= n;
   for (i = 0; i < n; i++) {
     setobj2s(to, to->top, from->top + i);
-    api_incr_top(to);
+    to->top++;  /* stack already checked by previous 'api_check' */
   }
   lua_unlock(to);
 }
@@ -380,9 +378,9 @@ LUA_API const char *NameDef(lua_tolstring) (NameDef(lua_State) *L, int idx, size
       return NULL;
     }
     lua_lock(L);  /* 'luaO_tostring' may create a new string */
+    NameDef(luaO_tostring)(L, o);
     luaC_checkGC(L);
     o = index2addr(L, idx);  /* previous call may reallocate the stack */
-    NameDef(luaO_tostring)(L, o);
     lua_unlock(L);
   }
   if (len != NULL)
@@ -473,13 +471,18 @@ LUA_API void NameDef(lua_pushinteger) (NameDef(lua_State) *L, NameDef(lua_Intege
 }
 
 
+/*
+** Pushes on the stack a string with given length. Avoid using 's' when
+** 'len' == 0 (as 's' can be NULL in that case), due to later use of
+** 'memcmp' and 'memcpy'.
+*/
 LUA_API const char *NameDef(lua_pushlstring) (NameDef(lua_State) *L, const char *s, size_t len) {
   NameDef(TString) *ts;
   lua_lock(L);
-  luaC_checkGC(L);
-  ts = NameDef(luaS_newlstr)(L, s, len);
+  ts = (len == 0) ? NameDef(luaS_new)(L, "") : NameDef(luaS_newlstr)(L, s, len);
   setsvalue2s(L, L->top, ts);
   api_incr_top(L);
+  luaC_checkGC(L);
   lua_unlock(L);
   return getstr(ts);
 }
@@ -491,12 +494,12 @@ LUA_API const char *NameDef(lua_pushstring) (NameDef(lua_State) *L, const char *
     setnilvalue(L->top);
   else {
     NameDef(TString) *ts;
-    luaC_checkGC(L);
     ts = NameDef(luaS_new)(L, s);
     setsvalue2s(L, L->top, ts);
     s = getstr(ts);  /* internal copy's address */
   }
   api_incr_top(L);
+  luaC_checkGC(L);
   lua_unlock(L);
   return s;
 }
@@ -506,8 +509,8 @@ LUA_API const char *NameDef(lua_pushvfstring) (NameDef(lua_State) *L, const char
                                       va_list argp) {
   const char *ret;
   lua_lock(L);
-  luaC_checkGC(L);
   ret = NameDef(luaO_pushvfstring)(L, fmt, argp);
+  luaC_checkGC(L);
   lua_unlock(L);
   return ret;
 }
@@ -517,10 +520,10 @@ LUA_API const char *NameDef(lua_pushfstring) (NameDef(lua_State) *L, const char 
   const char *ret;
   va_list argp;
   lua_lock(L);
-  luaC_checkGC(L);
   va_start(argp, fmt);
   ret = NameDef(luaO_pushvfstring)(L, fmt, argp);
   va_end(argp);
+  luaC_checkGC(L);
   lua_unlock(L);
   return ret;
 }
@@ -535,7 +538,6 @@ LUA_API void NameDef(lua_pushcclosure) (NameDef(lua_State) *L, NameDef(lua_CFunc
     NameDef(CClosure) *cl;
     api_checknelems(L, n);
     api_check(L, n <= MAXUPVAL, "upvalue index too large");
-    luaC_checkGC(L);
     cl = NameDef(luaF_newCclosure)(L, n);
     cl->f = fn;
     L->top -= n;
@@ -546,6 +548,7 @@ LUA_API void NameDef(lua_pushcclosure) (NameDef(lua_State) *L, NameDef(lua_CFunc
     setclCvalue(L, L->top, cl);
   }
   api_incr_top(L);
+  luaC_checkGC(L);
   lua_unlock(L);
 }
 
@@ -581,16 +584,27 @@ LUA_API int NameDef(lua_pushthread) (NameDef(lua_State) *L) {
 */
 
 
-LUA_API int NameDef(lua_getglobal) (NameDef(lua_State) *L, const char *name) {
-  NameDef(Table) *reg = hvalue(&G(L)->l_registry);
-  const NameDef(TValue) *gt;  /* global table */
-  lua_lock(L);
-  gt = NameDef(luaH_getint)(reg, LUA_RIDX_GLOBALS);
-  setsvalue2s(L, L->top, NameDef(luaS_new)(L, name));
-  api_incr_top(L);
-  NameDef(luaV_gettable)(L, gt, L->top - 1, L->top - 1);
+static int auxgetstr (NameDef(lua_State) *L, const NameDef(TValue) *t, const char *k) {
+  const NameDef(TValue) *slot;
+  NameDef(TString) *str = NameDef(luaS_new)(L, k);
+  if (luaV_fastget(L, t, str, slot, NameDef(luaH_getstr))) {
+    setobj2s(L, L->top, slot);
+    api_incr_top(L);
+  }
+  else {
+    setsvalue2s(L, L->top, str);
+    api_incr_top(L);
+    NameDef(luaV_finishget)(L, t, L->top - 1, L->top - 1, slot);
+  }
   lua_unlock(L);
   return ttnov(L->top - 1);
+}
+
+
+LUA_API int NameDef(lua_getglobal) (NameDef(lua_State) *L, const char *name) {
+  NameDef(Table) *reg = hvalue(&G(L)->l_registry);
+  lua_lock(L);
+  return auxgetstr(L, NameDef(luaH_getint)(reg, LUA_RIDX_GLOBALS), name);
 }
 
 
@@ -598,31 +612,32 @@ LUA_API int NameDef(lua_gettable) (NameDef(lua_State) *L, int idx) {
   NameDef(StkId) t;
   lua_lock(L);
   t = index2addr(L, idx);
-  NameDef(luaV_gettable)(L, t, L->top - 1, L->top - 1);
+  luaV_gettable(L, t, L->top - 1, L->top - 1);
   lua_unlock(L);
   return ttnov(L->top - 1);
 }
 
 
 LUA_API int NameDef(lua_getfield) (NameDef(lua_State) *L, int idx, const char *k) {
-  NameDef(StkId) t;
   lua_lock(L);
-  t = index2addr(L, idx);
-  setsvalue2s(L, L->top, NameDef(luaS_new)(L, k));
-  api_incr_top(L);
-  NameDef(luaV_gettable)(L, t, L->top - 1, L->top - 1);
-  lua_unlock(L);
-  return ttnov(L->top - 1);
+  return auxgetstr(L, index2addr(L, idx), k);
 }
 
 
 LUA_API int NameDef(lua_geti) (NameDef(lua_State) *L, int idx, NameDef(lua_Integer) n) {
   NameDef(StkId) t;
+  const NameDef(TValue) *slot;
   lua_lock(L);
   t = index2addr(L, idx);
-  setivalue(L->top, n);
-  api_incr_top(L);
-  NameDef(luaV_gettable)(L, t, L->top - 1, L->top - 1);
+  if (luaV_fastget(L, t, n, slot, NameDef(luaH_getint))) {
+    setobj2s(L, L->top, slot);
+    api_incr_top(L);
+  }
+  else {
+    setivalue(L->top, n);
+    api_incr_top(L);
+    NameDef(luaV_finishget)(L, t, L->top - 1, L->top - 1, slot);
+  }
   lua_unlock(L);
   return ttnov(L->top - 1);
 }
@@ -668,12 +683,12 @@ LUA_API int NameDef(lua_rawgetp) (NameDef(lua_State) *L, int idx, const void *p)
 LUA_API void NameDef(lua_createtable) (NameDef(lua_State) *L, int narray, int nrec) {
   NameDef(Table) *t;
   lua_lock(L);
-  luaC_checkGC(L);
   t = NameDef(luaH_new)(L);
   sethvalue(L, L->top, t);
   api_incr_top(L);
   if (narray > 0 || nrec > 0)
     NameDef(luaH_resize)(L, t, narray, nrec);
+  luaC_checkGC(L);
   lua_unlock(L);
 }
 
@@ -721,18 +736,29 @@ LUA_API int NameDef(lua_getuservalue) (NameDef(lua_State) *L, int idx) {
 ** set functions (stack -> Lua)
 */
 
+/*
+** t[k] = value at the top of the stack (where 'k' is a string)
+*/
+static void auxsetstr (NameDef(lua_State) *L, const NameDef(TValue) *t, const char *k) {
+  const NameDef(TValue) *slot;
+  NameDef(TString) *str = NameDef(luaS_new)(L, k);
+  api_checknelems(L, 1);
+  if (luaV_fastset(L, t, str, slot, NameDef(luaH_getstr), L->top - 1))
+    L->top--;  /* pop value */
+  else {
+    setsvalue2s(L, L->top, str);  /* push 'str' (to make it a TValue) */
+    api_incr_top(L);
+    NameDef(luaV_finishset)(L, t, L->top - 1, L->top - 2, slot);
+    L->top -= 2;  /* pop value and key */
+  }
+  lua_unlock(L);  /* lock done by caller */
+}
+
 
 LUA_API void NameDef(lua_setglobal) (NameDef(lua_State) *L, const char *name) {
   NameDef(Table) *reg = hvalue(&G(L)->l_registry);
-  const NameDef(TValue) *gt;  /* global table */
-  lua_lock(L);
-  api_checknelems(L, 1);
-  gt = NameDef(luaH_getint)(reg, LUA_RIDX_GLOBALS);
-  setsvalue2s(L, L->top, NameDef(luaS_new)(L, name));
-  api_incr_top(L);
-  NameDef(luaV_settable)(L, gt, L->top - 1, L->top - 2);
-  L->top -= 2;  /* pop value and key */
-  lua_unlock(L);
+  lua_lock(L);  /* unlock done in 'auxsetstr' */
+  auxsetstr(L, NameDef(luaH_getint)(reg, LUA_RIDX_GLOBALS), name);
 }
 
 
@@ -741,49 +767,47 @@ LUA_API void NameDef(lua_settable) (NameDef(lua_State) *L, int idx) {
   lua_lock(L);
   api_checknelems(L, 2);
   t = index2addr(L, idx);
-  NameDef(luaV_settable)(L, t, L->top - 2, L->top - 1);
+  luaV_settable(L, t, L->top - 2, L->top - 1);
   L->top -= 2;  /* pop index and value */
   lua_unlock(L);
 }
 
 
 LUA_API void NameDef(lua_setfield) (NameDef(lua_State) *L, int idx, const char *k) {
-  NameDef(StkId) t;
-  lua_lock(L);
-  api_checknelems(L, 1);
-  t = index2addr(L, idx);
-  setsvalue2s(L, L->top, NameDef(luaS_new)(L, k));
-  api_incr_top(L);
-  NameDef(luaV_settable)(L, t, L->top - 1, L->top - 2);
-  L->top -= 2;  /* pop value and key */
-  lua_unlock(L);
+  lua_lock(L);  /* unlock done in 'auxsetstr' */
+  auxsetstr(L, index2addr(L, idx), k);
 }
 
 
 LUA_API void NameDef(lua_seti) (NameDef(lua_State) *L, int idx, NameDef(lua_Integer) n) {
   NameDef(StkId) t;
+  const NameDef(TValue) *slot;
   lua_lock(L);
   api_checknelems(L, 1);
   t = index2addr(L, idx);
-  setivalue(L->top, n);
-  api_incr_top(L);
-  NameDef(luaV_settable)(L, t, L->top - 1, L->top - 2);
-  L->top -= 2;  /* pop value and key */
+  if (luaV_fastset(L, t, n, slot, NameDef(luaH_getint), L->top - 1))
+    L->top--;  /* pop value */
+  else {
+    setivalue(L->top, n);
+    api_incr_top(L);
+    NameDef(luaV_finishset)(L, t, L->top - 1, L->top - 2, slot);
+    L->top -= 2;  /* pop value and key */
+  }
   lua_unlock(L);
 }
 
 
 LUA_API void NameDef(lua_rawset) (NameDef(lua_State) *L, int idx) {
   NameDef(StkId) o;
-  NameDef(Table) *t;
+  NameDef(TValue) *slot;
   lua_lock(L);
   api_checknelems(L, 2);
   o = index2addr(L, idx);
   api_check(L, ttistable(o), "table expected");
-  t = hvalue(o);
-  setobj2t(L, NameDef(luaH_set)(L, t, L->top-2), L->top-1);
-  invalidateTMcache(t);
-  luaC_barrierback(L, t, L->top-1);
+  slot = NameDef(luaH_set)(L, hvalue(o), L->top - 2);
+  setobj2t(L, slot, L->top - 1);
+  invalidateTMcache(hvalue(o));
+  luaC_barrierback(L, hvalue(o), L->top-1);
   L->top -= 2;
   lua_unlock(L);
 }
@@ -791,14 +815,12 @@ LUA_API void NameDef(lua_rawset) (NameDef(lua_State) *L, int idx) {
 
 LUA_API void NameDef(lua_rawseti) (NameDef(lua_State) *L, int idx, NameDef(lua_Integer) n) {
   NameDef(StkId) o;
-  NameDef(Table) *t;
   lua_lock(L);
   api_checknelems(L, 1);
   o = index2addr(L, idx);
   api_check(L, ttistable(o), "table expected");
-  t = hvalue(o);
-  NameDef(luaH_setint)(L, t, n, L->top - 1);
-  luaC_barrierback(L, t, L->top-1);
+  NameDef(luaH_setint)(L, hvalue(o), n, L->top - 1);
+  luaC_barrierback(L, hvalue(o), L->top-1);
   L->top--;
   lua_unlock(L);
 }
@@ -806,16 +828,15 @@ LUA_API void NameDef(lua_rawseti) (NameDef(lua_State) *L, int idx, NameDef(lua_I
 
 LUA_API void NameDef(lua_rawsetp) (NameDef(lua_State) *L, int idx, const void *p) {
   NameDef(StkId) o;
-  NameDef(Table) *t;
-  NameDef(TValue) k;
+  NameDef(TValue) k, *slot;
   lua_lock(L);
   api_checknelems(L, 1);
   o = index2addr(L, idx);
   api_check(L, ttistable(o), "table expected");
-  t = hvalue(o);
   setpvalue(&k, cast(void *, p));
-  setobj2t(L, NameDef(luaH_set)(L, t, &k), L->top - 1);
-  luaC_barrierback(L, t, L->top - 1);
+  slot = NameDef(luaH_set)(L, hvalue(o), &k);
+  setobj2t(L, slot, L->top - 1);
+  luaC_barrierback(L, hvalue(o), L->top - 1);
   L->top--;
   lua_unlock(L);
 }
@@ -897,10 +918,10 @@ LUA_API void NameDef(lua_callk) (NameDef(lua_State) *L, int nargs, int nresults,
   if (k != NULL && L->nny == 0) {  /* need to prepare continuation? */
     L->ci->u.c.k = k;  /* save continuation */
     L->ci->u.c.ctx = ctx;  /* save context */
-    NameDef(luaD_call)(L, func, nresults, 1);  /* do the call */
+    NameDef(luaD_call)(L, func, nresults);  /* do the call */
   }
   else  /* no continuation or no yieldable */
-    NameDef(luaD_call)(L, func, nresults, 0);  /* just do the call */
+    NameDef(luaD_callnoyield)(L, func, nresults);  /* just do the call */
   adjustresults(L, nresults);
   lua_unlock(L);
 }
@@ -918,7 +939,7 @@ struct NameDef(CallS) {  /* data to 'f_call' */
 
 static void f_call (NameDef(lua_State) *L, void *ud) {
   struct NameDef(CallS) *c = cast(struct NameDef(CallS) *, ud);
-  NameDef(luaD_call)(L, c->func, c->nresults, 0);
+  NameDef(luaD_callnoyield)(L, c->func, c->nresults);
 }
 
 
@@ -956,7 +977,7 @@ LUA_API int NameDef(lua_pcallk) (NameDef(lua_State) *L, int nargs, int nresults,
     L->errfunc = func;
     setoah(ci->callstatus, L->allowhook);  /* save value of 'allowhook' */
     ci->callstatus |= CIST_YPCALL;  /* function can do error recovery */
-    NameDef(luaD_call)(L, c.func, nresults, 1);  /* do the call */
+    NameDef(luaD_call)(L, c.func, nresults);  /* do the call */
     ci->callstatus &= ~CIST_YPCALL;
     L->errfunc = ci->u.c.old_errfunc;
     status = LUA_OK;  /* if it is here, there were no errors */
@@ -1045,7 +1066,7 @@ LUA_API int NameDef(lua_gc) (NameDef(lua_State) *L, int what, int data) {
     }
     case LUA_GCSTEP: {
       NameDef(l_mem) debt = 1;  /* =1 to signal that it did an actual step */
-      int oldrunning = g->gcrunning;
+      NameDef(lu_byte) oldrunning = g->gcrunning;
       g->gcrunning = 1;  /* allow GC to run */
       if (data == 0) {
         NameDef(luaE_setdebt)(g, -GCSTEPSIZE);  /* to do a "small" step */
@@ -1119,7 +1140,6 @@ LUA_API void NameDef(lua_concat) (NameDef(lua_State) *L, int n) {
   lua_lock(L);
   api_checknelems(L, n);
   if (n >= 2) {
-    luaC_checkGC(L);
     NameDef(luaV_concat)(L, n);
   }
   else if (n == 0) {  /* push empty string */
@@ -1127,6 +1147,7 @@ LUA_API void NameDef(lua_concat) (NameDef(lua_State) *L, int n) {
     api_incr_top(L);
   }
   /* else n == 1; nothing to do */
+  luaC_checkGC(L);
   lua_unlock(L);
 }
 
@@ -1162,10 +1183,10 @@ LUA_API void NameDef(lua_setallocf) (NameDef(lua_State) *L, NameDef(lua_Alloc) f
 LUA_API void *NameDef(lua_newuserdata) (NameDef(lua_State) *L, size_t size) {
   NameDef(Udata) *u;
   lua_lock(L);
-  luaC_checkGC(L);
   u = NameDef(luaS_newudata)(L, size);
   setuvalue(L, L->top, u);
   api_incr_top(L);
+  luaC_checkGC(L);
   lua_unlock(L);
   return getudatamem(u);
 }

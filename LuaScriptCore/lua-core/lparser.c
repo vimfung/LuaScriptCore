@@ -1,13 +1,11 @@
 /*
-** $Id: lparser.c,v 2.147 2014/12/27 20:31:43 roberto Exp $
+** $Id: lparser.c,v 2.153 2016/05/13 19:10:16 roberto Exp $
 ** Lua Parser
 ** See Copyright Notice in lua.h
 */
 
 #define lparser_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -166,7 +164,8 @@ static int registerlocalvar (NameDef(LexState) *ls, NameDef(TString) *varname) {
   int oldsize = f->sizelocvars;
   luaM_growvector(ls->L, f->locvars, fs->nlocvars, f->sizelocvars,
                   NameDef(LocVar), SHRT_MAX, "local variables");
-  while (oldsize < f->sizelocvars) f->locvars[oldsize++].varname = NULL;
+  while (oldsize < f->sizelocvars)
+    f->locvars[oldsize++].varname = NULL;
   f->locvars[fs->nlocvars].varname = varname;
   luaC_objbarrier(ls->L, f, varname);
   return fs->nlocvars++;
@@ -232,7 +231,8 @@ static int newupvalue (NameDef(FuncState) *fs, NameDef(TString) *name, NameDef(e
   checklimit(fs, fs->nups + 1, MAXUPVAL, "upvalues");
   luaM_growvector(fs->ls->L, f->upvalues, fs->nups, f->sizeupvalues,
                   NameDef(Upvaldesc), MAXUPVAL, "upvalues");
-  while (oldsize < f->sizeupvalues) f->upvalues[oldsize++].name = NULL;
+  while (oldsize < f->sizeupvalues)
+    f->upvalues[oldsize++].name = NULL;
   f->upvalues[fs->nups].instack = (v->k == NameDef(VLOCAL));
   f->upvalues[fs->nups].idx = cast_byte(v->u.info);
   f->upvalues[fs->nups].name = name;
@@ -257,7 +257,8 @@ static int searchvar (NameDef(FuncState) *fs, NameDef(TString) *n) {
 */
 static void markupval (NameDef(FuncState) *fs, int level) {
   NameDef(BlockCnt) *bl = fs->bl;
-  while (bl->nactvar > level) bl = bl->previous;
+  while (bl->nactvar > level)
+    bl = bl->previous;
   bl->upval = 1;
 }
 
@@ -266,27 +267,26 @@ static void markupval (NameDef(FuncState) *fs, int level) {
   Find variable with given name 'n'. If it is an upvalue, add this
   upvalue into all intermediate functions.
 */
-static int singlevaraux (NameDef(FuncState) *fs, NameDef(TString) *n, NameDef(expdesc) *var, int base) {
+static void singlevaraux (NameDef(FuncState) *fs, NameDef(TString) *n, NameDef(expdesc) *var, int base) {
   if (fs == NULL)  /* no more levels? */
-    return NameDef(VVOID);  /* default is global */
+    init_exp(var, NameDef(VVOID), 0);  /* default is global */
   else {
     int v = searchvar(fs, n);  /* look up locals at current level */
     if (v >= 0) {  /* found? */
       init_exp(var, NameDef(VLOCAL), v);  /* variable is local */
       if (!base)
         markupval(fs, v);  /* local will be used as an upval */
-      return NameDef(VLOCAL);
     }
     else {  /* not found as local at current level; try upvalues */
       int idx = searchupvalue(fs, n);  /* try existing upvalues */
       if (idx < 0) {  /* not found? */
-        if (singlevaraux(fs->prev, n, var, 0) == NameDef(VVOID)) /* try upper levels */
-          return NameDef(VVOID);  /* not found; is a global */
+        singlevaraux(fs->prev, n, var, 0);  /* try upper levels */
+        if (var->k == NameDef(VVOID))  /* not found? */
+          return;  /* it is a global */
         /* else was LOCAL or UPVAL */
         idx  = newupvalue(fs, n, var);  /* will be a new upvalue */
       }
-      init_exp(var, NameDef(VUPVAL), idx);
-      return NameDef(VUPVAL);
+      init_exp(var, NameDef(VUPVAL), idx);  /* new or old upvalue */
     }
   }
 }
@@ -295,10 +295,11 @@ static int singlevaraux (NameDef(FuncState) *fs, NameDef(TString) *n, NameDef(ex
 static void singlevar (NameDef(LexState) *ls, NameDef(expdesc) *var) {
   NameDef(TString) *varname = str_checkname(ls);
   NameDef(FuncState) *fs = ls->fs;
-  if (singlevaraux(fs, varname, var, 1) == NameDef(VVOID)) {  /* global name? */
+  singlevaraux(fs, varname, var, 1);
+  if (var->k == NameDef(VVOID)) {  /* global name? */
     NameDef(expdesc) key;
     singlevaraux(fs, ls->envn, var, 1);  /* get environment variable */
-    lua_assert(var->k == VLOCAL || var->k == VUPVAL);
+    lua_assert(var->k != NameDef(VVOID));  /* this one must exist */
     codestring(ls, &key, varname);  /* key is variable name */
     NameDef(luaK_indexed)(fs, var, &key);  /* env[varname] */
   }
@@ -501,7 +502,8 @@ static NameDef(Proto) *addprototype (NameDef(LexState) *ls) {
   if (fs->np >= f->sizep) {
     int oldsize = f->sizep;
     luaM_growvector(L, f->p, fs->np, f->sizep, NameDef(Proto) *, MAXARG_Bx, "functions");
-    while (oldsize < f->sizep) f->p[oldsize++] = NULL;
+    while (oldsize < f->sizep)
+      f->p[oldsize++] = NULL;
   }
   f->p[fs->np++] = clp = NameDef(luaF_newproto)(L);
   luaC_objbarrier(L, f, clp);
@@ -762,7 +764,7 @@ static void parlist (NameDef(LexState) *ls) {
         }
         case NameDef(TK_DOTS): {  /* param -> '...' */
           NameDef(luaX_next)(ls);
-          f->is_vararg = 1;
+          f->is_vararg = 2;  /* declared vararg */
           break;
         }
         default: NameDef(luaX_syntaxerror)(ls, "<name> or '...' expected");
@@ -839,7 +841,7 @@ static void funcargs (NameDef(LexState) *ls, NameDef(expdesc) *f, int line) {
       NameDef(luaX_syntaxerror)(ls, "function arguments expected");
     }
   }
-  lua_assert(f->k == NameDef(VNONRELOC));
+  lua_assert(f->k == VNONRELOC);
   base = f->u.info;  /* base register for call */
   if (hasmultret(args.k))
     nparams = LUA_MULTRET;  /* open call */
@@ -958,6 +960,7 @@ static void simpleexp (NameDef(LexState) *ls, NameDef(expdesc) *v) {
       NameDef(FuncState) *fs = ls->fs;
       check_condition(ls, fs->f->is_vararg,
                       "cannot use '...' outside a vararg function");
+      fs->f->is_vararg = 1;  /* function actually uses vararg */
       init_exp(v, NameDef(VVARARG), NameDef(luaK_codeABC)(fs, NameDef(OP_VARARG), 0, 1, 0));
       break;
     }
@@ -1227,7 +1230,7 @@ static void labelstat (NameDef(LexState) *ls, NameDef(TString) *label, int line)
   checkrepeated(fs, ll, label);  /* check for repeated labels */
   checknext(ls, NameDef(TK_DBCOLON));  /* skip double colon */
   /* create new entry for this label */
-  l = newlabelentry(ls, ll, label, line, fs->pc);
+  l = newlabelentry(ls, ll, label, line, NameDef(luaK_getlabel)(fs));
   skipnoopstat(ls);  /* skip other no-op statements */
   if (block_follow(ls, 0)) {  /* label is last no-op statement in the block? */
     /* assume that locals are already out of scope */
@@ -1495,7 +1498,7 @@ static void exprstat (NameDef(LexState) *ls) {
   }
   else {  /* stat -> func */
     check_condition(ls, v.v.k == NameDef(VCALL), "syntax error");
-    SETARG_C(getcode(fs, &v.v), 1);  /* call statement uses no results */
+    SETARG_C(getinstruction(fs, &v.v), 1);  /* call statement uses no results */
   }
 }
 
@@ -1512,8 +1515,8 @@ static void retstat (NameDef(LexState) *ls) {
     if (hasmultret(e.k)) {
       luaK_setmultret(fs, &e);
       if (e.k == NameDef(VCALL) && nret == 1) {  /* tail call? */
-        SET_OPCODE(getcode(fs,&e), NameDef(OP_TAILCALL));
-        lua_assert(GETARG_A(getcode(fs,&e)) == fs->nactvar);
+        SET_OPCODE(getinstruction(fs,&e), NameDef(OP_TAILCALL));
+        lua_assert(GETARG_A(getinstruction(fs,&e)) == fs->nactvar);
       }
       first = fs->nactvar;
       nret = LUA_MULTRET;  /* return all values */
@@ -1612,7 +1615,7 @@ static void mainfunc (NameDef(LexState) *ls, NameDef(FuncState) *fs) {
   NameDef(BlockCnt) bl;
   NameDef(expdesc) v;
   open_func(ls, fs, &bl);
-  fs->f->is_vararg = 1;  /* main function is always vararg */
+  fs->f->is_vararg = 2;  /* main function is always declared vararg */
   init_exp(&v, NameDef(VLOCAL), 0);  /* create and... */
   newupvalue(fs, ls->envn, &v);  /* ...set environment upvalue */
   NameDef(luaX_next)(ls);  /* read first token */
@@ -1628,10 +1631,10 @@ NameDef(LClosure) *NameDef(luaY_parser) (NameDef(lua_State) *L, NameDef(ZIO) *z,
   NameDef(FuncState) funcstate;
   NameDef(LClosure) *cl = NameDef(luaF_newLclosure)(L, 1);  /* create main closure */
   setclLvalue(L, L->top, cl);  /* anchor it (to avoid being collected) */
-  incr_top(L);
+  NameDef(luaD_inctop)(L);
   lexstate.h = NameDef(luaH_new)(L);  /* create table for scanner */
   sethvalue(L, L->top, lexstate.h);  /* anchor it */
-  incr_top(L);
+  NameDef(luaD_inctop)(L);
   funcstate.f = cl->p = NameDef(luaF_newproto)(L);
   funcstate.f->source = NameDef(luaS_new)(L, name);  /* create and anchor TString */
   lua_assert(iswhite(funcstate.f));  /* do not need barrier here */

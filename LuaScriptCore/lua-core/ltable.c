@@ -1,13 +1,11 @@
 /*
-** $Id: ltable.c,v 2.111 2015/06/09 14:21:13 roberto Exp $
+** $Id: ltable.c,v 2.117 2015/11/19 19:16:22 roberto Exp $
 ** Lua tables (hash)
 ** See Copyright Notice in lua.h
 */
 
 #define ltable_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -87,7 +85,7 @@ static const NameDef(Node) dummynode_ = {
 /*
 ** Hash for floating-point numbers.
 ** The main computation should be just
-**     n = frepx(n, &i); return (n * INT_MAX) + i
+**     n = frexp(n, &i); return (n * INT_MAX) + i
 ** but there are some numerical subtleties.
 ** In a two-complement representation, INT_MAX does not has an exact
 ** representation as a float, but INT_MIN does; because the absolute
@@ -103,7 +101,7 @@ static int l_hashfloat (NameDef(lua_Number) n) {
   NameDef(lua_Integer) ni;
   n = l_mathop(frexp)(n, &i) * -cast_num(INT_MIN);
   if (!lua_numbertointeger(n, &ni)) {  /* is 'n' inf/-inf/NaN? */
-    lua_assert(luai_numisnan(n) || l_mathop(fabs)(n) == HUGE_VAL);
+    lua_assert(luai_numisnan(n) || l_mathop(fabs)(n) == cast_num(HUGE_VAL));
     return 0;
   }
   else {  /* normal case */
@@ -126,14 +124,8 @@ static NameDef(Node) *mainposition (const NameDef(Table) *t, const NameDef(TValu
       return hashmod(t, l_hashfloat(fltvalue(key)));
     case LUA_TSHRSTR:
       return hashstr(t, tsvalue(key));
-    case LUA_TLNGSTR: {
-      NameDef(TString) *s = tsvalue(key);
-      if (s->extra == 0) {  /* no hash? */
-        s->hash = NameDef(luaS_hash)(getstr(s), s->u.lnglen, s->hash);
-        s->extra = 1;  /* now it has its hash */
-      }
-      return hashstr(t, tsvalue(key));
-    }
+    case LUA_TLNGSTR:
+      return hashpow2(t, NameDef(luaS_hashlongstr)(tsvalue(key)));
     case LUA_TBOOLEAN:
       return hashboolean(t, bvalue(key));
     case LUA_TLIGHTUSERDATA:
@@ -141,6 +133,7 @@ static NameDef(Node) *mainposition (const NameDef(Table) *t, const NameDef(TValu
     case LUA_TLCF:
       return hashpointer(t, fvalue(key));
     default:
+      lua_assert(!ttisdeadkey(key));
       return hashpointer(t, gcvalue(key));
   }
 }
@@ -465,7 +458,7 @@ NameDef(TValue) *NameDef(luaH_newkey) (NameDef(lua_State) *L, NameDef(Table) *t,
     NameDef(Node) *f = getfreepos(t);  /* get a free place */
     if (f == NULL) {  /* cannot find a free place? */
       rehash(L, t, key);  /* grow table */
-      /* whatever called 'newkey' takes care of TM cache and GC barrier */
+      /* whatever called 'newkey' takes care of TM cache */
       return NameDef(luaH_set)(L, t, key);  /* insert key into grown table */
     }
     lua_assert(!isdummy(f));
@@ -503,7 +496,7 @@ NameDef(TValue) *NameDef(luaH_newkey) (NameDef(lua_State) *L, NameDef(Table) *t,
 */
 const NameDef(TValue) *NameDef(luaH_getint) (NameDef(Table) *t, NameDef(lua_Integer) key) {
   /* (1 <= key && key <= t->sizearray) */
-  if (l_castS2U(key - 1) < t->sizearray)
+  if (l_castS2U(key) - 1 < t->sizearray)
     return &t->array[key - 1];
   else {
     NameDef(Node) *n = hashint(t, key);
@@ -515,7 +508,7 @@ const NameDef(TValue) *NameDef(luaH_getint) (NameDef(Table) *t, NameDef(lua_Inte
         if (nx == 0) break;
         n += nx;
       }
-    };
+    }
     return luaO_nilobject;
   }
 }
@@ -524,7 +517,7 @@ const NameDef(TValue) *NameDef(luaH_getint) (NameDef(Table) *t, NameDef(lua_Inte
 /*
 ** search function for short strings
 */
-const NameDef(TValue) *NameDef(luaH_getstr) (NameDef(Table) *t, NameDef(TString) *key) {
+const NameDef(TValue) *NameDef(luaH_getshortstr) (NameDef(Table) *t, NameDef(TString) *key) {
   NameDef(Node) *n = hashstr(t, key);
   lua_assert(key->tt == LUA_TSHRSTR);
   for (;;) {  /* check whether 'key' is somewhere in the chain */
@@ -533,11 +526,41 @@ const NameDef(TValue) *NameDef(luaH_getstr) (NameDef(Table) *t, NameDef(TString)
       return gval(n);  /* that's it */
     else {
       int nx = gnext(n);
-      if (nx == 0) break;
+      if (nx == 0)
+        return luaO_nilobject;  /* not found */
       n += nx;
     }
-  };
-  return luaO_nilobject;
+  }
+}
+
+
+/*
+** "Generic" get version. (Not that generic: not valid for integers,
+** which may be in array part, nor for floats with integral values.)
+*/
+static const NameDef(TValue) *getgeneric (NameDef(Table) *t, const NameDef(TValue) *key) {
+  NameDef(Node) *n = mainposition(t, key);
+  for (;;) {  /* check whether 'key' is somewhere in the chain */
+    if (luaV_rawequalobj(gkey(n), key))
+      return gval(n);  /* that's it */
+    else {
+      int nx = gnext(n);
+      if (nx == 0)
+        return luaO_nilobject;  /* not found */
+      n += nx;
+    }
+  }
+}
+
+
+const NameDef(TValue) *NameDef(luaH_getstr) (NameDef(Table) *t, NameDef(TString) *key) {
+  if (key->tt == LUA_TSHRSTR)
+    return NameDef(luaH_getshortstr)(t, key);
+  else {  /* for long strings, use generic case */
+    NameDef(TValue) ko;
+    setsvalue(cast(NameDef(lua_State) *, NULL), &ko, key);
+    return getgeneric(t, &ko);
+  }
 }
 
 
@@ -546,7 +569,7 @@ const NameDef(TValue) *NameDef(luaH_getstr) (NameDef(Table) *t, NameDef(TString)
 */
 const NameDef(TValue) *NameDef(luaH_get) (NameDef(Table) *t, const NameDef(TValue) *key) {
   switch (ttype(key)) {
-    case LUA_TSHRSTR: return NameDef(luaH_getstr)(t, tsvalue(key));
+    case LUA_TSHRSTR: return NameDef(luaH_getshortstr)(t, tsvalue(key));
     case LUA_TNUMINT: return NameDef(luaH_getint)(t, ivalue(key));
     case LUA_TNIL: return luaO_nilobject;
     case LUA_TNUMFLT: {
@@ -555,19 +578,8 @@ const NameDef(TValue) *NameDef(luaH_get) (NameDef(Table) *t, const NameDef(TValu
         return NameDef(luaH_getint)(t, k);  /* use specialized version */
       /* else... */
     }  /* FALLTHROUGH */
-    default: {
-      NameDef(Node) *n = mainposition(t, key);
-      for (;;) {  /* check whether 'key' is somewhere in the chain */
-        if (luaV_rawequalobj(gkey(n), key))
-          return gval(n);  /* that's it */
-        else {
-          int nx = gnext(n);
-          if (nx == 0) break;
-          n += nx;
-        }
-      };
-      return luaO_nilobject;
-    }
+    default:
+      return getgeneric(t, key);
   }
 }
 
@@ -652,6 +664,6 @@ NameDef(Node) *NameDef(luaH_mainposition) (const NameDef(Table) *t, const NameDe
   return mainposition(t, key);
 }
 
-int luaH_isdummy (NameDef(Node) *n) { return isdummy(n); }
+int NameDef(luaH_isdummy) (NameDef(Node) *n) { return isdummy(n); }
 
 #endif

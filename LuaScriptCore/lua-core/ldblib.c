@@ -1,13 +1,11 @@
 /*
-** $Id: ldblib.c,v 1.149 2015/02/19 17:06:21 roberto Exp $
+** $Id: ldblib.c,v 1.151 2015/11/23 11:29:43 roberto Exp $
 ** Interface from Lua to its debug API
 ** See Copyright Notice in lua.h
 */
 
 #define ldblib_c
 #define LUA_LIB
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -30,8 +28,8 @@ static const int HOOKKEY = 0;
 
 
 /*
-** If L1 != L, L1 can be in any state, and therefore there is no
-** garanties about its stack space; any push in L1 must be
+** If L1 != L, L1 can be in any state, and therefore there are no
+** guarantees about its stack space; any push in L1 must be
 ** checked.
 */
 static void checkstack (NameDef(lua_State) *L, NameDef(lua_State) *L1, int n) {
@@ -314,7 +312,7 @@ static void hookf (NameDef(lua_State) *L, NameDef(lua_Debug) *ar) {
     if (ar->currentline >= 0)
       NameDef(lua_pushinteger)(L, ar->currentline);  /* push current line */
     else NameDef(lua_pushnil)(L);
-    lua_assert(lua_getinfo(L, "lS", ar));
+    lua_assert(NameDef(lua_getinfo)(L, "lS", ar));
     lua_call(L, 2, 0);  /* call hook function */
   }
 }

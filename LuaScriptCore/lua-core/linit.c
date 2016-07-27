@@ -24,8 +24,6 @@
 **  lua_pop(L, 1);  // remove _PRELOAD table
 */
 
-#include "LuaDefine.h"
-
 #include "lprefix.h"
 
 

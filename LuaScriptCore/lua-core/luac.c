@@ -7,8 +7,6 @@
 #define luac_c
 #define LUA_CORE
 
-#include "LuaDefine.h"
-
 #include "lprefix.h"
 
 #include <ctype.h>

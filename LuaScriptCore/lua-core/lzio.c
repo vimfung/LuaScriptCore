@@ -1,13 +1,11 @@
 /*
-** $Id: lzio.c,v 1.36 2014/11/02 19:19:04 roberto Exp $
+** $Id: lzio.c,v 1.37 2015/09/08 15:41:05 roberto Exp $
 ** Buffered streams
 ** See Copyright Notice in lua.h
 */
 
 #define lzio_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -67,14 +65,4 @@ size_t NameDef(luaZ_read) (NameDef(ZIO) *z, void *b, size_t n) {
   }
   return 0;
 }
-
-/* ------------------------------------------------------------------------ */
-char *NameDef(luaZ_openspace) (NameDef(lua_State) *L, NameDef(Mbuffer) *buff, size_t n) {
-  if (n > buff->buffsize) {
-    if (n < LUA_MINBUFFER) n = LUA_MINBUFFER;
-    luaZ_resizebuffer(L, buff, n);
-  }
-  return buff->buffer;
-}
-
 

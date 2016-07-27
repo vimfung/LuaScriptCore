@@ -1,5 +1,5 @@
 /*
-** $Id: ltable.h,v 2.20 2014/09/04 18:15:29 roberto Exp $
+** $Id: ltable.h,v 2.21 2015/11/03 15:47:30 roberto Exp $
 ** Lua tables (hash)
 ** See Copyright Notice in lua.h
 */
@@ -7,7 +7,6 @@
 #ifndef ltable_h
 #define ltable_h
 
-#include "LuaDefine.h"
 #include "lobject.h"
 
 
@@ -19,6 +18,10 @@
 /* 'const' to avoid wrong writings that can mess up field 'next' */ 
 #define gkey(n)		cast(const NameDef(TValue)*, (&(n)->i_key.tvk))
 
+/*
+** writable version of 'gkey'; allows updates to individual fields,
+** but not to the whole (which has incompatible type)
+*/
 #define wgkey(n)		(&(n)->i_key.nk)
 
 #define invalidateTMcache(t)	((t)->flags = 0)
@@ -32,6 +35,7 @@
 LUAI_FUNC const NameDef(TValue) *NameDef(luaH_getint) (NameDef(Table) *t, NameDef(lua_Integer) key);
 LUAI_FUNC void NameDef(luaH_setint) (NameDef(lua_State) *L, NameDef(Table) *t, NameDef(lua_Integer) key,
                                                     NameDef(TValue) *value);
+LUAI_FUNC const NameDef(TValue) *NameDef(luaH_getshortstr) (NameDef(Table) *t, NameDef(TString) *key);
 LUAI_FUNC const NameDef(TValue) *NameDef(luaH_getstr) (NameDef(Table) *t, NameDef(TString) *key);
 LUAI_FUNC const NameDef(TValue) *NameDef(luaH_get) (NameDef(Table) *t, const NameDef(TValue) *key);
 LUAI_FUNC NameDef(TValue) *NameDef(luaH_newkey) (NameDef(lua_State) *L, NameDef(Table) *t, const NameDef(TValue) *key);
@@ -46,8 +50,8 @@ LUAI_FUNC int NameDef(luaH_getn) (NameDef(Table) *t);
 
 
 #if defined(LUA_DEBUG)
-LUAI_FUNC NameDef(Node) *NameDef(luaH_mainposition) (const NameDef(Table) *t, const NameDef(TValue) *key);
-LUAI_FUNC int NameDef(luaH_isdummy) (NameDef(Node) *n);
+LUAI_FUNC Node *NameDef(luaH_mainposition) (const NameDef(Table) *t, const NameDef(TValue) *key);
+LUAI_FUNC int NameDef(luaH_isdummy) (Node *n);
 #endif
 
 

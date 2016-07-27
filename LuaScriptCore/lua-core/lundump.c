@@ -1,13 +1,11 @@
 /*
-** $Id: lundump.c,v 2.41 2014/11/02 19:19:04 roberto Exp $
+** $Id: lundump.c,v 2.44 2015/11/02 16:09:30 roberto Exp $
 ** load precompiled Lua chunks
 ** See Copyright Notice in lua.h
 */
 
 #define lundump_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -34,7 +32,6 @@
 typedef struct {
   NameDef(lua_State) *L;
   NameDef(ZIO) *Z;
-  NameDef(Mbuffer) *b;
   const char *name;
 } NameDef(LoadState);
 
@@ -94,10 +91,15 @@ static NameDef(TString) *LoadString (NameDef(LoadState) *S) {
     LoadVar(S, size);
   if (size == 0)
     return NULL;
-  else {
-    char *s = NameDef(luaZ_openspace)(S->L, S->b, --size);
-    LoadVector(S, s, size);
-    return NameDef(luaS_newlstr)(S->L, s, size);
+  else if (--size <= LUAI_MAXSHORTLEN) {  /* short string? */
+    char buff[LUAI_MAXSHORTLEN];
+    LoadVector(S, buff, size);
+    return NameDef(luaS_newlstr)(S->L, buff, size);
+  }
+  else {  /* long string */
+    NameDef(TString) *ts = NameDef(luaS_createlngstrobj)(S->L, size);
+    LoadVector(S, getstr(ts), size);  /* load directly in final place */
+    return ts;
   }
 }
 
@@ -253,8 +255,7 @@ static void checkHeader (NameDef(LoadState) *S) {
 /*
 ** load precompiled chunk
 */
-NameDef(LClosure) *NameDef(luaU_undump)(NameDef(lua_State) *L, NameDef(ZIO) *Z, NameDef(Mbuffer) *buff,
-                      const char *name) {
+NameDef(LClosure) *NameDef(luaU_undump)(NameDef(lua_State) *L, NameDef(ZIO) *Z, const char *name) {
   NameDef(LoadState) S;
   NameDef(LClosure) *cl;
   if (*name == '@' || *name == '=')
@@ -265,11 +266,10 @@ NameDef(LClosure) *NameDef(luaU_undump)(NameDef(lua_State) *L, NameDef(ZIO) *Z, 
     S.name = name;
   S.L = L;
   S.Z = Z;
-  S.b = buff;
   checkHeader(&S);
   cl = NameDef(luaF_newLclosure)(L, LoadByte(&S));
   setclLvalue(L, L->top, cl);
-  incr_top(L);
+  NameDef(luaD_inctop)(L);
   cl->p = NameDef(luaF_newproto)(L);
   LoadFunction(&S, cl->p, NULL);
   lua_assert(cl->nupvalues == cl->p->sizeupvalues);

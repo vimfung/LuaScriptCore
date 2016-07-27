@@ -1,5 +1,5 @@
 /*
-** $Id: lzio.h,v 1.30 2014/12/19 17:26:14 roberto Exp $
+** $Id: lzio.h,v 1.31 2015/09/08 15:41:05 roberto Exp $
 ** Buffered streams
 ** See Copyright Notice in lua.h
 */
@@ -44,7 +44,6 @@ typedef struct NameDef(Mbuffer) {
 #define luaZ_freebuffer(L, buff)	luaZ_resizebuffer(L, buff, 0)
 
 
-LUAI_FUNC char *NameDef(luaZ_openspace) (NameDef(lua_State) *L, NameDef(Mbuffer) *buff, size_t n);
 LUAI_FUNC void NameDef(luaZ_init) (NameDef(lua_State) *L, NameDef(ZIO) *z, NameDef(lua_Reader) reader,
                                         void *data);
 LUAI_FUNC size_t NameDef(luaZ_read) (NameDef(ZIO)* z, void *b, size_t n);	/* read next n bytes */

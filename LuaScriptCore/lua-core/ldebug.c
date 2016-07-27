@@ -1,13 +1,11 @@
 /*
-** $Id: ldebug.c,v 2.115 2015/05/22 17:45:56 roberto Exp $
+** $Id: ldebug.c,v 2.120 2016/03/31 19:01:21 roberto Exp $
 ** Debug Interface
 ** See Copyright Notice in lua.h
 */
 
 #define ldebug_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -71,7 +69,13 @@ static void swapextra (NameDef(lua_State) *L) {
 
 
 /*
-** this function can be called asynchronous (e.g. during a signal)
+** This function can be called asynchronously (e.g. during a signal).
+** Fields 'oldpc', 'basehookcount', and 'hookcount' (set by
+** 'resethookcount') are for debug only, and it is no problem if they
+** get arbitrary values (causes at most one wrong hook call). 'hookmask'
+** is an atomic value. We assume that pointers are atomic too (e.g., gcc
+** ensures that for all platforms where it runs). Moreover, 'hook' is
+** always checked before being called (see 'luaD_hook').
 */
 LUA_API void NameDef(lua_sethook) (NameDef(lua_State) *L, NameDef(lua_Hook) func, int mask, int count) {
   if (func == NULL || mask == 0) {  /* turn off hooks? */
@@ -560,7 +564,7 @@ static const char *varinfo (NameDef(lua_State) *L, const NameDef(TValue) *o) {
 
 
 l_noret NameDef(luaG_typeerror) (NameDef(lua_State) *L, const NameDef(TValue) *o, const char *op) {
-  const char *t = objtypename(o);
+  const char *t = NameDef(luaT_objtypename)(L, o);
   NameDef(luaG_runerror)(L, "attempt to %s a %s value%s", op, t, varinfo(L, o));
 }
 
@@ -592,9 +596,9 @@ l_noret NameDef(luaG_tointerror) (NameDef(lua_State) *L, const NameDef(TValue) *
 
 
 l_noret NameDef(luaG_ordererror) (NameDef(lua_State) *L, const NameDef(TValue) *p1, const NameDef(TValue) *p2) {
-  const char *t1 = objtypename(p1);
-  const char *t2 = objtypename(p2);
-  if (t1 == t2)
+  const char *t1 = NameDef(luaT_objtypename)(L, p1);
+  const char *t2 = NameDef(luaT_objtypename)(L, p2);
+  if (strcmp(t1, t2) == 0)
     NameDef(luaG_runerror)(L, "attempt to compare two %s values", t1);
   else
     NameDef(luaG_runerror)(L, "attempt to compare %s with %s", t1, t2);
@@ -620,7 +624,7 @@ l_noret NameDef(luaG_errormsg) (NameDef(lua_State) *L) {
     setobjs2s(L, L->top, L->top - 1);  /* move argument */
     setobjs2s(L, L->top - 1, errfunc);  /* push function */
     L->top++;  /* assume EXTRA_STACK */
-    NameDef(luaD_call)(L, L->top - 2, 1, 0);  /* call it */
+    NameDef(luaD_callnoyield)(L, L->top - 2, 1);  /* call it */
   }
   NameDef(luaD_throw)(L, LUA_ERRRUN);
 }
@@ -642,9 +646,11 @@ l_noret NameDef(luaG_runerror) (NameDef(lua_State) *L, const char *fmt, ...) {
 void NameDef(luaG_traceexec) (NameDef(lua_State) *L) {
   NameDef(CallInfo) *ci = L->ci;
   NameDef(lu_byte) mask = L->hookmask;
-  int counthook = ((mask & LUA_MASKCOUNT) && L->hookcount == 0);
+  int counthook = (--L->hookcount == 0 && (mask & LUA_MASKCOUNT));
   if (counthook)
     resethookcount(L);  /* reset count */
+  else if (!(mask & LUA_MASKLINE))
+    return;  /* no line hook and count != 0; nothing to be done */
   if (ci->callstatus & CIST_HOOKYIELD) {  /* called hook last time? */
     ci->callstatus &= ~CIST_HOOKYIELD;  /* erase mark */
     return;  /* do not call hook again (VM yielded, so it did not move) */

@@ -7,7 +7,7 @@
 #ifndef ldebug_h
 #define ldebug_h
 
-#include "LuaDefine.h"
+
 #include "lstate.h"
 
 

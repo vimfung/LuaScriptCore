@@ -1,5 +1,5 @@
 /*
-** $Id: lobject.h,v 2.111 2015/06/09 14:21:42 roberto Exp $
+** $Id: lobject.h,v 2.116 2015/11/03 18:33:10 roberto Exp $
 ** Type definitions for Lua objects
 ** See Copyright Notice in lua.h
 */
@@ -8,7 +8,6 @@
 #ifndef lobject_h
 #define lobject_h
 
-#include "LuaDefine.h"
 
 #include <stdarg.h>
 
@@ -20,8 +19,8 @@
 /*
 ** Extra tags for non-values
 */
-#define LUA_TPROTO	LUA_NUMTAGS
-#define LUA_TDEADKEY	(LUA_NUMTAGS+1)
+#define LUA_TPROTO	LUA_NUMTAGS		/* function prototypes */
+#define LUA_TDEADKEY	(LUA_NUMTAGS+1)		/* removed keys in tables */
 
 /*
 ** number of all possible tags (including LUA_TNONE but excluding DEADKEY)
@@ -89,22 +88,32 @@ struct NameDef(GCObject) {
 
 
 
-/*
-** Union of all Lua values
-*/
-typedef union NameDef(Value) NameDef(Value);
-
-
-
 
 /*
 ** Tagged Values. This is the basic representation of values in Lua,
 ** an actual value plus a tag with its type.
 */
 
+/*
+** Union of all Lua values
+*/
+typedef union NameDef(Value) {
+  NameDef(GCObject) *gc;    /* collectable objects */
+  void *p;         /* light userdata */
+  int b;           /* booleans */
+  NameDef(lua_CFunction) f; /* light C functions */
+  NameDef(lua_Integer) i;   /* integer numbers */
+  NameDef(lua_Number) n;    /* float numbers */
+} NameDef(Value);
+
+
 #define TValuefields	NameDef(Value) value_; int tt_
 
-typedef struct NameDef(lua_TValue) NameDef(TValue);
+
+typedef struct NameDef(lua_TValue) {
+  TValuefields;
+} NameDef(TValue);
+
 
 
 /* macro defining a nil value */
@@ -178,9 +187,9 @@ typedef struct NameDef(lua_TValue) NameDef(TValue);
 /* Macros for internal tests */
 #define righttt(obj)		(ttype(obj) == gcvalue(obj)->tt)
 
-#define checkliveness(g,obj) \
+#define checkliveness(L,obj) \
 	lua_longassert(!iscollectable(obj) || \
-			(righttt(obj) && !isdead(g,gcvalue(obj))))
+		(righttt(obj) && (L == NULL || !isdead(G(L),gcvalue(obj)))))
 
 
 /* Macros to set values */
@@ -216,32 +225,32 @@ typedef struct NameDef(lua_TValue) NameDef(TValue);
 #define setsvalue(L,obj,x) \
   { NameDef(TValue) *io = (obj); NameDef(TString) *x_ = (x); \
     val_(io).gc = obj2gco(x_); settt_(io, ctb(x_->tt)); \
-    checkliveness(G(L),io); }
+    checkliveness(L,io); }
 
 #define setuvalue(L,obj,x) \
   { NameDef(TValue) *io = (obj); NameDef(Udata) *x_ = (x); \
     val_(io).gc = obj2gco(x_); settt_(io, ctb(LUA_TUSERDATA)); \
-    checkliveness(G(L),io); }
+    checkliveness(L,io); }
 
 #define setthvalue(L,obj,x) \
   { NameDef(TValue) *io = (obj); NameDef(lua_State) *x_ = (x); \
     val_(io).gc = obj2gco(x_); settt_(io, ctb(LUA_TTHREAD)); \
-    checkliveness(G(L),io); }
+    checkliveness(L,io); }
 
 #define setclLvalue(L,obj,x) \
   { NameDef(TValue) *io = (obj); NameDef(LClosure) *x_ = (x); \
     val_(io).gc = obj2gco(x_); settt_(io, ctb(LUA_TLCL)); \
-    checkliveness(G(L),io); }
+    checkliveness(L,io); }
 
 #define setclCvalue(L,obj,x) \
   { NameDef(TValue) *io = (obj); NameDef(CClosure) *x_ = (x); \
     val_(io).gc = obj2gco(x_); settt_(io, ctb(LUA_TCCL)); \
-    checkliveness(G(L),io); }
+    checkliveness(L,io); }
 
 #define sethvalue(L,obj,x) \
   { NameDef(TValue) *io = (obj); NameDef(Table) *x_ = (x); \
     val_(io).gc = obj2gco(x_); settt_(io, ctb(LUA_TTABLE)); \
-    checkliveness(G(L),io); }
+    checkliveness(L,io); }
 
 #define setdeadvalue(obj)	settt_(obj, LUA_TDEADKEY)
 
@@ -249,7 +258,7 @@ typedef struct NameDef(lua_TValue) NameDef(TValue);
 
 #define setobj(L,obj1,obj2) \
 	{ NameDef(TValue) *io1=(obj1); *io1 = *(obj2); \
-	  (void)L; checkliveness(G(L),io1); }
+	  (void)L; checkliveness(L,io1); }
 
 
 /*
@@ -265,11 +274,12 @@ typedef struct NameDef(lua_TValue) NameDef(TValue);
 #define setptvalue2s	setptvalue
 /* from table to same table */
 #define setobjt2t	setobj
-/* to table */
-#define setobj2t	setobj
 /* to new object */
 #define setobj2n	setobj
 #define setsvalue2n	setsvalue
+
+/* to table (define it as an expression to be used in macros) */
+#define setobj2t(L,o1,o2)  ((void)L, *(o1)=*(o2), checkliveness(L,(o1)))
 
 
 
@@ -279,21 +289,6 @@ typedef struct NameDef(lua_TValue) NameDef(TValue);
 ** types and prototypes
 ** =======================================================
 */
-
-
-union NameDef(Value) {
-  NameDef(GCObject) *gc;    /* collectable objects */
-  void *p;         /* light userdata */
-  int b;           /* booleans */
-  NameDef(lua_CFunction) f; /* light C functions */
-  NameDef(lua_Integer) i;   /* integer numbers */
-  NameDef(lua_Number) n;    /* float numbers */
-};
-
-
-struct NameDef(lua_TValue) {
-  TValuefields;
-};
 
 
 typedef NameDef(TValue) *NameDef(StkId);  /* index to stack elements */
@@ -330,9 +325,9 @@ typedef union NameDef(UTString) {
 ** Get the actual string (array of bytes) from a 'TString'.
 ** (Access to 'extra' ensures that value is really a 'TString'.)
 */
-#define getaddrstr(ts)	(cast(char *, (ts)) + sizeof(NameDef(UTString)))
 #define getstr(ts)  \
-  check_exp(sizeof((ts)->extra), cast(const char*, getaddrstr(ts)))
+  check_exp(sizeof((ts)->extra), cast(char *, (ts)) + sizeof(NameDef(UTString)))
+
 
 /* get the actual string (array of bytes) from a Lua value */
 #define svalue(o)       getstr(tsvalue(o))
@@ -376,13 +371,13 @@ typedef union NameDef(UUdata) {
 #define setuservalue(L,u,o) \
 	{ const NameDef(TValue) *io=(o); NameDef(Udata) *iu = (u); \
 	  iu->user_ = io->value_; iu->ttuv_ = rttype(io); \
-	  checkliveness(G(L),io); }
+	  checkliveness(L,io); }
 
 
 #define getuservalue(L,u,o) \
 	{ NameDef(TValue) *io=(o); const NameDef(Udata) *iu = (u); \
 	  io->value_ = iu->user_; settt_(io, iu->ttuv_); \
-	  checkliveness(G(L),io); }
+	  checkliveness(L,io); }
 
 
 /*
@@ -412,7 +407,7 @@ typedef struct NameDef(LocVar) {
 typedef struct NameDef(Proto) {
   CommonHeader;
   NameDef(lu_byte) numparams;  /* number of fixed parameters */
-  NameDef(lu_byte) is_vararg;
+  NameDef(lu_byte) is_vararg;  /* 2: declared vararg; 1: uses vararg */
   NameDef(lu_byte) maxstacksize;  /* number of registers needed by this function */
   int sizeupvalues;  /* size of 'upvalues' */
   int sizek;  /* size of 'k' */
@@ -420,8 +415,8 @@ typedef struct NameDef(Proto) {
   int sizelineinfo;
   int sizep;  /* size of 'p' */
   int sizelocvars;
-  int linedefined;
-  int lastlinedefined;
+  int linedefined;  /* debug information  */
+  int lastlinedefined;  /* debug information  */
   NameDef(TValue) *k;  /* constants used by the function */
   NameDef(Instruction) *code;  /* opcodes */
   struct NameDef(Proto) **p;  /* functions defined inside the function */
@@ -490,7 +485,7 @@ typedef union NameDef(TKey) {
 #define setnodekey(L,key,obj) \
 	{ NameDef(TKey) *k_=(key); const NameDef(TValue) *io_=(obj); \
 	  k_->nk.value_ = io_->value_; k_->nk.tt_ = io_->tt_; \
-	  (void)L; checkliveness(G(L),io_); }
+	  (void)L; checkliveness(L,io_); }
 
 
 typedef struct NameDef(Node) {

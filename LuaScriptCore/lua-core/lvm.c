@@ -1,13 +1,11 @@
 /*
-** $Id: lvm.c,v 2.245 2015/06/09 15:53:35 roberto Exp $
+** $Id: lvm.c,v 2.268 2016/02/05 19:59:14 roberto Exp $
 ** Lua virtual machine
 ** See Copyright Notice in lua.h
 */
 
 #define lvm_c
 #define LUA_CORE
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -155,75 +153,88 @@ static int forlimit (const NameDef(TValue) *obj, NameDef(lua_Integer) *p, NameDe
 
 
 /*
-** Main function for table access (invoking metamethods if needed).
-** Compute 'val = t[key]'
+** Finish the table access 'val = t[key]'.
+** if 'slot' is NULL, 't' is not a table; otherwise, 'slot' points to
+** t[k] entry (which must be nil).
 */
-void NameDef(luaV_gettable) (NameDef(lua_State) *L, const NameDef(TValue) *t, NameDef(TValue) *key, NameDef(StkId) val) {
+void NameDef(luaV_finishget) (NameDef(lua_State) *L, const NameDef(TValue) *t, NameDef(TValue) *key, NameDef(StkId) val,
+                      const NameDef(TValue) *slot) {
   int loop;  /* counter to avoid infinite loops */
+  const NameDef(TValue) *tm;  /* metamethod */
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
-    const NameDef(TValue) *tm;
-    if (ttistable(t)) {  /* 't' is a table? */
-      NameDef(Table) *h = hvalue(t);
-      const NameDef(TValue) *res = NameDef(luaH_get)(h, key); /* do a primitive get */
-      if (!ttisnil(res) ||  /* result is not nil? */
-          (tm = fasttm(L, h->metatable, NameDef(TM_INDEX))) == NULL) { /* or no TM? */
-        setobj2s(L, val, res);  /* result is the raw get */
+    if (slot == NULL) {  /* 't' is not a table? */
+      lua_assert(!ttistable(t));
+      tm = NameDef(luaT_gettmbyobj)(L, t, NameDef(TM_INDEX));
+      if (ttisnil(tm))
+        NameDef(luaG_typeerror)(L, t, "index");  /* no metamethod */
+      /* else will try the metamethod */
+    }
+    else {  /* 't' is a table */
+      lua_assert(ttisnil(slot));
+      tm = fasttm(L, hvalue(t)->metatable, NameDef(TM_INDEX));  /* table's metamethod */
+      if (tm == NULL) {  /* no metamethod? */
+        setnilvalue(val);  /* result is nil */
         return;
       }
-      /* else will try metamethod */
+      /* else will try the metamethod */
     }
-    else if (ttisnil(tm = NameDef(luaT_gettmbyobj)(L, t, NameDef(TM_INDEX))))
-      NameDef(luaG_typeerror)(L, t, "index");  /* no metamethod */
-    if (ttisfunction(tm)) {  /* metamethod is a function */
-      NameDef(luaT_callTM)(L, tm, t, key, val, 1);
+    if (ttisfunction(tm)) {  /* is metamethod a function? */
+      NameDef(luaT_callTM)(L, tm, t, key, val, 1);  /* call it */
       return;
     }
-    t = tm;  /* else repeat access over 'tm' */
+    t = tm;  /* else try to access 'tm[key]' */
+    if (luaV_fastget(L,t,key,slot,NameDef(luaH_get))) {  /* fast track? */
+      setobj2s(L, val, slot);  /* done */
+      return;
+    }
+    /* else repeat (tail call 'luaV_finishget') */
   }
-  NameDef(luaG_runerror)(L, "gettable chain too long; possible loop");
+  NameDef(luaG_runerror)(L, "'__index' chain too long; possible loop");
 }
 
 
 /*
-** Main function for table assignment (invoking metamethods if needed).
-** Compute 't[key] = val'
+** Finish a table assignment 't[key] = val'.
+** If 'slot' is NULL, 't' is not a table.  Otherwise, 'slot' points
+** to the entry 't[key]', or to 'luaO_nilobject' if there is no such
+** entry.  (The value at 'slot' must be nil, otherwise 'luaV_fastset'
+** would have done the job.)
 */
-void NameDef(luaV_settable) (NameDef(lua_State) *L, const NameDef(TValue) *t, NameDef(TValue) *key, NameDef(StkId) val) {
+void NameDef(luaV_finishset) (NameDef(lua_State) *L, const NameDef(TValue) *t, NameDef(TValue) *key,
+                     NameDef(StkId) val, const NameDef(TValue) *slot) {
   int loop;  /* counter to avoid infinite loops */
   for (loop = 0; loop < MAXTAGLOOP; loop++) {
-    const NameDef(TValue) *tm;
-    if (ttistable(t)) {  /* 't' is a table? */
-      NameDef(Table) *h = hvalue(t);
-      NameDef(TValue) *oldval = cast(NameDef(TValue) *, NameDef(luaH_get)(h, key));
-      /* if previous value is not nil, there must be a previous entry
-         in the table; a metamethod has no relevance */
-      if (!ttisnil(oldval) ||
-         /* previous value is nil; must check the metamethod */
-         ((tm = fasttm(L, h->metatable, NameDef(TM_NEWINDEX))) == NULL &&
-         /* no metamethod; is there a previous entry in the table? */
-         (oldval != luaO_nilobject ||
-         /* no previous entry; must create one. (The next test is
-            always true; we only need the assignment.) */
-         (oldval = NameDef(luaH_newkey)(L, h, key), 1)))) {
+    const NameDef(TValue) *tm;  /* '__newindex' metamethod */
+    if (slot != NULL) {  /* is 't' a table? */
+      NameDef(Table) *h = hvalue(t);  /* save 't' table */
+      lua_assert(ttisnil(slot));  /* old value must be nil */
+      tm = fasttm(L, h->metatable, NameDef(TM_NEWINDEX));  /* get metamethod */
+      if (tm == NULL) {  /* no metamethod? */
+        if (slot == luaO_nilobject)  /* no previous entry? */
+          slot = NameDef(luaH_newkey)(L, h, key);  /* create one */
         /* no metamethod and (now) there is an entry with given key */
-        setobj2t(L, oldval, val);  /* assign new value to that entry */
+        setobj2t(L, cast(NameDef(TValue) *, slot), val);  /* set its new value */
         invalidateTMcache(h);
         luaC_barrierback(L, h, val);
         return;
       }
       /* else will try the metamethod */
     }
-    else  /* not a table; check metamethod */
+    else {  /* not a table; check metamethod */
       if (ttisnil(tm = NameDef(luaT_gettmbyobj)(L, t, NameDef(TM_NEWINDEX))))
         NameDef(luaG_typeerror)(L, t, "index");
+    }
     /* try the metamethod */
     if (ttisfunction(tm)) {
       NameDef(luaT_callTM)(L, tm, t, key, val, 0);
       return;
     }
     t = tm;  /* else repeat assignment over 'tm' */
+    if (luaV_fastset(L, t, key, slot, NameDef(luaH_get), val))
+      return;  /* done */
+    /* else loop */
   }
-  NameDef(luaG_runerror)(L, "settable chain too long; possible loop");
+  NameDef(luaG_runerror)(L, "'__newindex' chain too long; possible loop");
 }
 
 
@@ -445,6 +456,17 @@ int NameDef(luaV_equalobj) (NameDef(lua_State) *L, const NameDef(TValue) *t1, co
 
 #define isemptystr(o)	(ttisshrstring(o) && tsvalue(o)->shrlen == 0)
 
+/* copy strings in stack from top - n up to top - 1 to buffer */
+static void copy2buff (NameDef(StkId) top, int n, char *buff) {
+  size_t tl = 0;  /* size already copied */
+  do {
+    size_t l = vslen(top - n);  /* length of string being copied */
+    memcpy(buff + tl, svalue(top - n), l * sizeof(char));
+    tl += l;
+  } while (--n > 0);
+}
+
+
 /*
 ** Main operation for concatenation: concat 'total' values in the stack,
 ** from 'L->top - total' up to 'L->top - 1'.
@@ -464,24 +486,24 @@ void NameDef(luaV_concat) (NameDef(lua_State) *L, int total) {
     else {
       /* at least two non-empty string values; get as many as possible */
       size_t tl = vslen(top - 1);
-      char *buffer;
-      int i;
-      /* collect total length */
-      for (i = 1; i < total && tostring(L, top-i-1); i++) {
-        size_t l = vslen(top - i - 1);
+      NameDef(TString) *ts;
+      /* collect total length and number of strings */
+      for (n = 1; n < total && tostring(L, top - n - 1); n++) {
+        size_t l = vslen(top - n - 1);
         if (l >= (MAX_SIZE/sizeof(char)) - tl)
           NameDef(luaG_runerror)(L, "string length overflow");
         tl += l;
       }
-      buffer = NameDef(luaZ_openspace)(L, &G(L)->buff, tl);
-      tl = 0;
-      n = i;
-      do {  /* copy all strings to buffer */
-        size_t l = vslen(top - i);
-        memcpy(buffer+tl, svalue(top-i), l * sizeof(char));
-        tl += l;
-      } while (--i > 0);
-      setsvalue2s(L, top-n, NameDef(luaS_newlstr)(L, buffer, tl));  /* create result */
+      if (tl <= LUAI_MAXSHORTLEN) {  /* is result a short string? */
+        char buff[LUAI_MAXSHORTLEN];
+        copy2buff(top, n, buff);  /* copy strings to buffer */
+        ts = NameDef(luaS_newlstr)(L, buff, tl);
+      }
+      else {  /* long string; copy strings directly to final result */
+        ts = NameDef(luaS_createlngstrobj)(L, tl);
+        copy2buff(top, n, getstr(ts));
+      }
+      setsvalue2s(L, top - n, ts);  /* create result */
     }
     total -= n-1;  /* got 'n' strings to create 1 new */
     L->top -= n-1;  /* popped 'n' strings and pushed one */
@@ -702,27 +724,20 @@ void NameDef(luaV_finishOp) (NameDef(lua_State) *L) {
 ** some macros for common tasks in 'luaV_execute'
 */
 
-#if !defined(luai_runtimecheck)
-#define luai_runtimecheck(L, c)		/* void */
-#endif
-
 
 #define RA(i)	(base+GETARG_A(i))
-/* to be used after possible stack reallocation */
 #define RB(i)	check_exp(getBMode(GET_OPCODE(i)) == OpArgR, base+GETARG_B(i))
 #define RC(i)	check_exp(getCMode(GET_OPCODE(i)) == OpArgR, base+GETARG_C(i))
 #define RKB(i)	check_exp(getBMode(GET_OPCODE(i)) == OpArgK, \
 	ISK(GETARG_B(i)) ? k+INDEXK(GETARG_B(i)) : base+GETARG_B(i))
 #define RKC(i)	check_exp(getCMode(GET_OPCODE(i)) == OpArgK, \
 	ISK(GETARG_C(i)) ? k+INDEXK(GETARG_C(i)) : base+GETARG_C(i))
-#define KBx(i)  \
-  (k + (GETARG_Bx(i) != 0 ? GETARG_Bx(i) - 1 : GETARG_Ax(*ci->u.l.savedpc++)))
 
 
 /* execute a jump instruction */
 #define dojump(ci,i,e) \
   { int a = GETARG_A(i); \
-    if (a > 0) NameDef(luaF_close)(L, ci->u.l.base + a - 1); \
+    if (a != 0) NameDef(luaF_close)(L, ci->u.l.base + a - 1); \
     ci->u.l.savedpc += GETARG_sBx(i) + e; }
 
 /* for test instructions, execute the jump instruction that follows it */
@@ -732,38 +747,58 @@ void NameDef(luaV_finishOp) (NameDef(lua_State) *L) {
 #define Protect(x)	{ {x;}; base = ci->u.l.base; }
 
 #define checkGC(L,c)  \
-  Protect( luaC_condGC(L,{L->top = (c);  /* limit of live values */ \
-                          NameDef(luaC_step)(L); \
-                          L->top = ci->top;})  /* restore top */ \
-           luai_threadyield(L); )
+	{ luaC_condGC(L, L->top = (c),  /* limit of live values */ \
+                         Protect(L->top = ci->top));  /* restore top */ \
+           luai_threadyield(L); }
 
+
+/* fetch an instruction and prepare its execution */
+#define vmfetch()	{ \
+  i = *(ci->u.l.savedpc++); \
+  if (L->hookmask & (LUA_MASKLINE | LUA_MASKCOUNT)) \
+    Protect(NameDef(luaG_traceexec)(L)); \
+  ra = RA(i); /* WARNING: any stack reallocation invalidates 'ra' */ \
+  lua_assert(base == ci->u.l.base); \
+  lua_assert(base <= L->top && L->top < L->stack + L->stacksize); \
+}
 
 #define vmdispatch(o)	switch(o)
 #define vmcase(l)	case l:
 #define vmbreak		break
+
+
+/*
+** copy of 'luaV_gettable', but protecting the call to potential
+** metamethod (which can reallocate the stack)
+*/
+#define gettableProtected(L,t,k,v)  { const NameDef(TValue) *slot; \
+  if (luaV_fastget(L,t,k,slot,NameDef(luaH_get))) { setobj2s(L, v, slot); } \
+  else Protect(NameDef(luaV_finishget)(L,t,k,v,slot)); }
+
+
+/* same for 'luaV_settable' */
+#define settableProtected(L,t,k,v) { const NameDef(TValue) *slot; \
+  if (!luaV_fastset(L,t,k,slot,NameDef(luaH_get),v)) \
+    Protect(NameDef(luaV_finishset)(L,t,k,v,slot)); }
+
+
 
 void NameDef(luaV_execute) (NameDef(lua_State) *L) {
   NameDef(CallInfo) *ci = L->ci;
   NameDef(LClosure) *cl;
   NameDef(TValue) *k;
   NameDef(StkId) base;
+  ci->callstatus |= CIST_FRESH;  /* fresh invocation of 'luaV_execute" */
  newframe:  /* reentry point when frame changes (call/return) */
   lua_assert(ci == L->ci);
-  cl = clLvalue(ci->func);
-  k = cl->p->k;
-  base = ci->u.l.base;
+  cl = clLvalue(ci->func);  /* local reference to function's closure */
+  k = cl->p->k;  /* local reference to function's constant table */
+  base = ci->u.l.base;  /* local copy of function's base */
   /* main loop of interpreter */
   for (;;) {
-    NameDef(Instruction) i = *(ci->u.l.savedpc++);
+    NameDef(Instruction) i;
     NameDef(StkId) ra;
-    if ((L->hookmask & (LUA_MASKLINE | LUA_MASKCOUNT)) &&
-        (--L->hookcount == 0 || L->hookmask & LUA_MASKLINE)) {
-      Protect(NameDef(luaG_traceexec)(L));
-    }
-    /* WARNING: several calls may realloc the stack and invalidate 'ra' */
-    ra = RA(i);
-    lua_assert(base == ci->u.l.base);
-    lua_assert(base <= L->top && L->top < L->stack + L->stacksize);
+    vmfetch();
     vmdispatch (GET_OPCODE(i)) {
       vmcase(NameDef(OP_MOVE)) {
         setobjs2s(L, ra, RB(i));
@@ -799,17 +834,22 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         vmbreak;
       }
       vmcase(NameDef(OP_GETTABUP)) {
-        int b = GETARG_B(i);
-        Protect(NameDef(luaV_gettable)(L, cl->upvals[b]->v, RKC(i), ra));
+        NameDef(TValue) *upval = cl->upvals[GETARG_B(i)]->v;
+        NameDef(TValue) *rc = RKC(i);
+        gettableProtected(L, upval, rc, ra);
         vmbreak;
       }
       vmcase(NameDef(OP_GETTABLE)) {
-        Protect(NameDef(luaV_gettable)(L, RB(i), RKC(i), ra));
+        NameDef(StkId) rb = RB(i);
+        NameDef(TValue) *rc = RKC(i);
+        gettableProtected(L, rb, rc, ra);
         vmbreak;
       }
       vmcase(NameDef(OP_SETTABUP)) {
-        int a = GETARG_A(i);
-        Protect(NameDef(luaV_settable)(L, cl->upvals[a]->v, RKB(i), RKC(i)));
+        NameDef(TValue) *upval = cl->upvals[GETARG_A(i)]->v;
+        NameDef(TValue) *rb = RKB(i);
+        NameDef(TValue) *rc = RKC(i);
+        settableProtected(L, upval, rb, rc);
         vmbreak;
       }
       vmcase(NameDef(OP_SETUPVAL)) {
@@ -819,7 +859,9 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         vmbreak;
       }
       vmcase(NameDef(OP_SETTABLE)) {
-        Protect(NameDef(luaV_settable)(L, ra, RKB(i), RKC(i)));
+        NameDef(TValue) *rb = RKB(i);
+        NameDef(TValue) *rc = RKC(i);
+        settableProtected(L, ra, rb, rc);
         vmbreak;
       }
       vmcase(NameDef(OP_NEWTABLE)) {
@@ -833,9 +875,15 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         vmbreak;
       }
       vmcase(NameDef(OP_SELF)) {
+        const NameDef(TValue) *aux;
         NameDef(StkId) rb = RB(i);
-        setobjs2s(L, ra+1, rb);
-        Protect(NameDef(luaV_gettable)(L, rb, RKC(i), ra));
+        NameDef(TValue) *rc = RKC(i);
+        NameDef(TString) *key = tsvalue(rc);  /* key must be a string */
+        setobjs2s(L, ra + 1, rb);
+        if (luaV_fastget(L, rb, key, aux, NameDef(luaH_getstr))) {
+          setobj2s(L, ra, aux);
+        }
+        else Protect(NameDef(luaV_finishget)(L, rb, rc, ra, aux));
         vmbreak;
       }
       vmcase(NameDef(OP_ADD)) {
@@ -1022,7 +1070,7 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         NameDef(StkId) rb;
         L->top = base + c + 1;  /* mark the end of concat operands */
         Protect(NameDef(luaV_concat)(L, c - b + 1));
-        ra = RA(i);  /* 'luav_concat' may invoke TMs and move the stack */
+        ra = RA(i);  /* 'luaV_concat' may invoke TMs and move the stack */
         rb = base + b;
         setobjs2s(L, ra, rb);
         checkGC(L, (ra >= rb ? ra + 1 : rb));
@@ -1037,7 +1085,7 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         NameDef(TValue) *rb = RKB(i);
         NameDef(TValue) *rc = RKC(i);
         Protect(
-          if (cast_int(NameDef(luaV_equalobj)(L, rb, rc)) != GETARG_A(i))
+          if (NameDef(luaV_equalobj)(L, rb, rc) != GETARG_A(i))
             ci->u.l.savedpc++;
           else
             donextjump(ci);
@@ -1084,12 +1132,12 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         int nresults = GETARG_C(i) - 1;
         if (b != 0) L->top = ra+b;  /* else previous instruction set top */
         if (NameDef(luaD_precall)(L, ra, nresults)) {  /* C function? */
-          if (nresults >= 0) L->top = ci->top;  /* adjust results */
-          base = ci->u.l.base;
+          if (nresults >= 0)
+            L->top = ci->top;  /* adjust results */
+          Protect((void)0);  /* update 'base' */
         }
         else {  /* Lua function */
           ci = L->ci;
-          ci->callstatus |= CIST_REENTRY;
           goto newframe;  /* restart luaV_execute over new Lua function */
         }
         vmbreak;
@@ -1098,8 +1146,9 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         int b = GETARG_B(i);
         if (b != 0) L->top = ra+b;  /* else previous instruction set top */
         lua_assert(GETARG_C(i) - 1 == LUA_MULTRET);
-        if (NameDef(luaD_precall)(L, ra, LUA_MULTRET))  /* C function? */
-          base = ci->u.l.base;
+        if (NameDef(luaD_precall)(L, ra, LUA_MULTRET)) {  /* C function? */
+          Protect((void)0);  /* update 'base' */
+        }
         else {
           /* tail call: put called frame (n) in place of caller one (o) */
           NameDef(CallInfo) *nci = L->ci;  /* called frame */
@@ -1127,8 +1176,8 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
       vmcase(NameDef(OP_RETURN)) {
         int b = GETARG_B(i);
         if (cl->p->sizep > 0) NameDef(luaF_close)(L, base);
-        b = NameDef(luaD_poscall)(L, ra, (b != 0 ? b - 1 : L->top - ra));
-        if (!(ci->callstatus & CIST_REENTRY))  /* 'ci' still the called one */
+        b = NameDef(luaD_poscall)(L, ci, ra, (b != 0 ? b - 1 : cast_int(L->top - ra)));
+        if (ci->callstatus & CIST_FRESH)  /* local 'ci' still from callee */
           return;  /* external invocation: return */
         else {  /* invocation via reentry: continue execution */
           ci = L->ci;
@@ -1141,7 +1190,7 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
       vmcase(NameDef(OP_FORLOOP)) {
         if (ttisinteger(ra)) {  /* integer loop? */
           NameDef(lua_Integer) step = ivalue(ra + 2);
-          NameDef(lua_Integer) idx = ivalue(ra) + step; /* increment index */
+          NameDef(lua_Integer) idx = intop(+, ivalue(ra), step); /* increment index */
           NameDef(lua_Integer) limit = ivalue(ra + 1);
           if ((0 < step) ? (idx <= limit) : (limit <= idx)) {
             ci->u.l.savedpc += GETARG_sBx(i);  /* jump back */
@@ -1173,7 +1222,7 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
           /* all values are integer */
           NameDef(lua_Integer) initv = (stopnow ? 0 : ivalue(init));
           setivalue(plimit, ilimit);
-          setivalue(init, initv - ivalue(pstep));
+          setivalue(init, intop(-, initv, ivalue(pstep)));
         }
         else {  /* try making all values floats */
           NameDef(lua_Number) ninit; NameDef(lua_Number) nlimit; NameDef(lua_Number) nstep;
@@ -1196,7 +1245,7 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         setobjs2s(L, cb+1, ra+1);
         setobjs2s(L, cb, ra);
         L->top = cb + 3;  /* func. + 2 args (state and index) */
-        Protect(NameDef(luaD_call)(L, cb, GETARG_C(i), 1));
+        Protect(NameDef(luaD_call)(L, cb, GETARG_C(i)));
         L->top = ci->top;
         i = *(ci->u.l.savedpc++);  /* go to next instruction */
         ra = RA(i);
@@ -1221,11 +1270,10 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
           lua_assert(GET_OPCODE(*ci->u.l.savedpc) == OP_EXTRAARG);
           c = GETARG_Ax(*ci->u.l.savedpc++);
         }
-        luai_runtimecheck(L, ttistable(ra));
         h = hvalue(ra);
         last = ((c-1)*LFIELDS_PER_FLUSH) + n;
         if (last > h->sizearray)  /* needs more space? */
-          NameDef(luaH_resizearray)(L, h, last);  /* pre-allocate it at once */
+          NameDef(luaH_resizearray)(L, h, last);  /* preallocate it at once */
         for (; n > 0; n--) {
           NameDef(TValue) *val = ra+n;
           NameDef(luaH_setint)(L, h, last--, val);
@@ -1245,23 +1293,21 @@ void NameDef(luaV_execute) (NameDef(lua_State) *L) {
         vmbreak;
       }
       vmcase(NameDef(OP_VARARG)) {
-        int b = GETARG_B(i) - 1;
+        int b = GETARG_B(i) - 1;  /* required results */
         int j;
         int n = cast_int(base - ci->func) - cl->p->numparams - 1;
+        if (n < 0)  /* less arguments than parameters? */
+          n = 0;  /* no vararg arguments */
         if (b < 0) {  /* B == 0? */
           b = n;  /* get all var. arguments */
           Protect(luaD_checkstack(L, n));
           ra = RA(i);  /* previous call may change the stack */
           L->top = ra + n;
         }
-        for (j = 0; j < b; j++) {
-          if (j < n) {
-            setobjs2s(L, ra + j, base - n + j);
-          }
-          else {
-            setnilvalue(ra + j);
-          }
-        }
+        for (j = 0; j < b && j < n; j++)
+          setobjs2s(L, ra + j, base - n + j);
+        for (; j < b; j++)  /* complete required results with nil */
+          setnilvalue(ra + j);
         vmbreak;
       }
       vmcase(NameDef(OP_EXTRAARG)) {

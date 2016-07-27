@@ -1,5 +1,5 @@
 /*
-** $Id: lvm.h,v 2.35 2015/02/20 14:27:53 roberto Exp $
+** $Id: lvm.h,v 2.40 2016/01/05 16:07:21 roberto Exp $
 ** Lua virtual machine
 ** See Copyright Notice in lua.h
 */
@@ -7,7 +7,6 @@
 #ifndef lvm_h
 #define lvm_h
 
-#include "LuaDefine.h"
 
 #include "ldo.h"
 #include "lobject.h"
@@ -49,15 +48,60 @@
 #define luaV_rawequalobj(t1,t2)		NameDef(luaV_equalobj)(NULL,t1,t2)
 
 
+/*
+** fast track for 'gettable': if 't' is a table and 't[k]' is not nil,
+** return 1 with 'slot' pointing to 't[k]' (final result).  Otherwise,
+** return 0 (meaning it will have to check metamethod) with 'slot'
+** pointing to a nil 't[k]' (if 't' is a table) or NULL (otherwise).
+** 'f' is the raw get function to use.
+*/
+#define luaV_fastget(L,t,k,slot,f) \
+  (!ttistable(t)  \
+   ? (slot = NULL, 0)  /* not a table; 'slot' is NULL and result is 0 */  \
+   : (slot = f(hvalue(t), k),  /* else, do raw access */  \
+      !ttisnil(slot)))  /* result not nil? */
+
+/*
+** standard implementation for 'gettable'
+*/
+#define luaV_gettable(L,t,k,v) { const NameDef(TValue) *slot; \
+  if (luaV_fastget(L,t,k,slot,NameDef(luaH_get))) { setobj2s(L, v, slot); } \
+  else NameDef(luaV_finishget)(L,t,k,v,slot); }
+
+
+/*
+** Fast track for set table. If 't' is a table and 't[k]' is not nil,
+** call GC barrier, do a raw 't[k]=v', and return true; otherwise,
+** return false with 'slot' equal to NULL (if 't' is not a table) or
+** 'nil'. (This is needed by 'luaV_finishget'.) Note that, if the macro
+** returns true, there is no need to 'invalidateTMcache', because the
+** call is not creating a new entry.
+*/
+#define luaV_fastset(L,t,k,slot,f,v) \
+  (!ttistable(t) \
+   ? (slot = NULL, 0) \
+   : (slot = f(hvalue(t), k), \
+     ttisnil(slot) ? 0 \
+     : (luaC_barrierback(L, hvalue(t), v), \
+        setobj2t(L, cast(NameDef(TValue) *,slot), v), \
+        1)))
+
+
+#define luaV_settable(L,t,k,v) { const NameDef(TValue) *slot; \
+  if (!luaV_fastset(L,t,k,slot,NameDef(luaH_get),v)) \
+    NameDef(luaV_finishset)(L,t,k,v,slot); }
+  
+
+
 LUAI_FUNC int NameDef(luaV_equalobj) (NameDef(lua_State) *L, const NameDef(TValue) *t1, const NameDef(TValue) *t2);
 LUAI_FUNC int NameDef(luaV_lessthan) (NameDef(lua_State) *L, const NameDef(TValue) *l, const NameDef(TValue) *r);
 LUAI_FUNC int NameDef(luaV_lessequal) (NameDef(lua_State) *L, const NameDef(TValue) *l, const NameDef(TValue) *r);
 LUAI_FUNC int NameDef(luaV_tonumber_) (const NameDef(TValue) *obj, NameDef(lua_Number) *n);
 LUAI_FUNC int NameDef(luaV_tointeger) (const NameDef(TValue) *obj, NameDef(lua_Integer) *p, int mode);
-LUAI_FUNC void NameDef(luaV_gettable) (NameDef(lua_State) *L, const NameDef(TValue) *t, NameDef(TValue) *key,
-                                            NameDef(StkId) val);
-LUAI_FUNC void NameDef(luaV_settable) (NameDef(lua_State) *L, const NameDef(TValue) *t, NameDef(TValue) *key,
-                                            NameDef(StkId) val);
+LUAI_FUNC void NameDef(luaV_finishget) (NameDef(lua_State) *L, const NameDef(TValue) *t, NameDef(TValue) *key,
+                               NameDef(StkId) val, const NameDef(TValue) *slot);
+LUAI_FUNC void NameDef(luaV_finishset) (NameDef(lua_State) *L, const NameDef(TValue) *t, NameDef(TValue) *key,
+                               NameDef(StkId) val, const NameDef(TValue) *slot);
 LUAI_FUNC void NameDef(luaV_finishOp) (NameDef(lua_State) *L);
 LUAI_FUNC void NameDef(luaV_execute) (NameDef(lua_State) *L);
 LUAI_FUNC void NameDef(luaV_concat) (NameDef(lua_State) *L, int total);

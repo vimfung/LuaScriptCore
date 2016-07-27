@@ -1,13 +1,11 @@
 /*
-** $Id: lundump.h,v 1.44 2014/06/19 18:27:20 roberto Exp $
+** $Id: lundump.h,v 1.45 2015/09/08 15:41:05 roberto Exp $
 ** load precompiled Lua chunks
 ** See Copyright Notice in lua.h
 */
 
 #ifndef lundump_h
 #define lundump_h
-
-#include "LuaDefine.h"
 
 #include "llimits.h"
 #include "lobject.h"
@@ -25,8 +23,7 @@
 #define LUAC_FORMAT	0	/* this is the official format */
 
 /* load one chunk; from lundump.c */
-LUAI_FUNC NameDef(LClosure)* NameDef(luaU_undump) (NameDef(lua_State)* L, NameDef(ZIO)* Z, NameDef(Mbuffer)* buff,
-                                 const char* name);
+LUAI_FUNC NameDef(LClosure)* NameDef(luaU_undump) (NameDef(lua_State)* L, NameDef(ZIO)* Z, const char* name);
 
 /* dump one chunk; from ldump.c */
 LUAI_FUNC int NameDef(luaU_dump) (NameDef(lua_State)* L, const NameDef(Proto)* f, NameDef(lua_Writer) w,

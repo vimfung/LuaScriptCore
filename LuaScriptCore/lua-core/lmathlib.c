@@ -1,13 +1,11 @@
 /*
-** $Id: lmathlib.c,v 1.115 2015/03/12 14:04:04 roberto Exp $
+** $Id: lmathlib.c,v 1.117 2015/10/02 15:39:23 roberto Exp $
 ** Standard mathematical library
 ** See Copyright Notice in lua.h
 */
 
 #define lmathlib_c
 #define LUA_LIB
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -41,7 +39,7 @@
 static int math_abs (NameDef(lua_State) *L) {
   if (NameDef(lua_isinteger)(L, 1)) {
     NameDef(lua_Integer) n = lua_tointeger(L, 1);
-    if (n < 0) n = (NameDef(lua_Integer))(0u - n);
+    if (n < 0) n = (NameDef(lua_Integer))(0u - (NameDef(lua_Unsigned))n);
     NameDef(lua_pushinteger)(L, n);
   }
   else
@@ -275,7 +273,7 @@ static int math_random (NameDef(lua_State) *L) {
 
 static int math_randomseed (NameDef(lua_State) *L) {
   l_srand((unsigned int)(NameDef(lua_Integer))NameDef(luaL_checknumber)(L, 1));
-  (void)rand(); /* discard first value to avoid undesirable correlations */
+  (void)l_rand(); /* discard first value to avoid undesirable correlations */
   return 0;
 }
 
@@ -303,43 +301,43 @@ static int math_type (NameDef(lua_State) *L) {
 #if defined(LUA_COMPAT_MATHLIB)
 
 static int math_cosh (NameDef(lua_State) *L) {
-  lua_pushnumber(L, l_mathop(cosh)(luaL_checknumber(L, 1)));
+  NameDef(lua_pushnumber)(L, l_mathop(cosh)(luaL_checknumber(L, 1)));
   return 1;
 }
 
 static int math_sinh (NameDef(lua_State) *L) {
-  lua_pushnumber(L, l_mathop(sinh)(luaL_checknumber(L, 1)));
+  NameDef(lua_pushnumber)(L, l_mathop(sinh)(luaL_checknumber(L, 1)));
   return 1;
 }
 
 static int math_tanh (NameDef(lua_State) *L) {
-  lua_pushnumber(L, l_mathop(tanh)(luaL_checknumber(L, 1)));
+  NameDef(lua_pushnumber)(L, l_mathop(tanh)(luaL_checknumber(L, 1)));
   return 1;
 }
 
 static int math_pow (NameDef(lua_State) *L) {
-  lua_Number x = luaL_checknumber(L, 1);
-  lua_Number y = luaL_checknumber(L, 2);
-  lua_pushnumber(L, l_mathop(pow)(x, y));
+  NameDef(lua_Number) x = luaL_checknumber(L, 1);
+  NameDef(lua_Number) y = luaL_checknumber(L, 2);
+  NameDef(lua_pushnumber)(L, l_mathop(pow)(x, y));
   return 1;
 }
 
 static int math_frexp (NameDef(lua_State) *L) {
   int e;
-  lua_pushnumber(L, l_mathop(frexp)(luaL_checknumber(L, 1), &e));
-  lua_pushinteger(L, e);
+  NameDef(lua_pushnumber)(L, l_mathop(frexp)(luaL_checknumber(L, 1), &e));
+  NameDef(lua_pushinteger)(L, e);
   return 2;
 }
 
 static int math_ldexp (NameDef(lua_State) *L) {
-  lua_Number x = luaL_checknumber(L, 1);
+  NameDef(lua_Number) x = luaL_checknumber(L, 1);
   int ep = (int)luaL_checkinteger(L, 2);
-  lua_pushnumber(L, l_mathop(ldexp)(x, ep));
+  NameDef(lua_pushnumber)(L, l_mathop(ldexp)(x, ep));
   return 1;
 }
 
 static int math_log10 (NameDef(lua_State) *L) {
-  lua_pushnumber(L, l_mathop(log10)(luaL_checknumber(L, 1)));
+  NameDef(lua_pushnumber)(L, l_mathop(log10)(luaL_checknumber(L, 1)));
   return 1;
 }
 

@@ -1,13 +1,11 @@
 /*
-** $Id: lauxlib.c,v 1.280 2015/02/03 17:38:24 roberto Exp $
+** $Id: lauxlib.c,v 1.286 2016/01/08 15:33:09 roberto Exp $
 ** Auxiliary functions for building Lua libraries
 ** See Copyright Notice in lua.h
 */
 
 #define lauxlib_c
 #define LUA_LIB
-
-#include "LuaDefine.h"
 
 #include "lprefix.h"
 
@@ -19,7 +17,8 @@
 #include <string.h>
 
 
-/* This file uses only the official API of Lua.
+/*
+** This file uses only the official API of Lua.
 ** Any function declared here could be written as an application function.
 */
 
@@ -35,8 +34,8 @@
 */
 
 
-#define LEVELS1	12	/* size of the first part of the stack */
-#define LEVELS2	10	/* size of the second part of the stack */
+#define LEVELS1	10	/* size of the first part of the stack */
+#define LEVELS2	11	/* size of the second part of the stack */
 
 
 
@@ -109,7 +108,7 @@ static void pushfuncname (NameDef(lua_State) *L, NameDef(lua_Debug) *ar) {
 }
 
 
-static int countlevels (NameDef(lua_State) *L) {
+static int lastlevel (NameDef(lua_State) *L) {
   NameDef(lua_Debug) ar;
   int li = 1, le = 1;
   /* find an upper bound */
@@ -128,14 +127,16 @@ LUALIB_API void NameDef(luaL_traceback) (NameDef(lua_State) *L, NameDef(lua_Stat
                                 const char *msg, int level) {
   NameDef(lua_Debug) ar;
   int top = NameDef(lua_gettop)(L);
-  int numlevels = countlevels(L1);
-  int mark = (numlevels > LEVELS1 + LEVELS2) ? LEVELS1 : 0;
-  if (msg) NameDef(lua_pushfstring)(L, "%s\n", msg);
+  int last = lastlevel(L1);
+  int n1 = (last - level > LEVELS1 + LEVELS2) ? LEVELS1 : -1;
+  if (msg)
+    NameDef(lua_pushfstring)(L, "%s\n", msg);
+  NameDef(luaL_checkstack)(L, 10, NULL);
   lua_pushliteral(L, "stack traceback:");
   while (NameDef(lua_getstack)(L1, level++, &ar)) {
-    if (level == mark) {  /* too many levels? */
+    if (n1-- == 0) {  /* too many levels? */
       lua_pushliteral(L, "\n\t...");  /* add a '...' */
-      level = numlevels - LEVELS2;  /* and skip to last ones */
+      level = last - LEVELS2 + 1;  /* and skip to last ones */
     }
     else {
       NameDef(lua_getinfo)(L1, "Slnt", &ar);
@@ -198,6 +199,10 @@ static void tag_error (NameDef(lua_State) *L, int arg, int tag) {
 }
 
 
+/*
+** The use of 'lua_pushfstring' ensures this function does not
+** need reserved stack space when called.
+*/
 LUALIB_API void NameDef(luaL_where) (NameDef(lua_State) *L, int level) {
   NameDef(lua_Debug) ar;
   if (NameDef(lua_getstack)(L, level, &ar)) {  /* check function at level */
@@ -207,10 +212,15 @@ LUALIB_API void NameDef(luaL_where) (NameDef(lua_State) *L, int level) {
       return;
     }
   }
-  lua_pushliteral(L, "");  /* else, no information available... */
+  NameDef(lua_pushfstring)(L, "");  /* else, no information available... */
 }
 
 
+/*
+** Again, the use of 'lua_pushvfstring' ensures this function does
+** not need reserved stack space when called. (At worst, it generates
+** an error with "stack overflow" instead of the given message.)
+*/
 LUALIB_API int NameDef(luaL_error) (NameDef(lua_State) *L, const char *fmt, ...) {
   va_list argp;
   va_start(argp, fmt);
@@ -291,7 +301,7 @@ LUALIB_API int NameDef(luaL_newmetatable) (NameDef(lua_State) *L, const char *tn
   if (luaL_getmetatable(L, tname) != LUA_TNIL)  /* name already in use? */
     return 0;  /* leave previous value on top, but return 0 */
   lua_pop(L, 1);
-  lua_newtable(L);  /* create metatable */
+  NameDef(lua_createtable)(L, 0, 2);  /* create metatable */
   NameDef(lua_pushstring)(L, tname);
   NameDef(lua_setfield)(L, -2, "__name");  /* metatable.__name = tname */
   NameDef(lua_pushvalue)(L, -1);
@@ -349,10 +359,15 @@ LUALIB_API int NameDef(luaL_checkoption) (NameDef(lua_State) *L, int arg, const 
 }
 
 
+/*
+** Ensures the stack has at least 'space' extra slots, raising an error
+** if it cannot fulfill the request. (The error handling needs a few
+** extra slots to format the error message. In case of an error without
+** this extra space, Lua will generate the same 'stack overflow' error,
+** but without 'msg'.)
+*/
 LUALIB_API void NameDef(luaL_checkstack) (NameDef(lua_State) *L, int space, const char *msg) {
-  /* keep some extra space to run error routines, if needed */
-  const int extra = LUA_MINSTACK;
-  if (!NameDef(lua_checkstack)(L, space + extra)) {
+  if (!NameDef(lua_checkstack)(L, space)) {
     if (msg)
       NameDef(luaL_error)(L, "stack overflow (%s)", msg);
     else
@@ -437,6 +452,47 @@ LUALIB_API NameDef(lua_Integer) NameDef(luaL_optinteger) (NameDef(lua_State) *L,
 ** =======================================================
 */
 
+/* userdata to box arbitrary data */
+typedef struct NameDef(UBox) {
+  void *box;
+  size_t bsize;
+} NameDef(UBox);
+
+
+static void *resizebox (NameDef(lua_State) *L, int idx, size_t newsize) {
+  void *ud;
+  NameDef(lua_Alloc) allocf = NameDef(lua_getallocf)(L, &ud);
+  NameDef(UBox) *box = (NameDef(UBox) *)NameDef(lua_touserdata)(L, idx);
+  void *temp = allocf(ud, box->box, box->bsize, newsize);
+  if (temp == NULL && newsize > 0) {  /* allocation error? */
+    resizebox(L, idx, 0);  /* free buffer */
+    NameDef(luaL_error)(L, "not enough memory for buffer allocation");
+  }
+  box->box = temp;
+  box->bsize = newsize;
+  return temp;
+}
+
+
+static int boxgc (NameDef(lua_State) *L) {
+  resizebox(L, 1, 0);
+  return 0;
+}
+
+
+static void *newbox (NameDef(lua_State) *L, size_t newsize) {
+  NameDef(UBox) *box = (NameDef(UBox) *)NameDef(lua_newuserdata)(L, sizeof(NameDef(UBox)));
+  box->box = NULL;
+  box->bsize = 0;
+  if (NameDef(luaL_newmetatable)(L, "LUABOX")) {  /* creating metatable? */
+    lua_pushcfunction(L, boxgc);
+    NameDef(lua_setfield)(L, -2, "__gc");  /* metatable.__gc = boxgc */
+  }
+  NameDef(lua_setmetatable)(L, -2);
+  return resizebox(L, -1, newsize);
+}
+
+
 /*
 ** check whether buffer is using a userdata on the stack as a temporary
 ** buffer
@@ -457,11 +513,12 @@ LUALIB_API char *NameDef(luaL_prepbuffsize) (NameDef(luaL_Buffer) *B, size_t sz)
     if (newsize < B->n || newsize - B->n < sz)
       NameDef(luaL_error)(L, "buffer too large");
     /* create larger buffer */
-    newbuff = (char *)NameDef(lua_newuserdata)(L, newsize * sizeof(char));
-    /* move content to new buffer */
-    memcpy(newbuff, B->b, B->n * sizeof(char));
     if (buffonstack(B))
-      lua_remove(L, -2);  /* remove old buffer */
+      newbuff = (char *)resizebox(L, -1, newsize);
+    else {  /* no buffer yet */
+      newbuff = (char *)newbox(L, newsize);
+      memcpy(newbuff, B->b, B->n * sizeof(char));  /* copy original content */
+    }
     B->b = newbuff;
     B->size = newsize;
   }
@@ -470,9 +527,11 @@ LUALIB_API char *NameDef(luaL_prepbuffsize) (NameDef(luaL_Buffer) *B, size_t sz)
 
 
 LUALIB_API void NameDef(luaL_addlstring) (NameDef(luaL_Buffer) *B, const char *s, size_t l) {
-  char *b = NameDef(luaL_prepbuffsize)(B, l);
-  memcpy(b, s, l * sizeof(char));
-  luaL_addsize(B, l);
+  if (l > 0) {  /* avoid 'memcpy' when 's' can be NULL */
+    char *b = NameDef(luaL_prepbuffsize)(B, l);
+    memcpy(b, s, l * sizeof(char));
+    luaL_addsize(B, l);
+  }
 }
 
 
@@ -484,8 +543,10 @@ LUALIB_API void NameDef(luaL_addstring) (NameDef(luaL_Buffer) *B, const char *s)
 LUALIB_API void NameDef(luaL_pushresult) (NameDef(luaL_Buffer) *B) {
   NameDef(lua_State) *L = B->L;
   NameDef(lua_pushlstring)(L, B->b, B->n);
-  if (buffonstack(B))
-    lua_remove(L, -2);  /* remove old buffer */
+  if (buffonstack(B)) {
+    resizebox(L, -2, 0);  /* delete old buffer */
+    lua_remove(L, -2);  /* remove its header from the stack */
+  }
 }
 
 
@@ -607,7 +668,7 @@ static int errfile (NameDef(lua_State) *L, const char *what, int fnameindex) {
 
 
 static int skipBOM (NameDef(LoadF) *lf) {
-  const char *p = "\xEF\xBB\xBF";  /* Utf8 BOM mark */
+  const char *p = "\xEF\xBB\xBF";  /* UTF-8 BOM mark */
   int c;
   lf->n = 0;
   do {
@@ -632,7 +693,7 @@ static int skipcomment (NameDef(LoadF) *lf, int *cp) {
   if (c == '#') {  /* first line is a comment (Unix exec. file)? */
     do {  /* skip first line */
       c = getc(lf->f);
-    } while (c != EOF && c != '\n') ;
+    } while (c != EOF && c != '\n');
     *cp = getc(lf->f);  /* skip end-of-line, if present */
     return 1;  /* there was a comment */
   }
@@ -783,20 +844,20 @@ LUALIB_API const char *NameDef(luaL_tolstring) (NameDef(lua_State) *L, int idx, 
 */
 #if defined(LUA_COMPAT_MODULE)
 
-static const char *luaL_findtable (lua_State *L, int idx,
+static const char *luaL_findtable (NameDef(lua_State) *L, int idx,
                                    const char *fname, int szhint) {
   const char *e;
-  if (idx) lua_pushvalue(L, idx);
+  if (idx) NameDef(lua_pushvalue)(L, idx);
   do {
     e = strchr(fname, '.');
     if (e == NULL) e = fname + strlen(fname);
-    lua_pushlstring(L, fname, e - fname);
-    if (lua_rawget(L, -2) == LUA_TNIL) {  /* no such field? */
+    NameDef(lua_pushlstring)(L, fname, e - fname);
+    if (NameDef(lua_rawget)(L, -2) == LUA_TNIL) {  /* no such field? */
       lua_pop(L, 1);  /* remove this nil */
-      lua_createtable(L, 0, (*e == '.' ? 1 : szhint)); /* new table for field */
-      lua_pushlstring(L, fname, e - fname);
-      lua_pushvalue(L, -2);
-      lua_settable(L, -4);  /* set new table into field */
+      NameDef(lua_createtable)(L, 0, (*e == '.' ? 1 : szhint)); /* new table for field */
+      NameDef(lua_pushlstring)(L, fname, e - fname);
+      NameDef(lua_pushvalue)(L, -2);
+      NameDef(lua_settable)(L, -4);  /* set new table into field */
     }
     else if (!lua_istable(L, -1)) {  /* field has a non-table value? */
       lua_pop(L, 2);  /* remove table and value */
@@ -825,23 +886,23 @@ static int libsize (const luaL_Reg *l) {
 ** global variable with that name. In any case, leaves on the stack
 ** the module table.
 */
-LUALIB_API void NameDef(luaL_pushmodule) (lua_State *L, const char *modname,
+LUALIB_API void NameDef(luaL_pushmodule) (NameDef(lua_State) *L, const char *modname,
                                  int sizehint) {
   luaL_findtable(L, LUA_REGISTRYINDEX, "_LOADED", 1);  /* get _LOADED table */
-  if (lua_getfield(L, -1, modname) != LUA_TTABLE) {  /* no _LOADED[modname]? */
+  if (NameDef(lua_getfield)(L, -1, modname) != LUA_TTABLE) {  /* no _LOADED[modname]? */
     lua_pop(L, 1);  /* remove previous result */
     /* try global variable (and create one if it does not exist) */
     lua_pushglobaltable(L);
     if (luaL_findtable(L, 0, modname, sizehint) != NULL)
       luaL_error(L, "name conflict for module '%s'", modname);
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -3, modname);  /* _LOADED[modname] = new table */
+    NameDef(lua_pushvalue)(L, -1);
+    NameDef(lua_setfield)(L, -3, modname);  /* _LOADED[modname] = new table */
   }
   lua_remove(L, -2);  /* remove _LOADED table */
 }
 
 
-LUALIB_API void NameDef(luaL_openlib) (lua_State *L, const char *libname,
+LUALIB_API void NameDef(luaL_openlib) (NameDef(lua_State) *L, const char *libname,
                                const luaL_Reg *l, int nup) {
   luaL_checkversion(L);
   if (libname) {

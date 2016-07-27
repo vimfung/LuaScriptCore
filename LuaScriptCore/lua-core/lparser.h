@@ -1,5 +1,5 @@
 /*
-** $Id: lparser.h,v 1.74 2014/10/25 11:50:46 roberto Exp $
+** $Id: lparser.h,v 1.76 2015/12/30 18:16:13 roberto Exp $
 ** Lua Parser
 ** See Copyright Notice in lua.h
 */
@@ -7,33 +7,44 @@
 #ifndef lparser_h
 #define lparser_h
 
-#include "LuaDefine.h"
-
 #include "llimits.h"
 #include "lobject.h"
 #include "lzio.h"
 
 
 /*
-** Expression descriptor
+** Expression and variable descriptor.
+** Code generation for variables and expressions can be delayed to allow
+** optimizations; An 'expdesc' structure describes a potentially-delayed
+** variable/expression. It has a description of its "main" value plus a
+** list of conditional jumps that can also produce its value (generated
+** by short-circuit operators 'and'/'or').
 */
 
+/* kinds of variables/expressions */
 typedef enum {
-  NameDef(VVOID),	/* no value */
-  NameDef(VNIL),
-  NameDef(VTRUE),
-  NameDef(VFALSE),
-  NameDef(VK),		/* info = index of constant in 'k' */
-  NameDef(VKFLT),	/* nval = numerical float value */
-  NameDef(VKINT),	/* nval = numerical integer value */
-  NameDef(VNONRELOC),	/* info = result register */
-  NameDef(VLOCAL),	/* info = local register */
-  NameDef(VUPVAL),       /* info = index of upvalue in 'upvalues' */
-  NameDef(VINDEXED),	/* t = table register/upvalue; idx = index R/K */
-  NameDef(VJMP),		/* info = instruction pc */
-  NameDef(VRELOCABLE),	/* info = instruction pc */
-  NameDef(VCALL),	/* info = instruction pc */
-  NameDef(VVARARG)	/* info = instruction pc */
+  NameDef(VVOID),  /* when 'expdesc' describes the last expression a list,
+             this kind means an empty list (so, no expression) */
+  NameDef(VNIL),  /* constant nil */
+  NameDef(VTRUE),  /* constant true */
+  NameDef(VFALSE),  /* constant false */
+  NameDef(VK),  /* constant in 'k'; info = index of constant in 'k' */
+  NameDef(VKFLT),  /* floating constant; nval = numerical float value */
+  NameDef(VKINT),  /* integer constant; nval = numerical integer value */
+  NameDef(VNONRELOC),  /* expression has its value in a fixed register;
+                 info = result register */
+  NameDef(VLOCAL),  /* local variable; info = local register */
+  NameDef(VUPVAL),  /* upvalue variable; info = index of upvalue in 'upvalues' */
+  NameDef(VINDEXED),  /* indexed variable;
+                ind.vt = whether 't' is register or upvalue;
+                ind.t = table register or upvalue;
+                ind.idx = key's R/K index */
+  NameDef(VJMP),  /* expression is a test/comparison;
+            info = pc of corresponding jump instruction */
+  NameDef(VRELOCABLE),  /* expression can put result in any register;
+                  info = instruction pc */
+  NameDef(VCALL),  /* expression is a function call; info = instruction pc */
+  NameDef(VVARARG)  /* vararg expression; info = instruction pc */
 } NameDef(expkind);
 
 
@@ -43,14 +54,14 @@ typedef enum {
 typedef struct NameDef(expdesc) {
   NameDef(expkind) k;
   union {
+    NameDef(lua_Integer) ival;    /* for VKINT */
+    NameDef(lua_Number) nval;  /* for VKFLT */
+    int info;  /* for generic use */
     struct {  /* for indexed variables (VINDEXED) */
       short idx;  /* index (R/K) */
       NameDef(lu_byte) t;  /* table (register or upvalue) */
       NameDef(lu_byte) vt;  /* whether 't' is register (VLOCAL) or upvalue (VUPVAL) */
     } ind;
-    int info;  /* for generic use */
-    NameDef(lua_Number) nval;  /* for VKFLT */
-    NameDef(lua_Integer) ival;    /* for VKINT */
   } u;
   int t;  /* patch list of 'exit when true' */
   int f;  /* patch list of 'exit when false' */

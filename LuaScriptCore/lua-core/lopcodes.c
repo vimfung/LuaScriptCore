@@ -7,8 +7,6 @@
 #define lopcodes_c
 #define LUA_CORE
 
-#include "LuaDefine.h"
-
 #include "lprefix.h"
 
 
@@ -114,7 +112,7 @@ LUAI_DDEF const NameDef(lu_byte) NameDef(luaP_opmodes)[NUM_OPCODES] = {
  ,opmode(0, 1, NameDef(OpArgU), NameDef(OpArgU), NameDef(iABC))		/* OP_CALL */
  ,opmode(0, 1, NameDef(OpArgU), NameDef(OpArgU), NameDef(iABC))		/* OP_TAILCALL */
  ,opmode(0, 0, NameDef(OpArgU), NameDef(OpArgN), NameDef(iABC))		/* OP_RETURN */
- ,opmode(0, 1, NameDef(OpArgR), NameDef(OpArgN), NameDef(iAsBx))      /* OP_FORLOOP */
+ ,opmode(0, 1, NameDef(OpArgR), NameDef(OpArgN), NameDef(iAsBx))	/* OP_FORLOOP */
  ,opmode(0, 1, NameDef(OpArgR), NameDef(OpArgN), NameDef(iAsBx))		/* OP_FORPREP */
  ,opmode(0, 0, NameDef(OpArgN), NameDef(OpArgU), NameDef(iABC))		/* OP_TFORCALL */
  ,opmode(0, 1, NameDef(OpArgR), NameDef(OpArgN), NameDef(iAsBx))		/* OP_TFORLOOP */

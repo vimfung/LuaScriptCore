@@ -1,5 +1,5 @@
 /*
-** $Id: luaconf.h,v 1.251 2015/05/20 17:39:23 roberto Exp $
+** $Id: luaconf.h,v 1.255 2016/05/01 20:06:09 roberto Exp $
 ** Configuration file for Lua
 ** See Copyright Notice in lua.h
 */
@@ -7,8 +7,6 @@
 
 #ifndef luaconf_h
 #define luaconf_h
-
-#include "LuaDefine.h"
 
 #include <limits.h>
 #include <stddef.h>
@@ -147,7 +145,7 @@
 
 #if !defined(LUA_FLOAT_TYPE)
 #define LUA_FLOAT_TYPE	LUA_FLOAT_DOUBLE
-#endif								/* } */
+#endif
 
 /* }================================================================== */
 
@@ -342,7 +340,7 @@
 */
 #define lua_cpcall(L,f,u)  \
 	(lua_pushcfunction(L, (f)), \
-	 lua_pushlightuserdata(L,(u)), \
+	 NameDef(lua_pushlightuserdata)(L,(u)), \
 	 lua_pcall(L,1,0,0))
 
 
@@ -368,12 +366,12 @@
 ** changes in the API. The macros themselves document how to
 ** change your code to avoid using them.
 */
-#define lua_strlen(L,i)		lua_rawlen(L, (i))
+#define lua_strlen(L,i)		NameDef(lua_rawlen)(L, (i))
 
-#define lua_objlen(L,i)		lua_rawlen(L, (i))
+#define lua_objlen(L,i)		NameDef(lua_rawlen)(L, (i))
 
-#define lua_equal(L,idx1,idx2)		lua_compare(L,(idx1),(idx2),LUA_OPEQ)
-#define lua_lessthan(L,idx1,idx2)	lua_compare(L,(idx1),(idx2),LUA_OPLT)
+#define lua_equal(L,idx1,idx2)		NameDef(lua_compare)(L,(idx1),(idx2),LUA_OPEQ)
+#define lua_lessthan(L,idx1,idx2)	NameDef(lua_compare)(L,(idx1),(idx2),LUA_OPLT)
 
 /*
 @@ LUA_COMPAT_MODULE controls compatibility with previous
@@ -414,8 +412,32 @@
 @@ LUA_NUMBER_FMT is the format for writing floats.
 @@ lua_number2str converts a float to a string.
 @@ l_mathop allows the addition of an 'l' or 'f' to all math operations.
+@@ l_floor takes the floor of a float.
 @@ lua_str2number converts a decimal numeric string to a number.
 */
+
+
+/* The following definitions are good for most cases here */
+
+#define l_floor(x)		(l_mathop(floor)(x))
+
+#define lua_number2str(s,sz,n)	l_sprintf((s), sz, LUA_NUMBER_FMT, (n))
+
+/*
+@@ lua_numbertointeger converts a float number to an integer, or
+** returns 0 if float is not within the range of a lua_Integer.
+** (The range comparisons are tricky because of rounding. The tests
+** here assume a two-complement representation, where MININTEGER always
+** has an exact representation as a float; MAXINTEGER may not have one,
+** and therefore its conversion to float may have an ill-defined value.)
+*/
+#define lua_numbertointeger(n,p) \
+  ((n) >= (LUA_NUMBER)(LUA_MININTEGER) && \
+   (n) < -(LUA_NUMBER)(LUA_MININTEGER) && \
+      (*(p) = (LUA_INTEGER)(n), 1))
+
+
+/* now the variable definitions */
 
 #if LUA_FLOAT_TYPE == LUA_FLOAT_FLOAT		/* { single float */
 
@@ -470,25 +492,6 @@
 #endif					/* } */
 
 
-#define l_floor(x)		(l_mathop(floor)(x))
-
-#define lua_number2str(s,n)	sprintf((s), LUA_NUMBER_FMT, (n))
-
-
-/*
-@@ lua_numbertointeger converts a float number to an integer, or
-** returns 0 if float is not within the range of a lua_Integer.
-** (The range comparisons are tricky because of rounding. The tests
-** here assume a two-complement representation, where MININTEGER always
-** has an exact representation as a float; MAXINTEGER may not have one,
-** and therefore its conversion to float may have an ill-defined value.)
-*/
-#define lua_numbertointeger(n,p) \
-  ((n) >= (LUA_NUMBER)(LUA_MININTEGER) && \
-   (n) < -(LUA_NUMBER)(LUA_MININTEGER) && \
-      (*(p) = (LUA_INTEGER)(n), 1))
-
-
 
 /*
 @@ LUA_INTEGER is the integer type used by Lua.
@@ -508,7 +511,7 @@
 /* The following definitions are good for most cases here */
 
 #define LUA_INTEGER_FMT		"%" LUA_INTEGER_FRMLEN "d"
-#define lua_integer2str(s,n)	sprintf((s), LUA_INTEGER_FMT, (n))
+#define lua_integer2str(s,sz,n)	l_sprintf((s), sz, LUA_INTEGER_FMT, (n))
 
 #define LUAI_UACINT		LUA_INTEGER
 
@@ -539,6 +542,7 @@
 
 #elif LUA_INT_TYPE == LUA_INT_LONGLONG	/* }{ long long */
 
+/* use presence of macro LLONG_MAX as proxy for C99 compliance */
 #if defined(LLONG_MAX)		/* { */
 /* use ISO C99 stuff */
 
@@ -580,13 +584,24 @@
 */
 
 /*
+@@ l_sprintf is equivalent to 'snprintf' or 'sprintf' in C89.
+** (All uses in Lua have only one format item.)
+*/
+#if !defined(LUA_USE_C89)
+#define l_sprintf(s,sz,f,i)	snprintf(s,sz,f,i)
+#else
+#define l_sprintf(s,sz,f,i)	((void)(sz), sprintf(s,f,i))
+#endif
+
+
+/*
 @@ lua_strx2number converts an hexadecimal numeric string to a number.
 ** In C99, 'strtod' does that conversion. Otherwise, you can
 ** leave 'lua_strx2number' undefined and Lua will provide its own
 ** implementation.
 */
 #if !defined(LUA_USE_C89)
-#define lua_strx2number(s,p)	lua_str2number(s,p)
+#define lua_strx2number(s,p)		lua_str2number(s,p)
 #endif
 
 
@@ -597,7 +612,7 @@
 ** provide its own implementation.
 */
 #if !defined(LUA_USE_C89)
-#define lua_number2strx(L,b,f,n)	sprintf(b,f,n)
+#define lua_number2strx(L,b,sz,f,n)	((void)L, l_sprintf(b,sz,f,n))
 #endif
 
 
@@ -610,8 +625,8 @@
 #if defined(LUA_USE_C89) || (defined(HUGE_VAL) && !defined(HUGE_VALF))
 #undef l_mathop  /* variants not available */
 #undef lua_str2number
-#define l_mathop(op)		(lua_Number)op  /* no variant */
-#define lua_str2number(s,p)	((lua_Number)strtod((s), (p)))
+#define l_mathop(op)		(NameDef(lua_Number))op  /* no variant */
+#define lua_str2number(s,p)	((NameDef(lua_Number))strtod((s), (p)))
 #endif
 
 
@@ -720,7 +735,7 @@
 #if defined(LUA_FLOAT_LONGDOUBLE)
 #define LUAL_BUFFERSIZE		8192
 #else
-#define LUAL_BUFFERSIZE   ((int)(0x80 * sizeof(void*) * sizeof(lua_Integer)))
+#define LUAL_BUFFERSIZE   ((int)(0x80 * sizeof(void*) * sizeof(NameDef(lua_Integer))))
 #endif
 
 /* }================================================================== */

@@ -199,7 +199,7 @@ static int cfuncRouteHandler (NameDef(lua_State) *state)
     LSCFunctionHandler handler = context.methodBlocks[methodName];
     if (handler)
     {
-        int top = lua_gettop(state);
+        int top = NameDef(lua_gettop)(state);
         NSMutableArray *arguments = [NSMutableArray array];
         for (int i = 0; i < top; i++)
         {

@@ -7,8 +7,6 @@
 #define lutf8lib_c
 #define LUA_LIB
 
-#include "LuaDefine.h"
-
 #include "lprefix.h"
 
 

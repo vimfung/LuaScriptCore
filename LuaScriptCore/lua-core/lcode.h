@@ -1,13 +1,11 @@
 /*
-** $Id: lcode.h,v 1.63 2013/12/30 20:47:58 roberto Exp $
+** $Id: lcode.h,v 1.64 2016/01/05 16:22:37 roberto Exp $
 ** Code generator for Lua
 ** See Copyright Notice in lua.h
 */
 
 #ifndef lcode_h
 #define lcode_h
-
-#include "LuaDefine.h"
 
 #include "llex.h"
 #include "lobject.h"
@@ -38,11 +36,11 @@ typedef enum NameDef(BinOpr) {
   NameDef(OPR_NOBINOPR)
 } NameDef(BinOpr);
 
-
 typedef enum NameDef(UnOpr) { NameDef(OPR_MINUS), NameDef(OPR_BNOT), NameDef(OPR_NOT), NameDef(OPR_LEN), NameDef(OPR_NOUNOPR) } NameDef(UnOpr);
 
 
-#define getcode(fs,e)	((fs)->f->code[(e)->u.info])
+/* get (pointer to) instruction of given 'expdesc' */
+#define getinstruction(fs,e)	((fs)->f->code[(e)->u.info])
 
 #define luaK_codeAsBx(fs,o,A,sBx)	NameDef(luaK_codeABx)(fs,o,A,(sBx)+MAXARG_sBx)
 

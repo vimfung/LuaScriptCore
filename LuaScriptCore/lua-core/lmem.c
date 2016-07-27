@@ -7,8 +7,6 @@
 #define lmem_c
 #define LUA_CORE
 
-#include "LuaDefine.h"
-
 #include "lprefix.h"
 
 
