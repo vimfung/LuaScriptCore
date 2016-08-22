@@ -7,29 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C457A121D48E3A5005A0295 /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C457A0F1D48E398005A0295 /* libLuaScriptCore.a */; };
 		7C8C2DE51D38C345009345EB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DE41D38C345009345EB /* main.m */; };
 		7C8C2DE81D38C345009345EB /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DE71D38C345009345EB /* AppDelegate.m */; };
 		7C8C2DEB1D38C345009345EB /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8C2DEA1D38C345009345EB /* ViewController.m */; };
 		7C8C2DEE1D38C345009345EB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2DEC1D38C345009345EB /* Main.storyboard */; };
 		7C8C2DF01D38C345009345EB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2DEF1D38C345009345EB /* Assets.xcassets */; };
 		7C8C2DF31D38C345009345EB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2DF11D38C345009345EB /* LaunchScreen.storyboard */; };
-		7C8C2E021D38C3AE009345EB /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C8C2DFF1D38C3A2009345EB /* libLuaScriptCore.a */; };
 		7C8C2E061D38C428009345EB /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2E041D38C428009345EB /* dkjson.lua */; };
 		7C8C2E071D38C428009345EB /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2E051D38C428009345EB /* main.lua */; };
 		7C8C2E091D38C8CB009345EB /* todo.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C8C2E081D38C8CB009345EB /* todo.lua */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		7C8C2DFE1D38C3A2009345EB /* PBXContainerItemProxy */ = {
+		7C457A0E1D48E398005A0295 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */;
+			containerPortal = 7C457A0A1D48E398005A0295 /* LuaScriptCore.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 7C8C2D511D38C0C0009345EB;
 			remoteInfo = LuaScriptCore;
 		};
-		7C8C2E001D38C3A9009345EB /* PBXContainerItemProxy */ = {
+		7C457A101D48E39F005A0295 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */;
+			containerPortal = 7C457A0A1D48E398005A0295 /* LuaScriptCore.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 7C8C2D501D38C0C0009345EB;
 			remoteInfo = LuaScriptCore;
@@ -37,6 +37,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7C457A0A1D48E398005A0295 /* LuaScriptCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LuaScriptCore.xcodeproj; path = ../../LuaScriptCore.xcodeproj; sourceTree = "<group>"; };
 		7C8C2DE01D38C345009345EB /* Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C8C2DE41D38C345009345EB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		7C8C2DE61D38C345009345EB /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -47,7 +48,6 @@
 		7C8C2DEF1D38C345009345EB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C8C2DF21D38C345009345EB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7C8C2DF41D38C345009345EB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LuaScriptCore.xcodeproj; path = ../../LuaScriptCore.xcodeproj; sourceTree = "<group>"; };
 		7C8C2E041D38C428009345EB /* dkjson.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dkjson.lua; sourceTree = "<group>"; };
 		7C8C2E051D38C428009345EB /* main.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.lua; sourceTree = "<group>"; };
 		7C8C2E081D38C8CB009345EB /* todo.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = todo.lua; sourceTree = "<group>"; };
@@ -58,13 +58,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C8C2E021D38C3AE009345EB /* libLuaScriptCore.a in Frameworks */,
+				7C457A121D48E3A5005A0295 /* libLuaScriptCore.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7C457A0B1D48E398005A0295 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7C457A0F1D48E398005A0295 /* libLuaScriptCore.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		7C8C2DD71D38C345009345EB = {
 			isa = PBXGroup;
 			children = (
@@ -84,8 +92,8 @@
 		7C8C2DE21D38C345009345EB /* Sample */ = {
 			isa = PBXGroup;
 			children = (
+				7C457A0A1D48E398005A0295 /* LuaScriptCore.xcodeproj */,
 				7C8C2E031D38C428009345EB /* Lua */,
-				7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */,
 				7C8C2DE61D38C345009345EB /* AppDelegate.h */,
 				7C8C2DE71D38C345009345EB /* AppDelegate.m */,
 				7C8C2DE91D38C345009345EB /* ViewController.h */,
@@ -105,14 +113,6 @@
 				7C8C2DE41D38C345009345EB /* main.m */,
 			);
 			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		7C8C2DFB1D38C3A2009345EB /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				7C8C2DFF1D38C3A2009345EB /* libLuaScriptCore.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		7C8C2E031D38C428009345EB /* Lua */ = {
@@ -139,7 +139,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				7C8C2E011D38C3A9009345EB /* PBXTargetDependency */,
+				7C457A111D48E39F005A0295 /* PBXTargetDependency */,
 			);
 			name = Sample;
 			productName = Sample;
@@ -173,8 +173,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 7C8C2DFB1D38C3A2009345EB /* Products */;
-					ProjectRef = 7C8C2DFA1D38C3A2009345EB /* LuaScriptCore.xcodeproj */;
+					ProductGroup = 7C457A0B1D48E398005A0295 /* Products */;
+					ProjectRef = 7C457A0A1D48E398005A0295 /* LuaScriptCore.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -185,11 +185,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		7C8C2DFF1D38C3A2009345EB /* libLuaScriptCore.a */ = {
+		7C457A0F1D48E398005A0295 /* libLuaScriptCore.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libLuaScriptCore.a;
-			remoteRef = 7C8C2DFE1D38C3A2009345EB /* PBXContainerItemProxy */;
+			remoteRef = 7C457A0E1D48E398005A0295 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -224,10 +224,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		7C8C2E011D38C3A9009345EB /* PBXTargetDependency */ = {
+		7C457A111D48E39F005A0295 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = LuaScriptCore;
-			targetProxy = 7C8C2E001D38C3A9009345EB /* PBXContainerItemProxy */;
+			targetProxy = 7C457A101D48E39F005A0295 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
