@@ -8,10 +8,10 @@
 
 #import "LSCContext.h"
 #import "LSCValue_Private.h"
-#import "lua/lauxlib.h"
-#import "lua/lua.h"
-#import "lua/luaconf.h"
-#import "lua/lualib.h"
+#import "lauxlib.h"
+#import "lua.h"
+#import "luaconf.h"
+#import "lualib.h"
 
 @interface LSCContext ()
 

@@ -8,7 +8,7 @@
 
 #import "LSCValue.h"
 #import "LSCValue_Private.h"
-#import "lua/lauxlib.h"
+#import "lauxlib.h"
 
 @interface LSCValue ()
 
