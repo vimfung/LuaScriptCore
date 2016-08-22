@@ -7,7 +7,7 @@
 //
 
 #import "LSCValue.h"
-#import "lua/lua.h"
+#import "lua.h"
 
 @interface LSCValue ()
 
