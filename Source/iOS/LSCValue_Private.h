@@ -7,7 +7,7 @@
 //
 
 #import "LSCValue.h"
-#import "lua.h"
+#import "lua/lua.h"
 
 @interface LSCValue ()
 
@@ -16,6 +16,6 @@
  *
  *  @param state Lua解析器
  */
-- (void)pushWithState:(NameDef(lua_State) *)state;
+- (void)pushWithState:(lua_State *)state;
 
 @end
