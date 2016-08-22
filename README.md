@@ -1,17 +1,21 @@
 # LuaScriptCore
 
-Use it can be easily applied the Lua script on iOS, and provides a powerful interactive features to be extended
+Use it can be easily applied the Lua script on iOS, OS X, and provides a powerful interactive features to be extended
 
 ## How to use
 
 ### Integrated
 
 1. Clone the source to local disk.
-2. Drag the LuaScriptCore.xcodeproj to your project.
-3. Click your project root node in Xcode, and go to the Build Phases panel in right panel; 
-4. Add LuaScriptCore as dependency library in Target Dependencies section.
-5. Add LuaScriptCore.a in Link Binary With Libraries section.
-6. Now,you can import the LuaScriptCore/LuaScriptCore.h header in your code then use it.
+2. Navigate to the “Release” directory, Then select the platform(iOS or OS X) directory.
+3. Drag platform directory to your project and check the "Copy items if needed".
+4. Now,you can import the LuaScriptCore/LuaScriptCore.h header in your code then use it.
+
+### Rebuild the library
+
+1. Navigate to the "Source/iOS_OSX/" directory and Open the LuaScriptCore project.
+2. Choose what you want to re-build the scheme(Chose the LuaScriptCore-iOS-output scheme is re-build iOS platform, and Chose the LuaScriptCore-OSX-output scheme is re-build OS X platform).
+3. Command+B to re-build the project, After build is output to the “Release/platform(iOS/OSX)" directory.
 
 ### Initialze
 
