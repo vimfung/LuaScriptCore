@@ -11,7 +11,7 @@ Use it can be easily applied the Lua script on iOS, OS X, and provides a powerfu
 3. Drag platform directory to your project and check the "Copy items if needed".
 4. Now,you can import the LuaScriptCore/LuaScriptCore.h header in your code then use it.
 
-### Rebuild the library
+### Rebuild the project
 
 1. Navigate to the "Source/iOS_OSX/" directory and Open the LuaScriptCore project.
 2. Choose what you want to re-build the scheme(Chose the LuaScriptCore-iOS-output scheme is re-build iOS platform, and Chose the LuaScriptCore-OSX-output scheme is re-build OS X platform).
