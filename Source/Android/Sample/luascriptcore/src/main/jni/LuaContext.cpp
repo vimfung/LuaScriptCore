@@ -3,6 +3,8 @@
 //
 
 #include "LuaContext.h"
+#include <map>
+#include <list>
 
 cn::vimfung::luascriptcore::LuaContext::LuaContext()
 {
@@ -50,73 +52,74 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
             if (strlen(bytes) != len)
             {
                 //为二进制数据流
+                value = LuaValue::DataValue(bytes, len);
             }
             else
             {
                 //为字符串
                 value = LuaValue::StringValue(bytes);
             }
+            break;
+        }
+        case LUA_TTABLE:
+        {
+            LuaValueMap dictValue;
+            LuaValueList arrayValue;
+            bool isArray = true;
 
+            lua_pushnil(_state);
+            while (lua_next(_state, -2))
+            {
+                LuaValue *item = getValueByIndex(-1);
+                LuaValue *key = getValueByIndex(-2);
 
+                if (isArray)
+                {
+                    if (key -> getType() != LuaValueTypeNumber)
+                    {
+                        //非数组对象，释放数组
+                        isArray = false;
+                    }
+                    else if (key -> getType() == LuaValueTypeNumber)
+                    {
+                        int arrayIndex = (int)key->toNumber();
+                        if (arrayIndex <= 0)
+                        {
+                            //非数组对象，释放数组
+                            isArray = false;
+                        }
+                        else if (arrayIndex - 1 != arrayValue.size())
+                        {
+                            //非数组对象，释放数组
+                            isArray = false;
+                        }
+                        else
+                        {
+                            arrayValue.push_back(item);
+                        }
+                    }
+                }
 
-//            NSString *strValue =
-//            [NSString stringWithCString:lua_tostring(self.state, (int)index)
-//            encoding:NSUTF8StringEncoding];
-//            if (strValue) {
-//                //为NSString
-//                value = [LSCValue stringValue:strValue];
-//            } else {
-//                //为NSData
-//                size_t len = 0;
-//                const char *bytes = lua_tolstring(self.state, (int)index, &len);
-//                NSData *data = [NSData dataWithBytes:bytes length:len];
-//
-//                value = [LSCValue dataValue:data];
-//            }
+                dictValue[key->toString()] = item;
+
+                key->release();
+
+                lua_pop(_state, 1);
+            }
+
+            if (isArray)
+            {
+                value = LuaValue::ArrayValue(arrayValue);
+            }
+            else
+            {
+                value = LuaValue::DictonaryValue(dictValue);
+            }
 
             break;
         }
-//        case LUA_TTABLE: {
-//            NSMutableDictionary *dictValue = [NSMutableDictionary dictionary];
-//            NSMutableArray *arrayValue = [NSMutableArray array];
-//
-//            lua_pushnil(self.state);
-//            while (lua_next(self.state, -2)) {
-//                LSCValue *value = [self getValueByIndex:-1];
-//                LSCValue *key = [self getValueByIndex:-2];
-//
-//                if (arrayValue) {
-//                    if (key.valueType != LSCValueTypeNumber) {
-//                        //非数组对象，释放数组
-//                        arrayValue = nil;
-//                    } else if (key.valueType == LSCValueTypeNumber) {
-//                        NSInteger index = [[key toNumber] integerValue];
-//                        if (index <= 0) {
-//                            //非数组对象，释放数组
-//                            arrayValue = nil;
-//                        } else if (index - 1 != arrayValue.count) {
-//                            //非数组对象，释放数组
-//                            arrayValue = nil;
-//                        } else {
-//                            [arrayValue addObject:[value toObject]];
-//                        }
-//                    }
-//                }
-//
-//                [dictValue setObject:[value toObject] forKey:[key toString]];
-//
-//                lua_pop(self.state, 1);
-//            }
-//
-//            if (arrayValue) {
-//                value = [LSCValue arrayValue:arrayValue];
-//            } else {
-//                value = [LSCValue dictionaryValue:dictValue];
-//            }
-//
-//            break;
-//        }
-        default: {
+        default:
+        {
             //默认为nil
             value = LuaValue::NilValue();
             break;
