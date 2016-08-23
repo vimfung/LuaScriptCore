@@ -218,18 +218,18 @@ static int cfuncRouteHandler(lua_State *state) {
     break;
   }
   case LUA_TSTRING: {
+
+    size_t len = 0;
+    const char *bytes = lua_tolstring(self.state, (int)index, &len);
+
     NSString *strValue =
-        [NSString stringWithCString:lua_tostring(self.state, (int)index)
-                           encoding:NSUTF8StringEncoding];
+        [NSString stringWithCString:bytes encoding:NSUTF8StringEncoding];
     if (strValue) {
       //为NSString
       value = [LSCValue stringValue:strValue];
     } else {
       //为NSData
-      size_t len = 0;
-      const char *bytes = lua_tolstring(self.state, (int)index, &len);
       NSData *data = [NSData dataWithBytes:bytes length:len];
-
       value = [LSCValue dataValue:data];
     }
 
