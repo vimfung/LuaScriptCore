@@ -6,6 +6,8 @@
 #define SAMPLE_LUAVALUE_H
 
 #include <string>
+#include <list>
+#include <map>
 #include "LuaObject.h"
 
 namespace cn
@@ -14,6 +16,11 @@ namespace cn
     {
         namespace luascriptcore
         {
+            class LuaValue;
+
+            typedef std::list<LuaValue *> LuaValueList;
+            typedef std::map<std::string, LuaValue*> LuaValueMap;
+
             enum LuaValueType
             {
                 LuaValueTypeNil = 0,
@@ -44,12 +51,19 @@ namespace cn
                 LuaValue (double value);
                 LuaValue (std::string value);
                 LuaValue (const char *bytes, size_t length);
+                LuaValue (LuaValueList value);
+                LuaValue (LuaValueMap value);
                 ~LuaValue();
 
             public:
                 LuaValueType getType();
                 const std::string toString();
                 double toNumber();
+                bool toBoolean();
+                const char* toData();
+                size_t getDataLength();
+                LuaValueList* toArray();
+                LuaValueMap* toMap();
 
             public:
                 static LuaValue* NilValue();
@@ -57,6 +71,8 @@ namespace cn
                 static LuaValue* NumberValue(double value);
                 static LuaValue* StringValue(std::string value);
                 static LuaValue* DataValue(const char *bytes, size_t length);
+                static LuaValue* ArrayValue(LuaValueList value);
+                static LuaValue* DictonaryValue(LuaValueMap value);
             };
         }
     }
