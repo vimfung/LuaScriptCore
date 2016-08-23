@@ -39,10 +39,50 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(const char *bytes, size_t length)
     memcpy(_value, bytes, _bytesLen);
 }
 
+cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueList value)
+{
+    _type = LuaValueTypeTable;
+    _value = new LuaValueList(value);
+}
+
+cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueMap value)
+{
+    _type = LuaValueTypeTable;
+    _value = new LuaValueMap (value);
+}
+
+
 cn::vimfung::luascriptcore::LuaValue::~LuaValue()
 {
     if (_value != NULL)
     {
+        if (_type == LuaValueTypeTable)
+        {
+            //对于Table类型需要释放其子对象内存
+            LuaValueList *arrayValue = static_cast<LuaValueList *> (_value);
+            if (arrayValue != NULL)
+            {
+                //为数组对象
+                for (LuaValueList::iterator i = arrayValue -> begin(); i != arrayValue -> end(); ++i)
+                {
+                    LuaValue *value = *i;
+                    value -> release();
+                }
+            }
+            else
+            {
+                //为字典对象
+                LuaValueMap *mapValue = static_cast<LuaValueMap *> (_value);
+                if (mapValue != NULL)
+                {
+                    for (LuaValueMap::iterator i = mapValue -> begin(); i != mapValue -> end(); ++i)
+                    {
+                        i->second->release();
+                    }
+                }
+            }
+        }
+
         delete _value;
         _value = NULL;
     }
@@ -73,6 +113,16 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::Data
     return new LuaValue(bytes, length);
 }
 
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::ArrayValue(LuaValueList value)
+{
+    return new LuaValue(value);
+}
+
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::DictonaryValue(LuaValueMap value)
+{
+    return new LuaValue(value);
+}
+
 cn::vimfung::luascriptcore::LuaValueType cn::vimfung::luascriptcore::LuaValue::getType()
 {
     return _type;
@@ -81,67 +131,70 @@ cn::vimfung::luascriptcore::LuaValueType cn::vimfung::luascriptcore::LuaValue::g
 
 const std::string cn::vimfung::luascriptcore::LuaValue::toString()
 {
-    switch (_type)
+    if (_type == LuaValueTypeString)
     {
-        case LuaValueTypeNumber:
-        {
-            char buffer[20];
-            sprintf(buffer, "%f", _numberValue);
-            const std::string str = buffer;
-            return str;
-        }
-        case LuaValueTypeBoolean:
-        {
-            char buffer[20];
-            sprintf(buffer, "%d", _booleanValue);
-            const std::string str = buffer;
-            return str;
-        }
-        case LuaValueTypeInteger:
-        {
-            char buffer[20];
-            sprintf(buffer, "%d", _integerValue);
-            const std::string str = buffer;
-            return str;
-        }
-        case LuaValueTypeString:
-        {
-            return *((const std::string *)_value);
-        }
-        case LuaValueTypeData:
-        {
-            //转换为16进制字符串描述
-            char buffer[10];
-            const char *bytes = (const char *)_value;
-            std::string str;
-            for (int i = 0; i < _bytesLen; ++i)
-            {
-                sprintf(buffer, "%02x", bytes[i]);
-                str.append(buffer);
-            }
-            return str;
-        }
-        default:
-            return std::string();
+        return *((const std::string *)_value);
     }
+
+    return NULL;
 }
 
 double cn::vimfung::luascriptcore::LuaValue::toNumber()
 {
-    switch (_type)
+    if (_type == LuaValueTypeNumber)
     {
-        case LuaValueTypeNumber:
-            return _numberValue;
-        case LuaValueTypeBoolean:
-            return _booleanValue;
-        case LuaValueTypeInteger:
-            return _integerValue;
-        case LuaValueTypeString:
-        {
-            const char *charArr = (const char *) _value;
-            return atof(charArr);
-        }
-        default:
-            return 0;
+        return _numberValue;
     }
+
+    return 0;
+}
+
+bool cn::vimfung::luascriptcore::LuaValue::toBoolean()
+{
+    if (_type == LuaValueTypeBoolean)
+    {
+        return  _booleanValue;
+    }
+
+    return false;
+}
+
+const char* cn::vimfung::luascriptcore::LuaValue::toData()
+{
+    if (_type == LuaValueTypeData)
+    {
+        return (const char *)_value;
+    }
+
+    return NULL;
+}
+
+size_t cn::vimfung::luascriptcore::LuaValue::getDataLength()
+{
+    if (_type == LuaValueTypeData)
+    {
+        return _bytesLen;
+    }
+
+    return 0;
+}
+
+cn::vimfung::luascriptcore::LuaValueList* cn::vimfung::luascriptcore::LuaValue::toArray()
+{
+    if (_type == LuaValueTypeTable)
+    {
+        return static_cast<LuaValueList *>(_value);
+    }
+
+    return NULL;
+}
+
+cn::vimfung::luascriptcore::LuaValueMap* cn::vimfung::luascriptcore::LuaValue::toMap()
+{
+    if (_type == LuaValueTypeTable)
+    {
+        return static_cast<LuaValueMap *>(_value);
+    }
+
+    return NULL;
 }
