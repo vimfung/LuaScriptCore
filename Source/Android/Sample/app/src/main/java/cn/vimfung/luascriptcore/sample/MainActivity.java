@@ -1,6 +1,7 @@
 package cn.vimfung.luascriptcore.sample;
 
 import android.os.Bundle;
+import android.os.Debug;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +9,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import java.io.Console;
+
+import cn.vimfung.luascriptcore.LuaContext;
+import cn.vimfung.luascriptcore.LuaValue;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,5 +54,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void evalScriptButtonClickedHandler()
+    {
+        LuaContext context = new LuaContext();
+        LuaValue value = context.evalScript("print('Hello World')");
     }
 }

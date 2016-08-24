@@ -27,12 +27,13 @@ namespace cn
                 LuaValueTypeNumber = 1,
                 LuaValueTypeBoolean = 2,
                 LuaValueTypeString = 3,
-                LuaValueTypeTable = 4,
-                LuaValueTypeFunction = 5,
-                LuaValueTypeThread = 6,
-                LuaValueTypeUserData = 7,
-                LuaValueTypeInteger = 8,
-                LuaValueTypeData = 9
+                LuaValueTypeArray = 4,
+                LuaValueTypeMap = 5,
+                LuaValueTypeFunction = 6,
+                LuaValueTypeThread = 7,
+                LuaValueTypeUserData = 8,
+                LuaValueTypeInteger = 9,
+                LuaValueTypeData = 10
             };
 
             class LuaValue : public LuaObject

@@ -41,13 +41,13 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(const char *bytes, size_t length)
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueList value)
 {
-    _type = LuaValueTypeTable;
+    _type = LuaValueTypeArray;
     _value = new LuaValueList(value);
 }
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueMap value)
 {
-    _type = LuaValueTypeTable;
+    _type = LuaValueTypeMap;
     _value = new LuaValueMap (value);
 }
 
@@ -56,7 +56,7 @@ cn::vimfung::luascriptcore::LuaValue::~LuaValue()
 {
     if (_value != NULL)
     {
-        if (_type == LuaValueTypeTable)
+        if (_type == LuaValueTypeArray)
         {
             //对于Table类型需要释放其子对象内存
             LuaValueList *arrayValue = static_cast<LuaValueList *> (_value);
@@ -69,16 +69,16 @@ cn::vimfung::luascriptcore::LuaValue::~LuaValue()
                     value -> release();
                 }
             }
-            else
+        }
+        else if (_type == LuaValueTypeMap)
+        {
+            //为字典对象
+            LuaValueMap *mapValue = static_cast<LuaValueMap *> (_value);
+            if (mapValue != NULL)
             {
-                //为字典对象
-                LuaValueMap *mapValue = static_cast<LuaValueMap *> (_value);
-                if (mapValue != NULL)
+                for (LuaValueMap::iterator i = mapValue -> begin(); i != mapValue -> end(); ++i)
                 {
-                    for (LuaValueMap::iterator i = mapValue -> begin(); i != mapValue -> end(); ++i)
-                    {
-                        i->second->release();
-                    }
+                    i->second->release();
                 }
             }
         }
@@ -181,7 +181,7 @@ size_t cn::vimfung::luascriptcore::LuaValue::getDataLength()
 
 cn::vimfung::luascriptcore::LuaValueList* cn::vimfung::luascriptcore::LuaValue::toArray()
 {
-    if (_type == LuaValueTypeTable)
+    if (_type == LuaValueTypeArray)
     {
         return static_cast<LuaValueList *>(_value);
     }
@@ -191,7 +191,7 @@ cn::vimfung::luascriptcore::LuaValueList* cn::vimfung::luascriptcore::LuaValue::
 
 cn::vimfung::luascriptcore::LuaValueMap* cn::vimfung::luascriptcore::LuaValue::toMap()
 {
-    if (_type == LuaValueTypeTable)
+    if (_type == LuaValueTypeMap)
     {
         return static_cast<LuaValueMap *>(_value);
     }
