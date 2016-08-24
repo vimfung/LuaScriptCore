@@ -62,47 +62,47 @@ jobject convertLuaValueToJObject (JNIEnv *env, LuaValue *value)
 
                 break;
             }
-            case LuaValueTypeTable:
+            case LuaValueTypeArray:
             {
                 LuaValueList *list = value -> toArray();
-                if (list != NULL)
-                {
-                    static jclass jArrayListClass = env -> FindClass("java/util/ArrayList");
-                    static jmethodID initMethodId = env -> GetMethodID(jArrayListClass, "<init>", "()V");
-                    static jmethodID addMethodId = env -> GetMethodID(jArrayListClass, "add", "(Ljava/lang/Object;)Z");
+                if (list != NULL) {
+                    static jclass jArrayListClass = env->FindClass("java/util/ArrayList");
+                    static jmethodID initMethodId = env->GetMethodID(jArrayListClass, "<init>",
+                                                                     "()V");
+                    static jmethodID addMethodId = env->GetMethodID(jArrayListClass, "add",
+                                                                    "(Ljava/lang/Object;)Z");
 
-                    retObj = env -> NewObject(jArrayListClass, initMethodId);
-                    for (LuaValueList::iterator i = list -> begin(); i != list -> end(); ++i)
-                    {
+                    retObj = env->NewObject(jArrayListClass, initMethodId);
+                    for (LuaValueList::iterator i = list->begin(); i != list->end(); ++i) {
                         LuaValue *item = *i;
                         jobject itemObj = convertLuaValueToJObject(env, item);
-                        if (itemObj != NULL)
-                        {
+                        if (itemObj != NULL) {
                             env->CallObjectMethod(retObj, addMethodId, itemObj);
                         }
                     }
                 }
-                else
+                break;
+            }
+            case LuaValueTypeMap:
+            {
+                LuaValueMap *map = value -> toMap();
+                if (map != NULL)
                 {
-                    LuaValueMap *map = value -> toMap();
-                    if (map != NULL)
+                    static jclass jHashMapClass = env -> FindClass("java/util/HashMap");
+                    static jmethodID initMethodId = env -> GetMethodID(jHashMapClass, "<init>", "()V");
+                    static jmethodID putMethodId = env -> GetMethodID(jHashMapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
+                    retObj = env -> NewObject(jHashMapClass, initMethodId);
+                    for (LuaValueMap::iterator i = map -> begin(); i != map -> end() ; ++i)
                     {
-                        static jclass jHashMapClass = env -> FindClass("java/util/HashMap");
-                        static jmethodID initMethodId = env -> GetMethodID(jHashMapClass, "<init>", "()V");
-                        static jmethodID putMethodId = env -> GetMethodID(jHashMapClass, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+                        std::string key = i -> first;
+                        LuaValue *item = i -> second;
 
-                        retObj = env -> NewObject(jHashMapClass, initMethodId);
-                        for (LuaValueMap::iterator i = map -> begin(); i != map -> end() ; ++i)
+                        jstring keyStr = env -> NewStringUTF(key.c_str());
+                        jobject itemObj = convertLuaValueToJObject(env, item);
+                        if (keyStr != NULL && itemObj != NULL)
                         {
-                            std::string key = i -> first;
-                            LuaValue *item = i -> second;
-
-                            jstring keyStr = env -> NewStringUTF(key.c_str());
-                            jobject itemObj = convertLuaValueToJObject(env, item);
-                            if (keyStr != NULL && itemObj != NULL)
-                            {
-                                env -> CallObjectMethod(retObj, putMethodId, keyStr, itemObj);
-                            }
+                            env -> CallObjectMethod(retObj, putMethodId, keyStr, itemObj);
                         }
                     }
                 }
@@ -150,10 +150,16 @@ jobject convertLuaValueToJLuaValue (JNIEnv *env, LuaValue *value)
                 initMethodId = byteArrInitMethodId;
                 break;
             }
-            case LuaValueTypeTable:
+            case LuaValueTypeArray:
             {
-                static jmethodID byteArrInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(Ljava/util/ArrayList;)V");
-                initMethodId = byteArrInitMethodId;
+                static jmethodID arrayInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(Ljava/util/ArrayList;)V");
+                initMethodId = arrayInitMethodId;
+                break;
+            }
+            case LuaValueTypeMap:
+            {
+                static jmethodID mapInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(Ljava/util/HashMap;)V");
+                initMethodId = mapInitMethodId;
                 break;
             }
             default:
@@ -198,5 +204,6 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaContext_evalScript (J
         retObj = convertLuaValueToJLuaValue(env, value);
         value -> release();
     }
+
     return retObj;
 }
