@@ -5,9 +5,13 @@
 #include "LuaContext.h"
 #include <map>
 #include <list>
+#include "LuaDefine.h"
+
 
 cn::vimfung::luascriptcore::LuaContext::LuaContext()
 {
+    LOGI("Create LuaContext");
+
     _exceptionHandler = NULL;
     _state = luaL_newstate();
 
@@ -17,6 +21,8 @@ cn::vimfung::luascriptcore::LuaContext::LuaContext()
 
 cn::vimfung::luascriptcore::LuaContext::~LuaContext()
 {
+    LOGI("Dealloc LuaContext");
+
     lua_close(_state);
 }
 
@@ -131,12 +137,16 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScript(std::string script)
 {
+    LOGI("start eval script");
+
     int curTop = lua_gettop(_state);
     int ret = luaL_loadstring(_state, script.c_str()) ||
     lua_pcall(_state, 0, 1, 0);
 
     bool res = ret == 0;
     if (!res) {
+
+        LOGI("eval script error");
 
         //错误时触发异常回调
         LuaValue *value = this->getValueByIndex(-1);
@@ -150,6 +160,8 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         lua_pop(_state, 1);
 
     } else {
+
+        LOGI("eval script success");
 
         if (lua_gettop(_state) > curTop) {
 
