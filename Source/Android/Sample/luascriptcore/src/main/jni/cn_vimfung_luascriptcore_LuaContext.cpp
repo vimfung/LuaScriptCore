@@ -4,18 +4,21 @@
 
 #include "cn_vimfung_luascriptcore_LuaContext.h"
 #include "LuaContext.h"
+#include "LuaDefine.h"
 #include <map>
+#include <string>
 
 using namespace cn::vimfung::luascriptcore;
 
-typedef std::map<jstring, LuaContext*> LuaContextMap;
+typedef std::map<std::string, LuaContext*> LuaContextMap;
 LuaContextMap contexts;
 
-LuaContext* getContextByName(jstring name)
+LuaContext* getContextByName(std::string name)
 {
     LuaContextMap::iterator it = contexts.find(name);
     if (it != contexts.end())
     {
+        LOGI("find context!");
         return it->second;
     }
 
@@ -174,17 +177,23 @@ jobject convertLuaValueToJLuaValue (JNIEnv *env, LuaValue *value)
 
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaContext_createContext (JNIEnv * env, jobject obj, jstring name)
 {
-    LuaContextMap::iterator it = contexts.find(name);
+    printf("Hello World!!!!!!!!\n");
+
+    std::string contextName = env -> GetStringUTFChars(name, NULL);
+    LuaContextMap::iterator it = contexts.find(contextName);
     if (it == contexts.end())
     {
+        LOGI("new context create");
+
         //创建Lua上下文对象
-        contexts[name] = new LuaContext();
+        contexts[contextName] = new LuaContext();
     }
 }
 
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaContext_releaseContext (JNIEnv * env, jobject obj, jstring name)
 {
-    LuaContextMap::iterator it = contexts.find(name);
+    std::string contextName = env -> GetStringUTFChars(name, NULL);
+    LuaContextMap::iterator it = contexts.find(contextName);
     if (it != contexts.end())
     {
         it -> second -> release();
@@ -194,8 +203,11 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaContext_releaseContext (
 
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaContext_evalScript (JNIEnv *env, jobject obj, jstring contextName, jstring script)
 {
+    LOGI("start eval script %s, %s", env -> GetStringUTFChars(contextName, NULL), env -> GetStringUTFChars(script, NULL));
+
     jobject retObj = NULL;
-    LuaContext *context = getContextByName(contextName);
+    std::string contextNameStr = env -> GetStringUTFChars(contextName, NULL);
+    LuaContext *context = getContextByName(contextNameStr);
     if (context != NULL)
     {
         const char* scriptText = env ->GetStringUTFChars(script, NULL);

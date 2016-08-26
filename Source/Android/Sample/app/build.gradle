@@ -25,4 +25,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.3.0'
     compile 'com.android.support:design:23.3.0'
     compile project(path: ':luascriptcore')
+    compile 'com.google.android.gms:play-services-appindexing:8.1.0'
 }

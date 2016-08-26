@@ -13,6 +13,12 @@ public class LuaValue
     private Object _valueContainer;
     private LuaValueType _type;
 
+    public LuaValue ()
+    {
+        _type = LuaValueType.Nil;
+        _valueContainer = null;
+    }
+
     public LuaValue(double value)
     {
         _type = LuaValueType.Number;
@@ -39,14 +45,19 @@ public class LuaValue
 
     public LuaValue (ArrayList value)
     {
-        _type = LuaValueType.Table;
+        _type = LuaValueType.Array;
         _valueContainer = value;
     }
 
     public LuaValue (HashMap value)
     {
-        _type = LuaValueType.Table;
+        _type = LuaValueType.Map;
         _valueContainer = value;
+    }
+
+    public LuaValueType type ()
+    {
+        return _type;
     }
 
     public Object toObject()

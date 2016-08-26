@@ -14,6 +14,7 @@ android {
 
             moduleName "LuaScriptCore"
             stl "stlport_static"
+            ldLibs "log"
         }
 
     }
