@@ -3,6 +3,7 @@
 //
 
 #include "LuaObject.h"
+#include "LuaDefine.h"
 
 cn::vimfung::luascriptcore::LuaObject::LuaObject()
 {
@@ -11,7 +12,7 @@ cn::vimfung::luascriptcore::LuaObject::LuaObject()
 
 cn::vimfung::luascriptcore::LuaObject::~LuaObject()
 {
-
+    LOGI("dealloc LuaObject");
 }
 
 void cn::vimfung::luascriptcore::LuaObject::retain()

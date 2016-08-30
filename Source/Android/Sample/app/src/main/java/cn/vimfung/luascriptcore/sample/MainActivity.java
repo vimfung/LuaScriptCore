@@ -18,6 +18,7 @@ import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.Console;
+import java.io.IOException;
 
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaValue;
@@ -39,7 +40,8 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        context = new LuaContext();
+
+        context = LuaContext.create(getApplicationContext());
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -54,10 +56,11 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                LuaValue value = context.evalScript("i = 100; print(i); return i;");
+//                Log.v("test", String.format("%f", value.toNumber()));
+                LuaValue value = context.evalScriptFromFile("file:///android_asset/lua/main.lua");
+                Log.v("test", String.format("%s", value.toString()));
 
-                LuaValue value = context.evalScript("print(\"Hello World!\")");
-                System.out.println(value.type());
-                System.out.println(value.toObject());
             }
         });
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -88,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void evalScriptButtonClickedHandler() {
-        LuaContext context = new LuaContext();
+
         LuaValue value = context.evalScript("print('Hello World')");
     }
 

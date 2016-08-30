@@ -4,10 +4,18 @@
 
 #include <stddef.h>
 #include "LuaValue.h"
+#include "LuaDefine.h"
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue()
 {
     _type = LuaValueTypeNil;
+    _value = NULL;
+}
+
+cn::vimfung::luascriptcore::LuaValue::LuaValue(long value)
+{
+    _type = LuaValueTypeInteger;
+    _intValue = (lua_Integer)value;
     _value = NULL;
 }
 
@@ -54,6 +62,7 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueMap value)
 
 cn::vimfung::luascriptcore::LuaValue::~LuaValue()
 {
+    LOGI("dealloc LuaValue");
     if (_value != NULL)
     {
         if (_type == LuaValueTypeArray)
@@ -93,6 +102,11 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::NilV
     return new LuaValue();
 }
 
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::IntegerValue(long value)
+{
+    return new LuaValue(value);
+}
+
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::BooleanValue(bool value)
 {
     return new LuaValue(value);
@@ -126,6 +140,79 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::Dict
 cn::vimfung::luascriptcore::LuaValueType cn::vimfung::luascriptcore::LuaValue::getType()
 {
     return _type;
+}
+
+void cn::vimfung::luascriptcore::LuaValue::push(lua_State *state)
+{
+    pushValue(state, this);
+}
+
+void cn::vimfung::luascriptcore::LuaValue::pushValue(lua_State *state, cn::vimfung::luascriptcore::LuaValue *value)
+{
+    switch (value -> getType()) {
+        case LuaValueTypeInteger:
+            lua_pushinteger(state, value -> _intValue);
+            break;
+        case LuaValueTypeNumber:
+            lua_pushnumber(state, value -> _numberValue);
+            break;
+        case LuaValueTypeNil:
+            lua_pushnil(state);
+            break;
+        case LuaValueTypeString:
+            lua_pushstring(state, ((std::string *)value -> _value) -> c_str());
+            break;
+        case LuaValueTypeBoolean:
+            lua_pushboolean(state, value -> _booleanValue);
+            break;
+        case LuaValueTypeArray:
+            pushTable(state, static_cast<LuaValueList *> (value -> _value));
+            break;
+        case LuaValueTypeMap:
+            pushTable(state, static_cast<LuaValueMap *> (value -> _value));
+            break;
+        case LuaValueTypeData:
+            lua_pushlstring(state, (char *)value -> _value, value -> _bytesLen);
+            break;
+        default:
+            break;
+    }
+}
+
+void cn::vimfung::luascriptcore::LuaValue::pushTable(lua_State *state, LuaValueList *list)
+{
+    lua_newtable(state);
+
+    lua_Integer index = 1;
+    for (LuaValueList::iterator it = list -> begin(); it != list -> end(); ++it)
+    {
+        LuaValue *item = *it;
+        pushValue(state, item);
+        lua_rawseti(state, -2, index);
+
+        index ++;
+    }
+}
+
+void cn::vimfung::luascriptcore::LuaValue::pushTable(lua_State *state, LuaValueMap *map)
+{
+    lua_newtable(state);
+
+    for (LuaValueMap::iterator it = map -> begin(); it != map -> end() ; ++it)
+    {
+        LuaValue *item = it -> second;
+        pushValue(state, item);
+        lua_setfield(state, -2, it -> first.c_str());
+    }
+}
+
+long cn::vimfung::luascriptcore::LuaValue::toInteger()
+{
+    if (_type == LuaValueTypeInteger)
+    {
+        return _intValue;
+    }
+    return 0;
 }
 
 

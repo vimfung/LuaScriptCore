@@ -8,6 +8,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include "lua/lua.hpp"
 #include "LuaObject.h"
 
 namespace cn
@@ -29,25 +30,23 @@ namespace cn
                 LuaValueTypeString = 3,
                 LuaValueTypeArray = 4,
                 LuaValueTypeMap = 5,
-                LuaValueTypeFunction = 6,
-                LuaValueTypeThread = 7,
-                LuaValueTypeUserData = 8,
-                LuaValueTypeInteger = 9,
-                LuaValueTypeData = 10
+                LuaValueTypeInteger = 8,
+                LuaValueTypeData = 9
             };
 
             class LuaValue : public LuaObject
             {
             private:
                 LuaValueType _type;
+                lua_Integer _intValue;
                 bool _booleanValue;
                 double _numberValue;
-                int _integerValue;
                 size_t _bytesLen;
                 void *_value;
 
             public:
                 LuaValue ();
+                LuaValue (long value);
                 LuaValue (bool value);
                 LuaValue (double value);
                 LuaValue (std::string value);
@@ -58,6 +57,7 @@ namespace cn
 
             public:
                 LuaValueType getType();
+                long toInteger();
                 const std::string toString();
                 double toNumber();
                 bool toBoolean();
@@ -65,9 +65,14 @@ namespace cn
                 size_t getDataLength();
                 LuaValueList* toArray();
                 LuaValueMap* toMap();
+                void push(lua_State *state);
+                void pushValue(lua_State *state, LuaValue *value);
+                void pushTable(lua_State *state, LuaValueList *list);
+                void pushTable(lua_State *state, LuaValueMap *map);
 
             public:
                 static LuaValue* NilValue();
+                static LuaValue* IntegerValue(long value);
                 static LuaValue* BooleanValue(bool value);
                 static LuaValue* NumberValue(double value);
                 static LuaValue* StringValue(std::string value);

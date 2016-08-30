@@ -146,18 +146,21 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
     bool res = ret == 0;
     if (!res) {
 
-        LOGI("eval script error");
-
         //错误时触发异常回调
         LuaValue *value = this->getValueByIndex(-1);
 
         std::string errMessage = value -> toString();
+
+        LOGI("eval script error = %s", errMessage.c_str());
+
         if (_exceptionHandler != NULL)
         {
             _exceptionHandler (errMessage);
         }
 
         lua_pop(_state, 1);
+
+        value -> release();
 
     } else {
 
@@ -173,5 +176,100 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         }
     }
 
-    return NULL;
+    return LuaValue::NilValue();
+}
+
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScriptFromFile(
+        std::string path)
+{
+    int curTop = lua_gettop(_state);
+    int ret = luaL_loadfile(_state, path.c_str()) ||
+    lua_pcall(_state, 0, 1, 0);
+
+    bool res = ret == 0;
+    if (!res)
+    {
+        //错误时触发异常回调
+        LuaValue *value = this->getValueByIndex(-1);
+
+        std::string errMessage = value -> toString();
+
+        LOGI("eval from file error = %s", errMessage.c_str());
+
+        if (_exceptionHandler != NULL)
+        {
+            _exceptionHandler (errMessage);
+        }
+
+        lua_pop(_state, 1);
+
+        value -> release();
+    }
+    else
+    {
+        LOGI("eval script success");
+
+        if (lua_gettop(_state) > curTop) {
+
+            //有返回值
+            LuaValue *value = this -> getValueByIndex(-1);
+            lua_pop(_state, 1);
+
+            return value;
+        }
+    }
+
+    return LuaValue::NilValue();
+}
+
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::callMethod(
+        std::string methodName, LuaArgumentList arguments)
+{
+    LuaValue *resultValue = NULL;
+
+    lua_getglobal(_state, methodName.c_str());
+    if (lua_isfunction(_state, -1))
+    {
+        //存在指定方法
+
+        //初始化传递参数
+        for (LuaArgumentList::iterator i = arguments.begin(); i != arguments.end() ; ++i)
+        {
+            LuaValue *item = *i;
+            item->push(_state);
+        }
+
+        if (lua_pcall(_state, (int)arguments.size(), 1, 0) == 0)
+        {
+            //调用成功
+            resultValue = getValueByIndex(-1);
+        }
+        else
+        {
+            //调用失败
+            LuaValue *value = getValueByIndex(-1);
+            std::string errMessage = value -> toString();
+
+            if (_exceptionHandler != NULL)
+            {
+                _exceptionHandler (errMessage);
+            }
+
+            value -> release();
+        }
+
+        lua_pop(_state, 1);
+    }
+    else
+    {
+        //将变量从栈中移除
+        lua_pop(_state, 1);
+    }
+
+    if (resultValue == NULL)
+    {
+        resultValue = LuaValue::NilValue();
+    }
+
+    return resultValue;
 }
