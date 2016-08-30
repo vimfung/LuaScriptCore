@@ -17,6 +17,7 @@ namespace cn
         namespace luascriptcore
         {
             typedef void (*LuaExceptionHandler) (std::string message);
+            typedef std::list<LuaValue *> LuaArgumentList;
 
             class LuaContext : public LuaObject
             {
@@ -36,6 +37,8 @@ namespace cn
 
             public:
                 LuaValue* evalScript(std::string script);
+                LuaValue* evalScriptFromFile(std::string path);
+                LuaValue* callMethod(std::string methodName, LuaArgumentList arguments);
             };
 
         }

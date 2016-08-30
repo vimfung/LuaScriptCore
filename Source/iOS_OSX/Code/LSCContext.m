@@ -91,7 +91,7 @@
 - (id)evalScriptFromFile:(NSString *)path {
   int curTop = lua_gettop(self.state);
   int ret = luaL_loadfile(self.state, [path UTF8String]) ||
-            lua_pcall(self.state, 0, 0, 0);
+            lua_pcall(self.state, 0, 1, 0);
 
   BOOL res = ret == 0;
   if (!res) {
