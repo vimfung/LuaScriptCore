@@ -225,6 +225,8 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::callMethod(
         std::string methodName, LuaArgumentList arguments)
 {
+    LOGI("call method");
+
     LuaValue *resultValue = NULL;
 
     lua_getglobal(_state, methodName.c_str());
