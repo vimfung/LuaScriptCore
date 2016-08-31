@@ -4,8 +4,14 @@
 --
 --local str = json.encode (tbl, { indent = true })
 
-local str = "Hello World!xxxxxxxxdsafdsf";
+function test (a, b)
 
-print (str);
+    return a + b;
 
-return "aabcadsfdsafewa";
+end
+--
+--local str = "Hello World!xxxxxxxxdsafdsf";
+--
+--print (str);
+--
+--return "aabcadsfdsafewa";

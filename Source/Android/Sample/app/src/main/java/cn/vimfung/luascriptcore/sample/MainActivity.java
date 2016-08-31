@@ -58,9 +58,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
 //                LuaValue value = context.evalScript("i = 100; print(i); return i;");
 //                Log.v("test", String.format("%f", value.toNumber()));
-                LuaValue value = context.evalScriptFromFile("file:///android_asset/lua/main.lua");
-                Log.v("test", String.format("%s", value.toString()));
 
+                context.evalScriptFromFile("file:///android_asset/lua/main.lua");
+
+                LuaValue args[] = {new LuaValue(100), new LuaValue(50)};
+                LuaValue res = context.callMethod("test", args);
+                Log.v("test", String.format("res = %d", res.toNumber()));
             }
         });
         // ATTENTION: This was auto-generated to implement the App Indexing API.

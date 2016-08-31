@@ -404,21 +404,23 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_evalScript
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_callMethod
         (JNIEnv *env, jclass obj, jint nativeContextId, jstring methodName, jobjectArray arguments)
 {
+    LOGI("===== start call method");
     jobject retObj = NULL;
 
     LuaContext *context = (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeContextId);
     if (context != NULL)
     {
+        LOGI("===== prepare call method");
         LuaArgumentList argumentList;
 
-        jsize length = env -> GetArrayLength(arguments);
-        for (int i = 0; i < length; ++i)
-        {
-            jobject item = env -> GetObjectArrayElement(arguments, i);
-            LuaValue *value = convertJLuaValueToLuaValue(env, item);
-            if (value != NULL)
-            {
-                argumentList.push_back(value);
+        if (arguments != NULL) {
+            jsize length = env->GetArrayLength(arguments);
+            for (int i = 0; i < length; ++i) {
+                jobject item = env->GetObjectArrayElement(arguments, i);
+                LuaValue *value = convertJLuaValueToLuaValue(env, item);
+                if (value != NULL) {
+                    argumentList.push_back(value);
+                }
             }
         }
 
