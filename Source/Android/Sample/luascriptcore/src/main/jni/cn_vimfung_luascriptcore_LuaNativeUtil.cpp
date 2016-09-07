@@ -54,7 +54,7 @@ jclass getJHashMapClass(JNIEnv *env)
     if (jHashMap == NULL)
     {
         jclass jHashMapCls = env -> FindClass("java/util/HashMap");
-        jHashMap = (jclass)env -> NewGlobalRef(jHashMap);
+        jHashMap = (jclass)env -> NewGlobalRef(jHashMapCls);
         env -> DeleteLocalRef(jHashMapCls);
     }
 
@@ -122,7 +122,7 @@ jobject convertLuaValueToJObject (JNIEnv *env, LuaValue *value)
                         LuaValue *item = *i;
                         jobject itemObj = convertLuaValueToJObject(env, item);
                         if (itemObj != NULL) {
-                            env->CallObjectMethod(retObj, addMethodId, itemObj);
+                            env->CallBooleanMethod(retObj, addMethodId, itemObj);
                         }
                     }
                 }
@@ -233,19 +233,18 @@ jobject convertLuaValueToJLuaValue (JNIEnv *env, LuaValue *value)
 LuaValue* convertJLuaValueToLuaValue (JNIEnv *env, jobject value)
 {
     //构造调用参数
-    static jclass jLuaValue = getJLuaValueClass(env);
-    static jmethodID typeMethodId = env -> GetMethodID(jLuaValue, "type", "()Lcn/vimfung/luascriptcore/LuaValueType");
-    static jmethodID toIntMethodId = env -> GetMethodID(jLuaValue, "toInteger", "()I");
-    static jmethodID toNumMethodId = env -> GetMethodID(jLuaValue, "toNumber", "()D");
-    static jmethodID toBoolMethodId = env -> GetMethodID(jLuaValue, "toBoolean", "()Z");
-    static jmethodID toStrMethodId = env -> GetMethodID(jLuaValue, "toString", "()Ljava/lang/String");
-    static jmethodID toByteArrMethodId = env -> GetMethodID(jLuaValue, "toByteArray", "()[B");
-    static jmethodID toListMethodId = env -> GetMethodID(jLuaValue, "toArrayList", "()Ljava/util/ArrayList");
-    static jmethodID toMapMethodId = env -> GetMethodID(jLuaValue, "toHashMap", "()Ljava/util/HashMap");
-
     static jclass jLuaValueType = (jclass)env -> NewGlobalRef(env -> FindClass("cn/vimfung/luascriptcore/LuaValueType"));
     static jmethodID typeValueMethodId = env -> GetMethodID(jLuaValueType, "value", "()I");
 
+    static jclass jLuaValueClass = getJLuaValueClass(env);
+    static jmethodID typeMethodId = env -> GetMethodID(jLuaValueClass, "valueType", "()Lcn/vimfung/luascriptcore/LuaValueType;");
+    static jmethodID toIntMethodId = env -> GetMethodID(jLuaValueClass, "toInteger", "()I");
+    static jmethodID toNumMethodId = env -> GetMethodID(jLuaValueClass, "toNumber", "()D");
+    static jmethodID toBoolMethodId = env -> GetMethodID(jLuaValueClass, "toBoolean", "()Z");
+    static jmethodID toStrMethodId = env -> GetMethodID(jLuaValueClass, "toString", "()Ljava/lang/String;");
+    static jmethodID toByteArrMethodId = env -> GetMethodID(jLuaValueClass, "toByteArray", "()[B");
+    static jmethodID toListMethodId = env -> GetMethodID(jLuaValueClass, "toArrayList", "()Ljava/util/ArrayList;");
+    static jmethodID toMapMethodId = env -> GetMethodID(jLuaValueClass, "toHashMap", "()Ljava/util/HashMap;");
 
     jobject itemType = env -> CallObjectMethod(value, typeMethodId);
     jint valueType = env -> CallIntMethod(itemType, typeValueMethodId);

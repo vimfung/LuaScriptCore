@@ -189,7 +189,7 @@ public class LuaValue extends LuaBaseObject
      * 获取值类型
      * @return  类型
      */
-    public LuaValueType type ()
+    public LuaValueType valueType ()
     {
         return _type;
     }
@@ -198,7 +198,7 @@ public class LuaValue extends LuaBaseObject
     {
         if (_type == LuaValueType.Integer)
         {
-            return (int)_valueContainer;
+            return (Integer)_valueContainer;
         }
 
         return 0;
@@ -208,7 +208,7 @@ public class LuaValue extends LuaBaseObject
     {
         if (_type == LuaValueType.Number)
         {
-            return (double)_valueContainer;
+            return (Double) _valueContainer;
         }
 
         return 0;
@@ -218,7 +218,7 @@ public class LuaValue extends LuaBaseObject
     {
         if (_type == LuaValueType.Boolean)
         {
-            return (boolean)_valueContainer;
+            return (Boolean) _valueContainer;
         }
 
         return false;
