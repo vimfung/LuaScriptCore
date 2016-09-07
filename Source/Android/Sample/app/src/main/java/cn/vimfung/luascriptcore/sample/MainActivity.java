@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
 
                 LuaValue args[] = {new LuaValue(100), new LuaValue(50)};
                 LuaValue res = context.callMethod("test", args);
-                Log.v("test", String.format("res = %d", res.toNumber()));
+                Log.v("test", String.format("res = %s", res.toHashMap().toString()));
             }
         });
         // ATTENTION: This was auto-generated to implement the App Indexing API.

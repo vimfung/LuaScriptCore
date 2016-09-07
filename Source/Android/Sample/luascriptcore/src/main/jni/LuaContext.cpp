@@ -5,6 +5,8 @@
 #include "LuaContext.h"
 #include <map>
 #include <list>
+#include <iostream>
+#include <sstream>
 #include "LuaDefine.h"
 
 
@@ -106,7 +108,21 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
                     }
                 }
 
-                dictValue[key->toString()] = item;
+                switch (key -> getType())
+                {
+                    case LuaValueTypeNumber:
+                    {
+                        std::ostringstream out;
+                        out << key->toNumber();
+                        dictValue[out.str()] = item;
+                        break;
+                    }
+                    case LuaValueTypeString:
+                        dictValue[key->toString()] = item;
+                        break;
+                    default:
+                        break;
+                }
 
                 key->release();
 
@@ -241,10 +257,14 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
             item->push(_state);
         }
 
+        LOGI("start call method ...");
+
         if (lua_pcall(_state, (int)arguments.size(), 1, 0) == 0)
         {
             //调用成功
             resultValue = getValueByIndex(-1);
+
+            LOGI("call succeed");
         }
         else
         {
@@ -258,6 +278,8 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
             }
 
             value -> release();
+
+            LOGI("call Fail");
         }
 
         lua_pop(_state, 1);
