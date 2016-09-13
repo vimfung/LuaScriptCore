@@ -29,7 +29,6 @@ namespace cn
 
             private:
                 LuaObjectMap _objectPool;
-                int _objectSeqId;
 
             public:
                 int putObject(LuaObject *object);

@@ -41,6 +41,14 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_callMethod
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    registerMethod
+ * Signature: (ILjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerMethod
+  (JNIEnv *, jclass, jint, jstring);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
  * Method:    releaseNativeObject
  * Signature: (I)V
  */

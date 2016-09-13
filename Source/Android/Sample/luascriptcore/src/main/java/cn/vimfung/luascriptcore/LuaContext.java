@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Lua上下文对象
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 public class LuaContext extends LuaBaseObject
 {
     private Context _context;
+    private HashMap<String, LuaMethodHandler> _methods;
 
     /**
      * 创建上下文对象
@@ -44,6 +46,7 @@ public class LuaContext extends LuaBaseObject
     {
         LuaContext luaContext = LuaNativeUtil.createContext();
         luaContext._context = context;
+        luaContext._methods = new HashMap<String, LuaMethodHandler>();
 
         return luaContext;
     }
@@ -112,6 +115,40 @@ public class LuaContext extends LuaBaseObject
     public LuaValue callMethod(String methodName, LuaValue[] arguments)
     {
         return LuaNativeUtil.callMethod(_nativeId, methodName, arguments);
+    }
+
+    /**
+     * 注册方法
+     * @param methodName    方法名称
+     * @param handler       方法处理器
+     */
+    public void registerMethod(String methodName, LuaMethodHandler handler)
+    {
+        if (!_methods.containsKey(methodName))
+        {
+            _methods.put(methodName, handler);
+            LuaNativeUtil.registerMethod(_nativeId, methodName);
+        }
+        else
+        {
+            throw new Error("Method for the name already exists");
+        }
+    }
+
+    /**
+     * 调用方法
+     * @param methodName    方法名称
+     * @param arguments     方法的传入参数
+     * @return              返回值
+     */
+    private LuaValue methodInvoke (String methodName, LuaValue[] arguments)
+    {
+        if (_methods.containsKey(methodName))
+        {
+             return _methods.get(methodName).onExecute(arguments);
+        }
+
+        return new LuaValue();
     }
 
     /**
