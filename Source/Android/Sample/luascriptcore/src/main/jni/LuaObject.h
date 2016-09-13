@@ -15,12 +15,14 @@ namespace cn
             {
             private:
                 int _retainCount;
+                int _objectId;
 
             public:
                 LuaObject ();
                 virtual ~LuaObject();
 
             public:
+                int objectId ();
                 void retain ();
                 void release ();
             };

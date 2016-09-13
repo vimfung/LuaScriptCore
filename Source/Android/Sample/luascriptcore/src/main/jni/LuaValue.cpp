@@ -4,7 +4,6 @@
 
 #include <stddef.h>
 #include "LuaValue.h"
-#include "LuaDefine.h"
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue()
 {
@@ -62,7 +61,6 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueMap value)
 
 cn::vimfung::luascriptcore::LuaValue::~LuaValue()
 {
-    LOGI("dealloc LuaValue");
     if (_value != NULL)
     {
         if (_type == LuaValueTypeArray)

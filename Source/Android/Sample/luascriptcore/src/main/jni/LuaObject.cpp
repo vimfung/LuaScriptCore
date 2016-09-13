@@ -3,16 +3,25 @@
 //
 
 #include "LuaObject.h"
-#include "LuaDefine.h"
+
+static int _objSeqId = 0;
 
 cn::vimfung::luascriptcore::LuaObject::LuaObject()
 {
     _retainCount = 1;
+
+    _objSeqId ++;
+    _objectId = _objSeqId;
 }
 
 cn::vimfung::luascriptcore::LuaObject::~LuaObject()
 {
-    LOGI("dealloc LuaObject");
+
+}
+
+int cn::vimfung::luascriptcore::LuaObject::objectId()
+{
+    return _objectId;
 }
 
 void cn::vimfung::luascriptcore::LuaObject::retain()

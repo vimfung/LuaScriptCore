@@ -47,6 +47,13 @@ public class LuaNativeUtil
     public static native LuaValue callMethod (int contextNativeId, String methodName, LuaValue[] arguments);
 
     /**
+     * 注册Lua方法
+     * @param contextNativeId   上下文的本地标识
+     * @param methodName        方法名称
+     */
+    public static native void registerMethod (int contextNativeId, String methodName);
+
+    /**
      * 释放本地对象
      * @param nativeId  本地对象标识
      */
