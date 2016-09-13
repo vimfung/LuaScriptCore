@@ -19,8 +19,10 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.Console;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import cn.vimfung.luascriptcore.LuaContext;
+import cn.vimfung.luascriptcore.LuaMethodHandler;
 import cn.vimfung.luascriptcore.LuaValue;
 
 public class MainActivity extends AppCompatActivity {
@@ -56,19 +58,30 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                context.evalScript("print(testMethod(112.5, 256.2));");
+
 //                LuaValue value = context.evalScript("i = 100; print(i); return i;");
 //                Log.v("test", String.format("%f", value.toNumber()));
 
-                context.evalScriptFromFile("file:///android_asset/lua/main.lua");
+//                context.evalScriptFromFile("file:///android_asset/lua/main.lua");
+//
+//                LuaValue args[] = {new LuaValue(100), new LuaValue(50)};
+//                LuaValue res = context.callMethod("test", args);
+//                Log.v("test", String.format("res = %s", res.toHashMap().toString()));
 
-                LuaValue args[] = {new LuaValue(100), new LuaValue(50)};
-                LuaValue res = context.callMethod("test", args);
-                Log.v("test", String.format("res = %s", res.toHashMap().toString()));
             }
         });
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+        context.registerMethod("testMethod", new LuaMethodHandler() {
+            @Override
+            public LuaValue onExecute(LuaValue[] arguments) {
+                return new LuaValue(arguments[0].toNumber() + arguments[1].toNumber());
+            }
+        });
     }
 
     @Override

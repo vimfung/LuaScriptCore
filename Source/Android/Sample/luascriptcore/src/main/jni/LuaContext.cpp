@@ -7,13 +7,44 @@
 #include <list>
 #include <iostream>
 #include <sstream>
-#include "LuaDefine.h"
+
+static int methodRouteHandler(lua_State *state) {
+
+    cn::vimfung::luascriptcore::LuaContext *context = (cn::vimfung::luascriptcore::LuaContext *)lua_touserdata(state, lua_upvalueindex(1));
+    const char *methodName = lua_tostring(state, lua_upvalueindex(2));
+
+    cn::vimfung::luascriptcore::LuaMethodHandler handler = context-> getMethodHandler(methodName);
+    if (handler != NULL)
+    {
+        int top = lua_gettop(state);
+        cn::vimfung::luascriptcore::LuaArgumentList args;
+        for (int i = 0; i < top; i++)
+        {
+            cn::vimfung::luascriptcore::LuaValue *value = context -> getValueByIndex(-i - 1);
+            args.push_front(value);
+        }
+
+        cn::vimfung::luascriptcore::LuaValue *retValue = handler (context, methodName, args);
+        if (retValue != NULL)
+        {
+            retValue -> push(state);
+            retValue -> release();
+        }
+
+        //释放参数内存
+        for (cn::vimfung::luascriptcore::LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+        {
+            cn::vimfung::luascriptcore::LuaValue *item = *it;
+            item -> release();
+        }
+    }
+
+    return 1;
+}
 
 
 cn::vimfung::luascriptcore::LuaContext::LuaContext()
 {
-    LOGI("Create LuaContext");
-
     _exceptionHandler = NULL;
     _state = luaL_newstate();
 
@@ -23,8 +54,6 @@ cn::vimfung::luascriptcore::LuaContext::LuaContext()
 
 cn::vimfung::luascriptcore::LuaContext::~LuaContext()
 {
-    LOGI("Dealloc LuaContext");
-
     lua_close(_state);
 }
 
@@ -153,8 +182,6 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScript(std::string script)
 {
-    LOGI("start eval script");
-
     int curTop = lua_gettop(_state);
     int ret = luaL_loadstring(_state, script.c_str()) ||
     lua_pcall(_state, 0, 1, 0);
@@ -167,8 +194,6 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
 
         std::string errMessage = value -> toString();
 
-        LOGI("eval script error = %s", errMessage.c_str());
-
         if (_exceptionHandler != NULL)
         {
             _exceptionHandler (errMessage);
@@ -179,8 +204,6 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         value -> release();
 
     } else {
-
-        LOGI("eval script success");
 
         if (lua_gettop(_state) > curTop) {
 
@@ -210,8 +233,6 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
 
         std::string errMessage = value -> toString();
 
-        LOGI("eval from file error = %s", errMessage.c_str());
-
         if (_exceptionHandler != NULL)
         {
             _exceptionHandler (errMessage);
@@ -223,8 +244,6 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
     }
     else
     {
-        LOGI("eval script success");
-
         if (lua_gettop(_state) > curTop) {
 
             //有返回值
@@ -241,8 +260,6 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::callMethod(
         std::string methodName, LuaArgumentList arguments)
 {
-    LOGI("call method");
-
     LuaValue *resultValue = NULL;
 
     lua_getglobal(_state, methodName.c_str());
@@ -257,14 +274,10 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
             item->push(_state);
         }
 
-        LOGI("start call method ...");
-
         if (lua_pcall(_state, (int)arguments.size(), 1, 0) == 0)
         {
             //调用成功
             resultValue = getValueByIndex(-1);
-
-            LOGI("call succeed");
         }
         else
         {
@@ -279,7 +292,6 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
 
             value -> release();
 
-            LOGI("call Fail");
         }
 
         lua_pop(_state, 1);
@@ -296,4 +308,30 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
     }
 
     return resultValue;
+}
+
+void cn::vimfung::luascriptcore::LuaContext::registerMethod(std::string methodName,
+                                                            LuaMethodHandler handler)
+{
+    LuaMethodMap::iterator it =  _methodMap.find(methodName);
+    if (it == _methodMap.end())
+    {
+        _methodMap[methodName] = handler;
+
+        lua_pushlightuserdata(_state, this);
+        lua_pushstring(_state, methodName.c_str());
+        lua_pushcclosure(_state, methodRouteHandler, 2);
+        lua_setglobal(_state, methodName.c_str());
+    }
+}
+
+cn::vimfung::luascriptcore::LuaMethodHandler cn::vimfung::luascriptcore::LuaContext::getMethodHandler(std::string methodName)
+{
+    LuaMethodMap::iterator it =  _methodMap.find(methodName);
+    if (it != _methodMap.end())
+    {
+        return it -> second;
+    }
+
+    return NULL;
 }
