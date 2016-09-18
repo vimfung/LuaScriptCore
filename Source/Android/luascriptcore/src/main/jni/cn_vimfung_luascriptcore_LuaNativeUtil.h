@@ -17,6 +17,14 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createCont
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    addSearchPath
+ * Signature: (ILjava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_addSearchPath
+  (JNIEnv *, jclass, jint, jstring);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
  * Method:    evalScript
  * Signature: (ILjava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;
  */

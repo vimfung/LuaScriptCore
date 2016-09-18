@@ -16,6 +16,8 @@ std::map<jint, jobject> _jcontextRefs;
 static bool _attatedT = false;
 static JavaVM *_javaVM;
 
+LuaValue* convertJLuaValueToLuaValue (JNIEnv *env, jobject value);
+
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 {
     _javaVM = vm;
@@ -82,6 +84,125 @@ jclass getJLuaValueClass(JNIEnv *env)
     }
 
     return jLuaValue;
+}
+
+/**
+ * 获取Java层String类型
+ */
+jclass getJStringClass(JNIEnv *env)
+{
+    static jclass jStringCls = NULL;
+
+    if (jStringCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("java/lang/String");
+        jStringCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jStringCls;
+}
+
+/**
+ * 获取Java层Integer类型
+ */
+jclass getJIntegerClass(JNIEnv *env)
+{
+    static jclass jIntegerCls = NULL;
+
+    if (jIntegerCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("java/lang/Integer");
+        jIntegerCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jIntegerCls;
+}
+
+/**
+ * 获取Java层Double类型
+ */
+jclass getJDoubleClass(JNIEnv *env)
+{
+    static jclass jDoubleCls = NULL;
+
+    if (jDoubleCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("java/lang/Double");
+        jDoubleCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jDoubleCls;
+}
+
+/**
+ * 获取Java层Boolean类型
+ */
+jclass getJBooleanClass(JNIEnv *env)
+{
+    static jclass jBooleanCls = NULL;
+
+    if (jBooleanCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("java/lang/Boolean");
+        jBooleanCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jBooleanCls;
+}
+
+/**
+ * 获取Java层Byte类型
+ */
+jclass getJByteClass(JNIEnv *env)
+{
+    static jclass jByteCls = NULL;
+
+    if (jByteCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("java/lang/Byte");
+        jByteCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jByteCls;
+}
+
+/**
+ * 获取Java层byte数组类型
+ */
+jclass getJBytesClass(JNIEnv *env)
+{
+    static jclass jByteArrayCls = NULL;
+
+    if (jByteArrayCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("[B");
+        jByteArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jByteArrayCls;
+}
+
+/**
+ * 获取Java层Byte数组类型
+ */
+jclass getJBytesArrayClass(JNIEnv *env)
+{
+    static jclass jByteArrayCls = NULL;
+
+    if (jByteArrayCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("[Ljava/lang/Byte;");
+        jByteArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jByteArrayCls;
 }
 
 /**
@@ -287,6 +408,80 @@ jobject convertLuaValueToJLuaValue (JNIEnv *env, LuaValue *value)
     return retObj;
 }
 
+/**
+ * 转换Java层的对象LuaValue对象
+ */
+LuaValue* convertJObjectToLuaValue(JNIEnv *env, jobject obj)
+{
+    LuaValue *value = NULL;
+
+    if (env -> IsInstanceOf(obj, getJStringClass(env)) == JNI_TRUE)
+    {
+        //String类型
+        jstring str = (jstring) obj;
+        const char *cstr = env -> GetStringUTFChars(str, NULL);
+        std::string valueStr = cstr;
+        value = new LuaValue(valueStr);
+        env -> ReleaseStringUTFChars(str, cstr);
+    }
+    else if (env -> IsInstanceOf(obj, getJIntegerClass(env)) == JNI_TRUE)
+    {
+        //Integer类型
+        jmethodID intValueMethodId = env -> GetMethodID(getJIntegerClass(env), "intValue", "()I");
+        value = new LuaValue((long)env -> CallIntMethod(obj, intValueMethodId));
+    }
+    else if (env -> IsInstanceOf(obj, getJDoubleClass(env)) == JNI_TRUE)
+    {
+        //Double类型
+        jmethodID  doubleValueMethodId = env -> GetMethodID(getJDoubleClass(env), "doubleValue", "()D");
+        value = new LuaValue(env -> CallDoubleMethod(obj, doubleValueMethodId));
+    }
+    else if (env -> IsInstanceOf(obj, getJBooleanClass(env)) == JNI_TRUE)
+    {
+        //Boolean类型
+        jmethodID  boolValueMethodId = env -> GetMethodID(getJDoubleClass(env), "booleanValue", "()Z");
+        value = new LuaValue((bool)env -> CallBooleanMethod(obj, boolValueMethodId));
+    }
+    else if (env -> IsInstanceOf(obj, getJBytesClass(env)) == JNI_TRUE)
+    {
+        //byte数组
+        jbyteArray byteArr = (jbyteArray)obj;
+        jsize len = env -> GetArrayLength(byteArr);
+        jbyte bytes[len];
+        env -> GetByteArrayRegion(byteArr,0, len, bytes);
+
+        value = new LuaValue((const char *)bytes, (size_t)len);
+    }
+    else if (env -> IsInstanceOf(obj, getJBytesArrayClass(env)) == JNI_TRUE)
+    {
+        //byte数组
+        jmethodID  byteValueMethodId = env -> GetMethodID(getJByteClass(env), "byteValue", "()B");
+
+        jobjectArray byteArr = (jobjectArray)obj;
+        jsize len = env -> GetArrayLength(byteArr);
+
+        jbyte bytes[len];
+        for (int i = 0; i < len; ++i)
+        {
+            jobject byteItem = env -> GetObjectArrayElement(byteArr, i);
+            bytes[i] = env -> CallByteMethod(byteItem, byteValueMethodId);
+        }
+
+        value = new LuaValue((const char *)bytes, (size_t)len);
+    }
+    else if (env -> IsInstanceOf(obj, getJLuaValueClass(env)) == JNI_TRUE)
+    {
+        //LuaValue类型
+        value = convertJLuaValueToLuaValue(env, obj);
+    }
+    else
+    {
+        value = new LuaValue();
+    }
+
+    return value;
+}
+
 LuaValue* convertJLuaValueToLuaValue (JNIEnv *env, jobject value)
 {
     //构造调用参数
@@ -296,7 +491,7 @@ LuaValue* convertJLuaValueToLuaValue (JNIEnv *env, jobject value)
     static jclass jLuaValueClass = getJLuaValueClass(env);
     static jmethodID typeMethodId = env -> GetMethodID(jLuaValueClass, "valueType", "()Lcn/vimfung/luascriptcore/LuaValueType;");
     static jmethodID toIntMethodId = env -> GetMethodID(jLuaValueClass, "toInteger", "()I");
-    static jmethodID toNumMethodId = env -> GetMethodID(jLuaValueClass, "toNumber", "()D");
+    static jmethodID toNumMethodId = env -> GetMethodID(jLuaValueClass, "toDouble", "()D");
     static jmethodID toBoolMethodId = env -> GetMethodID(jLuaValueClass, "toBoolean", "()Z");
     static jmethodID toStrMethodId = env -> GetMethodID(jLuaValueClass, "toString", "()Ljava/lang/String;");
     static jmethodID toByteArrMethodId = env -> GetMethodID(jLuaValueClass, "toByteArray", "()[B");
@@ -352,7 +547,7 @@ LuaValue* convertJLuaValueToLuaValue (JNIEnv *env, jobject value)
             for (int i = 0; i < len; ++i)
             {
                 jobject item = env -> CallObjectMethod(arrayList, getMethodId, i);
-                LuaValue *valueItem = convertJLuaValueToLuaValue(env, item);
+                LuaValue *valueItem = convertJObjectToLuaValue(env, item);
             }
 
             retValue = LuaValue::ArrayValue(list);
@@ -381,7 +576,7 @@ LuaValue* convertJLuaValueToLuaValue (JNIEnv *env, jobject value)
                 jobject item = env -> CallObjectMethod(hashMap, getMethodId, key);
 
                 const char *keyStr = env -> GetStringUTFChars((jstring)key, NULL);
-                LuaValue *valueItem = convertJLuaValueToLuaValue(env, item);
+                LuaValue *valueItem = convertJObjectToLuaValue(env, item);
                 map[keyStr] = valueItem;
                 env -> ReleaseStringUTFChars((jstring)key, keyStr);
             }
@@ -471,6 +666,18 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createCont
 
     _jcontextRefs[context -> objectId()] = env -> NewWeakGlobalRef(jcontext);
     return jcontext;
+}
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_addSearchPath
+        (JNIEnv *env, jclass thiz, jint nativeContextId, jstring path)
+{
+    LuaContext *context = (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeContextId);
+    if (context != NULL)
+    {
+        const char *pathStr = env -> GetStringUTFChars(path, NULL);
+        context -> addSearchPath(pathStr);
+        env -> ReleaseStringUTFChars(path, pathStr);
+    }
 }
 
 /*

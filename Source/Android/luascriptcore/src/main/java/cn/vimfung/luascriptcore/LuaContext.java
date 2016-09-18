@@ -45,10 +45,26 @@ public class LuaContext extends LuaBaseObject
     public static LuaContext create(Context context)
     {
         LuaContext luaContext = LuaNativeUtil.createContext();
+
         luaContext._context = context;
         luaContext._methods = new HashMap<String, LuaMethodHandler>();
 
+        File cacheDir = context.getExternalCacheDir();
+        if (cacheDir != null && cacheDir.exists())
+        {
+            luaContext.addSearchPath(cacheDir.toString());
+        }
+
         return luaContext;
+    }
+
+    /**
+     * 添加搜索路径, 对于需要引用不同目录下的lua文件,需要设置其搜索路径,否则会导致无法找到脚本而运行出错
+     * @param path  搜索路径
+     */
+    public void addSearchPath (String path)
+    {
+        LuaNativeUtil.addSearchPath(_nativeId, path + "/?.lua");
     }
 
     /**

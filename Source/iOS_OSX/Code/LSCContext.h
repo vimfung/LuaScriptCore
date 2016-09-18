@@ -39,6 +39,13 @@ typedef LSCValue* (^LSCFunctionHandler) (NSArray *arguments);
 - (void)onException:(LSCExceptionHandler)handler;
 
 /**
+ *  添加搜索路径，如果执行的lua脚本不是放在默认目录（应用目录）内时，需要添加指定路径，否则会提示无法找到脚本从而运行出错
+ *
+ *  @param path 路径
+ */
+- (void)addSearchPath:(NSString *)path;
+
+/**
  *  解析脚本
  *
  *  @param string 脚本字符串
