@@ -22,6 +22,13 @@ public class LuaNativeUtil
     public static native LuaContext createContext ();
 
     /**
+     * 添加搜索路径, 对于需要引用不同目录下的lua文件,需要设置其搜索路径,否则会导致无法找到脚本而运行出错
+     * @param contextNativeId 上下文的本地标识
+     * @param path  路径
+     */
+    public static native void addSearchPath(int contextNativeId, String path);
+
+    /**
      * 解析Lua脚本
      * @param contextNativeId   上下文的本地标识
      * @param script            Lua脚本

@@ -180,6 +180,21 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
     return value;
 }
 
+void cn::vimfung::luascriptcore::LuaContext::addSearchPath(std::string path)
+{
+    lua_getglobal(_state, "package");
+    lua_getfield(_state, -1, "path");
+
+    //取出当前路径，并附加新路径
+    std::string curPath = lua_tostring(_state, -1);
+    path = curPath + ";" + path;
+
+    lua_pop(_state, 1);
+    lua_pushstring(_state, path.c_str());
+    lua_setfield(_state, -2, "path");
+    lua_pop(_state, 1);
+}
+
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScript(std::string script)
 {
     int curTop = lua_gettop(_state);

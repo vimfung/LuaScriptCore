@@ -3,6 +3,7 @@ package cn.vimfung.luascriptcore.sample;
 import android.app.Application;
 import android.bluetooth.BluetoothClass;
 import android.os.Build;
+import android.os.Debug;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -32,20 +33,56 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //先拷贝Assets的文件到应用目录中
-        File dkjsonFile = new File(getExternalCacheDir(), "dkjson.lua");
+        File cacheDir = getExternalCacheDir();
+        if (!cacheDir.exists())
+        {
+            cacheDir.mkdirs();
+        }
+
+        File dkjsonFile = new File(cacheDir, "dkjson.lua");
         ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
         readAssetFileContent("dkjson.lua", dataStream);
         writeToFile(dkjsonFile, dataStream);
+        try {
+            dataStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        File todoFile = new File (getExternalCacheDir(), "todo.lua");
-        dataStream.reset();
+        if (dkjsonFile.exists())
+        {
+            Log.v("luaScriptCore", "copy dkjson.lua success");
+        }
+
+        File todoFile = new File (cacheDir, "todo.lua");
+        dataStream = new ByteArrayOutputStream();
         readAssetFileContent("todo.lua", dataStream);
         writeToFile(todoFile, dataStream);
+        try {
+            dataStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        File mainFile = new File (getExternalCacheDir(), "main.lua");
-        dataStream.reset();
+        if (todoFile.exists())
+        {
+            Log.v("luaScriptCore", "copy todo.lua success");
+        }
+
+        File mainFile = new File (cacheDir, "main.lua");
+        dataStream = new ByteArrayOutputStream();
         readAssetFileContent("main.lua", dataStream);
-        writeToFile(todoFile, dataStream);
+        writeToFile(mainFile, dataStream);
+        try {
+            dataStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (mainFile.exists())
+        {
+            Log.v("luaScriptCore", "copy main.lua success");
+        }
 
         //创建LuaContext
         _luaContext = LuaContext.create(this);
@@ -74,10 +111,10 @@ public class MainActivity extends AppCompatActivity {
                         public LuaValue onExecute(LuaValue[] arguments) {
 
                             HashMap devInfoMap = new HashMap();
-                            devInfoMap.put("deviceName", new LuaValue(Build.DISPLAY));
-                            devInfoMap.put("deviceModel", new LuaValue(Build.MODEL));
-                            devInfoMap.put("systemName", new LuaValue(Build.PRODUCT));
-                            devInfoMap.put("systemVersion", new LuaValue(Build.VERSION.RELEASE));
+                            devInfoMap.put("deviceName", Build.DISPLAY);
+                            devInfoMap.put("deviceModel", Build.MODEL);
+                            devInfoMap.put("systemName", Build.PRODUCT);
+                            devInfoMap.put("systemVersion", Build.VERSION.RELEASE);
 
                             return new LuaValue(devInfoMap);
                         }
@@ -87,15 +124,24 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 //调用脚本
-                _luaContext.evalScriptFromFile("file:///android_asset/main.lua");
-//                File mainFile = new File (getExternalCacheDir(), "main.lua");
-//                Log.v("lusScriptCore", mainFile.getAbsolutePath());
-//                if (mainFile.exists())
-//                {
-//                    Log.v("luaScriptCore", "======== has Exists");
-//                    _luaContext.evalScriptFromFile(mainFile.getAbsolutePath());
-//                }
+                File mainFile = new File (getExternalCacheDir(), "main.lua");
+                _luaContext.evalScriptFromFile(mainFile.toString());
 
+            }
+        });
+
+        //调用方法按钮
+        Button callMethodBtn = (Button) findViewById(R.id.callLuaMethodButton);
+        callMethodBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                //调用脚本
+                File todoFile = new File (getExternalCacheDir(), "todo.lua");
+                _luaContext.evalScriptFromFile(todoFile.toString());
+
+                LuaValue retValue = _luaContext.callMethod("add", new LuaValue[]{new LuaValue(100), new LuaValue(924)});
+                Log.v("luaScriptCore",String.format("%d", retValue.toInteger()));
             }
         });
     }

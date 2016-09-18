@@ -1,6 +1,5 @@
 package cn.vimfung.luascriptcore;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -13,12 +12,19 @@ public class LuaValue extends LuaBaseObject
     private Object _valueContainer;
     private LuaValueType _type;
 
+    /**
+     * 初始化一个空值的LuaValue对象
+     */
     public LuaValue ()
     {
         super();
         setNilValue();
     }
 
+    /**
+     * 初始化一个控制的LuaValue对象
+     * @param nativeId  本地对象标识
+     */
     protected LuaValue(int nativeId)
     {
         super(nativeId);
@@ -34,12 +40,21 @@ public class LuaValue extends LuaBaseObject
         _valueContainer = null;
     }
 
+    /**
+     * 初始化一个整型值的LuaValue对象
+     * @param value 整型值
+     */
     public LuaValue(Integer value)
     {
         super();
         setIntValue(value);
     }
 
+    /**
+     * 初始化一个整型值的LuaValue对象
+     * @param nativeId 本地对象标识
+     * @param value 整型值
+     */
     protected LuaValue(int nativeId, Integer value)
     {
         super(nativeId);
@@ -56,6 +71,10 @@ public class LuaValue extends LuaBaseObject
         _valueContainer = value;
     }
 
+    /**
+     * 初始化一个浮点值的LuaValue对象
+     * @param value 浮点数值
+     */
     public LuaValue(Double value)
     {
         super();
@@ -63,6 +82,11 @@ public class LuaValue extends LuaBaseObject
 
     }
 
+    /**
+     * 初始化一个浮点值的LuaValue对象
+     * @param nativeId 本地对象标识
+     * @param value 浮点数值
+     */
     protected LuaValue(int nativeId, Double value)
     {
         super(nativeId);
@@ -79,12 +103,21 @@ public class LuaValue extends LuaBaseObject
         _valueContainer = value;
     }
 
+    /**
+     * 初始化一个布尔值的LuaValue对象
+     * @param value 布尔值
+     */
     public LuaValue(Boolean value)
     {
         super();
         setBoolValue(value);
     }
 
+    /**
+     * 初始化一个布尔值的LuaValue对象
+     * @param nativeId 本地对象标识
+     * @param value 布尔值
+     */
     protected LuaValue(int nativeId, Boolean value)
     {
         super(nativeId);
@@ -101,30 +134,52 @@ public class LuaValue extends LuaBaseObject
         _valueContainer = value;
     }
 
+    /**
+     * 初始化一个字符串的LuaValue对象
+     * @param value 字符串
+     */
     public LuaValue(String value)
     {
         super();
         setStringValue(value);
     }
 
+    /**
+     * 初始化一个字符串的LuaValue对象
+     * @param nativeId 本地对象标识
+     * @param value 字符串
+     */
     protected LuaValue(int nativeId, String value)
     {
         super(nativeId);
         setStringValue(value);
     }
 
+    /**
+     * 设置字符串
+     * @param value 字符串
+     */
     private void setStringValue(String value)
     {
         _type = LuaValueType.String;
         _valueContainer = value;
     }
 
+    /**
+     * 初始化一个字节数组的LuaValue对象
+     * @param value 字节数组
+     */
     public LuaValue (byte[] value)
     {
         super();
         setByteArrayValue(value);
     }
 
+    /**
+     * 初始化一个字节数组的LuaValue对象
+     * @param nativeId 本地对象标识
+     * @param value 字节数组
+     */
     protected LuaValue(int nativeId, byte[] value)
     {
         super(nativeId);
@@ -141,12 +196,21 @@ public class LuaValue extends LuaBaseObject
         _valueContainer = value;
     }
 
+    /**
+     * 初始化一个数组的LuaValue对象
+     * @param value 数组
+     */
     public LuaValue (ArrayList value)
     {
         super();
         setArrayListValue(value);
     }
 
+    /**
+     * 初始化一个数组的LuaValue对象
+     * @param nativeId 本地对象标识
+     * @param value 数组
+     */
     protected LuaValue (int nativeId, ArrayList value)
     {
         super(nativeId);
@@ -163,12 +227,21 @@ public class LuaValue extends LuaBaseObject
         _valueContainer = value;
     }
 
+    /**
+     * 初始化一个哈希表的LuaValue对象
+     * @param value 哈希表
+     */
     public LuaValue (HashMap value)
     {
         super();
         setHasMapValue(value);
     }
 
+    /**
+     * 初始化一个哈希表的LuaValue对象
+     * @param nativeId 本地对象标识
+     * @param value 哈希表
+     */
     protected LuaValue (int nativeId, HashMap value)
     {
         super(nativeId);
@@ -194,46 +267,73 @@ public class LuaValue extends LuaBaseObject
         return _type;
     }
 
+    /**
+     * 转换为整数
+     * @return 整数
+     */
     public int toInteger()
     {
-        if (_type == LuaValueType.Integer)
+        if (_valueContainer instanceof Number)
         {
-            return (Integer)_valueContainer;
+            return ((Number)_valueContainer).intValue();
+        }
+        else if (_valueContainer instanceof String)
+        {
+            return Integer.parseInt((String) _valueContainer);
         }
 
         return 0;
     }
 
-    public double toNumber()
+    /**
+     * 转换为浮点数
+     * @return 浮点数
+     */
+    public double toDouble()
     {
-        if (_type == LuaValueType.Number)
+        if (_valueContainer instanceof Number)
         {
-            return (Double) _valueContainer;
+            return ((Number)_valueContainer).doubleValue();
+        }
+        else if (_valueContainer instanceof String)
+        {
+            return Double.parseDouble((String) _valueContainer);
         }
 
-        return 0;
+        return 0.0;
     }
 
+    /**
+     * 转换为布尔值
+     * @return 布尔值
+     */
     public boolean toBoolean()
     {
-        if (_type == LuaValueType.Boolean)
+        if (_valueContainer instanceof Boolean)
         {
             return (Boolean) _valueContainer;
+        }
+        else if (_valueContainer instanceof String)
+        {
+            return Boolean.parseBoolean((String) _valueContainer);
         }
 
         return false;
     }
 
+    /**
+     * 转换为字符串
+     * @return  字符串
+     */
     public String toString()
     {
-        if (_type == LuaValueType.String)
-        {
-            return (String) _valueContainer;
-        }
-
-        return null;
+        return _valueContainer.toString();
     }
 
+    /**
+     * 转换为二进制数组
+     * @return  二进制数组
+     */
     public byte[] toByteArray()
     {
         if (_type == LuaValueType.Data)
@@ -244,6 +344,10 @@ public class LuaValue extends LuaBaseObject
         return null;
     }
 
+    /**
+     * 转换为数组列表
+     * @return 数组列表
+     */
     public ArrayList toArrayList()
     {
         if (_type == LuaValueType.Array)
@@ -253,6 +357,10 @@ public class LuaValue extends LuaBaseObject
         return null;
     }
 
+    /**
+     * 转换为哈希表
+     * @return  哈希表
+     */
     public HashMap toHashMap()
     {
         if (_type == LuaValueType.Map)
@@ -260,5 +368,14 @@ public class LuaValue extends LuaBaseObject
             return (HashMap) _valueContainer;
         }
         return null;
+    }
+
+    /**
+     * 转换为对象
+     * @return  对象
+     */
+    public Object toObject()
+    {
+        return _valueContainer;
     }
 }
