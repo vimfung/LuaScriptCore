@@ -2,10 +2,7 @@
 
 Use it can be easily applied the Lua script on iOS, Android, OS X, and provides a powerful interactive features to be extended
 
-## How to use
-
-----------
-### iOS / OS X Platform
+## iOS / OS X Platform
 
 **Integrated**
 
@@ -76,8 +73,8 @@ LSCValue *value = [self.context callMethodWithName:@"add"
                                                      [LSCValue integerValue:24]]];
 NSLog(@"result = %@", [value toNumber]);
 ```
-----------
-### Android Platform
+
+## Android Platform
 
 **Integrated**
 
