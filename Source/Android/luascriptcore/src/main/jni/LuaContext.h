@@ -40,6 +40,7 @@ namespace cn
                 void onException (LuaExceptionHandler handler);
 
             public:
+                void addSearchPath(std::string path);
                 LuaValue* evalScript(std::string script);
                 LuaValue* evalScriptFromFile(std::string path);
                 LuaValue* callMethod(std::string methodName, LuaArgumentList arguments);

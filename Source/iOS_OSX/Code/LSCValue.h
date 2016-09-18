@@ -14,10 +14,8 @@ typedef NS_ENUM(NSUInteger, LSCValueType)
     LSCValueTypeNumber = 1,
     LSCValueTypeBoolean = 2,
     LSCValueTypeString = 3,
-    LSCValueTypeTable = 4,
-    LSCValueTypeFunction = 5,
-    LSCValueTypeThread = 6,
-    LSCValueTypeUserData = 7,
+    LSCValueTypeArray = 4,
+    LSCValueTypeMap = 5,
     LSCValueTypeInteger = 8,
     LSCValueTypeData = 9
 };
@@ -131,5 +129,47 @@ typedef NS_ENUM(NSUInteger, LSCValueType)
  *  @return 数值
  */
 - (NSNumber *)toNumber;
+
+/**
+ *  转换为整型
+ *
+ *  @return 整型
+ */
+- (NSInteger)toInteger;
+
+/**
+ *  转换为浮点型
+ *
+ *  @return 浮点型
+ */
+- (double)toDouble;
+
+/**
+ *  转换为布尔型
+ *
+ *  @return 布尔型
+ */
+- (BOOL)toBoolean;
+
+/**
+ *  转换为二进制数据类型
+ *
+ *  @return 二进制数据
+ */
+- (NSData *)toData;
+
+/**
+ *  转换为数组
+ *
+ *  @return 数组
+ */
+- (NSArray *)toArray;
+
+/**
+ *  转换为字典
+ *
+ *  @return 字典
+ */
+- (NSDictionary *)toDictionary;
 
 @end
