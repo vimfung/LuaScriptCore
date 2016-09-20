@@ -7,18 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-
-typedef NS_ENUM(NSUInteger, LSCValueType)
-{
-    LSCValueTypeNil = 0,
-    LSCValueTypeNumber = 1,
-    LSCValueTypeBoolean = 2,
-    LSCValueTypeString = 3,
-    LSCValueTypeArray = 4,
-    LSCValueTypeMap = 5,
-    LSCValueTypeInteger = 8,
-    LSCValueTypeData = 9
-};
+#import "LSCTypeDefinied.h"
 
 /**
  *  Lua的值封装

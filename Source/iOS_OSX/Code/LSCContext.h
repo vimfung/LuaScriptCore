@@ -7,24 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "LSCTypeDefinied.h"
 
-@class LSCValue;
-
-/**
- *  异常处理器
- *
- *  @param message 异常信息
- */
-typedef void (^LSCExceptionHandler) (NSString *message);
-
-/**
- *  方法处理器
- *
- *  @param arguments 参数列表
- *
- *  @return 返回值
- */
-typedef LSCValue* (^LSCFunctionHandler) (NSArray *arguments);
+@class LSCModule;
 
 /**
  *  Lua上下文对象
@@ -80,5 +65,34 @@ typedef LSCValue* (^LSCFunctionHandler) (NSArray *arguments);
  *  @param block      处理过程
  */
 - (void)registerMethodWithName:(NSString *)methodName block:(LSCFunctionHandler)block;
+
+
+/**
+ *  注册模块
+ *
+ *  @param moduleClass 模块类型，必须继承于LSCModule类
+ */
+- (void)registerModuleWithClass:(Class)moduleClass;
+
+/**
+ *  注销模块
+ *
+ *  @param moduleClass 模块类型，必须继承于LSCModule类
+ */
+- (void)unregisterModuleWithClass:(Class)moduleClass;
+
+/**
+ *  添加模块
+ *
+ *  @param module 模块
+ */
+//- (void)addModule:(LSCModule *)module;
+
+/**
+ *  移除模块
+ *
+ *  @param module 模块
+ */
+//- (void)removeModule:(LSCModule *)module;
 
 @end
