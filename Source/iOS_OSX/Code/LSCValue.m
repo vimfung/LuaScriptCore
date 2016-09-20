@@ -15,12 +15,17 @@
 /**
  *  数值容器
  */
-@property(nonatomic, strong) id valueContainer;
+@property (nonatomic, strong) id valueContainer;
 
 /**
  *  数值类型
  */
-@property(nonatomic) LSCValueType valueType;
+@property (nonatomic) LSCValueType valueType;
+
+/**
+ *  指针值
+ */
+@property (nonatomic) const void *ptrValue;
 
 @end
 
@@ -89,8 +94,20 @@
     {
         return [self dataValue:objectValue];
     }
+    else
+    {
+        return [self ptrValue:(__bridge const void *)(objectValue)];
+    }
     
     return [self nilValue];
+}
+
++ (instancetype)ptrValue:(const void *)ptrValue
+{
+    LSCValue *value = [[LSCValue alloc] initWithType:LSCValueTypePtr value:nil];
+    value.ptrValue = ptrValue;
+    
+    return value;
 }
 
 - (instancetype)init
@@ -134,6 +151,11 @@
                             [self.valueContainer length]);
             break;
         }
+        case LSCValueTypePtr:
+        {
+            lua_pushlightuserdata(state, (void *)_ptrValue);
+            break;
+        }
         default:
             break;
     }
@@ -141,11 +163,21 @@
 
 - (id)toObject
 {
+    if (self.valueType == LSCValueTypePtr)
+    {
+        return nil;
+    }
+    
     return self.valueContainer;
 }
 
 - (NSString *)toString
 {
+    if (self.valueType == LSCValueTypePtr)
+    {
+        return nil;
+    }
+    
     return [NSString stringWithFormat:@"%@", self.valueContainer];
 }
 
@@ -159,6 +191,8 @@
             return self.valueContainer;
         case LSCValueTypeString:
             return @([(NSString *)self.valueContainer doubleValue]);
+        case LSCValueTypePtr:
+            return nil;
         default:
             return @((NSInteger)self.valueContainer);
     }
@@ -174,6 +208,8 @@
             return [(NSNumber *)self.valueContainer integerValue];
         case LSCValueTypeString:
             return [(NSString *)self.valueContainer integerValue];
+        case LSCValueTypePtr:
+            return (int)self.ptrValue;
         default:
             return (NSInteger)self.valueContainer;
     }
@@ -189,6 +225,8 @@
             return [(NSNumber *)self.valueContainer doubleValue];
         case LSCValueTypeString:
             return [(NSString *)self.valueContainer doubleValue];
+        case LSCValueTypePtr:
+            return 0.0;
         default:
             return (double)(NSInteger)self.valueContainer;
     }
@@ -204,6 +242,8 @@
             return [(NSNumber *)self.valueContainer boolValue];
         case LSCValueTypeString:
             return [(NSString *)self.valueContainer boolValue];
+        case LSCValueTypePtr:
+            return NO;
         default:
             return (BOOL)self.valueContainer;
     }
@@ -239,8 +279,23 @@
     return nil;
 }
 
+- (const void *)toPtr
+{
+    if (self.valueType == LSCValueTypePtr)
+    {
+        return self.ptrValue;
+    }
+    
+    return (__bridge const void *)(self.valueContainer);
+}
+
 - (NSString *)description
 {
+    if (self.valueType == LSCValueTypePtr)
+    {
+        return [NSString stringWithFormat:@"pointer value 0x%x", (int)self.ptrValue];
+    }
+    
     return [self.valueContainer description];
 }
 
@@ -341,6 +396,12 @@
                 value = [LSCValue dictionaryValue:dictValue];
             }
             
+            break;
+        }
+        case LUA_TLIGHTUSERDATA:
+        {
+            const void *ptr = lua_topointer(state, (int)index);
+            value = [LSCValue ptrValue:ptr];
             break;
         }
         default:
