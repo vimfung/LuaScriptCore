@@ -9,6 +9,7 @@
 #import "LSCModule.h"
 #import "LSCModule_Private.h"
 #import "LSCValue_Private.h"
+#import "LSCContext_Private.h"
 #import "lauxlib.h"
 #import "lualib.h"
 #import <objc/runtime.h>
@@ -135,17 +136,31 @@ static int ModuleMethodRouteHandler(lua_State *state)
     }
     else
     {
-        //nil
-        retValue = [LSCValue nilValue];
+        //结构体和其他类型暂时认为和v一样无返回值
+        retValue = nil;
     }
     
+    if (retValue)
+    {
+        [retValue pushWithState:state];
+        
+        return 1;
+    }
     
-    [retValue pushWithState:state];
-    
-    return 1;
+    return 0;
 }
 
 #pragma mark - Private
+
+/**
+ *  获取模块名称
+ *
+ *  @return 模块名称
+ */
++ (NSString *)_moduleName
+{
+    return NSStringFromClass([self class]);
+}
 
 /**
  *  获取Lua方法名称，需要过滤冒号后面所有内容以及带With、By、At等
@@ -154,7 +169,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
  *
  *  @return 方法
  */
-- (NSString *)getLuaMethodNameWithName:(NSString *)name
+- (NSString *)_getLuaMethodNameWithName:(NSString *)name
 {
     NSString *luaName = name;
     
@@ -190,9 +205,9 @@ static int ModuleMethodRouteHandler(lua_State *state)
  *
  *  @param state Lua状态机
  */
-- (void)_regWithState:(lua_State *)state
+- (void)_regWithContext:(LSCContext *)context moduleName:(NSString *)moduleName
 {
-    NSString *moduleName = NSStringFromClass(self.class);
+    lua_State *state = context.state;
     
     lua_getglobal(state, [moduleName UTF8String]);
     if (lua_isnil(state, -1))
@@ -263,7 +278,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
                 lua_pushstring(state, returnType);
                 lua_pushcclosure(state, ModuleMethodRouteHandler, 3);
 
-                NSString *luaMethodName = [self getLuaMethodNameWithName:methodName];
+                NSString *luaMethodName = [self _getLuaMethodNameWithName:methodName];
                 lua_setfield(state, -2, [luaMethodName UTF8String]);
             }
         }
@@ -286,9 +301,9 @@ static int ModuleMethodRouteHandler(lua_State *state)
  *
  *  @param state Lua状态机
  */
-- (void)_unregWithState:(lua_State *)state
+- (void)_unregWithContext:(LSCContext *)context moduleName:(NSString *)moduleName
 {
-    NSString *moduleName = NSStringFromClass(self.class);
+    lua_State *state = context.state;
     
     lua_getglobal(state, [moduleName UTF8String]);
     if (lua_istable(state, -1))
