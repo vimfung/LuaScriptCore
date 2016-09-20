@@ -8,10 +8,12 @@
 
 #import "LSCContext.h"
 #import "LSCValue_Private.h"
+#import "LSCModule_Private.h"
 #import "lauxlib.h"
 #import "lua.h"
 #import "luaconf.h"
 #import "lualib.h"
+#import <objc/runtime.h>
 
 @interface LSCContext ()
 
@@ -30,6 +32,11 @@
  */
 @property(nonatomic, strong) NSMutableDictionary *methodBlocks;
 
+/**
+ *  模块集合
+ */
+@property (nonatomic, strong) NSMutableDictionary *modules;
+
 @end
 
 @implementation LSCContext
@@ -39,6 +46,7 @@
     if (self = [super init])
     {
         self.methodBlocks = [NSMutableDictionary dictionary];
+        self.modules = [NSMutableDictionary dictionary];
         
         self.state = luaL_newstate();
         //加载标准库
@@ -76,7 +84,7 @@
     BOOL res = ret == 0;
     if (!res)
     {
-        LSCValue *value = [self getValueByIndex:-1];
+        LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
         NSString *errMessage = [value toString];
         
         if (self.exceptionHandler)
@@ -91,7 +99,7 @@
         if (lua_gettop(self.state) > curTop)
         {
             //有返回值
-            LSCValue *value = [self getValueByIndex:-1];
+            LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
             lua_pop(self.state, 1);
             
             return value;
@@ -110,7 +118,7 @@
     BOOL res = ret == 0;
     if (!res)
     {
-        LSCValue *value = [self getValueByIndex:-1];
+        LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
         NSString *errMessage = [value toString];
         if (self.exceptionHandler)
         {
@@ -124,7 +132,7 @@
         if (lua_gettop(self.state) > curTop)
         {
             //有返回值
-            LSCValue *value = [self getValueByIndex:-1];
+            LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
             lua_pop(self.state, 1);
             
             return value;
@@ -153,12 +161,12 @@
         if (lua_pcall(self.state, (int)arguments.count, 1, 0) == 0)
         {
             //调用成功
-            resultValue = [self getValueByIndex:-1];
+            resultValue = [LSCValue valueWithState:self.state atIndex:-1];
         }
         else
         {
             //调用失败
-            LSCValue *value = [self getValueByIndex:-1];
+            LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
             NSString *errMessage = [value toString];
             
             if (self.exceptionHandler)
@@ -199,6 +207,90 @@
     }
 }
 
+- (void)registerModuleWithClass:(Class)moduleClass
+{
+    if ([moduleClass isSubclassOfClass:[LSCModule class]])
+    {
+        NSString *moduleName = NSStringFromClass(moduleClass);
+        if (![self.modules objectForKey:moduleName])
+        {
+            LSCModule *module = [[moduleClass alloc] init];
+            [module _regWithState:self.state];
+            [self.modules setObject:module forKey:moduleName];
+        }
+        else
+        {
+            @throw [NSException
+                    exceptionWithName:@"Unabled register module"
+                    reason:@"The module of the specified name already exists!"
+                    userInfo:nil];
+        }
+    }
+    else
+    {
+        @throw [NSException
+                exceptionWithName:@"Invalide module"
+                reason:@"Module must inherit from LSCModule"
+                userInfo:nil];
+    }
+}
+
+- (void)unregisterModuleWithClass:(Class)moduleClass
+{
+    if ([moduleClass isSubclassOfClass:[LSCModule class]])
+    {
+        NSString *moduleName = NSStringFromClass(moduleClass);
+        LSCModule *module = [self.modules objectForKey:moduleName];
+        if (module)
+        {
+            [module _unregWithState:self.state];
+            [self.modules removeObjectForKey:moduleName];
+        }
+    }
+    else
+    {
+        @throw [NSException
+                exceptionWithName:@"Invalide module"
+                reason:@"Module must inherit from LSCModule"
+                userInfo:nil];
+    }
+}
+
+//- (void)addModule:(LSCModule *)module
+//{
+//    
+//    if (!module.name)
+//    {
+//        @throw [NSException
+//                exceptionWithName:@"Invalid module"
+//                reason:@"Module's name is empty!"
+//                userInfo:nil];
+//    }
+//    
+//    if (![self.modules objectForKey:module.name])
+//    {
+//        [module enabledWithState:self.state];
+//        [self.modules setObject:module forKey:module.name];
+//    }
+//    else
+//    {
+//        @throw [NSException
+//                exceptionWithName:@"Unabled register module"
+//                reason:@"The module of the specified name already exists!"
+//                userInfo:nil];
+//    }
+//}
+
+- (void)removeModule:(LSCModule *)module
+{
+//    LSCModule *m = [self.modules objectForKey:module.name];
+//    if (m == module)
+//    {
+//        [module disabledWithState:self.state];
+//        [self.modules removeObjectForKey:module.name];
+//    }
+}
+
 #pragma mark - Private
 
 static int cfuncRouteHandler(lua_State *state)
@@ -213,7 +305,7 @@ static int cfuncRouteHandler(lua_State *state)
         NSMutableArray *arguments = [NSMutableArray array];
         for (int i = 0; i < top; i++)
         {
-            LSCValue *value = [context getValueByIndex:-i - 1];
+            LSCValue *value = [LSCValue valueWithState:state atIndex:-i - 1];
             [arguments insertObject:value atIndex:0];
         }
         
@@ -222,121 +314,6 @@ static int cfuncRouteHandler(lua_State *state)
     }
     
     return 1;
-}
-
-/**
- *  获取栈中的值
- *
- *  @param index 栈索引，负数为从栈顶开始索引，正数为从栈底开始索引
- *
- *  @return 值对象
- */
-- (LSCValue *)getValueByIndex:(NSInteger)index
-{
-    LSCValue *value = nil;
-    
-    switch (lua_type(self.state, (int)index))
-    {
-        case LUA_TNIL:
-        {
-            value = [LSCValue nilValue];
-            break;
-        }
-        case LUA_TBOOLEAN:
-        {
-            value = [LSCValue booleanValue:lua_toboolean(self.state, (int)index)];
-            break;
-        }
-        case LUA_TNUMBER:
-        {
-            value = [LSCValue numberValue:@(lua_tonumber(self.state, (int)index))];
-            break;
-        }
-        case LUA_TSTRING:
-        {
-            
-            size_t len = 0;
-            const char *bytes = lua_tolstring(self.state, (int)index, &len);
-            
-            NSString *strValue =
-            [NSString stringWithCString:bytes encoding:NSUTF8StringEncoding];
-            if (strValue)
-            {
-                //为NSString
-                value = [LSCValue stringValue:strValue];
-            }
-            else
-            {
-                //为NSData
-                NSData *data = [NSData dataWithBytes:bytes length:len];
-                value = [LSCValue dataValue:data];
-            }
-            
-            break;
-        }
-        case LUA_TTABLE:
-        {
-            NSMutableDictionary *dictValue = [NSMutableDictionary dictionary];
-            NSMutableArray *arrayValue = [NSMutableArray array];
-            
-            lua_pushnil(self.state);
-            while (lua_next(self.state, -2))
-            {
-                LSCValue *value = [self getValueByIndex:-1];
-                LSCValue *key = [self getValueByIndex:-2];
-                
-                if (arrayValue)
-                {
-                    if (key.valueType != LSCValueTypeNumber)
-                    {
-                        //非数组对象，释放数组
-                        arrayValue = nil;
-                    }
-                    else if (key.valueType == LSCValueTypeNumber)
-                    {
-                        NSInteger index = [[key toNumber] integerValue];
-                        if (index <= 0)
-                        {
-                            //非数组对象，释放数组
-                            arrayValue = nil;
-                        }
-                        else if (index - 1 != arrayValue.count)
-                        {
-                            //非数组对象，释放数组
-                            arrayValue = nil;
-                        }
-                        else
-                        {
-                            [arrayValue addObject:[value toObject]];
-                        }
-                    }
-                }
-                
-                [dictValue setObject:[value toObject] forKey:[key toString]];
-                
-                lua_pop(self.state, 1);
-            }
-            
-            if (arrayValue)
-            {
-                value = [LSCValue arrayValue:arrayValue];
-            }
-            else
-            {
-                value = [LSCValue dictionaryValue:dictValue];
-            }
-            
-            break;
-        }
-        default:
-        {
-            //默认为nil
-            value = [LSCValue nilValue];
-            break;
-        }
-    }
-    
-    return value;
 }
 
 /**

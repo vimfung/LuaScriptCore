@@ -246,6 +246,114 @@
 
 #pragma mark - Private
 
++ (LSCValue *)valueWithState:(lua_State *)state atIndex:(NSInteger)index
+{
+    LSCValue *value = nil;
+    
+    switch (lua_type(state, (int)index))
+    {
+        case LUA_TNIL:
+        {
+            value = [LSCValue nilValue];
+            break;
+        }
+        case LUA_TBOOLEAN:
+        {
+            value = [LSCValue booleanValue:lua_toboolean(state, (int)index)];
+            break;
+        }
+        case LUA_TNUMBER:
+        {
+            value = [LSCValue numberValue:@(lua_tonumber(state, (int)index))];
+            break;
+        }
+        case LUA_TSTRING:
+        {
+            
+            size_t len = 0;
+            const char *bytes = lua_tolstring(state, (int)index, &len);
+            
+            NSString *strValue =
+            [NSString stringWithCString:bytes encoding:NSUTF8StringEncoding];
+            if (strValue)
+            {
+                //为NSString
+                value = [LSCValue stringValue:strValue];
+            }
+            else
+            {
+                //为NSData
+                NSData *data = [NSData dataWithBytes:bytes length:len];
+                value = [LSCValue dataValue:data];
+            }
+            
+            break;
+        }
+        case LUA_TTABLE:
+        {
+            NSMutableDictionary *dictValue = [NSMutableDictionary dictionary];
+            NSMutableArray *arrayValue = [NSMutableArray array];
+            
+            lua_pushnil(state);
+            while (lua_next(state, -2))
+            {
+                LSCValue *value = [self valueWithState:state atIndex:-1];
+                LSCValue *key = [self valueWithState:state atIndex:-2];
+                
+                if (arrayValue)
+                {
+                    if (key.valueType != LSCValueTypeNumber)
+                    {
+                        //非数组对象，释放数组
+                        arrayValue = nil;
+                    }
+                    else if (key.valueType == LSCValueTypeNumber)
+                    {
+                        NSInteger index = [[key toNumber] integerValue];
+                        if (index <= 0)
+                        {
+                            //非数组对象，释放数组
+                            arrayValue = nil;
+                        }
+                        else if (index - 1 != arrayValue.count)
+                        {
+                            //非数组对象，释放数组
+                            arrayValue = nil;
+                        }
+                        else
+                        {
+                            [arrayValue addObject:[value toObject]];
+                        }
+                    }
+                }
+                
+                [dictValue setObject:[value toObject] forKey:[key toString]];
+                
+                lua_pop(state, 1);
+            }
+            
+            if (arrayValue)
+            {
+                value = [LSCValue arrayValue:arrayValue];
+            }
+            else
+            {
+                value = [LSCValue dictionaryValue:dictValue];
+            }
+            
+            break;
+        }
+        default:
+        {
+            //默认为nil
+            value = [LSCValue nilValue];
+            break;
+        }
+    }
+    
+    return value;
+}
+
 /**
  *  初始化值对象
  *
