@@ -99,6 +99,15 @@
 + (instancetype)objectValue:(id)objectValue;
 
 /**
+ *  创建一个指针类型的值对象
+ *
+ *  @param ptrValue 指针对象
+ *
+ *  @return 值对象
+ */
++ (instancetype)ptrValue:(const void *)ptrValue;
+
+/**
  *  转换为对象
  *
  *  @return 对象
@@ -160,5 +169,12 @@
  *  @return 字典
  */
 - (NSDictionary *)toDictionary;
+
+/**
+ *  转换为指针
+ *
+ *  @return 指针值
+ */
+- (const void *)toPtr;
 
 @end

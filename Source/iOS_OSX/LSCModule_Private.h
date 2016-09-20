@@ -7,22 +7,41 @@
 //
 
 #import "LSCModule.h"
+#import "LSCContext.h"
 #import "lua.h"
 
 @interface LSCModule ()
 
 /**
+ *  获取模块名称
+ *
+ *  @return 模块名称
+ */
++ (NSString *)_moduleName;
+
+/**
  *  注册模块
  *
  *  @param state Lua状态机
+ *  @param moduleName   模块名称
  */
-- (void)_regWithState:(lua_State *)state;
+- (void)_regWithContext:(LSCContext *)context moduleName:(NSString *)moduleName;
 
 /**
  *  反注册模块
  *
  *  @param state Lua状态机
+ *  @param moduleName 模块名称
  */
-- (void)_unregWithState:(lua_State *)statej;
+- (void)_unregWithContext:(LSCContext *)context moduleName:(NSString *)moduleName;
+
+/**
+ *  获取Lua方法名称，需要过滤冒号后面所有内容以及带With、By、At等
+ *
+ *  @param name 原始方法
+ *
+ *  @return 方法
+ */
+- (NSString *)_getLuaMethodNameWithName:(NSString *)name;
 
 @end

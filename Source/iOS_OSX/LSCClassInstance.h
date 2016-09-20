@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@class LSCClass;
+@class LSCObjectClass;
 
 /**
  *  类实例化对象
@@ -16,18 +16,14 @@
 @interface LSCClassInstance : NSObject
 
 /**
- *  所属类型
+ *  所属本地类型
  */
-@property (nonatomic, strong, readonly) LSCClass *ownerClass;
+@property (nonatomic, readonly) Class ownerClass;
 
 /**
- *  初始化类实例化对象
- *
- *  @param ownerClass 所属类型
- *
- *  @return 实例对象
+ *  lua实例对象对应的本地对象
  */
-- (instancetype)initWithClass:(LSCClass *)ownerClass;
+@property (nonatomic, strong, readonly) LSCObjectClass *nativeObject;
 
 /**
  *  设置字段

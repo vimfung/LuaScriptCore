@@ -32,14 +32,15 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		7C1214CB1D90E709001613AC /* LSCObjectClass.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C3D84171D8FE50000C45E92 /* LSCObjectClass.h */; };
 		7C16F8761D8FBE2100D4A6C0 /* LSCModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C16F8751D8FBE2100D4A6C0 /* LSCModule.m */; };
 		7C16F8771D8FBE2100D4A6C0 /* LSCModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C16F8751D8FBE2100D4A6C0 /* LSCModule.m */; };
 		7C3D84131D8FE1BF00C45E92 /* LSCModule.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C16F8741D8FBE2100D4A6C0 /* LSCModule.h */; };
 		7C3D84141D8FE1BF00C45E92 /* LSCTypeDefinied.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CE32B971D8FBF95006D6BFD /* LSCTypeDefinied.h */; };
 		7C3D84151D8FE1C600C45E92 /* LSCModule.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C16F8741D8FBE2100D4A6C0 /* LSCModule.h */; };
 		7C3D84161D8FE1C600C45E92 /* LSCTypeDefinied.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CE32B971D8FBF95006D6BFD /* LSCTypeDefinied.h */; };
-		7C3D84191D8FE50000C45E92 /* LSCClass.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C3D84181D8FE50000C45E92 /* LSCClass.m */; };
-		7C3D841A1D8FE50000C45E92 /* LSCClass.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C3D84181D8FE50000C45E92 /* LSCClass.m */; };
+		7C3D84191D8FE50000C45E92 /* LSCObjectClass.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C3D84181D8FE50000C45E92 /* LSCObjectClass.m */; };
+		7C3D841A1D8FE50000C45E92 /* LSCObjectClass.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C3D84181D8FE50000C45E92 /* LSCObjectClass.m */; };
 		7C6B13D91D6B047F00489D9E /* LSCContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B13D31D6B047F00489D9E /* LSCContext.m */; };
 		7C6B13DA1D6B047F00489D9E /* LSCValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B13D61D6B047F00489D9E /* LSCValue.m */; };
 		7C6B14191D6B049300489D9E /* lapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B13DC1D6B049200489D9E /* lapi.c */; };
@@ -159,6 +160,7 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
+				7C1214CB1D90E709001613AC /* LSCObjectClass.h in CopyFiles */,
 				7C3D84131D8FE1BF00C45E92 /* LSCModule.h in CopyFiles */,
 				7C3D84141D8FE1BF00C45E92 /* LSCTypeDefinied.h in CopyFiles */,
 				7C6B150F1D6B0AB800489D9E /* LSCContext.h in CopyFiles */,
@@ -170,10 +172,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7C14C4801D915E6E00C1BC4B /* LSCClassInstance_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCClassInstance_Private.h; sourceTree = "<group>"; };
 		7C16F8741D8FBE2100D4A6C0 /* LSCModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCModule.h; sourceTree = "<group>"; };
 		7C16F8751D8FBE2100D4A6C0 /* LSCModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCModule.m; sourceTree = "<group>"; };
-		7C3D84171D8FE50000C45E92 /* LSCClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCClass.h; sourceTree = "<group>"; };
-		7C3D84181D8FE50000C45E92 /* LSCClass.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCClass.m; sourceTree = "<group>"; };
+		7C22829A1D90EF84002FF846 /* LSCContext_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCContext_Private.h; sourceTree = "<group>"; };
+		7C3D84171D8FE50000C45E92 /* LSCObjectClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectClass.h; sourceTree = "<group>"; };
+		7C3D84181D8FE50000C45E92 /* LSCObjectClass.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCObjectClass.m; sourceTree = "<group>"; };
 		7C6B13D21D6B047F00489D9E /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCContext.h; path = Code/LSCContext.h; sourceTree = "<group>"; };
 		7C6B13D31D6B047F00489D9E /* LSCContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCContext.m; path = Code/LSCContext.m; sourceTree = "<group>"; };
 		7C6B13D41D6B047F00489D9E /* LSCValue_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCValue_Private.h; path = Code/LSCValue_Private.h; sourceTree = "<group>"; };
@@ -245,7 +249,6 @@
 		7CE32B981D8FC710006D6BFD /* LSCModule_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCModule_Private.h; sourceTree = "<group>"; };
 		7CFCA4901D8FEBCC00408C2A /* LSCClassInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCClassInstance.h; sourceTree = "<group>"; };
 		7CFCA4911D8FEBCC00408C2A /* LSCClassInstance.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCClassInstance.m; sourceTree = "<group>"; };
-		7CFCA4941D8FEF6600408C2A /* LSCClass_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCClass_Private.h; sourceTree = "<group>"; };
 		7CFCA4991D900B4900408C2A /* TestLuaScriptCore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestLuaScriptCore.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7CFCA49C1D900B4900408C2A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		7CFCA49E1D900B4900408C2A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -286,10 +289,32 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7C1214CA1D90E307001613AC /* oo */ = {
+			isa = PBXGroup;
+			children = (
+				7C3D84171D8FE50000C45E92 /* LSCObjectClass.h */,
+				7C3D84181D8FE50000C45E92 /* LSCObjectClass.m */,
+				7C14C4801D915E6E00C1BC4B /* LSCClassInstance_Private.h */,
+				7CFCA4901D8FEBCC00408C2A /* LSCClassInstance.h */,
+				7CFCA4911D8FEBCC00408C2A /* LSCClassInstance.m */,
+			);
+			name = oo;
+			sourceTree = "<group>";
+		};
+		7C14C47F1D915D5600C1BC4B /* modules */ = {
+			isa = PBXGroup;
+			children = (
+				7C1214CA1D90E307001613AC /* oo */,
+			);
+			name = modules;
+			sourceTree = "<group>";
+		};
 		7C6B13D11D6B045200489D9E /* LuaScriptCore */ = {
 			isa = PBXGroup;
 			children = (
+				7C14C47F1D915D5600C1BC4B /* modules */,
 				7C6B13DB1D6B048200489D9E /* lua-core */,
+				7C22829A1D90EF84002FF846 /* LSCContext_Private.h */,
 				7C6B13D21D6B047F00489D9E /* LSCContext.h */,
 				7C6B13D31D6B047F00489D9E /* LSCContext.m */,
 				7C6B13D41D6B047F00489D9E /* LSCValue_Private.h */,
@@ -300,11 +325,6 @@
 				7C16F8751D8FBE2100D4A6C0 /* LSCModule.m */,
 				7CE32B971D8FBF95006D6BFD /* LSCTypeDefinied.h */,
 				7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */,
-				7CFCA4941D8FEF6600408C2A /* LSCClass_Private.h */,
-				7C3D84171D8FE50000C45E92 /* LSCClass.h */,
-				7C3D84181D8FE50000C45E92 /* LSCClass.m */,
-				7CFCA4901D8FEBCC00408C2A /* LSCClassInstance.h */,
-				7CFCA4911D8FEBCC00408C2A /* LSCClassInstance.m */,
 			);
 			name = LuaScriptCore;
 			sourceTree = "<group>";
@@ -584,7 +604,7 @@
 				7C6B15491D6B2B5700489D9E /* loadlib.c in Sources */,
 				7C6B15371D6B2B5700489D9E /* lapi.c in Sources */,
 				7C6B15381D6B2B5700489D9E /* lauxlib.c in Sources */,
-				7C3D841A1D8FE50000C45E92 /* LSCClass.m in Sources */,
+				7C3D841A1D8FE50000C45E92 /* LSCObjectClass.m in Sources */,
 				7C6B153C1D6B2B5700489D9E /* lcorolib.c in Sources */,
 				7C6B15541D6B2B5700489D9E /* lundump.c in Sources */,
 				7C6B154C1D6B2B5700489D9E /* loslib.c in Sources */,
@@ -629,7 +649,7 @@
 				7C6B141C1D6B049300489D9E /* lbitlib.c in Sources */,
 				7C6B14261D6B049300489D9E /* linit.c in Sources */,
 				7C6B142A1D6B049300489D9E /* lmem.c in Sources */,
-				7C3D84191D8FE50000C45E92 /* LSCClass.m in Sources */,
+				7C3D84191D8FE50000C45E92 /* LSCObjectClass.m in Sources */,
 				7C6B14231D6B049300489D9E /* ldump.c in Sources */,
 				7C6B14311D6B049300489D9E /* lstring.c in Sources */,
 				7C6B14191D6B049300489D9E /* lapi.c in Sources */,
@@ -956,6 +976,7 @@
 				7CFCA4C51D900B4900408C2A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

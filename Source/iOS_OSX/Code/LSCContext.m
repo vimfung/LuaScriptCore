@@ -7,37 +7,10 @@
 //
 
 #import "LSCContext.h"
+#import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
 #import "LSCModule_Private.h"
-#import "lauxlib.h"
-#import "lua.h"
-#import "luaconf.h"
-#import "lualib.h"
 #import <objc/runtime.h>
-
-@interface LSCContext ()
-
-/**
- *  Lua解析器
- */
-@property(nonatomic) lua_State *state;
-
-/**
- *  异常处理器
- */
-@property(nonatomic, strong) LSCExceptionHandler exceptionHandler;
-
-/**
- *  方法处理器集合
- */
-@property(nonatomic, strong) NSMutableDictionary *methodBlocks;
-
-/**
- *  模块集合
- */
-@property (nonatomic, strong) NSMutableDictionary *modules;
-
-@end
 
 @implementation LSCContext
 
@@ -211,11 +184,11 @@
 {
     if ([moduleClass isSubclassOfClass:[LSCModule class]])
     {
-        NSString *moduleName = NSStringFromClass(moduleClass);
+        NSString *moduleName = [moduleClass _moduleName];
         if (![self.modules objectForKey:moduleName])
         {
             LSCModule *module = [[moduleClass alloc] init];
-            [module _regWithState:self.state];
+            [module _regWithContext:self moduleName:moduleName];
             [self.modules setObject:module forKey:moduleName];
         }
         else
@@ -239,11 +212,11 @@
 {
     if ([moduleClass isSubclassOfClass:[LSCModule class]])
     {
-        NSString *moduleName = NSStringFromClass(moduleClass);
+        NSString *moduleName = [moduleClass _moduleName];
         LSCModule *module = [self.modules objectForKey:moduleName];
         if (module)
         {
-            [module _unregWithState:self.state];
+            [module _unregWithContext:self moduleName:moduleName];
             [self.modules removeObjectForKey:moduleName];
         }
     }
