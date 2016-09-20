@@ -8,3 +8,4 @@
 
 #import "LSCContext.h"
 #import "LSCValue.h"
+#import "LSCModule.h"
