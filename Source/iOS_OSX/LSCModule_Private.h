@@ -17,7 +17,7 @@
  *
  *  @return 模块名称
  */
-+ (NSString *)_moduleName;
++ (NSString *)moduleName;
 
 /**
  *  注册模块

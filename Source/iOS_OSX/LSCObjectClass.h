@@ -18,61 +18,31 @@
 @interface LSCObjectClass : LSCModule
 
 /**
- *  将类型转换为字符串描述
- *
- *  @return 字符串描述
+ *  当前对象实例，该实例对应lua中的实例。当调用本地实例方法时，可以调用此方法获取当前的实例。
  */
-- (NSString *)toString;
++ (LSCClassInstance *)currentInstance;
 
-///**
-// *  类名称
-// */
-//@property (nonatomic, copy, readonly) NSString *name;
-//
-///**
-// *  基类
-// */
-//@property (nonatomic, strong, readonly) LSCClass *baseClass;
-//
-///**
-// *  获取对象类型
-// *
-// *  @return 对象类型
-// */
-//+ (LSCClass *)objectClass;
-//
-///**
-// *  初始化类型
-// *
-// *  @param name 类型名称, 必须唯一并且不能于Module名称冲突，否则导致注册类型失败
-// *  @param baseClass 基类, 为nil则继承于objectClass
-// *
-// *  @return 类型对象
-// */
-//- (instancetype)initWithName:(NSString *)name
-//                   baseClass:(LSCClass *)baseClass;
-//
-///**
-// *  注册实例方法
-// *
-// *  @param methodName 方法名称，方法名称不能是create或者destory
-// *  @param block      方法处理器
-// */
-//- (void)registerInstanceMethodWithName:(NSString *)methodName
-//                                 block:(LSCValue* (^) (LSCClassInstance *instance, NSArray *arguments))block;
-//
-///**
-// *  构造实例时触发该事件
-// *
-// *  @param handler 事件处理器
-// */
-//- (void)onCreate:(void (^)(LSCClassInstance *instance, NSArray *arguments))handler;
-//
-///**
-// *  销毁实例时触发该事件
-// *
-// *  @param handler 事件处理器
-// */
-//- (void)onDestory:(void (^)(LSCClassInstance *instance))handler;
+/**
+ *  获取类对象实例的描述
+ *
+ *  @param instance 对象实例, 注：该变量不能保留，只在该方法内有效。
+ *
+ *  @return 描述字符串
+ */
+- (NSString *)_instanceDescription:(LSCClassInstance *)instance;
+
+/**
+ *  类对象实例初始化时触发
+ *
+ *  @param instance 对象实例，注：该变量不能保留，只在该方法内有效。
+ */
+- (void)_instanceInitialize:(LSCClassInstance *)instance;
+
+/**
+ *  类对象实例销毁时触发
+ *
+ *  @param instance 对象实例，注：该变量不能保留，只能在该方法内有效。
+ */
+- (void)_instanceUninitialize:(LSCClassInstance *)instance;
 
 @end

@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @class LSCObjectClass;
+@class LSCValue;
 
 /**
  *  类实例化对象
@@ -31,7 +32,7 @@
  *  @param value 字段值
  *  @param name  字段名称
  */
-- (void)setField:(id)value forName:(NSString *)name;
+- (void)setField:(LSCValue *)value forName:(NSString *)name;
 
 /**
  *  获取字段值
@@ -40,6 +41,6 @@
  *  
  *  @return 字段值
  */
-- (id)getFieldForName:(NSString *)name;
+- (LSCValue *)getFieldForName:(NSString *)name;
 
 @end
