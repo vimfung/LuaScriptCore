@@ -157,7 +157,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
  *
  *  @return 模块名称
  */
-+ (NSString *)_moduleName
++ (NSString *)moduleName
 {
     return NSStringFromClass([self class]);
 }

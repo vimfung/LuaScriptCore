@@ -68,7 +68,7 @@
 //    }
     
     [self.context registerModuleWithClass:[LSCObjectClass class]];
-    [self.context evalScriptFromString:@"obj = Object:create();print(obj:toString());obj=nil;collectgarbage();"];
+    [self.context evalScriptFromString:@"local obj=Object:create();print(obj);obj=nil;collectgarbage();"];
     
 //    [self.context evalScriptFromString:@"print(Object.toString());"];
     
