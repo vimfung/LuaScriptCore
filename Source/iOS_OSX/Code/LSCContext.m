@@ -184,7 +184,7 @@
 {
     if ([moduleClass isSubclassOfClass:[LSCModule class]])
     {
-        NSString *moduleName = [moduleClass _moduleName];
+        NSString *moduleName = [moduleClass moduleName];
         if (![self.modules objectForKey:moduleName])
         {
             LSCModule *module = [[moduleClass alloc] init];
@@ -212,7 +212,7 @@
 {
     if ([moduleClass isSubclassOfClass:[LSCModule class]])
     {
-        NSString *moduleName = [moduleClass _moduleName];
+        NSString *moduleName = [moduleClass moduleName];
         LSCModule *module = [self.modules objectForKey:moduleName];
         if (module)
         {

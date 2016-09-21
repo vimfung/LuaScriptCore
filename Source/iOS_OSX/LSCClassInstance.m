@@ -8,6 +8,7 @@
 
 #import "LSCClassInstance.h"
 #import "LSCClassInstance_Private.h"
+#import "LSCValue_Private.h"
 
 @implementation LSCClassInstance
 
@@ -65,14 +66,18 @@
     return self;
 }
 
-- (void)setField:(id)value forName:(NSString *)name
+- (void)setField:(LSCValue *)value forName:(NSString *)name
 {
-    
+    [value pushWithState:self.state];
+    lua_setfield(self.state, -2, [name UTF8String]);
 }
 
-- (id)getFieldForName:(NSString *)name
+- (LSCValue *)getFieldForName:(NSString *)name
 {
-    return nil;
+    lua_pushstring(self.state, [name UTF8String]);
+    lua_gettable(self.state, -2);
+    
+    return [LSCValue valueWithState:self.state atIndex:-1];
 }
 
 @end
