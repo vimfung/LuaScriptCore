@@ -63,6 +63,15 @@
                                     <action selector="registerModuleClickedHandler:" destination="BYZ-38-t0r" eventType="touchUpInside" id="X59-Gn-RmO"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GtZ-nS-eca">
+                                <color key="backgroundColor" red="0.30196078430000001" green="0.33333333329999998" blue="0.38823529410000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <state key="normal" title="Register Class">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="registerClassClickedHandler:" destination="BYZ-38-t0r" eventType="touchUpInside" id="kQi-SC-fgj"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="0.16078431369999999" green="0.1960784314" blue="0.25490196079999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -75,15 +84,20 @@
                             <constraint firstItem="6P6-iP-Ohc" firstAttribute="height" secondItem="Fj8-pS-Cb7" secondAttribute="height" id="IDh-dT-tB0"/>
                             <constraint firstAttribute="trailingMargin" secondItem="h56-QQ-cqE" secondAttribute="trailing" constant="10" id="IMA-Px-I1z"/>
                             <constraint firstItem="Fj8-pS-Cb7" firstAttribute="top" secondItem="aau-wK-qcr" secondAttribute="bottom" constant="20" id="Iei-gc-C6B"/>
+                            <constraint firstItem="GtZ-nS-eca" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="10" id="KFf-Ma-IbH"/>
                             <constraint firstItem="h56-QQ-cqE" firstAttribute="height" secondItem="6P6-iP-Ohc" secondAttribute="height" id="MpX-bi-ivj"/>
                             <constraint firstItem="h56-QQ-cqE" firstAttribute="top" secondItem="6P6-iP-Ohc" secondAttribute="bottom" constant="20" id="UIa-3Z-1T4"/>
                             <constraint firstAttribute="trailingMargin" secondItem="aau-wK-qcr" secondAttribute="trailing" constant="10" id="XyO-6G-3aU"/>
                             <constraint firstAttribute="trailingMargin" secondItem="Fj8-pS-Cb7" secondAttribute="trailing" constant="10" id="eBs-9T-E7v"/>
                             <constraint firstItem="jwJ-0E-3Rv" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="10" id="fSk-r6-2ug"/>
+                            <constraint firstItem="GtZ-nS-eca" firstAttribute="height" secondItem="h56-QQ-cqE" secondAttribute="height" id="hov-x4-GyF"/>
                             <constraint firstItem="aau-wK-qcr" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="10" id="iMJ-fy-cal"/>
                             <constraint firstItem="jwJ-0E-3Rv" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="40" id="oRU-0f-LPf"/>
                             <constraint firstItem="6P6-iP-Ohc" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="10" id="pFT-bV-Cjp"/>
                             <constraint firstItem="h56-QQ-cqE" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="10" id="s9x-vn-TbB"/>
+                            <constraint firstItem="GtZ-nS-eca" firstAttribute="top" secondItem="h56-QQ-cqE" secondAttribute="bottom" constant="20" id="vJQ-H2-owc"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="GtZ-nS-eca" secondAttribute="trailing" constant="10" id="wjU-3O-9Bd"/>
+                            <constraint firstItem="GtZ-nS-eca" firstAttribute="centerX" secondItem="h56-QQ-cqE" secondAttribute="centerX" id="zqK-7C-dGx"/>
                         </constraints>
                     </view>
                     <simulatedStatusBarMetrics key="simulatedStatusBarMetrics" statusBarStyle="lightContent"/>

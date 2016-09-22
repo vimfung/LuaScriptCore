@@ -1,4 +1,4 @@
-//
+////
 //  ViewController.m
 //  Sample
 //
@@ -8,6 +8,8 @@
 
 #import "LuaScriptCore.h"
 #import "ViewController.h"
+#import "LogModule.h"
+#import "LSCTPerson.h"
 
 @interface ViewController ()
 
@@ -22,9 +24,14 @@
 @property(nonatomic) BOOL hasRegMethod;
 
 /**
- 模块
+ *  是否注册模块
  */
-@property (nonatomic, strong) LSCModule *module;
+@property (nonatomic) BOOL hasRegModule;
+
+/**
+ *  是否注册类
+ */
+@property (nonatomic) BOOL hasRegClass;
 
 @end
 
@@ -130,21 +137,30 @@
  */
 - (IBAction)registerModuleClickedHandler:(id)sender
 {
-    if (!self.module)
+    if (!self.hasRegModule)
     {
-        self.module = [[LSCModule alloc] initWithName:@"LuaScriptCoreSample"];
-        [self.module registerMethodWithName:@"test" block:^LSCValue *(NSArray *arguments) {
-           
-            NSLog(@"Hello LuaScriptCore Module");
-            
-            return nil;
-            
-        }];
-        
-        [self.context addModule:self.module];
+        self.hasRegModule = YES;
+        [self.context registerModuleWithClass:[LogModule class]];
     }
     
-    [self.context evalScriptFromString:@"LuaScriptCoreSample.test();"];
+    [self.context evalScriptFromString:@"LogModule.writeLog('Hello Lua Module!');"];
+}
+
+
+/**
+ 注册类按钮点击事件
+
+ @param sender 事件对象
+ */
+- (IBAction)registerClassClickedHandler:(id)sender
+{
+    if (!self.hasRegClass)
+    {
+        self.hasRegClass = YES;
+        [self.context registerModuleWithClass:[LSCTPerson class]];
+    }
+    
+    [self.context evalScriptFromString:@"local person = LSCTPerson:create(); person:setName('vimfung'); person:speak(); person:walk();"];
 }
 
 @end

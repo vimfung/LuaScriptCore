@@ -17,6 +17,11 @@
 @property (nonatomic) lua_State *state;
 
 /**
+ *  所处的索引位置
+ */
+@property (nonatomic) int index;
+
+/**
  *  所属本地类型
  */
 @property (nonatomic) Class ownerClass;

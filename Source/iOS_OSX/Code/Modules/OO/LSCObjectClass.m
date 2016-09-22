@@ -49,19 +49,14 @@ static void removeInstance(LSCObjectClass *instance)
 
 @implementation LSCObjectClass
 
-- (instancetype)init
++ (NSString *)version
 {
-    if (self = [super init])
-    {
-        self.version = @"1.0.0";
-        self.desc = @"对象基类,描述面向对象中的基础类型，所有的类型都应该引用他";
-    }
-    return self;
+    return @"1.0.0";
 }
 
 - (NSString *)_instanceDescription:(LSCClassInstance *)instance
 {
-    return [NSString stringWithFormat:@"[%@ object]", [LSCObjectClass moduleName]];
+    return [NSString stringWithFormat:@"[%@ object]", [instance.ownerClass moduleName]];
 }
 
 - (void)_instanceInitialize:(LSCClassInstance *)instance
@@ -71,7 +66,7 @@ static void removeInstance(LSCObjectClass *instance)
 
 - (void)_instanceUninitialize:(LSCClassInstance *)instance
 {
-    NSLog(@"dealloc");
+    
 }
 
 + (LSCClassInstance *)currentInstance
@@ -81,7 +76,12 @@ static void removeInstance(LSCObjectClass *instance)
 
 + (NSString *)moduleName
 {
-    return @"Object";
+    if (self == [LSCObjectClass class])
+    {
+        return @"Object";
+    }
+    
+    return [super moduleName];
 }
 
 - (void)_regWithContext:(LSCContext *)context moduleName:(NSString *)moduleName
@@ -133,7 +133,7 @@ static void removeInstance(LSCObjectClass *instance)
 - (void)_regClass:(Class)cls withContext:(LSCContext *)context moduleName:(NSString *)moduleName
 {
     lua_State *state = context.state;
-    
+
     lua_newtable(state);
 
     lua_pushstring(state, [NSStringFromClass(cls) UTF8String]);
@@ -153,11 +153,15 @@ static void removeInstance(LSCObjectClass *instance)
     {
         //设置父类
         superClass = class_getSuperclass(cls);
+
         lua_getglobal(state, [[superClass moduleName] UTF8String]);
         if (lua_istable(state, -1))
         {
             //设置父类元表
             lua_setmetatable(state, -2);
+
+            //关联父类
+            lua_getglobal(state, [[superClass moduleName] UTF8String]);
             lua_setfield(state, -2, "super");
         }
     }
@@ -170,66 +174,12 @@ static void removeInstance(LSCObjectClass *instance)
     
     NSMutableArray *filterMethodList = [NSMutableArray arrayWithObject:@"create"];
     
-    //解析属性
-    id (*getterAction) (id, SEL) = (id (*) (id, SEL))objc_msgSend;
-    
-    unsigned int propertyCount = 0;
-    objc_property_t *properyList = class_copyPropertyList(self.class, &propertyCount);
-    for (const objc_property_t *p = properyList; p < properyList + propertyCount; p++)
-    {
-        const char *propName = property_getName(*p);
-        NSString *propNameStr = [NSString stringWithUTF8String:propName];
-        
-        //添加Setter和getter方法过滤
-        [filterMethodList addObject:propNameStr];
-        [filterMethodList addObject:[NSString stringWithFormat:@"set%@%@:",
-                                     [[propNameStr substringToIndex:1] uppercaseString],
-                                     [propNameStr substringFromIndex:1]]];
-        
-        BOOL needSet = YES;
-        if (superClass)
-        {
-            //检测是否为父类属性
-            if(class_getProperty(superClass, propName))
-            {
-                //存在此属性则不添加到类中
-                needSet = NO;
-            }
-        }
-        
-        if ([propNameStr hasPrefix:@"_"])
-        {
-            needSet = NO;
-        }
-        
-        if (needSet)
-        {
-            //为导出属性
-            id value = getterAction(self, NSSelectorFromString(propNameStr));
-            LSCValue *propValue = [LSCValue objectValue:value];
-            [propValue pushWithState:state];
-            
-            lua_setfield(state, -2, [propNameStr UTF8String]);
-        }
-    }
-    free(properyList);
-    
     //解析方法
     unsigned int methodCount = 0;
     Method *methods = class_copyMethodList(self.class, &methodCount);
     for (const Method *m = methods; m < methods + methodCount; m ++)
     {
         SEL selector = method_getName(*m);
-        
-        BOOL needSet = YES;
-        if (superClass)
-        {
-            if (class_getMethodImplementation(cls, selector) == class_getMethodImplementation(superClass, selector))
-            {
-                //父类不存在或者子类复写
-                needSet = NO;
-            }
-        }
         
         size_t returnTypeLen = 256;
         char returnType[256];
@@ -275,11 +225,11 @@ static int InstanceMethodRouteHandler(lua_State *state)
         [invocation setSelector:selector];
         
         int top = lua_gettop(state);
-        for (int i = 2; i < top; i++)
+        for (int i = 2; i <= top; i++)
         {
             LSCValue *value = [LSCValue valueWithState:state atIndex:i];
             
-            int index = i + 2;
+            int index = i;
             
             switch (value.valueType)
             {

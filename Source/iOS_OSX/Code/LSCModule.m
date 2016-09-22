@@ -150,6 +150,11 @@ static int ModuleMethodRouteHandler(lua_State *state)
     return 0;
 }
 
++ (NSString *)version
+{
+    return nil;
+}
+
 #pragma mark - Private
 
 /**
@@ -216,45 +221,6 @@ static int ModuleMethodRouteHandler(lua_State *state)
         lua_newtable(state);
         
         NSMutableArray *filterMethodList = [NSMutableArray array];
-        
-        //解析属性
-        id (*getterAction) (id, SEL) = (id (*) (id, SEL))objc_msgSend;
-        
-        unsigned int propertyCount = 0;
-        objc_property_t *properyList = class_copyPropertyList(self.class, &propertyCount);
-        for (const objc_property_t *p = properyList; p < properyList + propertyCount; p++)
-        {
-            const char *propName = property_getName(*p);
-            
-            //输出属性的特性描述
-//            unsigned int attrCount = 0;
-//            objc_property_attribute_t *attrs = property_copyAttributeList(*p, &attrCount);
-//            for (const objc_property_attribute_t *a = attrs; a < attrs + attrCount; a++)
-//            {
-//                objc_property_attribute_t attr = *a;
-//                NSLog(@"%s, %s", attr.name, attr.value);
-//            }
-//            free(attrs);
-            
-            NSString *propNameStr = [NSString stringWithUTF8String:propName];
-            
-            //添加Setter和getter方法
-            [filterMethodList addObject:propNameStr];
-            [filterMethodList addObject:[NSString stringWithFormat:@"set%@%@:",
-                                         [[propNameStr substringToIndex:1] uppercaseString],
-                                         [propNameStr substringFromIndex:1]]];
-            
-            if (![propNameStr hasPrefix:@"_"])
-            {
-                //为导出属性 
-                id value = getterAction(self, NSSelectorFromString(propNameStr));
-                LSCValue *propValue = [LSCValue objectValue:value];
-                [propValue pushWithState:state];
-                
-                lua_setfield(state, -2, [propNameStr UTF8String]);
-            }
-        }
-        free(properyList);
         
         //解析方法
         unsigned int methodCount = 0;

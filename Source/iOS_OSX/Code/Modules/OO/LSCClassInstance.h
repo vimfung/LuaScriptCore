@@ -43,4 +43,14 @@
  */
 - (LSCValue *)getFieldForName:(NSString *)name;
 
+/**
+ *  调用方法
+ *
+ *  @param name      方法名称
+ *  @param arguments 参数列表
+ *
+ *  @return 返回值
+ */
+- (LSCValue *)callMethodWithName:(NSString *)name arguments:(NSArray *)arguments;
+
 @end
