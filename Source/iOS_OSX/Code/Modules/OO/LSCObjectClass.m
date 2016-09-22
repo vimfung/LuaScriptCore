@@ -170,9 +170,13 @@ static void removeInstance(LSCObjectClass *instance)
         //Object需要创建对象方法
         lua_pushcfunction(state, objectCreateHandler);
         lua_setfield(state, -2, "create");
+        
+        //子类化对象方法
+        lua_pushcfunction(state, subClassHandler);
+        lua_setfield(state, -2, "subclass");
     }
     
-    NSMutableArray *filterMethodList = [NSMutableArray arrayWithObject:@"create"];
+    NSMutableArray *filterMethodList = [NSMutableArray arrayWithObjects:@"create", @"subclass", nil];
     
     //解析方法
     unsigned int methodCount = 0;
@@ -351,12 +355,15 @@ static int InstanceMethodRouteHandler(lua_State *state)
  *
  *  @param state 状态机
  *
- *  @return 返回值
+ *  @return 参数数量
  */
 static int objectDestoryHandler (lua_State *state)
 {
     LSCClassInstance *instance = [[LSCClassInstance alloc] initWithState:state atIndex:1];
     _currentInstance = instance;
+    
+    //调用对象的destory方法
+    [instance callMethodWithName:@"destory" arguments:nil];
     
     [instance.nativeObject _instanceUninitialize:instance];
     removeInstance(instance.nativeObject);
@@ -369,7 +376,7 @@ static int objectDestoryHandler (lua_State *state)
  *
  *  @param state 状态机
  *
- *  @return 返回值
+ *  @return 参数数量
  */
 static int objectToStringHandler (lua_State *state)
 {
@@ -386,10 +393,15 @@ static int objectToStringHandler (lua_State *state)
  *
  *  @param state 状态机
  *
- *  @return 返回值
+ *  @return 参数数量
  */
 static int objectCreateHandler (lua_State *state)
 {
+    if (lua_gettop(state) <= 0)
+    {
+        return 0;
+    }
+    
     lua_newtable(state);
     
     //获取类型名称
@@ -401,7 +413,8 @@ static int objectCreateHandler (lua_State *state)
     
     lua_settop(state, -3);
     
-    lua_getglobal(state, [[cls moduleName] UTF8String]);
+    lua_pushvalue(state, 1);
+//    lua_getglobal(state, [[cls moduleName] UTF8String]);
     if (lua_istable(state, -1))
     {
         //设置元表指向类
@@ -425,6 +438,81 @@ static int objectCreateHandler (lua_State *state)
     }
     
     return 0;
+}
+
+/**
+ *  子类化
+ *
+ *  @param state 状态机
+ *
+ *  @return 参数数量
+ */
+static int subClassHandler (lua_State *state)
+{
+    if (lua_gettop(state) <= 0)
+    {
+        return 0;
+    }
+    
+    //获取当前类型的
+    lua_pushvalue(state, 1);
+    
+    lua_getfield(state, -1, "_nativeObject");
+    if (!lua_isnil(state, -1))
+    {
+        //实例对象不能调用该方法
+        return 0;
+    }
+    
+    NSString *nativeClassName = nil;
+    lua_pop(state, 1);
+    lua_getfield(state, -1, "_nativeClassName");
+    if (lua_isstring(state, -1))
+    {
+        nativeClassName = [NSString stringWithUTF8String:lua_tostring(state, -1)];
+    }
+    lua_pop(state, 2);
+    
+    if (!nativeClassName)
+    {
+        //不存在原生类
+        return 0;
+    }
+    
+    if (lua_gettop(state) < 2 && !lua_istable(state, 2))
+    {
+        lua_newtable(state);
+    }
+    else
+    {
+        lua_pushvalue(state, 2);
+    }
+    
+    lua_pushstring(state, [nativeClassName UTF8String]);
+    lua_setfield(state, -2, "_nativeClassName");
+    
+    lua_pushvalue(state, -1);
+    lua_setfield(state, -2, "__index");
+    
+    lua_pushcfunction(state, objectDestoryHandler);
+    lua_setfield(state, -2, "__gc");
+    
+    lua_pushcfunction(state, objectToStringHandler);
+    lua_setfield(state, -2, "__tostring");
+    
+    //设置父类
+    lua_getglobal(state, [nativeClassName UTF8String]);
+    if (lua_istable(state, -1))
+    {
+        //设置父类元表
+        lua_setmetatable(state, -2);
+        
+        //关联父类
+        lua_getglobal(state, [nativeClassName UTF8String]);
+        lua_setfield(state, -2, "super");
+    }
+    
+    return 1;
 }
 
 @end
