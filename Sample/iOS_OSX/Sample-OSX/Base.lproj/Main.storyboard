@@ -716,12 +716,24 @@
                                     <action selector="registerModuleClickedHandler:" target="XfG-lQ-9wD" id="n4x-V5-S09"/>
                                 </connections>
                             </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="fJJ-eH-EC4">
+                                <rect key="frame" x="164" y="48" width="152" height="32"/>
+                                <buttonCell key="cell" type="push" title="Register Class" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="i5j-Pn-xpf">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="registerClassClickedHandler:" target="XfG-lQ-9wD" id="eci-MC-nOd"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <constraints>
                             <constraint firstItem="iiF-Mx-EeN" firstAttribute="width" secondItem="zsk-bF-SUz" secondAttribute="width" id="BBF-Ce-fAH"/>
                             <constraint firstItem="iiF-Mx-EeN" firstAttribute="centerX" secondItem="zsk-bF-SUz" secondAttribute="centerX" id="GGR-EY-LBH"/>
                             <constraint firstItem="kNb-Zq-JfP" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="30" id="KcO-ae-3k4"/>
+                            <constraint firstItem="fJJ-eH-EC4" firstAttribute="width" secondItem="974-f6-pX3" secondAttribute="width" id="OB5-Hx-vEL"/>
                             <constraint firstItem="iiF-Mx-EeN" firstAttribute="top" secondItem="zsk-bF-SUz" secondAttribute="bottom" constant="20" id="OyD-dG-hLa"/>
+                            <constraint firstItem="fJJ-eH-EC4" firstAttribute="top" secondItem="974-f6-pX3" secondAttribute="bottom" constant="20" id="RNm-Fr-7Vd"/>
                             <constraint firstItem="kNb-Zq-JfP" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" id="Ww3-Ua-3RU"/>
                             <constraint firstItem="zsk-bF-SUz" firstAttribute="width" secondItem="kNb-Zq-JfP" secondAttribute="width" id="XCL-44-QgX"/>
                             <constraint firstItem="974-f6-pX3" firstAttribute="width" secondItem="iiF-Mx-EeN" secondAttribute="width" id="Zc8-VO-ufu"/>
@@ -729,6 +741,7 @@
                             <constraint firstItem="zsk-bF-SUz" firstAttribute="centerX" secondItem="kNb-Zq-JfP" secondAttribute="centerX" id="cvD-CS-Or9"/>
                             <constraint firstItem="974-f6-pX3" firstAttribute="top" secondItem="iiF-Mx-EeN" secondAttribute="bottom" constant="20" id="whF-fF-hJh"/>
                             <constraint firstItem="zsk-bF-SUz" firstAttribute="top" secondItem="kNb-Zq-JfP" secondAttribute="bottom" constant="20" id="wpz-H3-fkx"/>
+                            <constraint firstItem="fJJ-eH-EC4" firstAttribute="centerX" secondItem="974-f6-pX3" secondAttribute="centerX" id="xtb-kJ-Ing"/>
                         </constraints>
                     </view>
                 </viewController>

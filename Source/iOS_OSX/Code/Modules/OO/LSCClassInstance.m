@@ -16,13 +16,20 @@
 {
     if (self = [super init])
     {
-        self.state = state;
-        
         int top = lua_gettop(state);
+        if (index < 0)
+        {
+            //转换索引为正数，方便在调用调用属性或方法时出现指向不正确问题
+            index = top + index + 1;
+        }
+        
         if (top < index)
         {
             return nil;
         }
+        
+        self.state = state;
+        self.index = index;
         
         if (lua_istable(state, index))
         {
@@ -68,16 +75,58 @@
 
 - (void)setField:(LSCValue *)value forName:(NSString *)name
 {
+    lua_pushvalue(self.state, self.index);
+    
     [value pushWithState:self.state];
     lua_setfield(self.state, -2, [name UTF8String]);
+    
+    lua_settop(self.state, -2);
 }
 
 - (LSCValue *)getFieldForName:(NSString *)name
 {
+    lua_pushvalue(self.state, self.index);
+    
     lua_pushstring(self.state, [name UTF8String]);
     lua_gettable(self.state, -2);
     
-    return [LSCValue valueWithState:self.state atIndex:-1];
+    LSCValue *retValue = [LSCValue valueWithState:self.state atIndex:-1];
+    
+    lua_settop(self.state, -3);
+    
+    return retValue;
+}
+
+- (LSCValue *)callMethodWithName:(NSString *)name arguments:(NSArray *)arguments
+{
+    lua_pushvalue(self.state, self.index);
+
+    LSCValue *resultValue = nil;
+
+    lua_getfield(self.state, -1, [name UTF8String]);
+    if (lua_isfunction(self.state, -1))
+    {
+        //如果为function则进行调用
+        //第一个参数为实例引用
+        lua_pushvalue(self.state, self.index);
+        
+        __weak LSCClassInstance *theInstance = self;
+        [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
+            
+            [value pushWithState:theInstance.state];
+            
+        }];
+        
+        if (lua_pcall(self.state, (int)arguments.count + 1, 1, 0) == 0)
+        {
+            //调用成功
+            resultValue = [LSCValue valueWithState:self.state atIndex:-1];
+        }
+    }
+    
+    lua_settop(self.state, -3);
+    
+    return resultValue;
 }
 
 @end

@@ -20,11 +20,6 @@
 /**
  *  版本
  */
-@property (nonatomic, copy) NSString *version;
-
-/**
- *  描述
- */
-@property (nonatomic, copy) NSString *desc;
++ (NSString *)version;
 
 @end
