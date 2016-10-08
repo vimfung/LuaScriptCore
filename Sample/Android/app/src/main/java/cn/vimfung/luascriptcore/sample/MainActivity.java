@@ -21,11 +21,14 @@ import java.util.HashMap;
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
 import cn.vimfung.luascriptcore.LuaValue;
+import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
 public class MainActivity extends AppCompatActivity {
 
     private LuaContext _luaContext;
     private boolean _hasRegMethod;
+    private boolean _hasRegModule;
+    private boolean _hasRegClass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,61 +92,109 @@ public class MainActivity extends AppCompatActivity {
 
         //解析脚本按钮点击
         Button evalScriptBtn = (Button) findViewById(R.id.evalScriptButton);
-        evalScriptBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                LuaValue retValue = _luaContext.evalScript("print(10);return 'Hello World';");
-                Log.v("luaScriptCoreSample", retValue.toString());
-            }
-        });
+        if (evalScriptBtn != null)
+        {
+            evalScriptBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LuaValue retValue = _luaContext.evalScript("print(10);return 'Hello World';");
+                    Log.v("luaScriptCoreSample", retValue.toString());
+                }
+            });
+        }
 
         //注册方法按钮点击
         Button regMethodBtn = (Button) findViewById(R.id.regMethodButton);
-        regMethodBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        if (regMethodBtn != null)
+        {
+            regMethodBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
-                if (!_hasRegMethod)
-                {
-                    //注册方法
-                    _luaContext.registerMethod("getDeviceInfo", new LuaMethodHandler() {
-                        @Override
-                        public LuaValue onExecute(LuaValue[] arguments) {
+                    if (!_hasRegMethod)
+                    {
+                        //注册方法
+                        _luaContext.registerMethod("getDeviceInfo", new LuaMethodHandler() {
+                            @Override
+                            public LuaValue onExecute(LuaValue[] arguments) {
 
-                            HashMap devInfoMap = new HashMap();
-                            devInfoMap.put("deviceName", Build.DISPLAY);
-                            devInfoMap.put("deviceModel", Build.MODEL);
-                            devInfoMap.put("systemName", Build.PRODUCT);
-                            devInfoMap.put("systemVersion", Build.VERSION.RELEASE);
+                                HashMap devInfoMap = new HashMap();
+                                devInfoMap.put("deviceName", Build.DISPLAY);
+                                devInfoMap.put("deviceModel", Build.MODEL);
+                                devInfoMap.put("systemName", Build.PRODUCT);
+                                devInfoMap.put("systemVersion", Build.VERSION.RELEASE);
 
-                            return new LuaValue(devInfoMap);
-                        }
-                    });
+                                return new LuaValue(devInfoMap);
+                            }
+                        });
 
-                    _hasRegMethod = true;
+                        _hasRegMethod = true;
+                    }
+
+                    //调用脚本
+                    File mainFile = new File (getExternalCacheDir(), "main.lua");
+                    _luaContext.evalScriptFromFile(mainFile.toString());
+
                 }
+            });
+        }
 
-                //调用脚本
-                File mainFile = new File (getExternalCacheDir(), "main.lua");
-                _luaContext.evalScriptFromFile(mainFile.toString());
-
-            }
-        });
 
         //调用方法按钮
         Button callMethodBtn = (Button) findViewById(R.id.callLuaMethodButton);
-        callMethodBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        if (callMethodBtn != null)
+        {
+            callMethodBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
 
-                //调用脚本
-                File todoFile = new File (getExternalCacheDir(), "todo.lua");
-                _luaContext.evalScriptFromFile(todoFile.toString());
+                    //调用脚本
+                    File todoFile = new File (getExternalCacheDir(), "todo.lua");
+                    _luaContext.evalScriptFromFile(todoFile.toString());
 
-                LuaValue retValue = _luaContext.callMethod("add", new LuaValue[]{new LuaValue(100), new LuaValue(924)});
-                Log.v("luaScriptCore",String.format("%d", retValue.toInteger()));
-            }
-        });
+                    LuaValue retValue = _luaContext.callMethod("add", new LuaValue[]{new LuaValue(100), new LuaValue(924)});
+                    Log.v("luaScriptCore",String.format("%d", retValue.toInteger()));
+                }
+            });
+        }
+
+        //注册模块按钮
+        Button regModuleBtn = (Button) findViewById(R.id.regModuleButton);
+        if (regModuleBtn != null)
+        {
+            regModuleBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!_hasRegModule)
+                    {
+                        _hasRegModule = true;
+                        _luaContext.registerModule(LogModule.class);
+                    }
+
+                    _luaContext.evalScript("LogModule.writeLog('Hello lua module!');print(LogModule.add({1000, 24}));LogModule.setName('vimfung');LogModule.setAge(30);LogModule.printInfo();print(LogModule.name());print(LogModule.age());");
+                }
+            });
+        }
+
+        //注册类按钮
+        Button regClsBtn = (Button) findViewById(R.id.regClassButton);
+        if (regClsBtn != null)
+        {
+            regClsBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                if(!_hasRegClass)
+                {
+                    _hasRegClass = true;
+                    _luaContext.registerModule(LuaObjectClass.class);
+                }
+
+                _luaContext.evalScript("print('Hello class');print(Object:create());");
+
+                }
+            });
+        }
     }
 
     /**

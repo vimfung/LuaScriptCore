@@ -1,5 +1,10 @@
 package cn.vimfung.luascriptcore;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
+
 /**
  * 本地接口工具类
  * Created by vimfung on 16/8/29.
@@ -65,4 +70,47 @@ public class LuaNativeUtil
      * @param nativeId  本地对象标识
      */
     public static native void releaseNativeObject (int nativeId);
+
+    /**
+     * 注册模块
+     * @param contextNativeId 上下文的本地标识
+     * @param moduleClass    模块类
+     * @param fields 注册的字段
+     * @param methods 注册的方法
+     * @return  模块对象
+     */
+    public static native LuaModule registerModule(
+            int contextNativeId,
+            String moduleName,
+            Class<? extends LuaModule> moduleClass,
+            Field[] fields,
+            Method[] methods
+    );
+
+    /**
+     * 判断模块是否注册
+     * @param contextNativeId   上下文的本地标识
+     * @param moduleName    模块名称
+     * @return  true 已注册,否则,未注册。
+     */
+    public static native boolean isModuleRegisted(int contextNativeId, String moduleName);
+
+    /**
+     * 注册类型
+     * @param context   上下文对象
+     * @param className 类名称
+     * @param superClassName    父类型名称
+     * @param objectClass   类型
+     * @param fields    字段集合
+     * @param methods   方法集合
+     * @return  类型对象
+     */
+    public static native LuaObjectClass registerClass (
+            LuaContext context,
+            String className,
+            String superClassName,
+            Class<? extends LuaObjectClass> objectClass,
+            Field[] fields,
+            Method[] methods);
+
 }
