@@ -6,12 +6,14 @@
 #include "LuaValue.h"
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue()
+        : LuaObject()
 {
     _type = LuaValueTypeNil;
     _value = NULL;
 }
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(long value)
+        : LuaObject()
 {
     _type = LuaValueTypeInteger;
     _intValue = (lua_Integer)value;
@@ -19,6 +21,7 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(long value)
 }
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(bool value)
+        : LuaObject()
 {
     _type = LuaValueTypeBoolean;
     _booleanValue = value;
@@ -26,6 +29,7 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(bool value)
 }
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(double value)
+        : LuaObject()
 {
     _type = LuaValueTypeNumber;
     _numberValue = value;
@@ -33,12 +37,14 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(double value)
 }
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(std::string value)
+        : LuaObject()
 {
     _type = LuaValueTypeString;
     _value = new std::string(value);
 }
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(const char *bytes, size_t length)
+        : LuaObject()
 {
     _type = LuaValueTypeData;
     _bytesLen = length;
@@ -47,12 +53,14 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(const char *bytes, size_t length)
 }
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueList value)
+        : LuaObject()
 {
     _type = LuaValueTypeArray;
     _value = new LuaValueList(value);
 }
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueMap value)
+        : LuaObject()
 {
     _type = LuaValueTypeMap;
     _value = new LuaValueMap (value);

@@ -258,6 +258,44 @@ public class LuaValue extends LuaBaseObject
         _valueContainer = value;
     }
 
+    public LuaValue (Object value)
+    {
+        super();
+        setObjectValue(value);
+    }
+
+    private void setObjectValue (Object value)
+    {
+        if (value instanceof Integer)
+        {
+            setIntValue((Integer)value);
+        }
+        else if (value instanceof Double)
+        {
+            setDoubValue((Double)value);
+        }
+        else if (value instanceof Boolean)
+        {
+            setBoolValue((Boolean)value);
+        }
+        else if (value instanceof String)
+        {
+            setStringValue(value.toString());
+        }
+        else if (value instanceof ArrayList)
+        {
+            setArrayListValue((ArrayList)value);
+        }
+        else if (value instanceof HashMap)
+        {
+            setHasMapValue((HashMap)value);
+        }
+        else
+        {
+            setNilValue();
+        }
+    }
+
     /**
      * 获取值类型
      * @return  类型

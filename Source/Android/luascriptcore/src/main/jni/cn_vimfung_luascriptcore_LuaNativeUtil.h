@@ -63,6 +63,30 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerMetho
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseNativeObject
   (JNIEnv *, jclass, jint);
 
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    registerModule
+ * Signature: (ILjava/lang/String;Ljava/lang/Class;[Ljava/lang/reflect/Field;[Ljava/lang/reflect/Method;)Lcn/vimfung/luascriptcore/LuaModule;
+ */
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerModule
+  (JNIEnv *, jclass, jint, jstring, jclass, jobjectArray, jobjectArray);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    isModuleRegisted
+ * Signature: (ILjava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_isModuleRegisted
+  (JNIEnv *, jclass, jint, jstring);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    registerClass
+ * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Class;[Ljava/lang/reflect/Field;[Ljava/lang/reflect/Method;)Lcn/vimfung/luascriptcore/modules/oo/LuaObjectClass;
+ */
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClass
+  (JNIEnv *, jclass, jobject, jstring, jstring, jclass, jobjectArray, jobjectArray);
+
 #ifdef __cplusplus
 }
 #endif

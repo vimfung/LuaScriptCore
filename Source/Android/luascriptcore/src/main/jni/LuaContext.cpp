@@ -3,6 +3,8 @@
 //
 
 #include "LuaContext.h"
+#include "LuaValue.h"
+#include "LuaModule.h"
 #include <map>
 #include <list>
 #include <iostream>
@@ -44,6 +46,7 @@ static int methodRouteHandler(lua_State *state) {
 
 
 cn::vimfung::luascriptcore::LuaContext::LuaContext()
+        : LuaObject()
 {
     _exceptionHandler = NULL;
     _state = luaL_newstate();
@@ -54,6 +57,13 @@ cn::vimfung::luascriptcore::LuaContext::LuaContext()
 
 cn::vimfung::luascriptcore::LuaContext::~LuaContext()
 {
+    //释放模块内存
+    for (LuaModuleMap::iterator it = _moduleMap.begin(); it != _moduleMap.end() ; ++it)
+    {
+        LuaModule *module = it -> second;
+        module -> release();
+    }
+
     lua_close(_state);
 }
 
@@ -273,7 +283,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
 }
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::callMethod(
-        std::string methodName, LuaArgumentList arguments)
+        std::string methodName, LuaArgumentList *arguments)
 {
     LuaValue *resultValue = NULL;
 
@@ -283,13 +293,13 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
         //存在指定方法
 
         //初始化传递参数
-        for (LuaArgumentList::iterator i = arguments.begin(); i != arguments.end() ; ++i)
+        for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
         {
             LuaValue *item = *i;
             item->push(_state);
         }
 
-        if (lua_pcall(_state, (int)arguments.size(), 1, 0) == 0)
+        if (lua_pcall(_state, (int)arguments -> size(), 1, 0) == 0)
         {
             //调用成功
             resultValue = getValueByIndex(-1);
@@ -349,4 +359,28 @@ cn::vimfung::luascriptcore::LuaMethodHandler cn::vimfung::luascriptcore::LuaCont
     }
 
     return NULL;
+}
+
+void cn::vimfung::luascriptcore::LuaContext::registerModule(const std::string &moduleName, LuaModule *module)
+{
+    if (!this -> isModuleRegisted(moduleName))
+    {
+        module -> retain();
+        module -> onRegister(moduleName, this);
+        _moduleMap[moduleName] = module;
+    }
+}
+
+bool cn::vimfung::luascriptcore::LuaContext::isModuleRegisted(const std::string &moduleName)
+{
+    lua_setglobal(_state, moduleName.c_str());
+    bool retValue = lua_isnil(_state, -1);
+    lua_pop(_state, 1);
+
+    return !retValue;
+}
+
+lua_State* cn::vimfung::luascriptcore::LuaContext::getLuaState()
+{
+    return _state;
 }

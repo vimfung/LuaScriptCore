@@ -88,39 +88,17 @@ static void removeInstance(LSCObjectClass *instance)
 {
     lua_State *state = context.state;
     
-    NSMutableArray *classLinkArr = [NSMutableArray array];
-    Class superClass = self.class;
-    do
+    if (self.superclass != [LSCModule class])
     {
-        if (superClass == [LSCModule class])
-        {
-            //已经到达根类
-            break;
-        }
-        
-        lua_getglobal(state, [moduleName UTF8String]);
+        lua_getglobal(state, [[self.superclass moduleName] UTF8String]);
         if (lua_isnil(state, -1))
         {
-            //尚未注册
-            [classLinkArr insertObject:superClass atIndex:0];
-            superClass = class_getSuperclass(superClass);
-        }
-        else
-        {
-            //已经注册，则表示该父类之前的类型都已注册，无需再往上迭代
-            break;
+            //如果父类还没有注册，则进行注册操作
+            [context registerModuleWithClass:self.superclass];
         }
     }
-    while (YES);
     
-    for (int i = 0; i < classLinkArr.count - 1; i++)
-    {
-        Class cls = classLinkArr[i];
-        [context registerModuleWithClass:cls];
-    }
-    
-    Class cls = classLinkArr.lastObject;
-    [self _regClass:cls withContext:context moduleName:moduleName];
+    [self _regClass:self.class withContext:context moduleName:moduleName];
 }
 
 /**
@@ -142,7 +120,7 @@ static void removeInstance(LSCObjectClass *instance)
     lua_pushvalue(state, -1);
     lua_setfield(state, -2, "__index");
     
-    lua_pushcfunction(state, objectDestoryHandler);
+    lua_pushcfunction(state, objectDestroyHandler);
     lua_setfield(state, -2, "__gc");
     
     lua_pushcfunction(state, objectToStringHandler);
@@ -357,13 +335,13 @@ static int InstanceMethodRouteHandler(lua_State *state)
  *
  *  @return 参数数量
  */
-static int objectDestoryHandler (lua_State *state)
+static int objectDestroyHandler (lua_State *state)
 {
     LSCClassInstance *instance = [[LSCClassInstance alloc] initWithState:state atIndex:1];
     _currentInstance = instance;
     
-    //调用对象的destory方法
-    [instance callMethodWithName:@"destory" arguments:nil];
+    //调用对象的destroy方法
+    [instance callMethodWithName:@"destroy" arguments:nil];
     
     [instance.nativeObject _instanceUninitialize:instance];
     removeInstance(instance.nativeObject);
@@ -494,23 +472,27 @@ static int subClassHandler (lua_State *state)
     lua_pushvalue(state, -1);
     lua_setfield(state, -2, "__index");
     
-    lua_pushcfunction(state, objectDestoryHandler);
-    lua_setfield(state, -2, "__gc");
+    int subClassIndex = lua_gettop(state);
     
-    lua_pushcfunction(state, objectToStringHandler);
-    lua_setfield(state, -2, "__tostring");
+    //继承父级gc
+    lua_pushvalue(state, 1);
+    lua_getfield(state, -1, "__gc");
+    lua_setfield(state, subClassIndex, "__gc");
+    lua_pop(state, 1);
+
+    //继承父级tostring
+    lua_pushvalue(state, 1);
+    lua_getfield(state, -1, "__tostring");
+    lua_setfield(state, subClassIndex, "__tostring");
+    lua_pop(state, 1);
     
-    //设置父类
-    lua_getglobal(state, [nativeClassName UTF8String]);
-    if (lua_istable(state, -1))
-    {
-        //设置父类元表
-        lua_setmetatable(state, -2);
-        
-        //关联父类
-        lua_getglobal(state, [nativeClassName UTF8String]);
-        lua_setfield(state, -2, "super");
-    }
+    //设置父类元表
+    lua_pushvalue(state, 1);
+    lua_setmetatable(state, -2);
+    
+    //关联父类
+    lua_pushvalue(state, 1);
+    lua_setfield(state, -2, "super");
     
     return 1;
 }
