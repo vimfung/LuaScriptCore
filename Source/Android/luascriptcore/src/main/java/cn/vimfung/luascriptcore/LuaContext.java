@@ -16,9 +16,16 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Lua上下文对象
@@ -28,6 +35,7 @@ public class LuaContext extends LuaBaseObject
 {
     private Context _context;
     private HashMap<String, LuaMethodHandler> _methods;
+    private HashMap<String, LuaModule> _modules;
 
     /**
      * 创建上下文对象
@@ -48,6 +56,7 @@ public class LuaContext extends LuaBaseObject
 
         luaContext._context = context;
         luaContext._methods = new HashMap<String, LuaMethodHandler>();
+        luaContext._modules = new HashMap<String, LuaModule>();
 
         File cacheDir = context.getExternalCacheDir();
         if (cacheDir != null && cacheDir.exists())
@@ -149,6 +158,45 @@ public class LuaContext extends LuaBaseObject
         {
             throw new Error("Method for the name already exists");
         }
+    }
+
+    /**
+     * 注册模块
+     * @param moduleClass     模块类
+     */
+    public void registerModule(Class<? extends LuaModule> moduleClass)
+    {
+        try
+        {
+            Log.v("lsc", "begin register module");
+            String moduleName = LuaModule.getModuleName(moduleClass);
+            if (!LuaNativeUtil.isModuleRegisted(_nativeId, moduleName))
+            {
+                Method regMethod = moduleClass.getMethod("register", LuaContext.class, String.class, moduleClass.getClass());
+                LuaModule module = (LuaModule) regMethod.invoke(moduleClass, this, moduleName, moduleClass);
+                if (module != null)
+                {
+                    _modules.put(moduleName, module);
+                }
+            }
+        }
+        catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 判断模块是否已经注册
+     * @param moduleName    模块名称
+     * @return  true 模块已注册, 否则尚未注册
+     */
+    public boolean isModuleRegisted(String moduleName)
+    {
+        return LuaNativeUtil.isModuleRegisted(_nativeId, moduleName);
     }
 
     /**
