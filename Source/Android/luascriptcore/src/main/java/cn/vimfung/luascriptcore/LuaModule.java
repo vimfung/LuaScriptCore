@@ -150,7 +150,7 @@ public abstract class LuaModule extends LuaBaseObject
         if (module != null)
         {
             //写入导出方法
-            module.exportMethods(exportMethodsArr);
+            LuaModule._setExportMethods(exportMethodsArr);
         }
 
         return module;
@@ -160,8 +160,13 @@ public abstract class LuaModule extends LuaBaseObject
      * 导出方法
      * @param methods   方法集合
      */
-    protected final void exportMethods(Method[] methods)
+    static protected void _setExportMethods(Method[] methods)
     {
+        if (_exportMethods == null)
+        {
+            _exportMethods = new HashMap<String, Method>();
+        }
+
         for (Method m : methods)
         {
             _exportMethods.put(m.getName(), m);
@@ -171,14 +176,14 @@ public abstract class LuaModule extends LuaBaseObject
     /**
      * 保存导出方法的哈希表
      */
-    private HashMap<String, Method> _exportMethods;
+    static private HashMap<String, Method> _exportMethods;
 
     /**
      * 获取导出方法
      * @param name  方法名称
      * @return  如果存在返回Method对象,否则返回null
      */
-    private Method getExportMethod(String name)
+    static private Method _getExportMethod(String name)
     {
         if (_exportMethods.containsKey(name))
         {
@@ -190,7 +195,7 @@ public abstract class LuaModule extends LuaBaseObject
 
     public LuaModule()
     {
-        _exportMethods = new HashMap<String, Method>();
+
     }
 
     /**
@@ -198,7 +203,7 @@ public abstract class LuaModule extends LuaBaseObject
      * @param name  字段名称
      * @return 字段值
      */
-    private LuaValue getField(String name)
+    protected final LuaValue _getField(String name)
     {
         try
         {
@@ -220,7 +225,7 @@ public abstract class LuaModule extends LuaBaseObject
      * @param name   字段名称
      * @param value  字段值
      */
-    private void setField(String name, LuaValue value)
+    protected final void _setField(String name, LuaValue value)
     {
         try
         {
@@ -262,13 +267,13 @@ public abstract class LuaModule extends LuaBaseObject
      * @param arguments     方法的传入参数
      * @return              返回值
      */
-    private LuaValue methodInvoke (String methodName, LuaValue[] arguments)
+    protected final LuaValue _methodInvoke (String methodName, LuaValue[] arguments)
     {
         try
         {
             //将LuaValue数组转换为对象数组
             ArrayList argumentArray = new ArrayList();
-            Method method =  getExportMethod(methodName);
+            Method method =  LuaModule._getExportMethod(methodName);
             if (method == null)
             {
                 return new LuaValue();
