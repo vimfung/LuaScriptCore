@@ -7,6 +7,7 @@
 #include "LuaValue.h"
 #include "lua.hpp"
 #include "LuaDefine.h"
+#include "../../../../../lua-core/src/lua.h"
 #include <ctype.h>
 
 /**
@@ -106,6 +107,7 @@ static int getterRouteHandler (lua_State *state)
 
     return 1;
 }
+
 
 void cn::vimfung::luascriptcore::LuaModule::onRegister (const std::string &name, LuaContext *context)
 {

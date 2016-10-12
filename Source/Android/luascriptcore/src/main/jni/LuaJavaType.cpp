@@ -214,3 +214,17 @@ jclass LuaJavaType::hashMapClass(JNIEnv *env)
 
     return jHashMap;
 }
+
+jclass LuaJavaType::objectClassInstanceClass(JNIEnv *env)
+{
+    static jclass jObjectClassInstance = NULL;
+
+    if (jObjectClassInstance == NULL)
+    {
+        jclass jHashMapCls = env -> FindClass("cn/vimfung/luascriptcore/modules/oo/LuaClassInstance");
+        jObjectClassInstance = (jclass)env -> NewGlobalRef(jHashMapCls);
+        env -> DeleteLocalRef(jHashMapCls);
+    }
+
+    return jObjectClassInstance;
+}

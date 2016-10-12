@@ -70,8 +70,7 @@ public class LuaObjectClass extends LuaModule
      */
     protected String instanceDescription(LuaClassInstance instance)
     {
-        Class<? extends LuaObjectClass> cls = instance.getOwnerClass();
-        String className = LuaModule.getModuleName(cls);
+        String className = LuaModule.getModuleName(this.getClass());
         if (className != null)
         {
             return String.format("[%s object]", className);
@@ -86,7 +85,7 @@ public class LuaObjectClass extends LuaModule
      */
     protected void instanceInitialize(LuaClassInstance instance)
     {
-
+        Log.v("lsc", "======== instance initialize");
     }
 
     /**
@@ -95,7 +94,7 @@ public class LuaObjectClass extends LuaModule
      */
     protected void instanceUninitialize(LuaClassInstance instance)
     {
-
+        Log.v("lsc", "======== instance uninitialize");
     }
 
     /**
@@ -117,6 +116,10 @@ public class LuaObjectClass extends LuaModule
         ArrayList<Field> exportFields = new ArrayList<Field>();
         ArrayList<String> filterMethodNames = new ArrayList<String>();
         ArrayList<Method> exportMethods = new ArrayList<Method>();
+
+        filterMethodNames.add("instanceDescription");
+        filterMethodNames.add("instanceInitialize");
+        filterMethodNames.add("instanceUninitialize");
 
         Field[] fields = moduleClass.getDeclaredFields();
         for (Field field : fields)
@@ -192,7 +195,7 @@ public class LuaObjectClass extends LuaModule
 
         if (objectClass != null)
         {
-            objectClass.exportMethods(exportMethodsArr);
+            objectClass._setExportMethods(exportMethodsArr);
         }
 
         return objectClass;

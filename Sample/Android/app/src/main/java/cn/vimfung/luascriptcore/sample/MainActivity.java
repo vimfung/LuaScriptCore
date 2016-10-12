@@ -16,12 +16,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
 import cn.vimfung.luascriptcore.LuaValue;
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -187,10 +190,10 @@ public class MainActivity extends AppCompatActivity {
                 if(!_hasRegClass)
                 {
                     _hasRegClass = true;
-                    _luaContext.registerModule(LuaObjectClass.class);
+                    _luaContext.registerModule(Person.class);
                 }
 
-                _luaContext.evalScript("print('Hello class');print(Object:create());");
+                _luaContext.evalScript("local person = Person:create(); person:setName('vimfung'); local p2 = Person:create(); p2:setName('xxxx'); person:speak(); person:walk(); p2:speak(); print(p2:name());");
 
                 }
             });

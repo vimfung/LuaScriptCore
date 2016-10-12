@@ -6,6 +6,7 @@
 #define ANDROID_LUACLASSINSTANCE_H
 
 #include "LuaContext.h"
+#include "LuaObjectClass.h"
 
 namespace cn
 {
@@ -17,13 +18,15 @@ namespace cn
             {
                 namespace oo
                 {
+                    class LuaObjectClass;
+
                     /**
                      * Lua类实例对象
                      */
-                    class LuaClassInstance
+                    class LuaClassInstance : public LuaObject
                     {
                     private:
-                        LuaContext *_context;
+                        LuaObjectClass *_objectClass;
                         int _index;
 
                     public:
@@ -34,7 +37,16 @@ namespace cn
                          * @param context 上下文对象
                          * @param index 栈中位置
                          */
-                        LuaClassInstance(LuaContext *context, int index);
+                        LuaClassInstance(LuaObjectClass *objectClass, int index);
+
+                    public:
+
+                        /**
+                         * 获取对象类型
+                         *
+                         * @return 对象类型
+                         */
+                        LuaObjectClass *getObjectClass();
 
                     public:
 

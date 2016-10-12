@@ -30,6 +30,7 @@ namespace cn
                 LuaValueTypeString = 3,
                 LuaValueTypeArray = 4,
                 LuaValueTypeMap = 5,
+                LuaValueTypePtr = 6,
                 LuaValueTypeInteger = 8,
                 LuaValueTypeData = 9
             };
@@ -53,6 +54,7 @@ namespace cn
                 LuaValue (const char *bytes, size_t length);
                 LuaValue (LuaValueList value);
                 LuaValue (LuaValueMap value);
+                LuaValue (const void *value);
                 ~LuaValue();
 
             public:
@@ -65,6 +67,7 @@ namespace cn
                 size_t getDataLength();
                 LuaValueList* toArray();
                 LuaValueMap* toMap();
+                const void* toPtr();
                 void push(lua_State *state);
                 void pushValue(lua_State *state, LuaValue *value);
                 void pushTable(lua_State *state, LuaValueList *list);
@@ -79,6 +82,7 @@ namespace cn
                 static LuaValue* DataValue(const char *bytes, size_t length);
                 static LuaValue* ArrayValue(LuaValueList value);
                 static LuaValue* DictonaryValue(LuaValueMap value);
+                static LuaValue* PtrValue(const void *value);
             };
         }
     }

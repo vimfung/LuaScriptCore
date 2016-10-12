@@ -8,6 +8,7 @@
 #include "LuaObjectManager.h"
 #include "LuaJavaType.h"
 #include "LuaJavaConverter.h"
+#include "LuaClassInstance.h"
 #include "LuaJavaModule.h"
 #include "LuaDefine.h"
 
@@ -86,11 +87,11 @@ static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodN
     JNIEnv *env = LuaJavaEnv::getEnv();
     LuaValue *retValue = NULL;
 
-    jobject jmodule = LuaJavaEnv::getJavaLuaModule(env, (LuaJavaModule *)module);
+    jobject jmodule = LuaJavaEnv::getJavaLuaModule(env, module);
     if (jmodule != NULL)
     {
         static jclass moduleClass = LuaJavaType::moduleClass(env);
-        static jmethodID invokeMethodID = env -> GetMethodID(moduleClass, "methodInvoke", "(Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
+        static jmethodID invokeMethodID = env -> GetMethodID(moduleClass, "_methodInvoke", "(Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
         static jclass luaValueClass = LuaJavaType::luaValueClass(env);
 
         jstring jMethodName = env -> NewStringUTF(methodName.c_str());
@@ -120,16 +121,24 @@ static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodN
     return retValue;
 }
 
+/**
+ * 模块获取器处理器
+ *
+ * @param module 模块对象
+ * @param fieldName 字段名称
+ *
+ * @return 返回值
+ */
 static LuaValue* _luaModuleGetterHandler (LuaModule *module, std::string fieldName)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
     LuaValue *retValue = NULL;
 
-    jobject jmodule = LuaJavaEnv::getJavaLuaModule(env, (LuaJavaModule *)module);
+    jobject jmodule = LuaJavaEnv::getJavaLuaModule(env, module);
     if (jmodule != NULL)
     {
         static jclass moduleClass = LuaJavaType::moduleClass(env);
-        static jmethodID getFieldId = env -> GetMethodID(moduleClass, "getField", "(Ljava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;");
+        static jmethodID getFieldId = env -> GetMethodID(moduleClass, "_getField", "(Ljava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;");
 
         jstring fieldNameStr = env -> NewStringUTF(fieldName.c_str());
         jobject retObj = env -> CallObjectMethod(jmodule, getFieldId, fieldNameStr);
@@ -150,15 +159,22 @@ static LuaValue* _luaModuleGetterHandler (LuaModule *module, std::string fieldNa
     return retValue;
 }
 
+/**
+ * 模块设置器处理器
+ *
+ * @param module 模块对象
+ * @param fieldName 字段名称
+ * @param value 字段值
+ */
 static void _luaModuleSetterHandler (LuaModule *module, std::string fieldName, LuaValue *value)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
-    jobject jmodule = LuaJavaEnv::getJavaLuaModule(env, (LuaJavaModule *)module);
+    jobject jmodule = LuaJavaEnv::getJavaLuaModule(env, module);
     if (jmodule != NULL)
     {
         static jclass moduleClass = LuaJavaType::moduleClass(env);
-        static jmethodID setFieldId = env -> GetMethodID(moduleClass, "setField", "(Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
+        static jmethodID setFieldId = env -> GetMethodID(moduleClass, "_setField", "(Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
 
         jstring fieldNameStr = env -> NewStringUTF(fieldName.c_str());
         env -> CallVoidMethod(jmodule, setFieldId, fieldNameStr, LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, value));

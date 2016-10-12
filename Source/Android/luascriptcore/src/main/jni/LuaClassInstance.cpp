@@ -5,23 +5,30 @@
 #include "LuaClassInstance.h"
 #include "lua.hpp"
 #include "../../../../../lua-core/src/lapi.h"
+#include "LuaObjectClass.h"
+#include "LuaDefine.h"
 
-cn::vimfung::luascriptcore::modules::oo::LuaClassInstance::LuaClassInstance(LuaContext *context, int index)
+cn::vimfung::luascriptcore::modules::oo::LuaClassInstance::LuaClassInstance(LuaObjectClass *objectClass, int index)
 {
-    _context = context;
+    _objectClass = objectClass;
     _index = index;
+}
+
+cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *cn::vimfung::luascriptcore::modules::oo::LuaClassInstance::getObjectClass()
+{
+    return _objectClass;
 }
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::modules::oo::LuaClassInstance::getField(std::string name)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _objectClass -> getContext() -> getLuaState();
 
     lua_pushvalue(state, _index);
 
     lua_pushstring(state, name.c_str());
     lua_gettable(state, -2);
 
-    LuaValue *retValue = _context -> getValueByIndex(-1);
+    LuaValue *retValue = _objectClass -> getContext() -> getValueByIndex(-1);
 
     lua_settop(state, -3);
 
@@ -30,7 +37,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::modules::oo::L
 
 void cn::vimfung::luascriptcore::modules::oo::LuaClassInstance::setField(std::string name, cn::vimfung::luascriptcore::LuaValue *value)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _objectClass -> getContext() -> getLuaState();
 
     lua_pushvalue(state, _index);
 
@@ -42,7 +49,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaClassInstance::setField(std::st
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::modules::oo::LuaClassInstance::callMethod(std::string methodName, LuaArgumentList *arguments)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _objectClass -> getContext() -> getLuaState();
 
     lua_pushvalue(state, _index);
 
@@ -64,7 +71,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::modules::oo::L
         if (lua_pcall(state, (int)arguments -> size() + 1, 1, 0) == 0)
         {
             //调用成功
-            resultValue = _context -> getValueByIndex(-1);
+            resultValue = _objectClass -> getContext() -> getValueByIndex(-1);
         }
     }
 

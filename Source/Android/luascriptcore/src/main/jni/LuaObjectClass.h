@@ -52,6 +52,36 @@ namespace cn
                     typedef void (*LuaSubClassHandler) (LuaObjectClass *objectClass);
 
                     /**
+                     * 类实例方法处理器
+                     */
+                    typedef LuaValue* (*LuaInstanceMethodHandler) (LuaClassInstance *instance, std::string methodName, LuaArgumentList arguments);
+
+                    /**
+                     * 类属性Getter处理器
+                     */
+                    typedef LuaValue* (*LuaInstanceGetterHandler) (LuaClassInstance *instance, std::string fieldName);
+
+                    /**
+                     * 类属性Setter处理器
+                     */
+                    typedef void (*LuaInstanceSetterHandler) (LuaClassInstance *instance, std::string fieldName, LuaValue *value);
+
+                    /**
+                     * 类方法映射表类型
+                     */
+                    typedef std::map<std::string, LuaInstanceMethodHandler> LuaInstanceMethodMap;
+
+                    /**
+                     *  类属性Getter映射表类型
+                     */
+                    typedef std::map<std::string, LuaInstanceSetterHandler> LuaInstanceSetterMap;
+
+                    /**
+                     * 类属性Setter映射表类型
+                     */
+                    typedef std::map<std::string, LuaInstanceGetterHandler> LuaInstanceGetterMap;
+
+                    /**
                      * Lua类描述对象
                      */
                     class LuaObjectClass : public LuaModule
@@ -81,6 +111,21 @@ namespace cn
                          * 子类化处理器
                          */
                         LuaSubClassHandler  _subclassHandler;
+
+                        /**
+                         * 实例方法表
+                         */
+                        LuaInstanceMethodMap _instanceMethodMap;
+
+                        /**
+                         * 实例属性Setter表
+                         */
+                        LuaInstanceSetterMap _instanceSetterMap;
+
+                        /**
+                         * 实例属性Getter表
+                         */
+                        LuaInstanceGetterMap _instanceGetterMap;
 
                     public:
 
@@ -159,6 +204,52 @@ namespace cn
                          */
                         virtual void onRegister(const std::string &name,
                                                 cn::vimfung::luascriptcore::LuaContext *context);
+
+                        /**
+                         * 获取模块方法处理器, 提供Lua回调方法调用
+                         *
+                         * @param methodName 方法名称
+                         *
+                         * @return 模块方法处理器
+                         */
+                        LuaInstanceMethodHandler getInstanceMethodHandler(std::string methodName);
+
+                        /**
+                         * 获取属性设置处理器, 提供Lua回调方法调用
+                         *
+                         * @param fieldName 字段名称
+                         *
+                         * @return Setter方法处理器
+                         */
+                        LuaInstanceSetterHandler getInstanceSetterHandler(std::string fieldName);
+
+                        /**
+                         * 获取属性获取处理器, 提供Lua回调方法调用
+                         *
+                         * @param fieldName 字段名称
+                         *
+                         * @return Getter方法处理器
+                         */
+                        LuaInstanceGetterHandler getGetterHandler(std::string fieldName);
+
+                    public:
+
+                        /**
+                         * 注册实例属性
+                         *
+                         * @param fieldName 字段名称
+                         * @param getterHandler 获取处理器
+                         * @param setterHandler 设置处理器
+                         */
+                        void registerInstanceField(std::string fieldName, LuaInstanceGetterHandler getterHandler, LuaInstanceSetterHandler setterHandler);
+
+                        /**
+                         * 注册实例方法
+                         *
+                         * @param methodName 方法名称
+                         * @param handler 方法处理器
+                         */
+                        void registerInstanceMethod(std::string methodName, LuaInstanceMethodHandler handler);
                     };
                 }
             }
