@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 #include "LuaValue.h"
+#include "LuaDefine.h"
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue()
         : LuaObject()
@@ -66,6 +67,13 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueMap value)
     _value = new LuaValueMap (value);
 }
 
+cn::vimfung::luascriptcore::LuaValue::LuaValue (const void *value)
+        :LuaObject()
+{
+    _type = LuaValueTypePtr;
+    _value = (void *)value;
+}
+
 
 cn::vimfung::luascriptcore::LuaValue::~LuaValue()
 {
@@ -98,7 +106,11 @@ cn::vimfung::luascriptcore::LuaValue::~LuaValue()
             }
         }
 
-        delete _value;
+        if (_type != LuaValueTypePtr)
+        {
+            delete _value;
+        }
+
         _value = NULL;
     }
 }
@@ -143,6 +155,11 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::Dict
     return new LuaValue(value);
 }
 
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::PtrValue(const void *value)
+{
+    return new LuaValue(value);
+}
+
 cn::vimfung::luascriptcore::LuaValueType cn::vimfung::luascriptcore::LuaValue::getType()
 {
     return _type;
@@ -179,6 +196,9 @@ void cn::vimfung::luascriptcore::LuaValue::pushValue(lua_State *state, cn::vimfu
             break;
         case LuaValueTypeData:
             lua_pushlstring(state, (char *)value -> _value, value -> _bytesLen);
+            break;
+        case LuaValueTypePtr:
+            lua_pushlightuserdata(state, value -> _value);
             break;
         default:
             break;
@@ -287,6 +307,16 @@ cn::vimfung::luascriptcore::LuaValueMap* cn::vimfung::luascriptcore::LuaValue::t
     if (_type == LuaValueTypeMap)
     {
         return static_cast<LuaValueMap *>(_value);
+    }
+
+    return NULL;
+}
+
+const void* cn::vimfung::luascriptcore::LuaValue::toPtr()
+{
+    if (_type == LuaValueTypePtr)
+    {
+        return (const void *)_value;
     }
 
     return NULL;

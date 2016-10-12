@@ -179,6 +179,11 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
 
             break;
         }
+        case LUA_TLIGHTUSERDATA:
+        {
+            value = LuaValue::PtrValue(lua_topointer(_state, index));
+            break;
+        }
         default:
         {
             //默认为nil

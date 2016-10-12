@@ -9,6 +9,7 @@
 #include "lua.hpp"
 #include "LuaContext.h"
 #import "LuaDefined.h"
+#include "../../../../../lua-core/src/lua.h"
 
 namespace cn
 {

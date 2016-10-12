@@ -148,6 +148,15 @@ public:
      * @return HashMap类型
      */
     static jclass hashMapClass(JNIEnv *env);
+
+    /**
+     * 获取LuaClassInstance类型
+     *
+     * @param env JNI环境
+     *
+     * @retrun LuaClassInstance类型
+     */
+    static jclass objectClassInstanceClass(JNIEnv *env);
 };
 
 

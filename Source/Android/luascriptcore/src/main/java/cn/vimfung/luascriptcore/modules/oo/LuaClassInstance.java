@@ -1,32 +1,21 @@
 package cn.vimfung.luascriptcore.modules.oo;
 
+import cn.vimfung.luascriptcore.LuaBaseObject;
 import cn.vimfung.luascriptcore.LuaValue;
 
 /**
  * 类实例对象,该对象指示一个Lua中的类实例对象
  * Created by vimfung on 16/9/27.
  */
-public class LuaClassInstance
+public class LuaClassInstance extends LuaBaseObject
 {
-    private Class<? extends LuaObjectClass> _ownerClass;
-    private LuaObjectClass _nativeObject;
-
     /**
-     * 获取当前实例所属类
-     * @return 类型
+     * 创建上下文对象
+     * @param nativeId  本地对象标识
      */
-    public Class<? extends LuaObjectClass> getOwnerClass ()
+    protected LuaClassInstance(int nativeId)
     {
-        return _ownerClass;
-    }
-
-    /**
-     * 获取当前实例的本地对象
-     * @return  类实例本地对象
-     */
-    public LuaObjectClass getNativeObject ()
-    {
-        return _nativeObject;
+        super(nativeId);
     }
 
     /**
