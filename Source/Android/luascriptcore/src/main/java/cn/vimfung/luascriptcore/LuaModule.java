@@ -30,7 +30,7 @@ public abstract class LuaModule extends LuaBaseObject
      * @param moduleClass 模块类型
      * @return  模块名称
      */
-    public static String getModuleName(Class<? extends LuaModule> moduleClass)
+    protected static String getModuleName(Class<? extends LuaModule> moduleClass)
     {
         String modName = null;
 
@@ -66,7 +66,7 @@ public abstract class LuaModule extends LuaBaseObject
      * 获取模块名称
      * @return 模块名称
      */
-    static String moduleName()
+    protected static String moduleName()
     {
         return null;
     }
@@ -76,7 +76,7 @@ public abstract class LuaModule extends LuaBaseObject
      * @param context   Lua上下文对象
      * @param moduleName    模块名称
      */
-    static LuaModule register(LuaContext context, String moduleName, Class<? extends LuaModule> moduleClass)
+    protected static LuaModule register(LuaContext context, String moduleName, Class<? extends LuaModule> moduleClass)
     {
         //过滤方法名称
         ArrayList<Field> exportFields = new ArrayList<Field>();
