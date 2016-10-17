@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
                         _luaContext.registerModule(LogModule.class);
                     }
 
-                    _luaContext.evalScript("LogModule.writeLog('Hello lua module!');print(LogModule.add({1000, 24}));LogModule.setName('vimfung');LogModule.setAge(30);LogModule.printInfo();print(LogModule.name());print(LogModule.age());");
+                    _luaContext.evalScript("LogModule.writeLog('Hello Lua Module!');");
                 }
             });
         }
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                     _luaContext.registerModule(Person.class);
                 }
 
-                _luaContext.evalScript("local person = Person:create(); person:setName('vimfung'); local p2 = Person:create(); p2:setName('xxxx'); person:speak(); person:walk(); p2:speak(); print(p2:name());");
+                _luaContext.evalScript("local person = Person:create(); person:setName('vimfung'); person:speak(); person:walk();");
 
                 }
             });

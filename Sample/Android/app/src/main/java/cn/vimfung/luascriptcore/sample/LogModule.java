@@ -19,15 +19,4 @@ public class LogModule extends LuaModule
     {
         Log.v("luascriptcore", message);
     }
-
-    public double add(double[] a) {return a[0] + a[1];}
-
-    public int age;
-
-    public String name;
-
-    public void printInfo ()
-    {
-        Log.v("lsc", String.format("%s age = %d", name, age));
-    }
 }

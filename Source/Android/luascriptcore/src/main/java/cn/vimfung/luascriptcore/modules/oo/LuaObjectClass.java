@@ -31,7 +31,7 @@ public class LuaObjectClass extends LuaModule
         return "1.0.0";
     }
 
-    static String moduleName ()
+    protected static String moduleName ()
     {
         return "Object";
     }
@@ -102,7 +102,7 @@ public class LuaObjectClass extends LuaModule
      * @param context   Lua上下文对象
      * @param moduleName    模块名称
      */
-    static LuaModule register(LuaContext context, String moduleName, Class<? extends LuaModule> moduleClass)
+    protected static LuaModule register(LuaContext context, String moduleName, Class<? extends LuaModule> moduleClass)
     {
         Log.v("lsc", "register class");
 
