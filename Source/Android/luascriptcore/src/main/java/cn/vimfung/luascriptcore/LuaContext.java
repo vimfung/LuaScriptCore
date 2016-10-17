@@ -172,6 +172,7 @@ public class LuaContext extends LuaBaseObject
             String moduleName = LuaModule.getModuleName(moduleClass);
             if (!LuaNativeUtil.isModuleRegisted(_nativeId, moduleName))
             {
+                Log.v("lsc", String.format("register module = %s", moduleName));
                 Method regMethod = moduleClass.getMethod("register", LuaContext.class, String.class, moduleClass.getClass());
                 LuaModule module = (LuaModule) regMethod.invoke(moduleClass, this, moduleName, moduleClass);
                 if (module != null)
