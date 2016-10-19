@@ -12,6 +12,12 @@
 #import "LSCModule_Private.h"
 #import <objc/runtime.h>
 
+@interface LSCContext ()
+
+@property (nonatomic, strong) NSNumber *value;
+
+@end
+
 @implementation LSCContext
 
 - (instancetype)init
@@ -19,7 +25,6 @@
     if (self = [super init])
     {
         self.methodBlocks = [NSMutableDictionary dictionary];
-        self.modules = [NSMutableDictionary dictionary];
         
         self.state = luaL_newstate();
         //加载标准库
@@ -28,6 +33,25 @@
         //设置搜索路径
         NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
         [self addSearchPath:resourcePath];
+        
+//        NSLog(@"top = %d", lua_gettop(self.state));
+//        self.value = [[NSNumber alloc] init];
+//        lua_pushlightuserdata(self.state, (__bridge void *)(self));
+//        NSLog(@"%d", luaL_newmetatable(self.state, "Number"));
+//        NSLog(@"top = %d", lua_gettop(self.state));
+//        
+//        lua_pushvalue(self.state, -1);
+//        lua_setfield(self.state, -2, "__index");
+//        
+//        lua_pushstring(self.state, "test");
+//        lua_setfield(self.state, -2, "k");
+//    
+//        NSLog(@"top = %d", lua_gettop(self.state));
+//        NSLog(@"%d", lua_setmetatable(self.state, -2));
+//        NSLog(@"top = %d", lua_gettop(self.state));
+//        lua_setglobal(self.state, "num");
+//        
+//        [self evalScriptFromString:@"print(num.k);"];
     }
     
     return self;
@@ -184,27 +208,11 @@
 {
     if ([moduleClass isSubclassOfClass:[LSCModule class]])
     {
-        NSString *moduleName = [moduleClass moduleName];
-        if (![self.modules objectForKey:moduleName])
-        {
-            LSCModule *module = [[moduleClass alloc] init];
-            [module _regWithContext:self moduleName:moduleName];
-            [self.modules setObject:module forKey:moduleName];
-        }
-        else
-        {
-            @throw [NSException
-                    exceptionWithName:@"Unabled register module"
-                    reason:@"The module of the specified name already exists!"
-                    userInfo:nil];
-        }
+        [moduleClass _regModule:moduleClass context:self];
     }
     else
     {
-        @throw [NSException
-                exceptionWithName:@"Invalide module"
-                reason:@"Module must inherit from LSCModule"
-                userInfo:nil];
+         [self raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module is not subclass of the 'LSCModule' class!", NSStringFromClass(moduleClass)]];
     }
 }
 
@@ -212,59 +220,23 @@
 {
     if ([moduleClass isSubclassOfClass:[LSCModule class]])
     {
-        NSString *moduleName = [moduleClass moduleName];
-        LSCModule *module = [self.modules objectForKey:moduleName];
-        if (module)
-        {
-            [module _unregWithContext:self moduleName:moduleName];
-            [self.modules removeObjectForKey:moduleName];
-        }
+        [moduleClass _unregModule:moduleClass context:self];
     }
     else
     {
-        @throw [NSException
-                exceptionWithName:@"Invalide module"
-                reason:@"Module must inherit from LSCModule"
-                userInfo:nil];
+        [self raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module is not subclass of the 'LSCModule' class!", NSStringFromClass(moduleClass)]];
     }
 }
 
-//- (void)addModule:(LSCModule *)module
-//{
-//    
-//    if (!module.name)
-//    {
-//        @throw [NSException
-//                exceptionWithName:@"Invalid module"
-//                reason:@"Module's name is empty!"
-//                userInfo:nil];
-//    }
-//    
-//    if (![self.modules objectForKey:module.name])
-//    {
-//        [module enabledWithState:self.state];
-//        [self.modules setObject:module forKey:module.name];
-//    }
-//    else
-//    {
-//        @throw [NSException
-//                exceptionWithName:@"Unabled register module"
-//                reason:@"The module of the specified name already exists!"
-//                userInfo:nil];
-//    }
-//}
-
-- (void)removeModule:(LSCModule *)module
-{
-//    LSCModule *m = [self.modules objectForKey:module.name];
-//    if (m == module)
-//    {
-//        [module disabledWithState:self.state];
-//        [self.modules removeObjectForKey:module.name];
-//    }
-}
-
 #pragma mark - Private
+
+- (void)raiseExceptionWithMessage:(NSString *)message
+{
+    if (self.exceptionHandler)
+    {
+        self.exceptionHandler (message);
+    }
+}
 
 static int cfuncRouteHandler(lua_State *state)
 {

@@ -7,10 +7,10 @@
 //
 
 #import "LSCObjectClass.h"
-#import "LSCClassInstance_Private.h"
 #import "LSCModule_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
+#import "LSCValue+OO.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 
@@ -18,7 +18,6 @@
  *  实例缓存池，主要用于与lua中的对象保持相同的生命周期而设定，创建时放入池中，当gc回收时从池中移除。
  */
 static NSMutableSet *_instancePool = nil;
-static __weak LSCClassInstance *_currentInstance = nil;
 
 /**
  *  放入实例到缓存池中
@@ -47,31 +46,30 @@ static void removeInstance(LSCObjectClass *instance)
     [_instancePool removeObject:instance];
 }
 
+@interface LSCObjectClass ()
+
+/**
+ 上下文对象
+ */
+@property (nonatomic, weak) LSCContext *context;
+
+@end
+
 @implementation LSCObjectClass
+
+- (instancetype)initWithContext:(LSCContext *)context
+{
+    if (self = [super init])
+    {
+        self.context = context;
+    }
+    
+    return self;
+}
 
 + (NSString *)version
 {
     return @"1.0.0";
-}
-
-- (NSString *)_instanceDescription:(LSCClassInstance *)instance
-{
-    return [NSString stringWithFormat:@"[%@ object]", [instance.ownerClass moduleName]];
-}
-
-- (void)_instanceInitialize:(LSCClassInstance *)instance
-{
-    
-}
-
-- (void)_instanceUninitialize:(LSCClassInstance *)instance
-{
-    
-}
-
-+ (LSCClassInstance *)currentInstance
-{
-    return _currentInstance;
 }
 
 + (NSString *)moduleName
@@ -84,132 +82,66 @@ static void removeInstance(LSCObjectClass *instance)
     return [super moduleName];
 }
 
-- (void)_regWithContext:(LSCContext *)context moduleName:(NSString *)moduleName
++ (void)_regModule:(Class)module context:(LSCContext *)context
 {
-    lua_State *state = context.state;
-    
-    if (self.superclass != [LSCModule class])
+    if (![module isSubclassOfClass:[LSCObjectClass class]])
     {
-        lua_getglobal(state, [[self.superclass moduleName] UTF8String]);
+        [context raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module is not subclass of the 'LSCObjectClass' class!", NSStringFromClass(module)]];
+        return;
+    }
+    
+    lua_State *state = context.state;
+    NSString *name = [module moduleName];
+    
+    lua_getglobal(state, name.UTF8String);
+    if (!lua_isnil(state, -1))
+    {
+        [context raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module of the specified name already exists!", name]];
+        lua_pop(state, 1);
+        return;
+    }
+    lua_pop(state, 1);
+    
+    Class superClass = class_getSuperclass(module);
+    if (superClass != [LSCModule class])
+    {
+        lua_getglobal(state, [[superClass moduleName] UTF8String]);
         if (lua_isnil(state, -1))
         {
             //如果父类还没有注册，则进行注册操作
-            [context registerModuleWithClass:self.superclass];
+            [context registerModuleWithClass:superClass];
         }
+        lua_pop(state, 1);
     }
     
-    [self _regClass:self.class withContext:context moduleName:moduleName];
-}
-
-/**
- *  注册类型
- *
- *  @param cls        类型
- *  @param context    上下文对象
- *  @param moduleName 模块名称
- */
-- (void)_regClass:(Class)cls withContext:(LSCContext *)context moduleName:(NSString *)moduleName
-{
-    lua_State *state = context.state;
-
-    lua_newtable(state);
-
-    lua_pushstring(state, [NSStringFromClass(cls) UTF8String]);
-    lua_setfield(state, -2, "_nativeClassName");
-    
-    lua_pushvalue(state, -1);
-    lua_setfield(state, -2, "__index");
-    
-    lua_pushcfunction(state, objectDestroyHandler);
-    lua_setfield(state, -2, "__gc");
-    
-    lua_pushcfunction(state, objectToStringHandler);
-    lua_setfield(state, -2, "__tostring");
-    
-    Class superClass = NULL;
-    if (cls != [LSCObjectClass class])
-    {
-        //设置父类
-        superClass = class_getSuperclass(cls);
-
-        lua_getglobal(state, [[superClass moduleName] UTF8String]);
-        if (lua_istable(state, -1))
-        {
-            //设置父类元表
-            lua_setmetatable(state, -2);
-
-            //关联父类
-            lua_getglobal(state, [[superClass moduleName] UTF8String]);
-            lua_setfield(state, -2, "super");
-        }
-    }
-    else
-    {
-        //Object需要创建对象方法
-        lua_pushcfunction(state, objectCreateHandler);
-        lua_setfield(state, -2, "create");
-        
-        //子类化对象方法
-        lua_pushcfunction(state, subClassHandler);
-        lua_setfield(state, -2, "subclass");
-    }
-    
-    NSMutableArray *filterMethodList = [NSMutableArray arrayWithObjects:@"create", @"subclass", nil];
-    
-    //解析方法
-    unsigned int methodCount = 0;
-    Method *methods = class_copyMethodList(self.class, &methodCount);
-    for (const Method *m = methods; m < methods + methodCount; m ++)
-    {
-        SEL selector = method_getName(*m);
-        
-        size_t returnTypeLen = 256;
-        char returnType[256];
-        method_getReturnType(*m, returnType, returnTypeLen);
-        
-        NSString *methodName = NSStringFromSelector(selector);
-        if (![methodName hasPrefix:@"_"]
-            && ![methodName hasPrefix:@"."]
-            && ![methodName hasPrefix:@"init"]
-            && ![filterMethodList containsObject:methodName])
-        {
-            lua_pushlightuserdata(state, (__bridge void *)self);
-            lua_pushstring(state, [methodName UTF8String]);
-            lua_pushstring(state, returnType);
-            lua_pushcclosure(state, InstanceMethodRouteHandler, 3);
-            
-            NSString *luaMethodName = [self _getLuaMethodNameWithName:methodName];
-            lua_setfield(state, -2, [luaMethodName UTF8String]);
-        }
-    }
-    free(methods);
-    
-    lua_setglobal(state, [moduleName UTF8String]);
+    //通过LSCModule的注册方法来导出类的静态方法。
+    [LSCModule _regModule:module context:context];
+    [self _regClass:module withContext:context moduleName:name];
 }
 
 static int InstanceMethodRouteHandler(lua_State *state)
 {
-    LSCModule *module = (__bridge LSCModule *)lua_touserdata(state, lua_upvalueindex(1));
+    void **ref = (void **)lua_touserdata(state, 1);
+    LSCObjectClass *instance = (__bridge LSCObjectClass *)(*ref);
+    
+    Class moduleClass = (__bridge Class)lua_touserdata(state, lua_upvalueindex(1));
     NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(2))];
     NSString *returnType = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
     SEL selector = NSSelectorFromString(methodName);
-    
-    NSMethodSignature *sign = [module methodSignatureForSelector:selector];
+
+    NSMethodSignature *sign = [moduleClass instanceMethodSignatureForSelector:selector];
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
     
     //获取类实例对象
-    LSCClassInstance *instance = [[LSCClassInstance alloc] initWithState:state atIndex:1];
     if (instance)
     {
-        _currentInstance = instance;
-        
-        [invocation setTarget:instance.nativeObject];
+        [invocation setTarget:instance];
         [invocation setSelector:selector];
         
         int top = lua_gettop(state);
         for (int i = 2; i <= top; i++)
         {
-            LSCValue *value = [LSCValue valueWithState:state atIndex:i];
+            LSCValue *value = [LSCValue objectValueWithState:state atIndex:i];
             
             int index = i;
             
@@ -337,14 +269,9 @@ static int InstanceMethodRouteHandler(lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    LSCClassInstance *instance = [[LSCClassInstance alloc] initWithState:state atIndex:1];
-    _currentInstance = instance;
-    
-    //调用对象的destroy方法
-    [instance callMethodWithName:@"destroy" arguments:nil];
-    
-    [instance.nativeObject _instanceUninitialize:instance];
-    removeInstance(instance.nativeObject);
+    void **ref = (void **)lua_touserdata(state, 1);
+    LSCObjectClass *instance = (__bridge LSCObjectClass *)(*ref);
+    removeInstance(instance);
     
     return 0;
 }
@@ -358,10 +285,9 @@ static int objectDestroyHandler (lua_State *state)
  */
 static int objectToStringHandler (lua_State *state)
 {
-    LSCClassInstance *instance = [[LSCClassInstance alloc] initWithState:state atIndex:1];
-    _currentInstance = instance;
-    
-    lua_pushstring(state, [[instance.nativeObject _instanceDescription:instance] UTF8String]);
+    void **ref = (void **)lua_touserdata(state, 1);
+    LSCObjectClass *instance = (__bridge LSCObjectClass *)(*ref);
+    lua_pushstring(state, [[instance description] UTF8String]);
     
     return 1;
 }
@@ -375,47 +301,26 @@ static int objectToStringHandler (lua_State *state)
  */
 static int objectCreateHandler (lua_State *state)
 {
-    if (lua_gettop(state) <= 0)
-    {
-        return 0;
-    }
+    LSCContext *context = (__bridge LSCContext *)lua_touserdata(state, lua_upvalueindex(1));
+    Class moduleClass = (__bridge Class)lua_touserdata(state, lua_upvalueindex(2));
+    NSString *moduleName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
     
-    lua_newtable(state);
+    //先为实例对象在lua中创建内存
+    void **ref = (void **)lua_newuserdata(state, sizeof(LSCObjectClass **));
     
-    //获取类型名称
-    lua_pushvalue(state, 1);
-    lua_pushstring(state, "_nativeClassName");
-    lua_gettable(state, -2);
-    NSString *className = [NSString stringWithUTF8String:lua_tostring(state, -1)];
-    Class cls = NSClassFromString(className);
+    //创建本地实例对象，赋予lua的内存块
+    LSCObjectClass *instance = [[moduleClass alloc] initWithContext:context];
+    *ref = (__bridge void *)instance;
     
-    lua_settop(state, -3);
-    
-    lua_pushvalue(state, 1);
-//    lua_getglobal(state, [[cls moduleName] UTF8String]);
+    luaL_getmetatable(state, moduleName.UTF8String);
     if (lua_istable(state, -1))
     {
-        //设置元表指向类
         lua_setmetatable(state, -2);
-        
-        //创建_native对象
-        LSCObjectClass *nativeObject = [[cls alloc] init];
-        lua_pushlightuserdata(state, (__bridge void *)(nativeObject));
-        lua_setfield(state, -2, "_nativeObject");
-
-        //放入池中
-        putInstance(nativeObject);
-        
-        //告诉原生层生成对象
-        LSCClassInstance *instance = [[LSCClassInstance alloc] initWithState:state atIndex:-1];
-        _currentInstance = instance;
-        
-        [instance.nativeObject _instanceInitialize:instance];
-        
-        return 1;
     }
     
-    return 0;
+    putInstance(instance);
+    
+    return 1;
 }
 
 /**
@@ -427,74 +332,124 @@ static int objectCreateHandler (lua_State *state)
  */
 static int subClassHandler (lua_State *state)
 {
-    if (lua_gettop(state) <= 0)
+    LSCContext *context = (__bridge LSCContext *)lua_touserdata(state, lua_upvalueindex(1));
+    Class moduleClass = (__bridge Class)lua_touserdata(state, lua_upvalueindex(2));
+    
+    if (lua_gettop(state) == 0)
     {
+        [context raiseExceptionWithMessage:@"Miss the subclass name parameter"];
         return 0;
     }
     
-    //获取当前类型的
-    lua_pushvalue(state, 1);
+    NSString *subclassName = [NSString stringWithUTF8String:luaL_checkstring(state, 1)];
+    Class subCls = objc_allocateClassPair(moduleClass, subclassName.UTF8String, 0);
+    objc_registerClassPair(subCls);
     
-    lua_getfield(state, -1, "_nativeObject");
-    if (!lua_isnil(state, -1))
-    {
-        //实例对象不能调用该方法
-        return 0;
-    }
+    [context registerModuleWithClass:subCls];
     
-    NSString *nativeClassName = nil;
-    lua_pop(state, 1);
-    lua_getfield(state, -1, "_nativeClassName");
-    if (lua_isstring(state, -1))
-    {
-        nativeClassName = [NSString stringWithUTF8String:lua_tostring(state, -1)];
-    }
-    lua_pop(state, 2);
-    
-    if (!nativeClassName)
-    {
-        //不存在原生类
-        return 0;
-    }
-    
-    if (lua_gettop(state) < 2 && !lua_istable(state, 2))
-    {
-        lua_newtable(state);
-    }
-    else
-    {
-        lua_pushvalue(state, 2);
-    }
-    
-    lua_pushstring(state, [nativeClassName UTF8String]);
-    lua_setfield(state, -2, "_nativeClassName");
-    
-    lua_pushvalue(state, -1);
-    lua_setfield(state, -2, "__index");
-    
-    int subClassIndex = lua_gettop(state);
-    
-    //继承父级gc
-    lua_pushvalue(state, 1);
-    lua_getfield(state, -1, "__gc");
-    lua_setfield(state, subClassIndex, "__gc");
-    lua_pop(state, 1);
+    return 0;
+}
 
-    //继承父级tostring
-    lua_pushvalue(state, 1);
-    lua_getfield(state, -1, "__tostring");
-    lua_setfield(state, subClassIndex, "__tostring");
+#pragma mark - Private
+
+/**
+ *  注册类型
+ *
+ *  @param cls        类型
+ *  @param context    上下文对象
+ *  @param moduleName 模块名称
+ */
++ (void)_regClass:(Class)cls withContext:(LSCContext *)context moduleName:(NSString *)moduleName
+{
+    lua_State *state = context.state;
+    
+    lua_getglobal(state, moduleName.UTF8String);
+    if (lua_istable(state, -1))
+    {
+        //添加创建对象方法
+        lua_pushlightuserdata(state, (__bridge void *)context);
+        lua_pushlightuserdata(state, (__bridge void *)cls);
+        lua_pushstring(state, moduleName.UTF8String);
+        lua_pushcclosure(state, objectCreateHandler, 3);
+        lua_setfield(state, -2, "create");
+        
+        //添加子类化对象方法
+        lua_pushlightuserdata(state, (__bridge void *)context);
+        lua_pushlightuserdata(state, (__bridge void *)cls);
+        lua_pushcclosure(state, subClassHandler, 2);
+        lua_setfield(state, -2, "subclass");
+       
+        //创建实例对象元表
+        luaL_newmetatable(state, moduleName.UTF8String);
+        
+        lua_pushvalue(state, -1);
+        lua_setfield(state, -2, "__index");
+        
+        lua_pushcfunction(state, objectDestroyHandler);
+        lua_setfield(state, -2, "__gc");
+        
+        lua_pushcfunction(state, objectToStringHandler);
+        lua_setfield(state, -2, "__tostring");
+        
+        Class superClass = NULL;
+        if (cls != [LSCObjectClass class])
+        {
+            //设置父类
+            superClass = class_getSuperclass(cls);
+            
+            //获取父级元表
+            luaL_getmetatable(state, [[superClass moduleName] UTF8String]);
+            if (lua_istable(state, -1))
+            {
+                //设置父类元表
+                lua_pushvalue(state, -1);
+                lua_setmetatable(state, -2);
+                
+                //关联父类
+                lua_setfield(state, -2, "super");
+            }
+            else
+            {
+                lua_pop(state, 1);
+            }
+        }
+        
+        NSMutableArray *filterMethodList = [NSMutableArray arrayWithObjects:
+                                            @"create",
+                                            @"subclass",
+                                            @"context",
+                                            @"setContext:",
+                                            nil];
+
+        //解析方法
+        unsigned int methodCount = 0;
+        Method *methods = class_copyMethodList(cls, &methodCount);
+        for (const Method *m = methods; m < methods + methodCount; m ++)
+        {
+            SEL selector = method_getName(*m);
+            
+            size_t returnTypeLen = 256;
+            char returnType[256];
+            method_getReturnType(*m, returnType, returnTypeLen);
+            
+            NSString *methodName = NSStringFromSelector(selector);
+            if (![methodName hasPrefix:@"_"]
+                && ![methodName hasPrefix:@"."]
+                && ![methodName hasPrefix:@"init"]
+                && ![filterMethodList containsObject:methodName])
+            {
+                lua_pushlightuserdata(state, (__bridge void *)cls);
+                lua_pushstring(state, [methodName UTF8String]);
+                lua_pushstring(state, returnType);
+                lua_pushcclosure(state, InstanceMethodRouteHandler, 3);
+                
+                NSString *luaMethodName = [LSCModule _getLuaMethodNameWithName:methodName];
+                lua_setfield(state, -2, [luaMethodName UTF8String]);
+            }
+        }
+        free(methods);
+    }
     lua_pop(state, 1);
-    
-    //设置父类元表
-    lua_pushvalue(state, 1);
-    lua_setmetatable(state, -2);
-    
-    //关联父类
-    lua_pushvalue(state, 1);
-    lua_setfield(state, -2, "super");
-    
-    return 1;
 }
 
 @end

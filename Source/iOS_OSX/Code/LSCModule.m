@@ -152,29 +152,17 @@ static int ModuleMethodRouteHandler(lua_State *state)
 
 + (NSString *)version
 {
-    return nil;
+    return @"";
 }
 
-#pragma mark - Private
-
-/**
- *  获取模块名称
- *
- *  @return 模块名称
- */
 + (NSString *)moduleName
 {
     return NSStringFromClass([self class]);
 }
 
-/**
- *  获取Lua方法名称，需要过滤冒号后面所有内容以及带With、By、At等
- *
- *  @param name 原始方法
- *
- *  @return 方法
- */
-- (NSString *)_getLuaMethodNameWithName:(NSString *)name
+#pragma mark - Private
+
++ (NSString *)_getLuaMethodNameWithName:(NSString *)name
 {
     NSString *luaName = name;
     
@@ -205,78 +193,117 @@ static int ModuleMethodRouteHandler(lua_State *state)
     return luaName;
 }
 
-/**
- *  注册模块
- *
- *  @param state Lua状态机
- */
-- (void)_regWithContext:(LSCContext *)context moduleName:(NSString *)moduleName
++ (void)_regModule:(Class)module context:(LSCContext *)context
 {
-    lua_State *state = context.state;
+    if (![module isSubclassOfClass:[LSCModule class]])
+    {
+        [context raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module is not subclass of the 'LSCModule' class!", NSStringFromClass(module)]];
+        return;
+    }
     
-    lua_getglobal(state, [moduleName UTF8String]);
+    lua_State *state = context.state;
+    NSString *name = [module moduleName];
+    
+    lua_getglobal(state, [name UTF8String]);
     if (lua_isnil(state, -1))
     {
         //允许注册
         lua_newtable(state);
         
-        NSMutableArray *filterMethodList = [NSMutableArray array];
+        //写入模块标识
+        lua_pushstring(state, NativeModuleType.UTF8String);
+        lua_setfield(state, -2, NativeTypeKey.UTF8String);
         
-        //解析方法
-        unsigned int methodCount = 0;
-        Method *methods = class_copyMethodList(self.class, &methodCount);
-        for (const Method *m = methods; m < methods + methodCount; m ++)
+        [self _exportModuleMethod:module module:module context:context];
+        
+        lua_setglobal(state, [name UTF8String]);
+    }
+    else
+    {
+        [context raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module of the specified name already exists!", name]];
+        return;
+    }
+}
+
++ (void)_exportModuleMethod:(Class)thiz module:(Class)module context:(LSCContext *)context
+{
+    lua_State *state = context.state;
+    
+    NSMutableArray *filterMethodList = [NSMutableArray array];
+    Class metaClass = objc_getMetaClass(NSStringFromClass(module).UTF8String);
+    
+    //解析方法
+    unsigned int methodCount = 0;
+    Method *methods = class_copyMethodList(metaClass, &methodCount);
+    for (const Method *m = methods; m < methods + methodCount; m ++)
+    {
+        SEL selector = method_getName(*m);
+        
+        size_t returnTypeLen = 256;
+        char returnType[256];
+        method_getReturnType(*m, returnType, returnTypeLen);
+        
+        NSString *methodName = NSStringFromSelector(selector);
+        if (![methodName hasPrefix:@"_"]
+            && ![methodName hasPrefix:@"."]
+            && ![filterMethodList containsObject:methodName])
         {
-            SEL selector = method_getName(*m);
+            NSString *luaMethodName = [self _getLuaMethodNameWithName:methodName];
             
-            size_t returnTypeLen = 256;
-            char returnType[256];
-            method_getReturnType(*m, returnType, returnTypeLen);
-            
-            NSString *methodName = NSStringFromSelector(selector);
-            if (![methodName hasPrefix:@"_"]
-                && ![methodName hasPrefix:@"."]
-                && ![methodName hasPrefix:@"init"]
-                && ![filterMethodList containsObject:methodName])
+            //判断是否已导出
+            BOOL hasExists = NO;
+            lua_getfield(state, -1, [luaMethodName UTF8String]);
+            if (!lua_isnil(state, -1))
             {
-                lua_pushlightuserdata(state, (__bridge void *)self);
+                hasExists = YES;
+            }
+            lua_pop(state, 1);
+            
+            if (!hasExists)
+            {
+                lua_pushlightuserdata(state, (__bridge void *)thiz);
                 lua_pushstring(state, [methodName UTF8String]);
                 lua_pushstring(state, returnType);
                 lua_pushcclosure(state, ModuleMethodRouteHandler, 3);
 
-                NSString *luaMethodName = [self _getLuaMethodNameWithName:methodName];
                 lua_setfield(state, -2, [luaMethodName UTF8String]);
             }
         }
-        free(methods);
-        
-        lua_setglobal(state, [moduleName UTF8String]);
     }
-    else
-    {
-        @throw [NSException
-                exceptionWithName:@"Unabled register module"
-                reason:@"The module of the specified name already exists!"
-                userInfo:nil];
-    }
+    free(methods);
     
+    if (module != [LSCModule class])
+    {
+        //如果模块不是LSCModule，则获取其父类继续进行方法导出
+        [self _exportModuleMethod:thiz module:class_getSuperclass(module) context:context];
+    }
 }
 
-/**
- *  反注册模块
- *
- *  @param state Lua状态机
- */
-- (void)_unregWithContext:(LSCContext *)context moduleName:(NSString *)moduleName
++ (void)_unregModule:(Class)module context:(LSCContext *)context
 {
     lua_State *state = context.state;
     
-    lua_getglobal(state, [moduleName UTF8String]);
+    if (![module isSubclassOfClass:[LSCModule class]])
+    {
+        [context raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module is not subclass of the 'LSCModule' class!", NSStringFromClass(module)]];
+        return;
+    }
+    
+    NSString *name = [module moduleName];
+    
+    lua_getglobal(state, [name UTF8String]);
     if (lua_istable(state, -1))
     {
-        //注销模块
-        lua_pushnil(state);
-        lua_setglobal(state, [moduleName UTF8String]);
+        lua_getfield(state, -1, NativeTypeKey.UTF8String);
+        LSCValue *value = [LSCValue valueWithState:state atIndex:-1];
+        lua_pop(state, 1);
+        
+        if ([[value toString] isEqualToString:NativeModuleType])
+        {
+            //为模块类型，则进行注销
+            lua_pushnil(state);
+            lua_setglobal(state, [name UTF8String]);
+        }
     }
 }
 

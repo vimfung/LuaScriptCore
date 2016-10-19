@@ -81,18 +81,4 @@
  */
 - (void)unregisterModuleWithClass:(Class)moduleClass;
 
-/**
- *  添加模块
- *
- *  @param module 模块
- */
-//- (void)addModule:(LSCModule *)module;
-
-/**
- *  移除模块
- *
- *  @param module 模块
- */
-//- (void)removeModule:(LSCModule *)module;
-
 @end
