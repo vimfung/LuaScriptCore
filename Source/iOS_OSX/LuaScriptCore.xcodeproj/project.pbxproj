@@ -44,13 +44,6 @@
 		7C175AAE1D93B0C60094E910 /* LSCTypeDefinied.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C175AA41D93B0730094E910 /* LSCTypeDefinied.h */; };
 		7C27F3BF1DB71E1E0058C354 /* LSCValue+OO.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C27F3BE1DB71E1E0058C354 /* LSCValue+OO.m */; };
 		7C27F3C01DB71E1E0058C354 /* LSCValue+OO.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C27F3BE1DB71E1E0058C354 /* LSCValue+OO.m */; };
-		7C27F3C91DB72B0E0058C354 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C27F3C81DB72B0E0058C354 /* main.m */; };
-		7C27F3CC1DB72B0E0058C354 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C27F3CB1DB72B0E0058C354 /* AppDelegate.m */; };
-		7C27F3CF1DB72B0E0058C354 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C27F3CE1DB72B0E0058C354 /* ViewController.m */; };
-		7C27F3D21DB72B0E0058C354 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C27F3D01DB72B0E0058C354 /* Main.storyboard */; };
-		7C27F3D41DB72B0E0058C354 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C27F3D31DB72B0E0058C354 /* Assets.xcassets */; };
-		7C27F3D71DB72B0E0058C354 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C27F3D51DB72B0E0058C354 /* LaunchScreen.storyboard */; };
-		7C27F3FA1DB73E6D0058C354 /* libLuaScriptCore-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C8C2D511D38C0C0009345EB /* libLuaScriptCore-iOS.a */; };
 		7C6B13D91D6B047F00489D9E /* LSCContext.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B13D31D6B047F00489D9E /* LSCContext.m */; };
 		7C6B13DA1D6B047F00489D9E /* LSCValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B13D61D6B047F00489D9E /* LSCValue.m */; };
 		7C6B14191D6B049300489D9E /* lapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B13DC1D6B049200489D9E /* lapi.c */; };
@@ -127,18 +120,7 @@
 		7C6B155E1D6B2BF100489D9E /* LSCContext.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D21D6B047F00489D9E /* LSCContext.h */; };
 		7C6B155F1D6B2BF100489D9E /* LSCValue.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D51D6B047F00489D9E /* LSCValue.h */; };
 		7C6B15601D6B2BF100489D9E /* LuaScriptCore.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */; };
-		7C6BFD511DB753760073CBCB /* LogModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6BFD501DB753760073CBCB /* LogModule.m */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		7C27F3F81DB73E670058C354 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 7C8C2D491D38C0C0009345EB /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 7C8C2D501D38C0C0009345EB;
-			remoteInfo = "LuaScriptCore-iOS";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		7C6B155D1D6B2BE100489D9E /* CopyFiles */ = {
@@ -183,16 +165,6 @@
 		7C175AA41D93B0730094E910 /* LSCTypeDefinied.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCTypeDefinied.h; path = Code/LSCTypeDefinied.h; sourceTree = "<group>"; };
 		7C27F3BD1DB71E1E0058C354 /* LSCValue+OO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "LSCValue+OO.h"; sourceTree = "<group>"; };
 		7C27F3BE1DB71E1E0058C354 /* LSCValue+OO.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "LSCValue+OO.m"; sourceTree = "<group>"; };
-		7C27F3C51DB72B0E0058C354 /* Sample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		7C27F3C81DB72B0E0058C354 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		7C27F3CA1DB72B0E0058C354 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		7C27F3CB1DB72B0E0058C354 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		7C27F3CD1DB72B0E0058C354 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
-		7C27F3CE1DB72B0E0058C354 /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		7C27F3D11DB72B0E0058C354 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		7C27F3D31DB72B0E0058C354 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		7C27F3D61DB72B0E0058C354 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		7C27F3D81DB72B0E0058C354 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7C6B13D21D6B047F00489D9E /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCContext.h; path = Code/LSCContext.h; sourceTree = "<group>"; };
 		7C6B13D31D6B047F00489D9E /* LSCContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCContext.m; path = Code/LSCContext.m; sourceTree = "<group>"; };
 		7C6B13D41D6B047F00489D9E /* LSCValue_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCValue_Private.h; path = Code/LSCValue_Private.h; sourceTree = "<group>"; };
@@ -259,20 +231,10 @@
 		7C6B14171D6B049300489D9E /* lzio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lzio.c; path = "../lua-core/src/lzio.c"; sourceTree = "<group>"; };
 		7C6B14181D6B049300489D9E /* lzio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lzio.h; path = "../lua-core/src/lzio.h"; sourceTree = "<group>"; };
 		7C6B152E1D6B2B2500489D9E /* libLuaScriptCore-OSX.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-OSX.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		7C6BFD4F1DB753760073CBCB /* LogModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogModule.h; sourceTree = "<group>"; };
-		7C6BFD501DB753760073CBCB /* LogModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogModule.m; sourceTree = "<group>"; };
 		7C8C2D511D38C0C0009345EB /* libLuaScriptCore-iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-iOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		7C27F3C21DB72B0E0058C354 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				7C27F3FA1DB73E6D0058C354 /* libLuaScriptCore-iOS.a in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		7C6B152B1D6B2B2500489D9E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -308,32 +270,6 @@
 				7C27F3BE1DB71E1E0058C354 /* LSCValue+OO.m */,
 			);
 			path = OO;
-			sourceTree = "<group>";
-		};
-		7C27F3C61DB72B0E0058C354 /* Sample */ = {
-			isa = PBXGroup;
-			children = (
-				7C27F3CA1DB72B0E0058C354 /* AppDelegate.h */,
-				7C27F3CB1DB72B0E0058C354 /* AppDelegate.m */,
-				7C27F3CD1DB72B0E0058C354 /* ViewController.h */,
-				7C27F3CE1DB72B0E0058C354 /* ViewController.m */,
-				7C27F3D01DB72B0E0058C354 /* Main.storyboard */,
-				7C27F3D31DB72B0E0058C354 /* Assets.xcassets */,
-				7C27F3D51DB72B0E0058C354 /* LaunchScreen.storyboard */,
-				7C27F3D81DB72B0E0058C354 /* Info.plist */,
-				7C27F3C71DB72B0E0058C354 /* Supporting Files */,
-				7C6BFD4F1DB753760073CBCB /* LogModule.h */,
-				7C6BFD501DB753760073CBCB /* LogModule.m */,
-			);
-			path = Sample;
-			sourceTree = "<group>";
-		};
-		7C27F3C71DB72B0E0058C354 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				7C27F3C81DB72B0E0058C354 /* main.m */,
-			);
-			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		7C6B13D11D6B045200489D9E /* LuaScriptCore */ = {
@@ -426,7 +362,6 @@
 			isa = PBXGroup;
 			children = (
 				7C6B13D11D6B045200489D9E /* LuaScriptCore */,
-				7C27F3C61DB72B0E0058C354 /* Sample */,
 				7C8C2D521D38C0C0009345EB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -436,7 +371,6 @@
 			children = (
 				7C8C2D511D38C0C0009345EB /* libLuaScriptCore-iOS.a */,
 				7C6B152E1D6B2B2500489D9E /* libLuaScriptCore-OSX.a */,
-				7C27F3C51DB72B0E0058C354 /* Sample.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -444,24 +378,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		7C27F3C41DB72B0E0058C354 /* Sample */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 7C27F3EF1DB72B0E0058C354 /* Build configuration list for PBXNativeTarget "Sample" */;
-			buildPhases = (
-				7C27F3C11DB72B0E0058C354 /* Sources */,
-				7C27F3C21DB72B0E0058C354 /* Frameworks */,
-				7C27F3C31DB72B0E0058C354 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				7C27F3F91DB73E670058C354 /* PBXTargetDependency */,
-			);
-			name = Sample;
-			productName = Sample;
-			productReference = 7C27F3C51DB72B0E0058C354 /* Sample.app */;
-			productType = "com.apple.product-type.application";
-		};
 		7C6B152D1D6B2B2500489D9E /* LuaScriptCore-OSX */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7C6B15341D6B2B2500489D9E /* Build configuration list for PBXNativeTarget "LuaScriptCore-OSX" */;
@@ -505,10 +421,6 @@
 				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = vimfung;
 				TargetAttributes = {
-					7C27F3C41DB72B0E0058C354 = {
-						CreatedOnToolsVersion = 8.0;
-						ProvisioningStyle = Automatic;
-					};
 					7C5A619B1D6AE441007D4308 = {
 						CreatedOnToolsVersion = 7.3;
 					};
@@ -540,23 +452,9 @@
 				7C6B152D1D6B2B2500489D9E /* LuaScriptCore-OSX */,
 				7C5A619B1D6AE441007D4308 /* LuaScriptCore-iOS-output */,
 				7C6B15161D6B0BF500489D9E /* LuaScriptCore-OSX-output */,
-				7C27F3C41DB72B0E0058C354 /* Sample */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXResourcesBuildPhase section */
-		7C27F3C31DB72B0E0058C354 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				7C27F3D71DB72B0E0058C354 /* LaunchScreen.storyboard in Resources */,
-				7C27F3D41DB72B0E0058C354 /* Assets.xcassets in Resources */,
-				7C27F3D21DB72B0E0058C354 /* Main.storyboard in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		7C5A61A11D6AE44A007D4308 /* ShellScript */ = {
@@ -588,17 +486,6 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		7C27F3C11DB72B0E0058C354 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				7C27F3CF1DB72B0E0058C354 /* ViewController.m in Sources */,
-				7C27F3CC1DB72B0E0058C354 /* AppDelegate.m in Sources */,
-				7C6BFD511DB753760073CBCB /* LogModule.m in Sources */,
-				7C27F3C91DB72B0E0058C354 /* main.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		7C6B152A1D6B2B2500489D9E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -691,66 +578,7 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		7C27F3F91DB73E670058C354 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 7C8C2D501D38C0C0009345EB /* LuaScriptCore-iOS */;
-			targetProxy = 7C27F3F81DB73E670058C354 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		7C27F3D01DB72B0E0058C354 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				7C27F3D11DB72B0E0058C354 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		7C27F3D51DB72B0E0058C354 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				7C27F3D61DB72B0E0058C354 /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
-		7C27F3F01DB72B0E0058C354 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_SUSPICIOUS_MOVES = YES;
-				INFOPLIST_FILE = Sample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = cn.vimfung.Sample;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		7C27F3F11DB72B0E0058C354 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_SUSPICIOUS_MOVES = YES;
-				INFOPLIST_FILE = Sample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = cn.vimfung.Sample;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
 		7C5A619C1D6AE442007D4308 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -930,15 +758,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		7C27F3EF1DB72B0E0058C354 /* Build configuration list for PBXNativeTarget "Sample" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				7C27F3F01DB72B0E0058C354 /* Debug */,
-				7C27F3F11DB72B0E0058C354 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		7C5A619E1D6AE442007D4308 /* Build configuration list for PBXAggregateTarget "LuaScriptCore-iOS-output" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
