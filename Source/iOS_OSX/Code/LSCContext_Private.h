@@ -29,9 +29,12 @@
  */
 @property(nonatomic, strong) NSMutableDictionary *methodBlocks;
 
+
 /**
- *  模块集合
+ 抛出异常
+
+ @param message 消息
  */
-@property (nonatomic, strong) NSMutableDictionary *modules;
+- (void)raiseExceptionWithMessage:(NSString *)message;
 
 @end
