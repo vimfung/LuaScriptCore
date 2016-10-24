@@ -33,43 +33,43 @@
 
 + (instancetype)nilValue
 {
-    return [[LSCValue alloc] initWithType:LSCValueTypeNil value:[NSNull null]];
+    return [[self alloc] initWithType:LSCValueTypeNil value:[NSNull null]];
 }
 
 + (instancetype)numberValue:(NSNumber *)numberValue
 {
-    return [[LSCValue alloc] initWithType:LSCValueTypeNumber value:numberValue];
+    return [[self alloc] initWithType:LSCValueTypeNumber value:numberValue];
 }
 
 + (instancetype)booleanValue:(BOOL)boolValue
 {
-    return [[LSCValue alloc] initWithType:LSCValueTypeBoolean value:@(boolValue)];
+    return [[self alloc] initWithType:LSCValueTypeBoolean value:@(boolValue)];
 }
 
 + (instancetype)stringValue:(NSString *)stringValue
 {
-    return [[LSCValue alloc] initWithType:LSCValueTypeString
+    return [[self alloc] initWithType:LSCValueTypeString
                                     value:[stringValue copy]];
 }
 
 + (instancetype)integerValue:(NSInteger)integerValue
 {
-    return [[LSCValue alloc] initWithType:LSCValueTypeInteger value:@(integerValue)];
+    return [[self alloc] initWithType:LSCValueTypeInteger value:@(integerValue)];
 }
 
 + (instancetype)arrayValue:(NSArray *)arrayValue
 {
-    return [[LSCValue alloc] initWithType:LSCValueTypeArray value:arrayValue];
+    return [[self alloc] initWithType:LSCValueTypeArray value:arrayValue];
 }
 
 + (instancetype)dictionaryValue:(NSDictionary *)dictionaryValue
 {
-    return [[LSCValue alloc] initWithType:LSCValueTypeMap value:dictionaryValue];
+    return [[self alloc] initWithType:LSCValueTypeMap value:dictionaryValue];
 }
 
 + (instancetype)dataValue:(NSData *)dataValue
 {
-    return [[LSCValue alloc] initWithType:LSCValueTypeData value:dataValue];
+    return [[self alloc] initWithType:LSCValueTypeData value:dataValue];
 }
 
 + (instancetype)objectValue:(id)objectValue
@@ -96,7 +96,7 @@
     }
     else
     {
-        return [self ptrValue:(__bridge const void *)(objectValue)];
+        return [[self alloc] initWithType:LSCValueTypeObject value:objectValue];
     }
     
     return [self nilValue];
@@ -104,7 +104,7 @@
 
 + (instancetype)ptrValue:(const void *)ptrValue
 {
-    LSCValue *value = [[LSCValue alloc] initWithType:LSCValueTypePtr value:nil];
+    LSCValue *value = [[self alloc] initWithType:LSCValueTypePtr value:nil];
     value.ptrValue = ptrValue;
     
     return value;
@@ -151,9 +151,17 @@
                             [self.valueContainer length]);
             break;
         }
+        case LSCValueTypeObject:
+        {
+            //先为实例对象在lua中创建内存
+            void **ref = (void **)lua_newuserdata(state, sizeof(NSObject **));
+            //创建本地实例对象，赋予lua的内存块
+            *ref = (__bridge void *)self.valueContainer;
+            break;
+        }
         case LSCValueTypePtr:
         {
-            lua_pushlightuserdata(state, (void *)_ptrValue);
+            lua_pushlightuserdata(state, (void *)self.ptrValue);
             break;
         }
         default:
@@ -415,6 +423,55 @@
     return value;
 }
 
+//+ (void)pushWithState:(lua_State *)state value:(LSCValue *)value
+//{
+//    switch (value.valueType)
+//    {
+//        case LSCValueTypeInteger:
+//            lua_pushinteger(state, [value.valueContainer integerValue]);
+//            break;
+//        case LSCValueTypeNumber:
+//            lua_pushnumber(state, [value.valueContainer doubleValue]);
+//            break;
+//        case LSCValueTypeNil:
+//            lua_pushnil(state);
+//            break;
+//        case LSCValueTypeString:
+//            lua_pushstring(state, [value.valueContainer UTF8String]);
+//            break;
+//        case LSCValueTypeBoolean:
+//            lua_pushboolean(state, [value.valueContainer boolValue]);
+//            break;
+//        case LSCValueTypeArray:
+//        case LSCValueTypeMap:
+//        {
+//            [self pushTable:state value:value.valueContainer];
+//            break;
+//        }
+//        case LSCValueTypeData:
+//        {
+//            lua_pushlstring(state, [value.valueContainer bytes],
+//                            [value.valueContainer length]);
+//            break;
+//        }
+//        case LSCValueTypeObject:
+//        {
+//            //先为实例对象在lua中创建内存
+//            void **ref = (void **)lua_newuserdata(state, sizeof(NSObject **));
+//            //创建本地实例对象，赋予lua的内存块
+//            *ref = (__bridge void *)value.valueContainer;
+//            break;
+//        }
+//        case LSCValueTypePtr:
+//        {
+//            lua_pushlightuserdata(state, (void *)value.ptrValue);
+//            break;
+//        }
+//        default:
+//            break;
+//    }
+//}
+
 /**
  *  初始化值对象
  *
@@ -443,7 +500,6 @@
 - (void)pushTable:(lua_State *)state value:(id)value
 {
     __weak LSCValue *theValue = self;
-    
     if ([value isKindOfClass:[NSDictionary class]])
     {
         lua_newtable(state);
