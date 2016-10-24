@@ -18,6 +18,6 @@
  *
  *  @param message 日志信息
  */
-- (void)writeLog:(NSString *)message;
++ (void)writeLog:(NSString *)message;
 
 @end
