@@ -19,72 +19,80 @@
 
 static int ModuleMethodRouteHandler(lua_State *state)
 {
-    LSCModule *module = (__bridge LSCModule *)lua_touserdata(state, lua_upvalueindex(1));
+    //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
+    typedef struct {float f;} LSCFloatStruct;
+    id obj =nil;
+    
+    Class moduleClass = (__bridge Class)lua_touserdata(state, lua_upvalueindex(1));
     NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(2))];
     NSString *returnType = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
     SEL selector = NSSelectorFromString(methodName);
     
-    NSMethodSignature *sign = [module methodSignatureForSelector:selector];
+    NSMethodSignature *sign = [moduleClass methodSignatureForSelector:selector];
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
-    [invocation setTarget:module];
+    [invocation setTarget:moduleClass];
     [invocation setSelector:selector];
     
     int top = lua_gettop(state);
-    for (int i = top - 1; i >= 0; i--)
+    Method m = class_getClassMethod(moduleClass, selector);
+    
+    for (int i = 2; i < method_getNumberOfArguments(m); i++)
     {
-        LSCValue *value = [LSCValue valueWithState:state atIndex:-i - 1];
+        char *argType = method_copyArgumentType(m, i);
+//        NSLog(@"---- argType = %s", argType);
         
-        int index = top - i + 1;
-        
-        switch (value.valueType)
+        LSCValue *value = nil;
+        if (i - 1 <= top)
         {
-            case LSCValueTypeMap:
-            {
-                NSDictionary *dictValue = [value toDictionary];
-                [invocation setArgument:&dictValue atIndex:index];
-                break;
-            }
-            case LSCValueTypeArray:
-            {
-                NSArray *arrayValue = [value toArray];
-                [invocation setArgument:&arrayValue atIndex:index];
-                break;
-            }
-            case LSCValueTypeData:
-            {
-                NSData *dataValue = [value toData];
-                [invocation setArgument:&dataValue atIndex:index];
-                break;
-            }
-            case LSCValueTypeString:
-            {
-                NSString *stringValue = [value toString];
-                [invocation setArgument:&stringValue atIndex:index];
-                break;
-            }
-            case LSCValueTypeNumber:
-            {
-                double doubleValue = [value toDouble];
-                [invocation setArgument:&doubleValue atIndex:index];
-                break;
-            }
-            case LSCValueTypeBoolean:
-            {
-                BOOL boolValue = [value toBoolean];
-                [invocation setArgument:&boolValue atIndex:index];
-                break;
-            }
-            case LSCValueTypeInteger:
-            {
-                BOOL intValue = [value toInteger];
-                [invocation setArgument:&intValue atIndex:index];
-                break;
-            }
-            default:
-                break;
+            value = [LSCValue valueWithState:state atIndex:i - 1];
         }
+        else
+        {
+            value = [LSCValue nilValue];
+        }
+        
+        if (strcmp(argType, "f") == 0)
+        {
+            //浮点型数据
+            LSCFloatStruct floatValue = {[value toDouble]};
+            [invocation setArgument:&floatValue atIndex:i];
+        }
+        else if (strcmp(argType, "d") == 0)
+        {
+            //双精度浮点型
+            double doubleValue = [value toDouble];
+            [invocation setArgument:&doubleValue atIndex:i];
+        }
+        else if (strcmp(argType, "i") == 0
+                 || strcmp(argType, "I") == 0
+                 || strcmp(argType, "q") == 0
+                 || strcmp(argType, "Q") == 0
+                 || strcmp(argType, "s") == 0
+                 || strcmp(argType, "S") == 0
+                 || strcmp(argType, "c") == 0
+                 || strcmp(argType, "C") == 0)
+        {
+            //整型
+            NSInteger intValue = [value toDouble];
+            [invocation setArgument:&intValue atIndex:i];
+        }
+        else if (strcmp(argType, "B") == 0)
+        {
+            //布尔类型
+            BOOL boolValue = [value toBoolean];
+            [invocation setArgument:&boolValue atIndex:i];
+        }
+        else if (strcmp(argType, "@") == 0)
+        {
+            //对象类型
+            obj = [value toObject];
+            [invocation setArgument:&obj atIndex:i];
+        }
+        
+        free(argType);
     }
     
+    [invocation retainArguments];
     [invocation invoke];
     
     LSCValue *retValue = nil;
@@ -92,7 +100,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
     if ([returnType isEqualToString:@"@"])
     {
         //返回值为对象
-        id retObj = nil;
+        id __unsafe_unretained retObj = nil;
         [invocation getReturnValue:&retObj];
         retValue = [LSCValue objectValue:retObj];
     }
@@ -117,12 +125,17 @@ static int ModuleMethodRouteHandler(lua_State *state)
         [invocation getReturnValue:&intValue];
         retValue = [LSCValue integerValue:intValue];
     }
-    else if ([returnType isEqualToString:@"f"]
-             || [returnType isEqualToString:@"d"])
+    else if ([returnType isEqualToString:@"f"])
     {
-        // f 浮点型
-        // d 双精度浮点型
+        // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
+        LSCFloatStruct floatStruct = {0};
+        [invocation getReturnValue:&floatStruct];
+        retValue = [LSCValue numberValue:@(floatStruct.f)];
         
+    }
+    else if ([returnType isEqualToString:@"d"])
+    {
+        // d 双精度浮点型
         double doubleValue = 0.0;
         [invocation getReturnValue:&doubleValue];
         retValue = [LSCValue numberValue:@(doubleValue)];
@@ -130,7 +143,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
     else if ([returnType isEqualToString:@"B"])
     {
         //B 布尔类型
-        BOOL boolValue = 0.0;
+        BOOL boolValue = NO;
         [invocation getReturnValue:&boolValue];
         retValue = [LSCValue booleanValue:boolValue];
     }

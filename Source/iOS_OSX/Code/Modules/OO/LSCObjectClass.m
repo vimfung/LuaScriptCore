@@ -170,6 +170,9 @@ static void removeInstance(LSCObjectClass *instance)
 
 static int InstanceMethodRouteHandler(lua_State *state)
 {
+    //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
+    typedef struct {float f;} LSCFloatStruct;
+    
     void **ref = (void **)lua_touserdata(state, 1);
     LSCObjectClass *instance = (__bridge LSCObjectClass *)(*ref);
     
@@ -188,72 +191,65 @@ static int InstanceMethodRouteHandler(lua_State *state)
         [invocation setSelector:selector];
         
         int top = lua_gettop(state);
-        for (int i = 2; i <= top; i++)
+        
+        Method m = class_getInstanceMethod(moduleClass, selector);
+        for (int i = 2; i < method_getNumberOfArguments(m); i++)
         {
-            LSCValue *value = [LSCObjectValue valueWithState:state atIndex:i];
+            char *argType = method_copyArgumentType(m, i);
+//            NSLog(@"---- argType = %s", argType);
             
-            int index = i;
-            
-            switch (value.valueType)
+            LSCValue *value = nil;
+            if (i <= top)
             {
-                case LSCValueTypeMap:
-                {
-                    NSDictionary *dictValue = [value toDictionary];
-                    [invocation setArgument:&dictValue atIndex:index];
-                    break;
-                }
-                case LSCValueTypeArray:
-                {
-                    NSArray *arrayValue = [value toArray];
-                    [invocation setArgument:&arrayValue atIndex:index];
-                    break;
-                }
-                case LSCValueTypeData:
-                {
-                    NSData *dataValue = [value toData];
-                    [invocation setArgument:&dataValue atIndex:index];
-                    break;
-                }
-                case LSCValueTypeString:
-                {
-                    NSString *stringValue = [value toString];
-                    [invocation setArgument:&stringValue atIndex:index];
-                    break;
-                }
-                case LSCValueTypeNumber:
-                {
-                    double doubleValue = [value toDouble];
-                    [invocation setArgument:&doubleValue atIndex:index];
-                    break;
-                }
-                case LSCValueTypeBoolean:
-                {
-                    BOOL boolValue = [value toBoolean];
-                    [invocation setArgument:&boolValue atIndex:index];
-                    break;
-                }
-                case LSCValueTypeInteger:
-                {
-                    BOOL intValue = [value toInteger];
-                    [invocation setArgument:&intValue atIndex:index];
-                    break;
-                }
-                case LSCValueTypeObject:
-                {
-                    id obj = [value toObject];
-                    [invocation setArgument:&obj atIndex:index];
-                    break;
-                }
-                case LSCValueTypePtr:
-                {
-                    [invocation setArgument:(void *)[value toPtr] atIndex:index];
-                    break;
-                }
-                default:
-                    break;
+                value = [LSCObjectValue valueWithState:state atIndex:i];
             }
+            else
+            {
+                value = [LSCValue nilValue];
+            }
+            
+            if (strcmp(argType, "f") == 0)
+            {
+                //浮点型数据
+                LSCFloatStruct floatValue = {[value toDouble]};
+                [invocation setArgument:&floatValue atIndex:i];
+            }
+            else if (strcmp(argType, "d") == 0)
+            {
+                //双精度浮点型
+                double doubleValue = [value toDouble];
+                [invocation setArgument:&doubleValue atIndex:i];
+            }
+            else if (strcmp(argType, "i") == 0
+                     || strcmp(argType, "I") == 0
+                     || strcmp(argType, "q") == 0
+                     || strcmp(argType, "Q") == 0
+                     || strcmp(argType, "s") == 0
+                     || strcmp(argType, "S") == 0
+                     || strcmp(argType, "c") == 0
+                     || strcmp(argType, "C") == 0)
+            {
+                //整型
+                NSInteger intValue = [value toDouble];
+                [invocation setArgument:&intValue atIndex:i];
+            }
+            else if (strcmp(argType, "B") == 0)
+            {
+                //布尔类型
+                BOOL boolValue = [value toBoolean];
+                [invocation setArgument:&boolValue atIndex:i];
+            }
+            else if (strcmp(argType, "@") == 0)
+            {
+                //对象类型
+                id obj = [value toObject];
+                [invocation setArgument:&obj atIndex:i];
+            }
+            
+            free(argType);
         }
         
+        [invocation retainArguments];
         [invocation invoke];
         
         LSCValue *retValue = nil;
@@ -286,12 +282,17 @@ static int InstanceMethodRouteHandler(lua_State *state)
             [invocation getReturnValue:&intValue];
             retValue = [LSCObjectValue integerValue:intValue];
         }
-        else if ([returnType isEqualToString:@"f"]
-                 || [returnType isEqualToString:@"d"])
+        else if ([returnType isEqualToString:@"f"])
         {
-            // f 浮点型
-            // d 双精度浮点型
+            // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
+            LSCFloatStruct floatStruct = {0};
+            [invocation getReturnValue:&floatStruct];
+            retValue = [LSCObjectValue numberValue:@(floatStruct.f)];
             
+        }
+        else if ([returnType isEqualToString:@"d"])
+        {
+            // d 双精度浮点型
             double doubleValue = 0.0;
             [invocation getReturnValue:&doubleValue];
             retValue = [LSCObjectValue numberValue:@(doubleValue)];
@@ -299,7 +300,7 @@ static int InstanceMethodRouteHandler(lua_State *state)
         else if ([returnType isEqualToString:@"B"])
         {
             //B 布尔类型
-            BOOL boolValue = 0.0;
+            BOOL boolValue = NO;
             [invocation getReturnValue:&boolValue];
             retValue = [LSCObjectValue booleanValue:boolValue];
         }
