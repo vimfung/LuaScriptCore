@@ -33,25 +33,6 @@
         //设置搜索路径
         NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
         [self addSearchPath:resourcePath];
-        
-//        NSLog(@"top = %d", lua_gettop(self.state));
-//        self.value = [[NSNumber alloc] init];
-//        lua_pushlightuserdata(self.state, (__bridge void *)(self));
-//        NSLog(@"%d", luaL_newmetatable(self.state, "Number"));
-//        NSLog(@"top = %d", lua_gettop(self.state));
-//        
-//        lua_pushvalue(self.state, -1);
-//        lua_setfield(self.state, -2, "__index");
-//        
-//        lua_pushstring(self.state, "test");
-//        lua_setfield(self.state, -2, "k");
-//    
-//        NSLog(@"top = %d", lua_gettop(self.state));
-//        NSLog(@"%d", lua_setmetatable(self.state, -2));
-//        NSLog(@"top = %d", lua_gettop(self.state));
-//        lua_setglobal(self.state, "num");
-//        
-//        [self evalScriptFromString:@"print(num.k);"];
     }
     
     return self;

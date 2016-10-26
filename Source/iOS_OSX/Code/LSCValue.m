@@ -49,7 +49,7 @@
 + (instancetype)stringValue:(NSString *)stringValue
 {
     return [[self alloc] initWithType:LSCValueTypeString
-                                    value:[stringValue copy]];
+                                value:[stringValue copy]];
 }
 
 + (instancetype)integerValue:(NSInteger)integerValue
