@@ -13,8 +13,6 @@
 
 @property (nonatomic, copy) NSString *name;
 
-@property (nonatomic) BOOL isFriend;
-
 - (void)speak;
 
 - (void)walk;
