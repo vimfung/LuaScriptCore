@@ -7,6 +7,14 @@
 //
 
 #import "LSCTPerson.h"
+#import "LSCFunction.h"
+#import "LSCValue.h"
+
+@interface LSCTPerson ()
+
+@property (nonatomic, strong) LSCFunction *_func;
+
+@end
 
 @implementation LSCTPerson
 

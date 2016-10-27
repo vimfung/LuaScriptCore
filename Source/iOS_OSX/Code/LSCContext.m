@@ -62,7 +62,7 @@
     BOOL res = ret == 0;
     if (!res)
     {
-        LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
+        LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
         NSString *errMessage = [value toString];
         
         if (self.exceptionHandler)
@@ -77,7 +77,7 @@
         if (lua_gettop(self.state) > curTop)
         {
             //有返回值
-            LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
+            LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
             lua_pop(self.state, 1);
             
             return value;
@@ -96,7 +96,7 @@
     BOOL res = ret == 0;
     if (!res)
     {
-        LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
+        LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
         NSString *errMessage = [value toString];
         if (self.exceptionHandler)
         {
@@ -110,7 +110,7 @@
         if (lua_gettop(self.state) > curTop)
         {
             //有返回值
-            LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
+            LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
             lua_pop(self.state, 1);
             
             return value;
@@ -121,7 +121,7 @@
 }
 
 - (LSCValue *)callMethodWithName:(NSString *)methodName
-                       arguments:(NSArray *)arguments
+                       arguments:(NSArray<LSCValue *> *)arguments
 {
     LSCValue *resultValue = nil;
     
@@ -132,19 +132,19 @@
         __weak LSCContext *theContext = self;
         [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
              
-             [value pushWithState:theContext.state];
+             [value pushWithContext:theContext];
              
          }];
         
         if (lua_pcall(self.state, (int)arguments.count, 1, 0) == 0)
         {
             //调用成功
-            resultValue = [LSCValue valueWithState:self.state atIndex:-1];
+            resultValue = [LSCValue valueWithContext:self atIndex:-1];
         }
         else
         {
             //调用失败
-            LSCValue *value = [LSCValue valueWithState:self.state atIndex:-1];
+            LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
             NSString *errMessage = [value toString];
             
             if (self.exceptionHandler)
@@ -221,7 +221,7 @@
 
 static int cfuncRouteHandler(lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_touserdata(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(2))];
     
     LSCFunctionHandler handler = context.methodBlocks[methodName];
@@ -231,12 +231,12 @@ static int cfuncRouteHandler(lua_State *state)
         NSMutableArray *arguments = [NSMutableArray array];
         for (int i = 0; i < top; i++)
         {
-            LSCValue *value = [LSCValue valueWithState:state atIndex:-i - 1];
+            LSCValue *value = [LSCValue valueWithContext:context atIndex:-i - 1];
             [arguments insertObject:value atIndex:0];
         }
         
         LSCValue *retValue = handler(arguments);
-        [retValue pushWithState:state];
+        [retValue pushWithContext:context];
     }
     
     return 1;

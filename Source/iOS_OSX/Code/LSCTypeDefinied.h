@@ -22,7 +22,8 @@ typedef NS_ENUM(NSUInteger, LSCValueType)
     LSCValueTypePtr = 6,
     LSCValueTypeObject = 7,
     LSCValueTypeInteger = 8,
-    LSCValueTypeData = 9
+    LSCValueTypeData = 9,
+    LSCValueTypeFunction = 10
 };
 
 /**
