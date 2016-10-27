@@ -32,10 +32,10 @@ static int ModuleMethodRouteHandler(lua_State *state)
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
     [invocation setTarget:moduleClass];
     [invocation setSelector:selector];
+    [invocation retainArguments];
     
     int top = lua_gettop(state);
     Method m = class_getClassMethod(moduleClass, selector);
-    
     for (int i = 2; i < method_getNumberOfArguments(m); i++)
     {
         char *argType = method_copyArgumentType(m, i);
@@ -91,8 +91,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
         
         free(argType);
     }
-    
-    [invocation retainArguments];
+
     [invocation invoke];
     
     LSCValue *retValue = nil;
@@ -227,7 +226,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
         lua_pushstring(state, NativeModuleType.UTF8String);
         lua_setfield(state, -2, NativeTypeKey.UTF8String);
         
-        [self _exportModuleMethod:module module:module context:context];
+        [self _exportModuleAllMethod:module module:module context:context];
         
         lua_setglobal(state, [name UTF8String]);
     }
@@ -278,12 +277,17 @@ static int ModuleMethodRouteHandler(lua_State *state)
                 lua_pushstring(state, [methodName UTF8String]);
                 lua_pushstring(state, returnType);
                 lua_pushcclosure(state, ModuleMethodRouteHandler, 3);
-
+                
                 lua_setfield(state, -2, [luaMethodName UTF8String]);
             }
         }
     }
     free(methods);
+}
+
++ (void)_exportModuleAllMethod:(Class)thiz module:(Class)module context:(LSCContext *)context
+{
+    [self _exportModuleMethod:thiz module:module context:context];
     
     if (module != [LSCModule class])
     {
