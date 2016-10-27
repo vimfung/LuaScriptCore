@@ -23,9 +23,10 @@ static int ModuleMethodRouteHandler(lua_State *state)
     typedef struct {float f;} LSCFloatStruct;
     id obj =nil;
     
-    Class moduleClass = (__bridge Class)lua_touserdata(state, lua_upvalueindex(1));
-    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(2))];
-    NSString *returnType = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
+    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
+    NSString *returnType = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(4))];
     SEL selector = NSSelectorFromString(methodName);
     
     NSMethodSignature *sign = [moduleClass methodSignatureForSelector:selector];
@@ -44,45 +45,45 @@ static int ModuleMethodRouteHandler(lua_State *state)
         LSCValue *value = nil;
         if (i - 1 <= top)
         {
-            value = [LSCValue valueWithState:state atIndex:i - 1];
+            value = [LSCValue valueWithContext:context atIndex:i - 1];
         }
         else
         {
             value = [LSCValue nilValue];
         }
         
-        if (strcmp(argType, "f") == 0)
+        if (strcmp(argType, @encode(float)) == 0)
         {
             //浮点型数据
             LSCFloatStruct floatValue = {[value toDouble]};
             [invocation setArgument:&floatValue atIndex:i];
         }
-        else if (strcmp(argType, "d") == 0)
+        else if (strcmp(argType, @encode(double)) == 0)
         {
             //双精度浮点型
             double doubleValue = [value toDouble];
             [invocation setArgument:&doubleValue atIndex:i];
         }
-        else if (strcmp(argType, "i") == 0
-                 || strcmp(argType, "I") == 0
-                 || strcmp(argType, "q") == 0
-                 || strcmp(argType, "Q") == 0
-                 || strcmp(argType, "s") == 0
-                 || strcmp(argType, "S") == 0
-                 || strcmp(argType, "c") == 0
-                 || strcmp(argType, "C") == 0)
+        else if (strcmp(argType, @encode(int)) == 0
+                 || strcmp(argType, @encode(unsigned int)) == 0
+                 || strcmp(argType, @encode(long)) == 0
+                 || strcmp(argType, @encode(unsigned long)) == 0
+                 || strcmp(argType, @encode(short)) == 0
+                 || strcmp(argType, @encode(unsigned short)) == 0
+                 || strcmp(argType, @encode(char)) == 0
+                 || strcmp(argType, @encode(unsigned char)) == 0)
         {
             //整型
             NSInteger intValue = [value toDouble];
             [invocation setArgument:&intValue atIndex:i];
         }
-        else if (strcmp(argType, "B") == 0)
+        else if (strcmp(argType, @encode(BOOL)) == 0)
         {
             //布尔类型
             BOOL boolValue = [value toBoolean];
             [invocation setArgument:&boolValue atIndex:i];
         }
-        else if (strcmp(argType, "@") == 0)
+        else if (strcmp(argType, @encode(id)) == 0)
         {
             //对象类型
             obj = [value toObject];
@@ -94,6 +95,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
 
     [invocation invoke];
     
+//    char *returnType = method_copyReturnType(m);
     LSCValue *retValue = nil;
     
     if ([returnType isEqualToString:@"@"])
@@ -154,7 +156,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
     
     if (retValue)
     {
-        [retValue pushWithState:state];
+        [retValue pushWithContext:context];
         
         return 1;
     }
@@ -273,10 +275,11 @@ static int ModuleMethodRouteHandler(lua_State *state)
             
             if (!hasExists)
             {
+                lua_pushlightuserdata(state, (__bridge void *)context);
                 lua_pushlightuserdata(state, (__bridge void *)thiz);
                 lua_pushstring(state, [methodName UTF8String]);
                 lua_pushstring(state, returnType);
-                lua_pushcclosure(state, ModuleMethodRouteHandler, 3);
+                lua_pushcclosure(state, ModuleMethodRouteHandler, 4);
                 
                 lua_setfield(state, -2, [luaMethodName UTF8String]);
             }
@@ -312,7 +315,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
     if (lua_istable(state, -1))
     {
         lua_getfield(state, -1, NativeTypeKey.UTF8String);
-        LSCValue *value = [LSCValue valueWithState:state atIndex:-1];
+        LSCValue *value = [LSCValue valueWithContext:context atIndex:-1];
         lua_pop(state, 1);
         
         if ([[value toString] isEqualToString:NativeModuleType])

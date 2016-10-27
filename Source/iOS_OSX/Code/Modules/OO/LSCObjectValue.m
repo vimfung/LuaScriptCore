@@ -8,14 +8,15 @@
 
 #import "LSCObjectValue.h"
 #import "LSCValue_Private.h"
+#import "LSCContext_Private.h"
 #import "LSCObjectClass_Private.h"
-#import "LSCObjectClass.h"
 #import "lauxlib.h"
 
 @implementation LSCObjectValue
 
-+ (LSCValue *)valueWithState:(lua_State *)state atIndex:(NSInteger)index
++ (LSCValue *)valueWithContext:(LSCContext *)context atIndex:(NSInteger)index
 {
+    lua_State *state = context.state;
     LSCValue *value = nil;
     
     //先判断是否为类实例对象
@@ -28,14 +29,15 @@
     
     if (!value)
     {
-        value = [super valueWithState:state atIndex:index];
+        value = [super valueWithContext:context atIndex:index];
     }
     
     return value;
 }
 
-- (void)pushWithState:(lua_State *)state
+- (void)pushWithContext:(LSCContext *)context
 {
+    lua_State *state = context.state;
     BOOL hasProcess = NO;
     if (self.valueType == LSCValueTypeObject)
     {
@@ -64,7 +66,7 @@
     
     if (!hasProcess)
     {
-        [super pushWithState:state];
+        [super pushWithContext:context];
     }
     
 }

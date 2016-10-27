@@ -56,7 +56,7 @@
  *
  *  @return 返回值
  */
-- (LSCValue *)callMethodWithName:(NSString *)methodName arguments:(NSArray *)arguments;
+- (LSCValue *)callMethodWithName:(NSString *)methodName arguments:(NSArray<LSCValue *> *)arguments;
 
 /**
  *  注册方法
