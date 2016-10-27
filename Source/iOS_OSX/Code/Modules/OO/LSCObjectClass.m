@@ -513,7 +513,11 @@ static int subClassHandler (lua_State *state)
         lua_getglobal(state, [[[cls superclass] moduleName] UTF8String]);
         if (lua_istable(state, -1))
         {
-            lua_setmetatable(state, -2);
+            lua_pushvalue(state, -1);
+            lua_setmetatable(state, -3);
+            
+            //设置父类指向
+            lua_setfield(state, -2, "super");
         }
     }
     else
@@ -551,18 +555,14 @@ static int subClassHandler (lua_State *state)
     if (cls != [LSCObjectClass class])
     {
         //设置父类
-        superClass = class_getSuperclass(cls);
+        superClass = [cls superclass];
         
         //获取父级元表
         luaL_getmetatable(state, [[superClass moduleName] UTF8String]);
         if (lua_istable(state, -1))
         {
             //设置父类元表
-            lua_pushvalue(state, -1);
-            lua_setmetatable(state, -3);
-            
-            //关联父类
-            lua_setfield(state, -2, "super");
+            lua_setmetatable(state, -2);
         }
         else
         {
