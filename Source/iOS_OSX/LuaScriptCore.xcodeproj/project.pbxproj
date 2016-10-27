@@ -120,6 +120,14 @@
 		7C6B15601D6B2BF100489D9E /* LuaScriptCore.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */; };
 		7C6BFD621DB7A3AF0073CBCB /* LSCObjectValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6BFD611DB7A3AF0073CBCB /* LSCObjectValue.m */; };
 		7C6BFD631DB7A3AF0073CBCB /* LSCObjectValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6BFD611DB7A3AF0073CBCB /* LSCObjectValue.m */; };
+		7CDDCC3C1DC2050F000598ED /* LSCFunction.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CE8EA371DC1F09A00AE2342 /* LSCFunction.h */; };
+		7CDDCC3D1DC2052A000598ED /* LSCFunction.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CE8EA371DC1F09A00AE2342 /* LSCFunction.h */; };
+		7CDDCC4B1DC22AE6000598ED /* LSCPointer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CDDCC4A1DC22AE6000598ED /* LSCPointer.m */; };
+		7CDDCC4C1DC22AE6000598ED /* LSCPointer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CDDCC4A1DC22AE6000598ED /* LSCPointer.m */; };
+		7CDDCC4D1DC22BCE000598ED /* LSCPointer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CDDCC491DC22AE6000598ED /* LSCPointer.h */; };
+		7CDDCC4E1DC22BD4000598ED /* LSCPointer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CDDCC491DC22AE6000598ED /* LSCPointer.h */; };
+		7CE8EA391DC1F09A00AE2342 /* LSCFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE8EA381DC1F09A00AE2342 /* LSCFunction.m */; };
+		7CE8EA3A1DC1F09A00AE2342 /* LSCFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE8EA381DC1F09A00AE2342 /* LSCFunction.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -129,6 +137,8 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
+				7CDDCC4E1DC22BD4000598ED /* LSCPointer.h in CopyFiles */,
+				7CDDCC3D1DC2052A000598ED /* LSCFunction.h in CopyFiles */,
 				7C175AA81D93B0870094E910 /* LSCObjectClass.h in CopyFiles */,
 				7C175AA91D93B0870094E910 /* LSCModule.h in CopyFiles */,
 				7C175AAA1D93B0870094E910 /* LSCTypeDefinied.h in CopyFiles */,
@@ -144,6 +154,8 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
+				7CDDCC4D1DC22BCE000598ED /* LSCPointer.h in CopyFiles */,
+				7CDDCC3C1DC2050F000598ED /* LSCFunction.h in CopyFiles */,
 				7C175AAC1D93B0C60094E910 /* LSCObjectClass.h in CopyFiles */,
 				7C175AAD1D93B0C60094E910 /* LSCModule.h in CopyFiles */,
 				7C175AAE1D93B0C60094E910 /* LSCTypeDefinied.h in CopyFiles */,
@@ -233,6 +245,11 @@
 		7C6BFD601DB7A3AF0073CBCB /* LSCObjectValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectValue.h; sourceTree = "<group>"; };
 		7C6BFD611DB7A3AF0073CBCB /* LSCObjectValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCObjectValue.m; sourceTree = "<group>"; };
 		7C8C2D511D38C0C0009345EB /* libLuaScriptCore-iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-iOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7CDDCC491DC22AE6000598ED /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCPointer.h; sourceTree = "<group>"; };
+		7CDDCC4A1DC22AE6000598ED /* LSCPointer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCPointer.m; sourceTree = "<group>"; };
+		7CE8EA371DC1F09A00AE2342 /* LSCFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction.h; sourceTree = "<group>"; };
+		7CE8EA381DC1F09A00AE2342 /* LSCFunction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCFunction.m; sourceTree = "<group>"; };
+		7CE8EA3B1DC1F0CB00AE2342 /* LSCFunction_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction_Private.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -279,17 +296,22 @@
 			children = (
 				7C175A951D93B05B0094E910 /* Modules */,
 				7C6B13DB1D6B048200489D9E /* lua-core */,
+				7C175AA01D93B0730094E910 /* LSCContext_Private.h */,
 				7C6B13D21D6B047F00489D9E /* LSCContext.h */,
 				7C6B13D31D6B047F00489D9E /* LSCContext.m */,
 				7C6B13D41D6B047F00489D9E /* LSCValue_Private.h */,
 				7C6B13D51D6B047F00489D9E /* LSCValue.h */,
 				7C6B13D61D6B047F00489D9E /* LSCValue.m */,
-				7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */,
-				7C175AA01D93B0730094E910 /* LSCContext_Private.h */,
 				7C175AA11D93B0730094E910 /* LSCModule_Private.h */,
 				7C175AA21D93B0730094E910 /* LSCModule.h */,
 				7C175AA31D93B0730094E910 /* LSCModule.m */,
 				7C175AA41D93B0730094E910 /* LSCTypeDefinied.h */,
+				7CE8EA3B1DC1F0CB00AE2342 /* LSCFunction_Private.h */,
+				7CE8EA371DC1F09A00AE2342 /* LSCFunction.h */,
+				7CE8EA381DC1F09A00AE2342 /* LSCFunction.m */,
+				7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */,
+				7CDDCC491DC22AE6000598ED /* LSCPointer.h */,
+				7CDDCC4A1DC22AE6000598ED /* LSCPointer.m */,
 			);
 			name = LuaScriptCore;
 			sourceTree = "<group>";
@@ -494,6 +516,7 @@
 			files = (
 				7C6B15511D6B2B5700489D9E /* ltable.c in Sources */,
 				7C6B15421D6B2B5700489D9E /* lfunc.c in Sources */,
+				7CDDCC4C1DC22AE6000598ED /* LSCPointer.m in Sources */,
 				7C6B153D1D6B2B5700489D9E /* lctype.c in Sources */,
 				7C6B153A1D6B2B5700489D9E /* lbitlib.c in Sources */,
 				7C6B15431D6B2B5700489D9E /* lgc.c in Sources */,
@@ -518,6 +541,7 @@
 				7C6B15591D6B2B5700489D9E /* LSCValue.m in Sources */,
 				7C6B15501D6B2B5700489D9E /* lstrlib.c in Sources */,
 				7C6B154A1D6B2B5700489D9E /* lobject.c in Sources */,
+				7CE8EA3A1DC1F09A00AE2342 /* LSCFunction.m in Sources */,
 				7C6B153F1D6B2B5700489D9E /* ldebug.c in Sources */,
 				7C6B15521D6B2B5700489D9E /* ltablib.c in Sources */,
 				7C6B15551D6B2B5700489D9E /* lutf8lib.c in Sources */,
@@ -539,6 +563,7 @@
 			files = (
 				7C6B141D1D6B049300489D9E /* lcode.c in Sources */,
 				7C6B141E1D6B049300489D9E /* lcorolib.c in Sources */,
+				7CDDCC4B1DC22AE6000598ED /* LSCPointer.m in Sources */,
 				7C6B14241D6B049300489D9E /* lfunc.c in Sources */,
 				7C6B13DA1D6B047F00489D9E /* LSCValue.m in Sources */,
 				7C6B14211D6B049300489D9E /* ldebug.c in Sources */,
@@ -563,6 +588,7 @@
 				7C6B143A1D6B049300489D9E /* lvm.c in Sources */,
 				7C6B13D91D6B047F00489D9E /* LSCContext.m in Sources */,
 				7C6B14221D6B049300489D9E /* ldo.c in Sources */,
+				7CE8EA391DC1F09A00AE2342 /* LSCFunction.m in Sources */,
 				7C6B142B1D6B049300489D9E /* loadlib.c in Sources */,
 				7C6B142C1D6B049300489D9E /* lobject.c in Sources */,
 				7C6B14341D6B049300489D9E /* ltablib.c in Sources */,

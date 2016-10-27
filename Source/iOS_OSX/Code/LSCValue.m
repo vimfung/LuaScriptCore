@@ -8,7 +8,11 @@
 
 #import "LSCValue.h"
 #import "LSCValue_Private.h"
+#import "LSCContext_Private.h"
+#import "LSCFunction_Private.h"
+#import "LSCPointer.h"
 #import "lauxlib.h"
+#import "lua.h"
 
 @interface LSCValue ()
 
@@ -21,11 +25,6 @@
  *  数值类型
  */
 @property (nonatomic) LSCValueType valueType;
-
-/**
- *  指针值
- */
-@property (nonatomic) const void *ptrValue;
 
 @end
 
@@ -94,6 +93,10 @@
     {
         return [self dataValue:objectValue];
     }
+    else if ([objectValue isKindOfClass:[LSCFunction class]])
+    {
+        return [self functionValue:objectValue];
+    }
     else
     {
         return [[self alloc] initWithType:LSCValueTypeObject value:objectValue];
@@ -102,12 +105,14 @@
     return [self nilValue];
 }
 
-+ (instancetype)ptrValue:(const void *)ptrValue
++ (instancetype)pointerValue:(LSCPointer *)pointerValue
 {
-    LSCValue *value = [[self alloc] initWithType:LSCValueTypePtr value:nil];
-    value.ptrValue = ptrValue;
-    
-    return value;
+    return [[self alloc] initWithType:LSCValueTypePtr value:pointerValue];
+}
+
++ (instancetype)functionValue:(LSCFunction *)functionValue
+{
+    return [[self alloc] initWithType:LSCValueTypeFunction value:functionValue];
 }
 
 - (instancetype)init
@@ -120,8 +125,10 @@
     return self;
 }
 
-- (void)pushWithState:(lua_State *)state
+- (void)pushWithContext:(LSCContext *)context
 {
+    lua_State *state = context.state;
+    
     switch (self.valueType)
     {
         case LSCValueTypeInteger:
@@ -157,11 +164,17 @@
             void **ref = (void **)lua_newuserdata(state, sizeof(NSObject **));
             //创建本地实例对象，赋予lua的内存块
             *ref = (__bridge void *)self.valueContainer;
+            
             break;
         }
         case LSCValueTypePtr:
         {
-            lua_pushlightuserdata(state, (void *)self.ptrValue);
+            lua_pushlightuserdata(state, (void *)[[self toPointer] value]);
+            break;
+        }
+        case LSCValueTypeFunction:
+        {
+            [[self toFunction] push];
             break;
         }
         default:
@@ -217,7 +230,7 @@
         case LSCValueTypeString:
             return [(NSString *)self.valueContainer integerValue];
         case LSCValueTypePtr:
-            return (int)self.ptrValue;
+            return (int)[[self toPointer] value];
         default:
             return (NSInteger)self.valueContainer;
     }
@@ -287,30 +300,36 @@
     return nil;
 }
 
-- (const void *)toPtr
+- (LSCPointer *)toPointer
 {
     if (self.valueType == LSCValueTypePtr)
     {
-        return self.ptrValue;
+        return self.valueContainer;
     }
     
-    return (__bridge const void *)(self.valueContainer);
+    return [[LSCPointer alloc] initWithPtr:(__bridge const void *)(self.valueContainer)];
+}
+
+- (LSCFunction *)toFunction
+{
+    if (self.valueType == LSCValueTypeFunction)
+    {
+        return self.valueContainer;
+    }
+    
+    return nil;
 }
 
 - (NSString *)description
 {
-    if (self.valueType == LSCValueTypePtr)
-    {
-        return [NSString stringWithFormat:@"pointer value 0x%x", (int)self.ptrValue];
-    }
-    
     return [self.valueContainer description];
 }
 
 #pragma mark - Private
 
-+ (LSCValue *)valueWithState:(lua_State *)state atIndex:(NSInteger)index
++ (LSCValue *)valueWithContext:(LSCContext *)context atIndex:(NSInteger)index
 {
+    lua_State *state = context.state;
     LSCValue *value = nil;
     
     switch (lua_type(state, (int)index))
@@ -359,8 +378,8 @@
             lua_pushnil(state);
             while (lua_next(state, -2))
             {
-                LSCValue *value = [self valueWithState:state atIndex:-1];
-                LSCValue *key = [self valueWithState:state atIndex:-2];
+                LSCValue *value = [self valueWithContext:context atIndex:-1];
+                LSCValue *key = [self valueWithContext:context atIndex:-2];
                 
                 if (arrayValue)
                 {
@@ -407,8 +426,14 @@
         }
         case LUA_TLIGHTUSERDATA:
         {
-            const void *ptr = lua_topointer(state, (int)index);
-            value = [LSCValue ptrValue:ptr];
+            LSCPointer *pointer = [[LSCPointer alloc] initWithPtr:lua_topointer(state, (int)index)];
+            value = [LSCValue pointerValue:pointer];
+            break;
+        }
+        case LUA_TFUNCTION:
+        {
+            LSCFunction *func = [[LSCFunction alloc] initWithContext:context index:index];
+            value = [LSCValue functionValue:func];
             break;
         }
         default:
@@ -421,55 +446,6 @@
     
     return value;
 }
-
-//+ (void)pushWithState:(lua_State *)state value:(LSCValue *)value
-//{
-//    switch (value.valueType)
-//    {
-//        case LSCValueTypeInteger:
-//            lua_pushinteger(state, [value.valueContainer integerValue]);
-//            break;
-//        case LSCValueTypeNumber:
-//            lua_pushnumber(state, [value.valueContainer doubleValue]);
-//            break;
-//        case LSCValueTypeNil:
-//            lua_pushnil(state);
-//            break;
-//        case LSCValueTypeString:
-//            lua_pushstring(state, [value.valueContainer UTF8String]);
-//            break;
-//        case LSCValueTypeBoolean:
-//            lua_pushboolean(state, [value.valueContainer boolValue]);
-//            break;
-//        case LSCValueTypeArray:
-//        case LSCValueTypeMap:
-//        {
-//            [self pushTable:state value:value.valueContainer];
-//            break;
-//        }
-//        case LSCValueTypeData:
-//        {
-//            lua_pushlstring(state, [value.valueContainer bytes],
-//                            [value.valueContainer length]);
-//            break;
-//        }
-//        case LSCValueTypeObject:
-//        {
-//            //先为实例对象在lua中创建内存
-//            void **ref = (void **)lua_newuserdata(state, sizeof(NSObject **));
-//            //创建本地实例对象，赋予lua的内存块
-//            *ref = (__bridge void *)value.valueContainer;
-//            break;
-//        }
-//        case LSCValueTypePtr:
-//        {
-//            lua_pushlightuserdata(state, (void *)value.ptrValue);
-//            break;
-//        }
-//        default:
-//            break;
-//    }
-//}
 
 /**
  *  初始化值对象

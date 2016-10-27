@@ -9,6 +9,10 @@
 #import <Foundation/Foundation.h>
 #import "LSCTypeDefinied.h"
 
+@class LSCContext;
+@class LSCFunction;
+@class LSCPointer;
+
 /**
  *  Lua的值封装
  */
@@ -101,11 +105,20 @@
 /**
  *  创建一个指针类型的值对象
  *
- *  @param ptrValue 指针对象
+ *  @param pointerValue 指针对象
  *
  *  @return 值对象
  */
-+ (instancetype)ptrValue:(const void *)ptrValue;
++ (instancetype)pointerValue:(LSCPointer *)pointerValue;
+
+/**
+ 创建一个方法引用值对象
+
+ @param functionValue 方法对象
+
+ @return 值对象
+ */
++ (instancetype)functionValue:(LSCFunction *)functionValue;
 
 /**
  *  转换为对象
@@ -175,6 +188,14 @@
  *
  *  @return 指针值
  */
-- (const void *)toPtr;
+- (LSCPointer *)toPointer;
+
+
+/**
+ 转换为方法
+
+ @return 方法对象
+ */
+- (LSCFunction *)toFunction;
 
 @end

@@ -8,6 +8,8 @@
 
 #import "LSCObjectClass.h"
 
+@class LSCFunction;
+
 
 @interface LSCTPerson : LSCObjectClass
 

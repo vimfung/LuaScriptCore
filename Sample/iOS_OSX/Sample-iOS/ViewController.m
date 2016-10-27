@@ -143,7 +143,7 @@
         [self.context registerModuleWithClass:[LogModule class]];
     }
     
-    [self.context evalScriptFromString:@"LogModule.writeLog('Hello Lua Module!');"];
+    [self.context evalScriptFromString:@"LogModule.writeLog('Hello Lua Module!', 10.1);"];
 }
 
 
@@ -160,7 +160,7 @@
         [self.context registerModuleWithClass:[LSCTPerson class]];
     }
 
-    [self.context evalScriptFromString:@"local person = LSCTPerson.super.create();print(person);"];
+    [self.context evalScriptFromString:@"local person = LSCTPerson.create();person:setName('vimfung');person:walk();person:speak();"];
 }
 
 @end

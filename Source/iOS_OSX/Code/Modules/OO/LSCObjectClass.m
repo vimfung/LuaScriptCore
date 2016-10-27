@@ -206,9 +206,10 @@ static int InstanceMethodRouteHandler(lua_State *state)
     void **ref = (void **)lua_touserdata(state, 1);
     LSCObjectClass *instance = (__bridge LSCObjectClass *)(*ref);
     
-    Class moduleClass = (__bridge Class)lua_touserdata(state, lua_upvalueindex(1));
-    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(2))];
-    NSString *returnType = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
+    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
+    NSString *returnType = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(4))];
     SEL selector = NSSelectorFromString(methodName);
 
     NSMethodSignature *sign = [moduleClass instanceMethodSignatureForSelector:selector];
@@ -231,7 +232,7 @@ static int InstanceMethodRouteHandler(lua_State *state)
             LSCValue *value = nil;
             if (i <= top)
             {
-                value = [LSCObjectValue valueWithState:state atIndex:i];
+                value = [LSCObjectValue valueWithContext:context atIndex:i];
             }
             else
             {
@@ -341,7 +342,7 @@ static int InstanceMethodRouteHandler(lua_State *state)
         
         if (retValue)
         {
-            [retValue pushWithState:state];
+            [retValue pushWithContext:context];
             return 1;
         }
         
@@ -594,10 +595,11 @@ static int subClassHandler (lua_State *state)
             && ![methodName hasPrefix:@"init"]
             && ![filterMethodList containsObject:methodName])
         {
+            lua_pushlightuserdata(state, (__bridge void *)context);
             lua_pushlightuserdata(state, (__bridge void *)cls);
             lua_pushstring(state, [methodName UTF8String]);
             lua_pushstring(state, returnType);
-            lua_pushcclosure(state, InstanceMethodRouteHandler, 3);
+            lua_pushcclosure(state, InstanceMethodRouteHandler, 4);
             
             NSString *luaMethodName = [LSCModule _getLuaMethodNameWithName:methodName];
             lua_setfield(state, -2, [luaMethodName UTF8String]);
