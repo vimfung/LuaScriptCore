@@ -143,7 +143,7 @@
         [self.context registerModuleWithClass:[LogModule class]];
     }
     
-    [self.context evalScriptFromString:@"LogModule.writeLog('Hello Lua Module!', 10.1);"];
+    [self.context evalScriptFromString:@"LogModule.writeLog('Hello Lua Module!');"];
 }
 
 

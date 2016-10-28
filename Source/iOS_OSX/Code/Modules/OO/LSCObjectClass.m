@@ -192,9 +192,6 @@ static void removeInstance(LSCObjectClass *instance)
         lua_pop(state, 1);
     }
     
-//通过LSCModule的注册方法来导出类的静态方法。
-//    [LSCModule _regModule:module context:context];
-    
     [self _regClass:module withContext:context moduleName:name];
 }
 
@@ -209,7 +206,6 @@ static int InstanceMethodRouteHandler(lua_State *state)
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
     NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
-    NSString *returnType = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(4))];
     SEL selector = NSSelectorFromString(methodName);
 
     NSMethodSignature *sign = [moduleClass instanceMethodSignatureForSelector:selector];
@@ -239,38 +235,38 @@ static int InstanceMethodRouteHandler(lua_State *state)
                 value = [LSCValue nilValue];
             }
             
-            if (strcmp(argType, "f") == 0)
+            if (strcmp(argType, @encode(float)) == 0)
             {
                 //浮点型数据
                 LSCFloatStruct floatValue = {[value toDouble]};
                 [invocation setArgument:&floatValue atIndex:i];
             }
-            else if (strcmp(argType, "d") == 0)
+            else if (strcmp(argType, @encode(double)) == 0)
             {
                 //双精度浮点型
                 double doubleValue = [value toDouble];
                 [invocation setArgument:&doubleValue atIndex:i];
             }
-            else if (strcmp(argType, "i") == 0
-                     || strcmp(argType, "I") == 0
-                     || strcmp(argType, "q") == 0
-                     || strcmp(argType, "Q") == 0
-                     || strcmp(argType, "s") == 0
-                     || strcmp(argType, "S") == 0
-                     || strcmp(argType, "c") == 0
-                     || strcmp(argType, "C") == 0)
+            else if (strcmp(argType, @encode(int)) == 0
+                     || strcmp(argType, @encode(unsigned int)) == 0
+                     || strcmp(argType, @encode(long)) == 0
+                     || strcmp(argType, @encode(unsigned long)) == 0
+                     || strcmp(argType, @encode(short)) == 0
+                     || strcmp(argType, @encode(unsigned short)) == 0
+                     || strcmp(argType, @encode(char)) == 0
+                     || strcmp(argType, @encode(unsigned char)) == 0)
             {
                 //整型
                 NSInteger intValue = [value toDouble];
                 [invocation setArgument:&intValue atIndex:i];
             }
-            else if (strcmp(argType, "B") == 0)
+            else if (strcmp(argType, @encode(BOOL)) == 0)
             {
                 //布尔类型
                 BOOL boolValue = [value toBoolean];
                 [invocation setArgument:&boolValue atIndex:i];
             }
-            else if (strcmp(argType, "@") == 0)
+            else if (strcmp(argType, @encode(id)) == 0)
             {
                 //对象类型
                 id obj = [value toObject];
@@ -282,23 +278,24 @@ static int InstanceMethodRouteHandler(lua_State *state)
         
         [invocation invoke];
         
-        LSCValue *retValue = nil;
+        char *returnType = method_copyReturnType(m);
         
-        if ([returnType isEqualToString:@"@"])
+        LSCValue *retValue = nil;
+        if (strcmp(returnType, @encode(id)) == 0)
         {
             //返回值为对象，添加__unsafe_unretained修饰用于修复ARC下retObj对象被释放问题。
             id __unsafe_unretained retObj = nil;
             [invocation getReturnValue:&retObj];
             retValue = [LSCObjectValue objectValue:retObj];
         }
-        else if ([returnType isEqualToString:@"i"]
-                 || [returnType isEqualToString:@"I"]
-                 || [returnType isEqualToString:@"q"]
-                 || [returnType isEqualToString:@"Q"]
-                 || [returnType isEqualToString:@"s"]
-                 || [returnType isEqualToString:@"S"]
-                 || [returnType isEqualToString:@"c"]
-                 || [returnType isEqualToString:@"C"])
+        else if (strcmp(returnType, @encode(int)) == 0
+                 || strcmp(returnType, @encode(unsigned int)) == 0
+                 || strcmp(returnType, @encode(long)) == 0
+                 || strcmp(returnType, @encode(unsigned long)) == 0
+                 || strcmp(returnType, @encode(short)) == 0
+                 || strcmp(returnType, @encode(unsigned short)) == 0
+                 || strcmp(returnType, @encode(char)) == 0
+                 || strcmp(returnType, @encode(unsigned char)) == 0)
         {
             // i 整型
             // I 无符号整型
@@ -312,7 +309,7 @@ static int InstanceMethodRouteHandler(lua_State *state)
             [invocation getReturnValue:&intValue];
             retValue = [LSCObjectValue integerValue:intValue];
         }
-        else if ([returnType isEqualToString:@"f"])
+        else if (strcmp(returnType, @encode(float)) == 0)
         {
             // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
             LSCFloatStruct floatStruct = {0};
@@ -320,14 +317,14 @@ static int InstanceMethodRouteHandler(lua_State *state)
             retValue = [LSCObjectValue numberValue:@(floatStruct.f)];
             
         }
-        else if ([returnType isEqualToString:@"d"])
+        else if (strcmp(returnType, @encode(double)) == 0)
         {
             // d 双精度浮点型
             double doubleValue = 0.0;
             [invocation getReturnValue:&doubleValue];
             retValue = [LSCObjectValue numberValue:@(doubleValue)];
         }
-        else if ([returnType isEqualToString:@"B"])
+        else if (strcmp(returnType, @encode(BOOL)) == 0)
         {
             //B 布尔类型
             BOOL boolValue = NO;
@@ -339,6 +336,8 @@ static int InstanceMethodRouteHandler(lua_State *state)
             //nil
             retValue = nil;
         }
+        
+        free(returnType);
         
         if (retValue)
         {
@@ -585,10 +584,6 @@ static int subClassHandler (lua_State *state)
     {
         SEL selector = method_getName(*m);
         
-        size_t returnTypeLen = 256;
-        char returnType[256];
-        method_getReturnType(*m, returnType, returnTypeLen);
-        
         NSString *methodName = NSStringFromSelector(selector);
         if (![methodName hasPrefix:@"_"]
             && ![methodName hasPrefix:@"."]
@@ -598,8 +593,7 @@ static int subClassHandler (lua_State *state)
             lua_pushlightuserdata(state, (__bridge void *)context);
             lua_pushlightuserdata(state, (__bridge void *)cls);
             lua_pushstring(state, [methodName UTF8String]);
-            lua_pushstring(state, returnType);
-            lua_pushcclosure(state, InstanceMethodRouteHandler, 4);
+            lua_pushcclosure(state, InstanceMethodRouteHandler, 3);
             
             NSString *luaMethodName = [LSCModule _getLuaMethodNameWithName:methodName];
             lua_setfield(state, -2, [luaMethodName UTF8String]);
