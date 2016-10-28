@@ -21,12 +21,11 @@ static int ModuleMethodRouteHandler(lua_State *state)
 {
     //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
     typedef struct {float f;} LSCFloatStruct;
-    id obj =nil;
+    id obj = nil;
     
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
     NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
-    NSString *returnType = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(4))];
     SEL selector = NSSelectorFromString(methodName);
     
     NSMethodSignature *sign = [moduleClass methodSignatureForSelector:selector];
@@ -95,24 +94,24 @@ static int ModuleMethodRouteHandler(lua_State *state)
 
     [invocation invoke];
     
-//    char *returnType = method_copyReturnType(m);
+    char *returnType = method_copyReturnType(m);
     LSCValue *retValue = nil;
     
-    if ([returnType isEqualToString:@"@"])
+    if (strcmp(returnType, @encode(id)) == 0)
     {
         //返回值为对象
         id __unsafe_unretained retObj = nil;
         [invocation getReturnValue:&retObj];
         retValue = [LSCValue objectValue:retObj];
     }
-    else if ([returnType isEqualToString:@"i"]
-             || [returnType isEqualToString:@"I"]
-             || [returnType isEqualToString:@"q"]
-             || [returnType isEqualToString:@"Q"]
-             || [returnType isEqualToString:@"s"]
-             || [returnType isEqualToString:@"S"]
-             || [returnType isEqualToString:@"c"]
-             || [returnType isEqualToString:@"C"])
+    else if (strcmp(returnType, @encode(int)) == 0
+             || strcmp(returnType, @encode(unsigned int)) == 0
+             || strcmp(returnType, @encode(long)) == 0
+             || strcmp(returnType, @encode(unsigned long)) == 0
+             || strcmp(returnType, @encode(short)) == 0
+             || strcmp(returnType, @encode(unsigned short)) == 0
+             || strcmp(returnType, @encode(char)) == 0
+             || strcmp(returnType, @encode(unsigned char)) == 0)
     {
         // i 整型
         // I 无符号整型
@@ -126,7 +125,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
         [invocation getReturnValue:&intValue];
         retValue = [LSCValue integerValue:intValue];
     }
-    else if ([returnType isEqualToString:@"f"])
+    else if (strcmp(returnType, @encode(float)) == 0)
     {
         // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
         LSCFloatStruct floatStruct = {0};
@@ -134,14 +133,14 @@ static int ModuleMethodRouteHandler(lua_State *state)
         retValue = [LSCValue numberValue:@(floatStruct.f)];
         
     }
-    else if ([returnType isEqualToString:@"d"])
+    else if (strcmp(returnType, @encode(double)) == 0)
     {
         // d 双精度浮点型
         double doubleValue = 0.0;
         [invocation getReturnValue:&doubleValue];
         retValue = [LSCValue numberValue:@(doubleValue)];
     }
-    else if ([returnType isEqualToString:@"B"])
+    else if (strcmp(returnType, @encode(BOOL)) == 0)
     {
         //B 布尔类型
         BOOL boolValue = NO;
@@ -153,6 +152,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
         //结构体和其他类型暂时认为和v一样无返回值
         retValue = nil;
     }
+    free(returnType);
     
     if (retValue)
     {
@@ -253,10 +253,6 @@ static int ModuleMethodRouteHandler(lua_State *state)
     {
         SEL selector = method_getName(*m);
         
-        size_t returnTypeLen = 256;
-        char returnType[256];
-        method_getReturnType(*m, returnType, returnTypeLen);
-        
         NSString *methodName = NSStringFromSelector(selector);
         if (![methodName hasPrefix:@"_"]
             && ![methodName hasPrefix:@"."]
@@ -278,8 +274,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
                 lua_pushlightuserdata(state, (__bridge void *)context);
                 lua_pushlightuserdata(state, (__bridge void *)thiz);
                 lua_pushstring(state, [methodName UTF8String]);
-                lua_pushstring(state, returnType);
-                lua_pushcclosure(state, ModuleMethodRouteHandler, 4);
+                lua_pushcclosure(state, ModuleMethodRouteHandler, 3);
                 
                 lua_setfield(state, -2, [luaMethodName UTF8String]);
             }
