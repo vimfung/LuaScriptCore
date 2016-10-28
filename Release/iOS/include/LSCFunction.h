@@ -10,6 +10,10 @@
 
 @class LSCValue;
 
+
+/**
+ Lua方法
+ */
 @interface LSCFunction : NSObject
 
 /**

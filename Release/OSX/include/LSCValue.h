@@ -11,6 +11,7 @@
 
 @class LSCContext;
 @class LSCFunction;
+@class LSCPointer;
 
 /**
  *  Lua的值封装
@@ -104,11 +105,11 @@
 /**
  *  创建一个指针类型的值对象
  *
- *  @param ptrValue 指针对象
+ *  @param pointerValue 指针对象
  *
  *  @return 值对象
  */
-+ (instancetype)ptrValue:(const void *)ptrValue;
++ (instancetype)pointerValue:(LSCPointer *)pointerValue;
 
 /**
  创建一个方法引用值对象
@@ -187,7 +188,7 @@
  *
  *  @return 指针值
  */
-- (const void *)toPtr;
+- (LSCPointer *)toPointer;
 
 
 /**

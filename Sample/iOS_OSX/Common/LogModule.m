@@ -10,7 +10,7 @@
 
 @implementation LogModule
 
-+ (void)writeLog:(NSString *)message value:(NSInteger)value
++ (void)writeLog:(NSString *)message
 {
     NSLog(@"** message = %@", message);
 }
