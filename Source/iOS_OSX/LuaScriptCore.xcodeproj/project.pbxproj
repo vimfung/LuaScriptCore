@@ -118,8 +118,6 @@
 		7C6B155E1D6B2BF100489D9E /* LSCContext.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D21D6B047F00489D9E /* LSCContext.h */; };
 		7C6B155F1D6B2BF100489D9E /* LSCValue.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D51D6B047F00489D9E /* LSCValue.h */; };
 		7C6B15601D6B2BF100489D9E /* LuaScriptCore.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */; };
-		7C6BFD621DB7A3AF0073CBCB /* LSCObjectValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6BFD611DB7A3AF0073CBCB /* LSCObjectValue.m */; };
-		7C6BFD631DB7A3AF0073CBCB /* LSCObjectValue.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6BFD611DB7A3AF0073CBCB /* LSCObjectValue.m */; };
 		7CDDCC3C1DC2050F000598ED /* LSCFunction.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CE8EA371DC1F09A00AE2342 /* LSCFunction.h */; };
 		7CDDCC3D1DC2052A000598ED /* LSCFunction.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CE8EA371DC1F09A00AE2342 /* LSCFunction.h */; };
 		7CDDCC4B1DC22AE6000598ED /* LSCPointer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CDDCC4A1DC22AE6000598ED /* LSCPointer.m */; };
@@ -175,7 +173,7 @@
 		7C175AA21D93B0730094E910 /* LSCModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCModule.h; path = Code/LSCModule.h; sourceTree = "<group>"; };
 		7C175AA31D93B0730094E910 /* LSCModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCModule.m; path = Code/LSCModule.m; sourceTree = "<group>"; };
 		7C175AA41D93B0730094E910 /* LSCTypeDefinied.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCTypeDefinied.h; path = Code/LSCTypeDefinied.h; sourceTree = "<group>"; };
-		7C1D1E061DB85CC2001ED657 /* LSCObjectClass_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectClass_Private.h; sourceTree = "<group>"; };
+		7C236D1D1DC8BD7700E1F9CF /* LSCLuaObjectPushProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCLuaObjectPushProtocol.h; sourceTree = "<group>"; };
 		7C6B13D21D6B047F00489D9E /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCContext.h; path = Code/LSCContext.h; sourceTree = "<group>"; };
 		7C6B13D31D6B047F00489D9E /* LSCContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCContext.m; path = Code/LSCContext.m; sourceTree = "<group>"; };
 		7C6B13D41D6B047F00489D9E /* LSCValue_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCValue_Private.h; path = Code/LSCValue_Private.h; sourceTree = "<group>"; };
@@ -242,8 +240,6 @@
 		7C6B14171D6B049300489D9E /* lzio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = lzio.c; path = "../lua-core/src/lzio.c"; sourceTree = "<group>"; };
 		7C6B14181D6B049300489D9E /* lzio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = lzio.h; path = "../lua-core/src/lzio.h"; sourceTree = "<group>"; };
 		7C6B152E1D6B2B2500489D9E /* libLuaScriptCore-OSX.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-OSX.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		7C6BFD601DB7A3AF0073CBCB /* LSCObjectValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectValue.h; sourceTree = "<group>"; };
-		7C6BFD611DB7A3AF0073CBCB /* LSCObjectValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCObjectValue.m; sourceTree = "<group>"; };
 		7C8C2D511D38C0C0009345EB /* libLuaScriptCore-iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-iOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7CDDCC491DC22AE6000598ED /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCPointer.h; sourceTree = "<group>"; };
 		7CDDCC4A1DC22AE6000598ED /* LSCPointer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCPointer.m; sourceTree = "<group>"; };
@@ -282,11 +278,8 @@
 		7C175A961D93B05B0094E910 /* OO */ = {
 			isa = PBXGroup;
 			children = (
-				7C1D1E061DB85CC2001ED657 /* LSCObjectClass_Private.h */,
 				7C175A9A1D93B05B0094E910 /* LSCObjectClass.h */,
 				7C175A9B1D93B05B0094E910 /* LSCObjectClass.m */,
-				7C6BFD601DB7A3AF0073CBCB /* LSCObjectValue.h */,
-				7C6BFD611DB7A3AF0073CBCB /* LSCObjectValue.m */,
 			);
 			path = OO;
 			sourceTree = "<group>";
@@ -312,6 +305,7 @@
 				7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */,
 				7CDDCC491DC22AE6000598ED /* LSCPointer.h */,
 				7CDDCC4A1DC22AE6000598ED /* LSCPointer.m */,
+				7C236D1D1DC8BD7700E1F9CF /* LSCLuaObjectPushProtocol.h */,
 			);
 			name = LuaScriptCore;
 			sourceTree = "<group>";
@@ -527,7 +521,6 @@
 				7C6B15531D6B2B5700489D9E /* ltm.c in Sources */,
 				7C6B15491D6B2B5700489D9E /* loadlib.c in Sources */,
 				7C6B15371D6B2B5700489D9E /* lapi.c in Sources */,
-				7C6BFD631DB7A3AF0073CBCB /* LSCObjectValue.m in Sources */,
 				7C6B15381D6B2B5700489D9E /* lauxlib.c in Sources */,
 				7C6B153C1D6B2B5700489D9E /* lcorolib.c in Sources */,
 				7C6B15541D6B2B5700489D9E /* lundump.c in Sources */,
@@ -574,7 +567,6 @@
 				7C6B14201D6B049300489D9E /* ldblib.c in Sources */,
 				7C6B141C1D6B049300489D9E /* lbitlib.c in Sources */,
 				7C6B14261D6B049300489D9E /* linit.c in Sources */,
-				7C6BFD621DB7A3AF0073CBCB /* LSCObjectValue.m in Sources */,
 				7C6B142A1D6B049300489D9E /* lmem.c in Sources */,
 				7C6B14231D6B049300489D9E /* ldump.c in Sources */,
 				7C6B14311D6B049300489D9E /* lstring.c in Sources */,

@@ -14,6 +14,15 @@ class LuaJavaObjectDescriptor : public LuaObjectDescriptor
 {
 public:
     LuaJavaObjectDescriptor(jobject object);
+    virtual ~LuaJavaObjectDescriptor();
+
+public:
+    /**
+     * 入栈数据
+     *
+     * @param context 上下文对象
+     */
+    void push(LuaContext *context);
 };
 
 

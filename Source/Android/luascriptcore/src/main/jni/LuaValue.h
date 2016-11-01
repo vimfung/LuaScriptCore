@@ -21,6 +21,7 @@ namespace cn
         namespace luascriptcore
         {
             class LuaValue;
+            class LuaContext;
 
             typedef std::list<LuaValue *> LuaValueList;
             typedef std::map<std::string, LuaValue*> LuaValueMap;
@@ -77,10 +78,10 @@ namespace cn
                 LuaPointer* toPointer();
                 LuaFunction* toFunction();
                 LuaObjectDescriptor* toObject();
-                void push(lua_State *state);
-                void pushValue(lua_State *state, LuaValue *value);
-                void pushTable(lua_State *state, LuaValueList *list);
-                void pushTable(lua_State *state, LuaValueMap *map);
+                void push(LuaContext *context);
+                void pushValue(LuaContext *context, LuaValue *value);
+                void pushTable(LuaContext *context, LuaValueList *list);
+                void pushTable(LuaContext *context, LuaValueMap *map);
 
             public:
                 static LuaValue* NilValue();

@@ -34,7 +34,7 @@ static int methodRouteHandler(lua_State *state)
         cn::vimfung::luascriptcore::LuaValue *retValue = handler (module, methodName, args);
         if (retValue != NULL)
         {
-            retValue -> push(state);
+            retValue -> push(context);
             retValue -> release();
         }
 

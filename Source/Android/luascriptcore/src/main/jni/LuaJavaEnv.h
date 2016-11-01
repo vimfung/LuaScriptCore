@@ -78,6 +78,15 @@ public:
     static void removeAssociateInstance(jobject instance, void **ref);
 
     /**
+     * 获取关联对象实例引用
+     *
+     * @param instance Java中的实例对象
+     *
+     * @return 关联实例对象的引用
+     */
+    static void** getAssociateInstanceRef(jobject instance);
+
+    /**
      * 释放对象,由于Java层中对象需要引用本地对象,因此为确保Java对象释放时也释放本地对象,则需要调用该方法。
      *
      * @param env JNI环境
