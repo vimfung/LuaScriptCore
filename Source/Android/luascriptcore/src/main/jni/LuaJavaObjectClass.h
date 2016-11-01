@@ -17,7 +17,8 @@ private:
     JNIEnv *_env;
     jclass  _moduleClass;
     jobjectArray _fields;
-    jobjectArray _methods;
+    jobjectArray _instanceMethods;
+    jobjectArray _classMethods;
 
 public:
 
@@ -28,13 +29,23 @@ public:
      * @param superClassName 父类名称
      * @param moduleClass 类型
      * @param fields 导出字段集合
-     * @param methods 导出方法集合
+     * @param instanceMethods 导出实例方法集合
+     * @param classMethods 导出类方法集合
      */
     LuaJavaObjectClass(JNIEnv *env,
                        const std::string &superClassName,
                        jclass moduleClass,
                        jobjectArray fields,
-                       jobjectArray methods);
+                       jobjectArray instanceMethods,
+                       jobjectArray classMethods);
+public:
+
+    /**
+     * 获取模块类型
+     *
+     * @return 模块类型
+     */
+    jclass getModuleClass();
 
 public:
     /**

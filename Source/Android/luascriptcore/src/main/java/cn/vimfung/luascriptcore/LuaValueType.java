@@ -8,8 +8,11 @@ public enum LuaValueType
     String (3),
     Array (4),
     Map (5),
+    Pointer (6),
+    Object (7),
     Integer (8),
-    Data (9);
+    Data (9),
+    Function (10);
 
     private int _value;
 

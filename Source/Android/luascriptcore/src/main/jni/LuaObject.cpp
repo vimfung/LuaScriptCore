@@ -3,6 +3,7 @@
 //
 
 #include "LuaObject.h"
+#include "LuaDefine.h"
 
 static int _objSeqId = 0;
 

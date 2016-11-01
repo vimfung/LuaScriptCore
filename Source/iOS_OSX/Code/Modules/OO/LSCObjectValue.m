@@ -14,27 +14,6 @@
 
 @implementation LSCObjectValue
 
-+ (LSCValue *)valueWithContext:(LSCContext *)context atIndex:(NSInteger)index
-{
-    lua_State *state = context.state;
-    LSCValue *value = nil;
-    
-    //先判断是否为类实例对象
-    if (lua_type(state, (int)index) == LUA_TUSERDATA)
-    {
-        void **ref = lua_touserdata(state, (int)index);
-        LSCObjectClass *instance = (__bridge LSCObjectClass *)*ref;
-        value = [LSCObjectValue objectValue:instance];
-    }
-    
-    if (!value)
-    {
-        value = [super valueWithContext:context atIndex:index];
-    }
-    
-    return value;
-}
-
 - (void)pushWithContext:(LSCContext *)context
 {
     lua_State *state = context.state;

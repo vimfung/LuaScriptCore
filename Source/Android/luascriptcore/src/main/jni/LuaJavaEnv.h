@@ -62,25 +62,20 @@ public:
     static jobject getJavaLuaContext(JNIEnv *env, LuaContext *context);
 
     /**
-     * 创建Java中的LuaModule对象
+     * 关联对象实例
      *
-     * @param env JNI环境
-     * @param moduleClass Java的模块类型
-     * @param module 模块对象
-     *
-     * @return Java中的LuaModule对象
+     * @param instance Java中的实例对象
+     * @param ref Lua中的实例对象引用
      */
-    static jobject createJavaLuaModule(JNIEnv *env, jclass moduleClass, LuaModule *module);
+    static void associcateInstance(jobject instance, void **ref);
 
     /**
-     * 获取Java中的LuaModule对象
+     * 移除关联对象实例
      *
-     * @param env JNI环境
-     * @param module 模块对象
-     *
-     * @return Java中的LuaModule对象
+     * @param instance Java中的实例对象
+     * @param ref Lua中的实例对象引用
      */
-    static jobject getJavaLuaModule(JNIEnv *env, LuaModule *module);
+    static void removeAssociateInstance(jobject instance, void **ref);
 
     /**
      * 释放对象,由于Java层中对象需要引用本地对象,因此为确保Java对象释放时也释放本地对象,则需要调用该方法。
@@ -103,20 +98,6 @@ public:
      * @return 模块方法处理器
      */
     static LuaModuleMethodHandler luaModuleMethodHandler();
-
-    /**
-     * 获取模块属性设置处理器
-     *
-     * @return 模块属性设置处理器
-     */
-    static LuaModuleSetterHandler luaModuleSetterHandler();
-
-    /**
-     * 获取模块属性获取处理器
-     *
-     * @return 模块属性获取处理器
-     */
-    static LuaModuleGetterHandler luaModuleGetterHandler();
 
 
 };

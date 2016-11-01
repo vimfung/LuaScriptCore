@@ -20,7 +20,11 @@
         self.context = context;
         
         lua_State *state = context.state;
-
+        if (index < 0)
+        {
+            index = lua_gettop(state) + index + 1;
+        }
+        
         if (lua_istable(state, lua_upvalueindex(0)))
         {
             self.index = [NSUUID UUID].UUIDString;

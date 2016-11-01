@@ -15,7 +15,7 @@ public class LogModule extends LuaModule
         return "1.0.0";
     }
 
-    public void writeLog(String message)
+    public static void writeLog(String message)
     {
         Log.v("luascriptcore", message);
     }

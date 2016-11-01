@@ -17,6 +17,9 @@ namespace cn
     {
         namespace luascriptcore
         {
+            /**
+             * Lua上下文对象
+             */
             class LuaContext : public LuaObject
             {
             private:
@@ -30,13 +33,58 @@ namespace cn
                 ~LuaContext();
 
             public:
+
+                /**
+                 * 当lua执行异常时触发该事件
+                 *
+                 * @param handler 事件处理器
+                 */
                 void onException (LuaExceptionHandler handler);
 
+                /**
+                 * 抛出异常信息
+                 *
+                 * @param message 异常消息
+                 */
+                void raiseException (std::string message);
+
             public:
+
+                /**
+                 * 添加搜索路径
+                 *
+                 * @param path 路径
+                 */
                 void addSearchPath(std::string path);
+
+                /**
+                 * 解析脚本
+                 *
+                 * @param script 脚本内容
+                 */
                 LuaValue* evalScript(std::string script);
+
+                /**
+                 * 从lua文件中解析脚本
+                 *
+                 * @param path lua文件路径
+                 */
                 LuaValue* evalScriptFromFile(std::string path);
+
+                /**
+                 * 调用方法
+                 *
+                 * @param methodName 方法名称
+                 * @param arguments 参数列表
+                 */
                 LuaValue* callMethod(std::string methodName, LuaArgumentList *arguments);
+
+                /**
+                 * 注册方法
+                 *
+                 * @param methodName 方法名称
+                 * @param handler 方法处理
+                 */
                 void registerMethod(std::string methodName, LuaMethodHandler handler);
 
                 /**

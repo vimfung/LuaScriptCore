@@ -163,7 +163,21 @@
             //先为实例对象在lua中创建内存
             void **ref = (void **)lua_newuserdata(state, sizeof(NSObject **));
             //创建本地实例对象，赋予lua的内存块
-            *ref = (__bridge void *)self.valueContainer;
+            *ref = (void *)CFBridgingRetain(self.valueContainer);
+            
+            //设置userdata的元表
+            luaL_getmetatable(state, "_ObjectReference_");
+            if (lua_isnil(state, -1))
+            {
+                lua_pop(state, 1);
+                
+                //尚未注册_ObjectReference,开始注册对象
+                luaL_newmetatable(state, "_ObjectReference_");
+                
+                lua_pushcfunction(state, objectReferenceGCHandler);
+                lua_setfield(state, -2, "__gc");
+            }
+            lua_setmetatable(state, -2);
             
             break;
         }
@@ -430,6 +444,13 @@
             value = [LSCValue pointerValue:pointer];
             break;
         }
+        case LUA_TUSERDATA:
+        {
+            void **ref = lua_touserdata(state, (int)index);
+            id obj = (__bridge id)*ref;
+            value = [LSCValue objectValue:obj];
+            break;
+        }
         case LUA_TFUNCTION:
         {
             LSCFunction *func = [[LSCFunction alloc] initWithContext:context index:index];
@@ -505,6 +526,25 @@
     {
         lua_pushstring(state, [value UTF8String]);
     }
+}
+
+#pragma mark - CFunction
+
+
+/**
+ 对象引用回收处理
+
+ @param state Lua状态机
+
+ @return 返回值数量
+ */
+static int objectReferenceGCHandler(lua_State *state)
+{
+    void **ref = (void **)lua_touserdata(state, 1);
+    //释放对象
+    CFBridgingRelease(*ref);
+    
+    return 0;
 }
 
 @end

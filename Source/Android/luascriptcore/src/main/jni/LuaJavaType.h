@@ -150,13 +150,31 @@ public:
     static jclass hashMapClass(JNIEnv *env);
 
     /**
-     * 获取LuaClassInstance类型
+     * 获取LuaObjectClass类
      *
      * @param env JNI环境
      *
-     * @retrun LuaClassInstance类型
+     * @return LuaObjectClass类型
      */
-    static jclass objectClassInstanceClass(JNIEnv *env);
+    static jclass luaObjectClass(JNIEnv *env);
+
+    /**
+     * 获取LuaPointer类
+     *
+     * @param env JNI环境
+     *
+     * @return LuaPoiter类型
+     */
+    static jclass pointerClass(JNIEnv *env);
+
+    /**
+     * 获取LuaFunction类
+     *
+     * @param env JNI环境
+     *
+     * @return LuaFunction类型
+     */
+    static jclass functionClass(JNIEnv *env);
 };
 
 

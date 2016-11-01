@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "LuaObjectClass.h"
-#include "LuaClassInstance.h"
-#include "../../../../../lua-core/src/lua.h"
 #include "LuaDefine.h"
 
 /**
@@ -21,17 +19,11 @@ static int objectDestroyHandler (lua_State *state)
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    LuaClassInstance *instance = new LuaClassInstance(objectClass, 1);
-
-    //调用对象的destory方法
-    instance -> callMethod("destroy", NULL);
 
     if (objectClass -> getObjectDestroyHandler() != NULL)
     {
-        objectClass -> getObjectDestroyHandler() (instance);
+        objectClass -> getObjectDestroyHandler() (objectClass);
     }
-
-    instance -> release();
 
     return 0;
 }
@@ -47,15 +39,15 @@ static int objectToStringHandler (lua_State *state)
 {
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    LuaClassInstance *instance = new LuaClassInstance(objectClass, 1);
+    std::string desc;
 
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
     if (objectClass -> getObjectDescriptionHandler() != NULL)
     {
-        std::string desc = objectClass -> getObjectDescriptionHandler()(instance);
-        lua_pushstring(state, desc.c_str());
+        desc = objectClass -> getObjectDescriptionHandler()(objectClass);
     }
-    else
+
+    if (desc.empty())
     {
         char strbuf[256] = {0};
         int size = sprintf(strbuf, "[%s object]", objectClass -> getName().c_str());
@@ -63,8 +55,10 @@ static int objectToStringHandler (lua_State *state)
 
         lua_pushstring(state, strbuf);
     }
-
-    instance -> release();
+    else
+    {
+        lua_pushstring(state, desc.c_str());
+    }
 
     return 1;
 }
@@ -80,39 +74,48 @@ static int objectCreateHandler (lua_State *state)
 {
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
 
-    LOGI("Create Object Class = %s", objectClass-> getName().c_str());
-
-    if (lua_gettop(state) <= 0)
+    if (objectClass -> getObjectCreatedHandler() != NULL)
     {
+        objectClass -> getObjectCreatedHandler() (objectClass);
+    }
+
+    return 1;
+}
+
+/**
+ * 更新类字段时触发
+ *
+ * @param state lua状态机
+ *
+ * @return 参数数量
+ */
+static int objectNewIndexHandler (lua_State *state)
+{
+    using namespace cn::vimfung::luascriptcore::modules::oo;
+
+    //限于当前无法判断所定义的方法是使用.或:定义，因此对添加的属性或者方法统一添加到类表和实例元表中。
+    const char *key = luaL_checkstring(state, 2);
+    lua_pushvalue(state, 2);
+    lua_pushvalue(state, 3);
+    lua_rawset(state, 1);
+
+    //查找实例元表进行添加
+    lua_getfield(state, 1, "_nativeClass");
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_topointer(state, -1);
+    if (objectClass -> getIsInternalCall())
+    {
+        //内部调用，忽略下面操作
         return 0;
     }
 
-    //创建对象
-    lua_newtable(state);
-
-    //写入一个实例标识
-    lua_pushboolean(state, true);
-    lua_setfield(state, -2, "_instanceFlag");
-
-    lua_pushvalue(state, 1);
+    luaL_getmetatable(state, objectClass -> getName().c_str());
     if (lua_istable(state, -1))
     {
-        //设置元表指向类
-        lua_setmetatable(state, -2);
-
-        //创建类实例对象
-        LuaClassInstance *instance = new LuaClassInstance(objectClass, lua_gettop(state));
-        if (objectClass -> getObjectCreatedHandler() != NULL)
-        {
-            objectClass -> getObjectCreatedHandler()(instance);
-        }
-        instance -> release();
-
-        return 1;
+        lua_pushvalue(state, 3);
+        lua_setfield(state, -2, key);
     }
-
     lua_pop(state, 1);
 
     return 0;
@@ -129,65 +132,21 @@ static int subClassHandler (lua_State *state)
 {
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
 
-    if (lua_gettop(state) <= 0)
+    if (lua_gettop(state) == 0)
     {
         return 0;
     }
 
-    //获取当前类型的
-    lua_pushvalue(state, 1);
-
-    lua_getfield(state, -1, "_instanceFlag");
-    if (!lua_isnil(state, -1))
-    {
-        //实例对象不能调用该方法
-        return 0;
-    }
-
-    lua_pop(state, 2);
-
-    if (lua_gettop(state) < 2 && !lua_istable(state, 2))
-    {
-        lua_newtable(state);
-    }
-    else
-    {
-        lua_pushvalue(state, 2);
-    }
-
-    lua_pushvalue(state, -1);
-    lua_setfield(state, -2, "__index");
-
-    int subClassIndex = lua_gettop(state);
-
-    //继承父级gc
-    lua_pushvalue(state, 1);
-    lua_getfield(state, -1, "__gc");
-    lua_setfield(state, subClassIndex, "__gc");
-    lua_pop(state, 1);
-
-    //继承父级tostring
-    lua_pushvalue(state, 1);
-    lua_getfield(state, -1, "__tostring");
-    lua_setfield(state, subClassIndex, "__tostring");
-    lua_pop(state, 1);
-
-    //设置父类元表
-    lua_pushvalue(state, 1);
-    lua_setmetatable(state, -2);
-
-    //关联父类
-    lua_pushvalue(state, 1);
-    lua_setfield(state, -2, "super");
+    const char *subclassName = luaL_checkstring(state, 1);
 
     if (objectClass -> getSubClassHandler() != NULL)
     {
-        objectClass -> getSubClassHandler()(objectClass);
+        objectClass -> getSubClassHandler()(objectClass, subclassName);
     }
 
-    return 1;
+    return 0;
 }
 
 /**
@@ -218,14 +177,14 @@ static int instanceMethodRouteHandler(lua_State *state)
             args.push_back(value);
         }
 
-        LuaClassInstance *instance = new LuaClassInstance(objectClass, 1);
-        cn::vimfung::luascriptcore::LuaValue *retValue = handler (instance, methodName, args);
+        cn::vimfung::luascriptcore::LuaValue *retValue = handler (objectClass, methodName, args);
+
         if (retValue != NULL)
         {
+            //释放返回值
             retValue -> push(state);
             retValue -> release();
         }
-        instance -> release();
 
         //释放参数内存
         for (cn::vimfung::luascriptcore::LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
@@ -269,9 +228,7 @@ static int instanceSetterRouteHandler (lua_State *state)
             value = new cn::vimfung::luascriptcore::LuaValue();
         }
 
-        LuaClassInstance *instance = new LuaClassInstance(objectClass, 1);
-        handler (instance, fieldName, value);
-        instance -> release();
+        handler (objectClass, fieldName, value);
 
         //释放参数内存
         value -> release();
@@ -298,8 +255,7 @@ static int instanceGetterRouteHandler (lua_State *state)
     LuaInstanceGetterHandler handler = objectClass -> getGetterHandler(fieldName);
     if (handler != NULL)
     {
-        LuaClassInstance *instance = new LuaClassInstance(objectClass, 1);
-        cn::vimfung::luascriptcore::LuaValue *retValue = handler (instance, fieldName);
+        cn::vimfung::luascriptcore::LuaValue *retValue = handler (objectClass, fieldName);
         if (retValue != NULL)
         {
             retValue -> push(state);
@@ -309,7 +265,6 @@ static int instanceGetterRouteHandler (lua_State *state)
         {
             lua_pushnil(state);
         }
-        instance -> release();
     }
 
     return 1;
@@ -347,8 +302,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onSubClass (LuaSub
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const std::string &name,
                                                                          cn::vimfung::luascriptcore::LuaContext *context)
 {
-    LOGI("start on class register...");
-
+    _isInternalCall = true;
 
     cn::vimfung::luascriptcore::LuaModule::onRegister(name, context);
 
@@ -357,6 +311,61 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
 
     if (lua_istable(state, -1))
     {
+        //关联本地类型
+        lua_pushlightuserdata(state, this);
+        lua_setfield(state, -2, "_nativeClass");
+
+        //关联索引
+        lua_pushvalue(state, -1);
+        lua_setfield(state, -2, "__index");
+
+        //关联更新索引处理
+        lua_pushlightuserdata(state, context);
+        lua_pushcclosure(state, objectNewIndexHandler, 1);
+        lua_setfield(state, -2, "__newindex");
+
+        //创建方法
+        lua_pushlightuserdata(state, context);
+        lua_pushlightuserdata(state, this);
+        lua_pushcclosure(state, objectCreateHandler, 2);
+        lua_setfield(state, -2, "create");
+
+        //子类化对象方法
+        lua_pushlightuserdata(state, context);
+        lua_pushlightuserdata(state, this);
+        lua_pushcclosure(state, subClassHandler, 2);
+        lua_setfield(state, -2, "subclass");
+
+        if (!_superClassName.empty())
+        {
+            //存在父类，则直接设置父类为元表
+            lua_getglobal(state, _superClassName.c_str());
+            if (lua_istable(state, -1))
+            {
+                //设置父类元表
+                lua_pushvalue(state, -1);
+                lua_setmetatable(state, -3);
+
+                //关联父类
+                lua_setfield(state, -2, "super");
+            }
+        }
+        else
+        {
+            //为根类，则创建一个table作为元表
+            lua_newtable(state);
+
+            //关联更新索引处理
+            lua_pushlightuserdata(state, context);
+            lua_pushcclosure(state, objectNewIndexHandler, 1);
+            lua_setfield(state, -2, "__newindex");
+
+            lua_setmetatable(state, -2);
+        }
+
+        //创建类实例元表
+        luaL_newmetatable(state, name.c_str());
+
         lua_pushvalue(state, -1);
         lua_setfield(state, -2, "__index");
 
@@ -368,33 +377,25 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
         lua_pushcclosure(state, objectToStringHandler, 1);
         lua_setfield(state, -2, "__tostring");
 
-        lua_pushlightuserdata(state, this);
-        lua_pushcclosure(state, objectCreateHandler, 1);
-        lua_setfield(state, -2, "create");
-
         if (!_superClassName.empty())
         {
-            lua_getglobal(state, _superClassName.c_str());
+            //获取父级元表
+            luaL_getmetatable(state, _superClassName.c_str());
             if (lua_istable(state, -1))
             {
                 //设置父类元表
                 lua_setmetatable(state, -2);
-
-                //关联父类
-                lua_getglobal(state, _superClassName.c_str());
-                lua_setfield(state, -2, "super");
             }
-        }
-        else
-        {
-            //子类化对象方法
-            lua_pushlightuserdata(state, this);
-            lua_pushcclosure(state, subClassHandler, 1);
-            lua_setfield(state, -2, "subclass");
+            else
+            {
+                lua_pop(state, 1);
+            }
         }
     }
 
     lua_pop(state, 1);
+
+    _isInternalCall = false;
 }
 
 cn::vimfung::luascriptcore::modules::oo::LuaClassObjectCreatedHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getObjectCreatedHandler()
@@ -420,6 +421,7 @@ cn::vimfung::luascriptcore::modules::oo::LuaSubClassHandler cn::vimfung::luascri
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceField(std::string fieldName, LuaInstanceGetterHandler getterHandler, LuaInstanceSetterHandler setterHandler)
 {
     //与iOS中的属性getter和setter方法保持一致, getter直接是属性名称,setter则需要将属性首字母大写并在前面加上set
+    _isInternalCall = true;
     char upperCStr[2] = {0};
     upperCStr[0] = toupper(fieldName[0]);
     std::string upperStr = upperCStr;
@@ -427,12 +429,13 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
     std::string setterMethodName = "set" + upperStr + fieldNameStr;
 
     lua_State *state = getContext() -> getLuaState();
-    lua_getglobal(state, getName().c_str());
+    luaL_getmetatable(state, getName().c_str());
     if (lua_istable(state, -1))
     {
         lua_getfield(state, -1, setterMethodName.c_str());
         if (!lua_isnil(state, -1))
         {
+            _isInternalCall = false;
             return;
         }
         lua_pop(state, 1);
@@ -440,6 +443,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
         lua_getfield(state, -1, fieldName.c_str());
         if (!lua_isnil(state, -1))
         {
+            _isInternalCall = false;
             return;
         }
         lua_pop(state, 1);
@@ -462,12 +466,31 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
 
         _instanceGetterMap[fieldName] = getterHandler;
     }
+
+    _isInternalCall = false;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceMethod(std::string methodName, LuaInstanceMethodHandler handler)
+bool cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getIsInternalCall()
 {
+    return _isInternalCall;
+}
+
+void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerMethod(
+        std::string methodName,
+        LuaModuleMethodHandler handler)
+{
+    _isInternalCall = true;
+    cn::vimfung::luascriptcore::LuaModule::registerMethod(methodName, handler);
+    _isInternalCall = false;
+}
+
+void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceMethod(
+        std::string methodName,
+        LuaInstanceMethodHandler handler)
+{
+    _isInternalCall = true;
     lua_State *state = getContext() -> getLuaState();
-    lua_getglobal(state, getName().c_str());
+    luaL_getmetatable(state, getName().c_str());
     if (lua_istable(state, -1))
     {
         lua_getfield(state, -1, methodName.c_str());
@@ -479,13 +502,13 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceMe
             lua_pushlightuserdata(state, this);
             lua_pushstring(state, methodName.c_str());
             lua_pushcclosure(state, instanceMethodRouteHandler, 2);
-
             lua_setfield(state, -2, methodName.c_str());
 
             _instanceMethodMap[methodName] = handler;
         }
 
     }
+    _isInternalCall = false;
 }
 
 cn::vimfung::luascriptcore::modules::oo::LuaInstanceMethodHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getInstanceMethodHandler(std::string methodName)

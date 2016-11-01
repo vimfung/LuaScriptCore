@@ -8,11 +8,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaModule;
 import cn.vimfung.luascriptcore.LuaNativeUtil;
+import cn.vimfung.luascriptcore.LuaValue;
+import dalvik.system.DexClassLoader;
 
 /**
  * 面向对象基类
@@ -20,185 +23,406 @@ import cn.vimfung.luascriptcore.LuaNativeUtil;
  */
 public class LuaObjectClass extends LuaModule
 {
-    /**
-     * 实例缓存池,主要用于与lua中的对象保持相同的生命周期而设定,创建时放入池中,当gc回收时从池中移除。
-     */
-    private static HashSet<LuaObjectClass> _instancePool = new HashSet<LuaObjectClass>();
-    private static LuaClassInstance _currentInstance = null;
-
     public static String version ()
     {
         return "1.0.0";
     }
 
-    protected static String moduleName ()
+    public static String moduleName ()
     {
         return "Object";
     }
 
     /**
-     * 放入实例
-     * @param instance  实例对象
+     * 初始化类对象
+     * @param context   Lua的上下文对象
      */
-    private static void putInstance(LuaObjectClass instance)
+    public LuaObjectClass(LuaContext context)
     {
-        _instancePool.add(instance);
-    }
-
-    /**
-     * 移除实例
-     * @param instance  实例对象
-     */
-    private static void removeInstance(LuaObjectClass instance)
-    {
-        _instancePool.remove(instance);
-    }
-
-    /**
-     * 获取当前实例
-     * @return  实例对象
-     */
-    public static LuaClassInstance getCurrentInstance()
-    {
-        return _currentInstance;
-    }
-
-    /**
-     * 实例对象描述,子类重写该方法返回对象描述
-     * @param instance  实例对象
-     * @return 描述字符串
-     */
-    protected String instanceDescription(LuaClassInstance instance)
-    {
-        String className = LuaModule.getModuleName(this.getClass());
-        if (className != null)
-        {
-            return String.format("[%s object]", className);
-        }
-
-        return "Invalid Object";
-    }
-
-    /**
-     * 实例初始化时触发,子类重写该方法进行对象初始化
-     * @param instance 实例对象
-     */
-    protected void instanceInitialize(LuaClassInstance instance)
-    {
-        Log.v("lsc", "======== instance initialize");
-    }
-
-    /**
-     * 实例释放时触发,子类重写该方法进行对象释放
-     * @param instance  实例对象
-     */
-    protected void instanceUninitialize(LuaClassInstance instance)
-    {
-        Log.v("lsc", "======== instance uninitialize");
+        //初始化对象实例
     }
 
     /**
      * 注册模块
      * @param context   Lua上下文对象
-     * @param moduleName    模块名称
+     * @param moduleClass    模块类型
      */
-    protected static LuaModule register(LuaContext context, String moduleName, Class<? extends LuaModule> moduleClass)
+    public static void _register(LuaContext context, Class<? extends LuaModule> moduleClass)
     {
-        Log.v("lsc", "register class");
+        String moduleName = LuaModule._getModuleName(moduleClass);
+        if (context.isModuleRegisted(moduleName))
+        {
+            return;
+        }
 
         //先判断注册的类型的父类是否已经注册
         Class superClass = moduleClass.getSuperclass();
-        if (superClass != LuaModule.class && !context.isModuleRegisted(LuaModule.getModuleName(superClass)))
+        if (superClass != LuaModule.class && !context.isModuleRegisted(LuaModule._getModuleName(superClass)))
         {
             context.registerModule(superClass);
         }
 
+
         ArrayList<Field> exportFields = new ArrayList<Field>();
         ArrayList<String> filterMethodNames = new ArrayList<String>();
-        ArrayList<Method> exportMethods = new ArrayList<Method>();
+        ArrayList<Method> exportClassMethods = new ArrayList<Method>();
+        ArrayList<Method> exportInstanceMethods = new ArrayList<Method>();
 
-        filterMethodNames.add("instanceDescription");
-        filterMethodNames.add("instanceInitialize");
-        filterMethodNames.add("instanceUninitialize");
+        filterMethodNames.add("access$super");
 
+        //导出字段
         Field[] fields = moduleClass.getDeclaredFields();
         for (Field field : fields)
         {
             int modifier = field.getModifiers();
             if (Modifier.isStatic(modifier))
             {
-                Log.v("lsc", "is static");
                 continue;
             }
 
             if (!Modifier.isPublic(modifier))
             {
-                Log.v("lsc", "is not public");
                 continue;
             }
 
             if (Modifier.isAbstract(modifier))
             {
-                Log.v("lsc", "is abstract");
+                continue;
+            }
+
+            String fieldName = field.getName();
+            if (fieldName.startsWith("_"))
+            {
+                //过滤下划线开头的字段
                 continue;
             }
 
             exportFields.add(field);
         }
 
+        //导出实例方法
         Method[] methods = moduleClass.getDeclaredMethods();
         for (Method method : methods)
         {
-            Log.v("lsc", "================");
             String methodName = method.getName();
-            Log.v("lsc", methodName);
+
+            if (methodName.startsWith("_"))
+            {
+                //过滤下划线开头的字段
+                continue;
+            }
 
             int modifier = method.getModifiers();
             if (Modifier.isStatic(modifier))
             {
-                Log.v("lsc", "is static");
                 continue;
             }
 
             if (!Modifier.isPublic(modifier))
             {
-                Log.v("lsc", "is not public");
                 continue;
             }
 
             if (Modifier.isAbstract(modifier))
             {
-                Log.v("lsc", "is abstract");
                 continue;
             }
 
             if (filterMethodNames.contains(methodName))
             {
-                Log.v("lsc", "filter method");
                 continue;
             }
 
             //导出方法
-            exportMethods.add(method);
+            exportInstanceMethods.add(method);
         }
 
-        Method[] exportMethodsArr = exportMethods.toArray(new Method[0]);
+        //导出类方法
+        methods = moduleClass.getDeclaredMethods();
+        for (Method method : methods)
+        {
+            String methodName = method.getName();
+
+            if (methodName.startsWith("_"))
+            {
+                continue;
+            }
+
+            int modifier = method.getModifiers();
+            if (Modifier.isStatic(modifier)
+                    && Modifier.isPublic(modifier)
+                    && !Modifier.isAbstract(modifier)
+                    && !filterMethodNames.contains(methodName))
+            {
+
+                //导出静态方法为模块的方法
+                exportClassMethods.add(method);
+            }
+        }
+
+        Method[] exportClassMethodsArr = exportClassMethods.toArray(new Method[0]);
+        Method[] exportInstanceMethodsArr = exportInstanceMethods.toArray(new Method[0]);
         Field[] exportFieldArr = exportFields.toArray(new Field[0]);
 
-        LuaObjectClass objectClass =  LuaNativeUtil.registerClass(
+        String superClassName = (moduleClass == LuaObjectClass.class ? null : LuaModule._getModuleName(superClass));
+        if (LuaNativeUtil.registerClass(
                 context,
                 moduleName,
-                (moduleClass == LuaObjectClass.class ? null : LuaModule.getModuleName(superClass)),
+                superClassName,
                 (Class<? extends LuaObjectClass>) moduleClass,
                 exportFieldArr,
-                exportMethodsArr);
-
-        if (objectClass != null)
+                exportInstanceMethodsArr,
+                exportClassMethodsArr))
         {
-            objectClass._setExportMethods(exportMethodsArr);
+            LuaModule._setExportMethods(moduleClass, exportClassMethodsArr);
+            LuaObjectClass._setExportInstanceMethods((Class<? extends LuaObjectClass>) moduleClass, exportInstanceMethodsArr);
         }
-
-        return objectClass;
     }
 
+    /**
+     * 调用方法
+     * @param methodName    方法名称
+     * @param arguments     方法的传入参数
+     * @return              返回值
+     */
+    private LuaValue _instanceMethodInvoke (String methodName, LuaValue[] arguments)
+    {
+        try
+        {
+            //将LuaValue数组转换为对象数组
+            ArrayList argumentArray = new ArrayList();
+            Method method =  LuaObjectClass._getExportInstanceMethod(this.getClass(), methodName);
+            if (method == null)
+            {
+                return new LuaValue();
+            }
+
+            Class<?>[] types = method.getParameterTypes();
+            for (int i = 0; i < types.length; i++)
+            {
+                LuaValue item = null;
+                if (arguments.length > i)
+                {
+                    item = arguments[i];
+                }
+                else
+                {
+                    item = new LuaValue();
+                }
+
+                Class<?> paramType = types[i];
+                if (paramType.isAssignableFrom(int.class))
+                {
+                    argumentArray.add(item.toInteger());
+                }
+                else if (paramType.isAssignableFrom(double.class))
+                {
+                    argumentArray.add(item.toDouble());
+                }
+                else if (paramType.isAssignableFrom(boolean.class))
+                {
+                    argumentArray.add(item.toBoolean());
+                }
+                else if (paramType.isAssignableFrom(String.class))
+                {
+                    argumentArray.add(item.toString());
+                }
+                else if (paramType.isAssignableFrom(byte[].class))
+                {
+                    argumentArray.add(item.toByteArray());
+                }
+                else if (paramType.isAssignableFrom(ArrayList.class))
+                {
+                    argumentArray.add(item.toArrayList());
+                }
+                else if (paramType.isAssignableFrom(HashMap.class))
+                {
+                    argumentArray.add(item.toHashMap());
+                }
+                else if (paramType.isArray())
+                {
+                    if (paramType.isAssignableFrom(int[].class))
+                    {
+                        //转换数组中的Double型为整型
+                        ArrayList itemArr = item.toArrayList();
+                        int items[] = new int[itemArr.size()];
+                        for (int j = 0; j < itemArr.size(); j++)
+                        {
+                            items[j] = ((Double)itemArr.get(j)).intValue();
+                        }
+                        argumentArray.add(items);
+                    }
+                    else if (paramType.isAssignableFrom(Integer[].class))
+                    {
+                        //转换数组中的Double型为整型
+                        ArrayList itemArr = item.toArrayList();
+                        Integer items[] = new Integer[itemArr.size()];
+                        for (int j = 0; j < itemArr.size(); j++)
+                        {
+                            int value = ((Double)itemArr.get(j)).intValue();
+                            items[j] = new Integer(value);
+                        }
+
+                        argumentArray.add(items);
+                    }
+                    else if (paramType.isAssignableFrom(Double[].class))
+                    {
+                        argumentArray.add(item.toArrayList().toArray(new Double[0]));
+                    }
+                    else if (paramType.isAssignableFrom(double[].class))
+                    {
+                        ArrayList itemArr = item.toArrayList();
+                        double items[] = new double[itemArr.size()];
+                        for (int j = 0; j < itemArr.size(); j++)
+                        {
+                            items[j] = ((Double)itemArr.get(j)).doubleValue();
+                        }
+
+                        argumentArray.add(items);
+                    }
+                    else if (paramType.isAssignableFrom(Boolean[].class))
+                    {
+                        argumentArray.add(item.toArrayList().toArray(new Boolean[0]));
+                    }
+                    else if (paramType.isAssignableFrom(boolean[].class))
+                    {
+                        ArrayList itemArr = item.toArrayList();
+                        boolean items[] = new boolean[itemArr.size()];
+                        for (int j = 0; j < itemArr.size(); j++)
+                        {
+                            items[j] = ((Boolean)itemArr.get(j)).booleanValue();
+                        }
+
+                        argumentArray.add(items);
+                    }
+                    else
+                    {
+                        //当作Object数组处理
+                        argumentArray.add(item.toArrayList().toArray());
+                    }
+                }
+
+            }
+
+            Object retValue = method.invoke(this, argumentArray.toArray());
+
+            return new LuaValue(retValue);
+
+        }
+        catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return new LuaValue();
+    }
+
+    /**
+     * 设置字段
+     * @param name   字段名称
+     * @param value  字段值
+     */
+    private void _setField(String name, LuaValue value)
+    {
+        try
+        {
+            Field field = this.getClass().getField(name);
+            Class<?> fieldType = field.getType();
+
+            if (fieldType.isAssignableFrom(int.class) || fieldType.isAssignableFrom(Integer.class))
+            {
+                field.set(this, value.toInteger());
+            }
+            else if (fieldType.isAssignableFrom(double.class) || fieldType.isAssignableFrom(Double.class))
+            {
+                field.set(this, value.toDouble());
+            }
+            else if (fieldType.isAssignableFrom(boolean.class) || fieldType.isAssignableFrom(Boolean.class))
+            {
+                field.set(this, value.toBoolean());
+            }
+            else
+            {
+                field.set(this, value.toObject());
+            }
+
+        }
+        catch (NoSuchFieldException e)
+        {
+            e.printStackTrace();
+        }
+        catch (IllegalAccessException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 获取字段
+     * @param name  字段名称
+     * @return 字段值
+     */
+    private LuaValue _getField(String name)
+    {
+        try
+        {
+            Field field = this.getClass().getField(name);
+            return new LuaValue(field.get(this));
+        }
+        catch (NoSuchFieldException e)
+        {
+            return new LuaValue();
+        }
+        catch (IllegalAccessException e)
+        {
+            return new LuaValue();
+        }
+    }
+
+    /**
+     * 保存导出方法的哈希表
+     */
+    static private HashMap<Class<? extends LuaObjectClass>, HashMap<String, Method>> _exportInstanceMethods;
+
+    /**
+     * 导出实例方法
+     * @param moduleClass 模块类型
+     * @param methods   方法集合
+     */
+    static private void _setExportInstanceMethods(Class<? extends LuaObjectClass> moduleClass, Method[] methods)
+    {
+        if (_exportInstanceMethods == null)
+        {
+            _exportInstanceMethods = new HashMap<Class<? extends LuaObjectClass>, HashMap<String, Method>>();
+        }
+
+        if (!_exportInstanceMethods.containsKey(moduleClass))
+        {
+            HashMap<String, Method> exportMethods = new HashMap<String, Method>();
+
+            for (Method m : methods)
+            {
+                exportMethods.put(m.getName(), m);
+            }
+            _exportInstanceMethods.put(moduleClass, exportMethods);
+        }
+    }
+
+    /**
+     * 获取导出实例方法
+     * @param moduleClass   模块类型
+     * @param methodName    方法名称
+     * @return  方法对象
+     */
+    static private Method _getExportInstanceMethod(Class<? extends  LuaObjectClass> moduleClass, String methodName)
+    {
+        if (_exportInstanceMethods != null && _exportInstanceMethods.containsKey(moduleClass))
+        {
+            HashMap<String, Method> methods = _exportInstanceMethods.get(moduleClass);
+            return methods.get(methodName);
+        }
+
+        return null;
+    }
 }
