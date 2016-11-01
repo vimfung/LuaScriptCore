@@ -16,7 +16,6 @@ class LuaJavaModule : public cn::vimfung::luascriptcore::LuaModule
 private:
     JNIEnv *_env;
     jclass  _moduleClass;
-    jobjectArray _fields;
     jobjectArray _methods;
 
 public:
@@ -26,14 +25,21 @@ public:
      *
      * @param env JNI环境
      * @param moduleClass Java层的模块类型
-     * @param fields 导出字段集合
      * @param methods 导出方法集合
      */
     LuaJavaModule(
             JNIEnv *env,
             jclass moduleClass,
-            jobjectArray fields,
             jobjectArray methods);
+
+public:
+
+    /**
+     * 获取模块类型
+     *
+     * @return 模块类型
+     */
+    jclass getModuleClass();
 
 public:
 

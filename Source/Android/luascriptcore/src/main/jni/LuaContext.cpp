@@ -5,6 +5,7 @@
 #include "LuaContext.h"
 #include "LuaValue.h"
 #include "LuaModule.h"
+#include "LuaDefine.h"
 #include <map>
 #include <list>
 #include <iostream>
@@ -31,6 +32,10 @@ static int methodRouteHandler(lua_State *state) {
         {
             retValue -> push(state);
             retValue -> release();
+        }
+        else
+        {
+            lua_pushnil(state);
         }
 
         //释放参数内存
@@ -70,6 +75,14 @@ cn::vimfung::luascriptcore::LuaContext::~LuaContext()
 void cn::vimfung::luascriptcore::LuaContext::onException(LuaExceptionHandler handler)
 {
     _exceptionHandler = handler;
+}
+
+void cn::vimfung::luascriptcore::LuaContext::raiseException (std::string message)
+{
+    if (_exceptionHandler != NULL)
+    {
+        _exceptionHandler (message);
+    }
 }
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::getValueByIndex(int index)
@@ -181,7 +194,23 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
         }
         case LUA_TLIGHTUSERDATA:
         {
-            value = LuaValue::PtrValue(lua_topointer(_state, index));
+            LuaPointer *pointer = new LuaPointer(lua_topointer(_state, index));
+            value = LuaValue::PointerValue(pointer);
+            pointer -> release();
+
+            break;
+        }
+        case LUA_TUSERDATA:
+        {
+            LuaObjectDescriptor **ref = (LuaObjectDescriptor **)lua_touserdata(_state, index);
+            value = LuaValue::ObjectValue(*ref);
+            break;
+        }
+        case LUA_TFUNCTION:
+        {
+            LuaFunction *function = new LuaFunction(this, index);
+            value = LuaValue::FunctionValue(function);
+            function -> release();
             break;
         }
         default:
@@ -378,7 +407,7 @@ void cn::vimfung::luascriptcore::LuaContext::registerModule(const std::string &m
 
 bool cn::vimfung::luascriptcore::LuaContext::isModuleRegisted(const std::string &moduleName)
 {
-    lua_setglobal(_state, moduleName.c_str());
+    lua_getglobal(_state, moduleName.c_str());
     bool retValue = lua_isnil(_state, -1);
     lua_pop(_state, 1);
 

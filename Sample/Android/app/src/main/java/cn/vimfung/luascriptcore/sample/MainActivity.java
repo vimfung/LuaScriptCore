@@ -21,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
 import cn.vimfung.luascriptcore.LuaContext;
+import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
 import cn.vimfung.luascriptcore.LuaValue;
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
@@ -128,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
                                 devInfoMap.put("systemVersion", Build.VERSION.RELEASE);
 
                                 return new LuaValue(devInfoMap);
+
                             }
                         });
 
@@ -193,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
                     _luaContext.registerModule(Person.class);
                 }
 
-                _luaContext.evalScript("local person = Person:create(); person:setName('vimfung'); person:speak(); person:walk();");
+                _luaContext.evalScript("local person = Person.create(); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
 
                 }
             });

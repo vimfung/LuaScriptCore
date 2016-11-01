@@ -10,6 +10,9 @@
 #include <map>
 #include "lua.hpp"
 #include "LuaObject.h"
+#include "LuaPointer.h"
+#include "LuaObjectDescriptor.h"
+#include "LuaFunction.h"
 
 namespace cn
 {
@@ -31,8 +34,10 @@ namespace cn
                 LuaValueTypeArray = 4,
                 LuaValueTypeMap = 5,
                 LuaValueTypePtr = 6,
+                LuaValueTypeObject = 7,
                 LuaValueTypeInteger = 8,
-                LuaValueTypeData = 9
+                LuaValueTypeData = 9,
+                LuaValueTypeFunction = 10
             };
 
             class LuaValue : public LuaObject
@@ -54,7 +59,9 @@ namespace cn
                 LuaValue (const char *bytes, size_t length);
                 LuaValue (LuaValueList value);
                 LuaValue (LuaValueMap value);
-                LuaValue (const void *value);
+                LuaValue (LuaPointer *value);
+                LuaValue (LuaObjectDescriptor *value);
+                LuaValue (LuaFunction *value);
                 ~LuaValue();
 
             public:
@@ -67,7 +74,9 @@ namespace cn
                 size_t getDataLength();
                 LuaValueList* toArray();
                 LuaValueMap* toMap();
-                const void* toPtr();
+                LuaPointer* toPointer();
+                LuaFunction* toFunction();
+                LuaObjectDescriptor* toObject();
                 void push(lua_State *state);
                 void pushValue(lua_State *state, LuaValue *value);
                 void pushTable(lua_State *state, LuaValueList *list);
@@ -82,7 +91,9 @@ namespace cn
                 static LuaValue* DataValue(const char *bytes, size_t length);
                 static LuaValue* ArrayValue(LuaValueList value);
                 static LuaValue* DictonaryValue(LuaValueMap value);
-                static LuaValue* PtrValue(const void *value);
+                static LuaValue* PointerValue(LuaPointer *value);
+                static LuaValue* FunctionValue(LuaFunction *value);
+                static LuaValue* ObjectValue(LuaObjectDescriptor *value);
             };
         }
     }

@@ -41,16 +41,6 @@ namespace cn
                  */
                 LuaModuleMethodMap _methodMap;
 
-                /**
-                 * 属性Setter表
-                 */
-                LuaModuleSetterMap _setterMap;
-
-                /**
-                 * 属性Getter表
-                 */
-                LuaModuleGetterMap _getterMap;
-
             public:
 
                 /**
@@ -86,34 +76,7 @@ namespace cn
                  */
                 LuaModuleMethodHandler getMethodHandler(std::string methodName);
 
-                /**
-                 * 获取属性设置处理器, 提供Lua回调方法调用
-                 *
-                 * @param fieldName 字段名称
-                 *
-                 * @return Setter方法处理器
-                 */
-                LuaModuleSetterHandler getSetterHandler(std::string fieldName);
-
-                /**
-                 * 获取属性获取处理器, 提供Lua回调方法调用
-                 *
-                 * @param fieldName 字段名称
-                 *
-                 * @return Getter方法处理器
-                 */
-                LuaModuleGetterHandler getGetterHandler(std::string fieldName);
-
             public:
-
-                /**
-                 * 注册字段
-                 *
-                 * @param fieldName 字段名称
-                 * @param getterHandler 获取处理器
-                 * @param setterHandler 设置处理器
-                 */
-                void registerField(std::string fieldName, LuaModuleGetterHandler getterHandler, LuaModuleSetterHandler setterHandler);
 
                 /**
                  * 注册方法

@@ -75,15 +75,13 @@ public class LuaNativeUtil
      * 注册模块
      * @param contextNativeId 上下文的本地标识
      * @param moduleClass    模块类
-     * @param fields 注册的字段
      * @param methods 注册的方法
-     * @return  模块对象
+     * @return true 注册成功，false 注册失败
      */
-    public static native LuaModule registerModule(
+    public static native boolean registerModule(
             int contextNativeId,
             String moduleName,
             Class<? extends LuaModule> moduleClass,
-            Field[] fields,
             Method[] methods
     );
 
@@ -102,15 +100,29 @@ public class LuaNativeUtil
      * @param superClassName    父类型名称
      * @param objectClass   类型
      * @param fields    字段集合
-     * @param methods   方法集合
-     * @return  类型对象
+     * @param instanceMethods   实例方法集合
+     * @param classMethods 类方法集合
+     * @return true 注册成功，false 注册失败
      */
-    public static native LuaObjectClass registerClass (
+    public static native boolean registerClass (
             LuaContext context,
             String className,
             String superClassName,
             Class<? extends LuaObjectClass> objectClass,
             Field[] fields,
-            Method[] methods);
+            Method[] instanceMethods,
+            Method[] classMethods);
+
+    /**
+     * 调用方法
+     * @param context   上下文对象
+     * @param func      方法对象
+     * @param arguments 参数列表
+     * @return  返回值
+     */
+    public static native LuaValue invokeFunction (
+            LuaContext context,
+            LuaFunction func,
+            LuaValue[] arguments);
 
 }

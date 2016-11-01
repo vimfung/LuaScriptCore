@@ -66,10 +66,10 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseNative
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
  * Method:    registerModule
- * Signature: (ILjava/lang/String;Ljava/lang/Class;[Ljava/lang/reflect/Field;[Ljava/lang/reflect/Method;)Lcn/vimfung/luascriptcore/LuaModule;
+ * Signature: (ILjava/lang/String;Ljava/lang/Class;[Ljava/lang/reflect/Method;)Z
  */
-JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerModule
-  (JNIEnv *, jclass, jint, jstring, jclass, jobjectArray, jobjectArray);
+JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerModule
+  (JNIEnv *, jclass, jint, jstring, jclass, jobjectArray);
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
@@ -82,10 +82,18 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_isModuleR
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
  * Method:    registerClass
- * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Class;[Ljava/lang/reflect/Field;[Ljava/lang/reflect/Method;)Lcn/vimfung/luascriptcore/modules/oo/LuaObjectClass;
+ * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Class;[Ljava/lang/reflect/Field;[Ljava/lang/reflect/Method;[Ljava/lang/reflect/Method;)Z
  */
-JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClass
-  (JNIEnv *, jclass, jobject, jstring, jstring, jclass, jobjectArray, jobjectArray);
+JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClass
+  (JNIEnv *, jclass, jobject, jstring, jstring, jclass, jobjectArray, jobjectArray, jobjectArray);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    invokeFunction
+ * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Lcn/vimfung/luascriptcore/LuaFunction;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;
+ */
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunction
+  (JNIEnv *, jclass, jobject, jobject, jobjectArray);
 
 #ifdef __cplusplus
 }

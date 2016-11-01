@@ -27,10 +27,93 @@ public abstract class LuaModule extends LuaBaseObject
 
     /**
      * 获取模块名称
+     * @return 模块名称
+     */
+    public static String moduleName()
+    {
+        return null;
+    }
+
+    /**
+     * 注册模块
+     * @param context   Lua上下文对象
+     * @param moduleClass    模块类型
+     */
+    public static void _register(LuaContext context, Class<? extends LuaModule> moduleClass)
+    {
+        String moduleName = LuaModule._getModuleName(moduleClass);
+        if (context.isModuleRegisted(moduleName))
+        {
+            return;
+        }
+
+        //获取导出方法
+        ArrayList<String> filterMethodNames = new ArrayList<String>();
+        filterMethodNames.add("access$super");
+
+        ArrayList<Method> exportMethods = new ArrayList<Method>();
+        Method[] methods = moduleClass.getMethods();
+
+        for (Method m : methods)
+        {
+            String methodName = m.getName();
+            if (methodName.startsWith("_"))
+            {
+                continue;
+            }
+
+            int modifier = m.getModifiers();
+            if (Modifier.isStatic(modifier)
+                    && Modifier.isPublic(modifier)
+                    && !Modifier.isAbstract(modifier)
+                    && !filterMethodNames.contains(methodName))
+            {
+
+                //导出静态方法为模块的方法
+                exportMethods.add(m);
+            }
+        }
+
+        Method[] exportMethodsArr = exportMethods.toArray(new Method[0]);
+        if (LuaNativeUtil.registerModule(context._nativeId, moduleName, moduleClass, exportMethodsArr))
+        {
+            LuaModule._setExportMethods(moduleClass, exportMethodsArr);
+        }
+    }
+
+    /**
+     * 保存导出方法的哈希表
+     */
+    static private HashMap<Class<? extends LuaModule>, HashMap<String, Method>> _exportMethods;
+
+    /**
+     * 导出方法
+     * @param methods   方法集合
+     */
+    static protected void _setExportMethods(Class<? extends LuaModule> moduleClass, Method[] methods)
+    {
+        if (_exportMethods == null)
+        {
+            _exportMethods = new HashMap<Class<? extends LuaModule>, HashMap<String, Method>>();
+        }
+
+        if (!_exportMethods.containsKey(moduleClass))
+        {
+            HashMap<String, Method> exportMethods = new HashMap<String, Method>();
+            for (Method m : methods)
+            {
+                exportMethods.put(m.getName(), m);
+            }
+            _exportMethods.put(moduleClass, exportMethods);
+        }
+    }
+
+    /**
+     * 获取模块名称
      * @param moduleClass 模块类型
      * @return  模块名称
      */
-    protected static String getModuleName(Class<? extends LuaModule> moduleClass)
+    protected static String _getModuleName(Class<? extends LuaModule> moduleClass)
     {
         String modName = null;
 
@@ -63,131 +146,16 @@ public abstract class LuaModule extends LuaBaseObject
     }
 
     /**
-     * 获取模块名称
-     * @return 模块名称
-     */
-    protected static String moduleName()
-    {
-        return null;
-    }
-
-    /**
-     * 注册模块
-     * @param context   Lua上下文对象
-     * @param moduleName    模块名称
-     */
-    protected static LuaModule register(LuaContext context, String moduleName, Class<? extends LuaModule> moduleClass)
-    {
-        //过滤方法名称
-        ArrayList<Field> exportFields = new ArrayList<Field>();
-        ArrayList<String> filterMethodNames = new ArrayList<String>();
-        ArrayList<Method> exportMethods = new ArrayList<Method>();
-
-        Field[] fields = moduleClass.getDeclaredFields();
-        for (Field field : fields)
-        {
-            int modifier = field.getModifiers();
-            if (Modifier.isStatic(modifier))
-            {
-                Log.v("lsc", "is static");
-                continue;
-            }
-
-            if (!Modifier.isPublic(modifier))
-            {
-                Log.v("lsc", "is not public");
-                continue;
-            }
-
-            if (Modifier.isAbstract(modifier))
-            {
-                Log.v("lsc", "is abstract");
-                continue;
-            }
-
-            exportFields.add(field);
-        }
-
-        Method[] methods = moduleClass.getDeclaredMethods();
-        for (Method method : methods)
-        {
-            Log.v("lsc", "================");
-            String methodName = method.getName();
-            Log.v("lsc", methodName);
-
-            int modifier = method.getModifiers();
-            if (Modifier.isStatic(modifier))
-            {
-                Log.v("lsc", "is static");
-                continue;
-            }
-
-            if (!Modifier.isPublic(modifier))
-            {
-                Log.v("lsc", "is not public");
-                continue;
-            }
-
-            if (Modifier.isAbstract(modifier))
-            {
-                Log.v("lsc", "is abstract");
-                continue;
-            }
-
-            if (filterMethodNames.contains(methodName))
-            {
-                Log.v("lsc", "filter method");
-                continue;
-            }
-
-            //导出方法
-            exportMethods.add(method);
-        }
-
-        Method[] exportMethodsArr = exportMethods.toArray(new Method[0]);
-        Field[] exportFieldArr = exportFields.toArray(new Field[0]);
-        LuaModule module = LuaNativeUtil.registerModule(context._nativeId, moduleName, moduleClass, exportFieldArr, exportMethodsArr);
-        if (module != null)
-        {
-            //写入导出方法
-            LuaModule._setExportMethods(exportMethodsArr);
-        }
-
-        return module;
-    }
-
-    /**
-     * 导出方法
-     * @param methods   方法集合
-     */
-    static protected void _setExportMethods(Method[] methods)
-    {
-        if (_exportMethods == null)
-        {
-            _exportMethods = new HashMap<String, Method>();
-        }
-
-        for (Method m : methods)
-        {
-            _exportMethods.put(m.getName(), m);
-        }
-    }
-
-    /**
-     * 保存导出方法的哈希表
-     */
-    static private HashMap<String, Method> _exportMethods;
-
-    /**
      * 获取导出方法
      * @param name  方法名称
      * @return  如果存在返回Method对象,否则返回null
      */
-    static private Method _getExportMethod(String name)
+    static private Method _getExportMethod(Class<? extends LuaModule> moduleClass, String name)
     {
-        if (_exportMethods.containsKey(name))
+        if (_exportMethods != null && _exportMethods.containsKey(moduleClass))
         {
-            return _exportMethods.get(name);
+            HashMap<String, Method> methods = _exportMethods.get(moduleClass);
+            return methods.get(name);
         }
 
         return null;
@@ -198,68 +166,6 @@ public abstract class LuaModule extends LuaBaseObject
 
     }
 
-    /**
-     * 获取字段
-     * @param name  字段名称
-     * @return 字段值
-     */
-    protected final LuaValue _getField(String name)
-    {
-        try
-        {
-            Field field = this.getClass().getField(name);
-            return new LuaValue(field.get(this));
-        }
-        catch (NoSuchFieldException e)
-        {
-            return new LuaValue();
-        }
-        catch (IllegalAccessException e)
-        {
-            return new LuaValue();
-        }
-    }
-
-    /**
-     * 设置字段
-     * @param name   字段名称
-     * @param value  字段值
-     */
-    protected final void _setField(String name, LuaValue value)
-    {
-        try
-        {
-            Field field = this.getClass().getField(name);
-            Class<?> fieldType = field.getType();
-
-            if (fieldType.isAssignableFrom(int.class) || fieldType.isAssignableFrom(Integer.class))
-            {
-                field.set(this, value.toInteger());
-            }
-            else if (fieldType.isAssignableFrom(double.class) || fieldType.isAssignableFrom(Double.class))
-            {
-                field.set(this, value.toDouble());
-            }
-            else if (fieldType.isAssignableFrom(boolean.class) || fieldType.isAssignableFrom(Boolean.class))
-            {
-                field.set(this, value.toBoolean());
-            }
-            else
-            {
-                field.set(this, value.toObject());
-            }
-
-        }
-        catch (NoSuchFieldException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IllegalAccessException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
 
     /**
      * 调用方法
@@ -267,13 +173,13 @@ public abstract class LuaModule extends LuaBaseObject
      * @param arguments     方法的传入参数
      * @return              返回值
      */
-    protected final LuaValue _methodInvoke (String methodName, LuaValue[] arguments)
+    private static LuaValue _methodInvoke (Class<? extends LuaModule> moduleClass, String methodName, LuaValue[] arguments)
     {
         try
         {
             //将LuaValue数组转换为对象数组
             ArrayList argumentArray = new ArrayList();
-            Method method =  LuaModule._getExportMethod(methodName);
+            Method method =  LuaModule._getExportMethod(moduleClass, methodName);
             if (method == null)
             {
                 return new LuaValue();
@@ -386,7 +292,7 @@ public abstract class LuaModule extends LuaBaseObject
 
             }
 
-            Object retValue = method.invoke(this, argumentArray.toArray());
+            Object retValue = method.invoke(moduleClass, argumentArray.toArray());
 
             return new LuaValue(retValue);
 

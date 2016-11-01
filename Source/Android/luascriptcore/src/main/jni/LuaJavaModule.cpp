@@ -10,32 +10,40 @@
 LuaJavaModule::LuaJavaModule(
         JNIEnv *env,
         jclass moduleClass,
-        jobjectArray fields,
         jobjectArray methods)
 {
     _env = env;
-    _moduleClass = moduleClass;
-    _fields = fields;
+    _moduleClass = (jclass)_env -> NewWeakGlobalRef(moduleClass);
     _methods = methods;
+}
+
+jclass LuaJavaModule::getModuleClass()
+{
+    if (_env -> IsSameObject(_moduleClass, NULL) != JNI_TRUE)
+    {
+        return _moduleClass;
+    }
+
+    return NULL;
 }
 
 void LuaJavaModule::onRegister(const std::string &name, cn::vimfung::luascriptcore::LuaContext *context)
 {
     cn::vimfung::luascriptcore::LuaModule::onRegister(name, context);
 
-    //注册模块字段
-    jsize fieldCount = _env -> GetArrayLength(_fields);
-    jclass jfieldClass = LuaJavaType::fieldClass(_env);
-    jmethodID getFieldNameMethodId = _env -> GetMethodID(jfieldClass, "getName", "()Ljava/lang/String;");
-    for (int i = 0; i < fieldCount; ++i)
-    {
-        jobject field = _env -> GetObjectArrayElement(_fields, i);
-        jstring fieldName = (jstring)_env -> CallObjectMethod(field, getFieldNameMethodId);
-
-        const char *fieldNameCStr = _env -> GetStringUTFChars(fieldName, NULL);
-        this -> registerField(fieldNameCStr, LuaJavaEnv::luaModuleGetterHandler(), LuaJavaEnv::luaModuleSetterHandler());
-        _env -> ReleaseStringUTFChars(fieldName, fieldNameCStr);
-    }
+//    //注册模块字段
+//    jsize fieldCount = _env -> GetArrayLength(_fields);
+//    jclass jfieldClass = LuaJavaType::fieldClass(_env);
+//    jmethodID getFieldNameMethodId = _env -> GetMethodID(jfieldClass, "getName", "()Ljava/lang/String;");
+//    for (int i = 0; i < fieldCount; ++i)
+//    {
+//        jobject field = _env -> GetObjectArrayElement(_fields, i);
+//        jstring fieldName = (jstring)_env -> CallObjectMethod(field, getFieldNameMethodId);
+//
+//        const char *fieldNameCStr = _env -> GetStringUTFChars(fieldName, NULL);
+//        this -> registerField(fieldNameCStr, LuaJavaEnv::luaModuleGetterHandler(), LuaJavaEnv::luaModuleSetterHandler());
+//        _env -> ReleaseStringUTFChars(fieldName, fieldNameCStr);
+//    }
 
     //注册模块方法
     jsize methodCount = _env -> GetArrayLength(_methods);
