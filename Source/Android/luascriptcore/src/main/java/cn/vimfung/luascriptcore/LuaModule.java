@@ -289,6 +289,10 @@ public abstract class LuaModule extends LuaBaseObject
                         argumentArray.add(item.toArrayList().toArray());
                     }
                 }
+                else
+                {
+                    argumentArray.add(item.toObject());
+                }
 
             }
 

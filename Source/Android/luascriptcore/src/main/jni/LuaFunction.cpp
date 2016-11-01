@@ -88,7 +88,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaFunction::i
             for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
             {
                 LuaValue *item = *i;
-                item->push(state);
+                item->push(_context);
             }
 
             if (lua_pcall(state, (int)arguments -> size(), 1, 0) == 0)

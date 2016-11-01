@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include "LuaValue.h"
 #include "LuaDefine.h"
+#include "LuaContext.h"
 #include "../../../../../lua-core/src/lua.h"
 #include "LuaObjectManager.h"
 
@@ -217,13 +218,15 @@ cn::vimfung::luascriptcore::LuaValueType cn::vimfung::luascriptcore::LuaValue::g
     return _type;
 }
 
-void cn::vimfung::luascriptcore::LuaValue::push(lua_State *state)
+void cn::vimfung::luascriptcore::LuaValue::push(cn::vimfung::luascriptcore::LuaContext *context)
 {
-    pushValue(state, this);
+    pushValue(context, this);
 }
 
-void cn::vimfung::luascriptcore::LuaValue::pushValue(lua_State *state, cn::vimfung::luascriptcore::LuaValue *value)
+void cn::vimfung::luascriptcore::LuaValue::pushValue(cn::vimfung::luascriptcore::LuaContext *context, cn::vimfung::luascriptcore::LuaValue *value)
 {
+    lua_State *state = context -> getLuaState();
+
     switch (value -> getType())
     {
         case LuaValueTypeInteger:
@@ -242,10 +245,10 @@ void cn::vimfung::luascriptcore::LuaValue::pushValue(lua_State *state, cn::vimfu
             lua_pushboolean(state, value -> _booleanValue);
             break;
         case LuaValueTypeArray:
-            pushTable(state, static_cast<LuaValueList *> (value -> _value));
+            pushTable(context, static_cast<LuaValueList *> (value -> _value));
             break;
         case LuaValueTypeMap:
-            pushTable(state, static_cast<LuaValueMap *> (value -> _value));
+            pushTable(context, static_cast<LuaValueMap *> (value -> _value));
             break;
         case LuaValueTypeData:
             lua_pushlstring(state, (char *)value -> _value, value -> _bytesLen);
@@ -258,25 +261,7 @@ void cn::vimfung::luascriptcore::LuaValue::pushValue(lua_State *state, cn::vimfu
             break;
         case LuaValueTypeObject:
         {
-            //先为实例对象在lua中创建内存
-            LuaObjectDescriptor **ref = (LuaObjectDescriptor **)lua_newuserdata(state, sizeof(LuaObjectDescriptor **));
-            //创建本地实例对象，赋予lua的内存块
-            *ref = value -> toObject();
-            (*ref) -> retain();
-
-            //设置userdata的元表
-            luaL_getmetatable(state, "_ObjectReference_");
-            if (lua_isnil(state, -1))
-            {
-                lua_pop(state, 1);
-
-                //尚未注册_ObjectReference,开始注册对象
-                luaL_newmetatable(state, "_ObjectReference_");
-
-                lua_pushcfunction(state, objectReferenceGCHandler);
-                lua_setfield(state, -2, "__gc");
-            }
-            lua_setmetatable(state, -2);
+            value -> toObject() -> push(context);
             break;
         }
         default:
@@ -284,29 +269,33 @@ void cn::vimfung::luascriptcore::LuaValue::pushValue(lua_State *state, cn::vimfu
     }
 }
 
-void cn::vimfung::luascriptcore::LuaValue::pushTable(lua_State *state, LuaValueList *list)
+void cn::vimfung::luascriptcore::LuaValue::pushTable(cn::vimfung::luascriptcore::LuaContext *context, LuaValueList *list)
 {
+    lua_State *state = context -> getLuaState();
+
     lua_newtable(state);
 
     lua_Integer index = 1;
     for (LuaValueList::iterator it = list -> begin(); it != list -> end(); ++it)
     {
         LuaValue *item = *it;
-        pushValue(state, item);
+        pushValue(context, item);
         lua_rawseti(state, -2, index);
 
         index ++;
     }
 }
 
-void cn::vimfung::luascriptcore::LuaValue::pushTable(lua_State *state, LuaValueMap *map)
+void cn::vimfung::luascriptcore::LuaValue::pushTable(cn::vimfung::luascriptcore::LuaContext *context, LuaValueMap *map)
 {
+    lua_State *state = context -> getLuaState();
+
     lua_newtable(state);
 
     for (LuaValueMap::iterator it = map -> begin(); it != map -> end() ; ++it)
     {
         LuaValue *item = it -> second;
-        pushValue(state, item);
+        pushValue(context, item);
         lua_setfield(state, -2, it -> first.c_str());
     }
 }
