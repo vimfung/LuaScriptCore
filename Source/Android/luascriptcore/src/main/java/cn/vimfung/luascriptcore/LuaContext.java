@@ -24,6 +24,7 @@ import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,7 +36,6 @@ public class LuaContext extends LuaBaseObject
 {
     private Context _context;
     private HashMap<String, LuaMethodHandler> _methods;
-    private HashMap<String, LuaModule> _modules;
 
     /**
      * 创建上下文对象
@@ -44,6 +44,8 @@ public class LuaContext extends LuaBaseObject
     protected LuaContext(int nativeId)
     {
         super(nativeId);
+
+        this._methods = new HashMap<String, LuaMethodHandler>();
     }
 
     /**
@@ -53,10 +55,7 @@ public class LuaContext extends LuaBaseObject
     public static LuaContext create(Context context)
     {
         LuaContext luaContext = LuaNativeUtil.createContext();
-
         luaContext._context = context;
-        luaContext._methods = new HashMap<String, LuaMethodHandler>();
-        luaContext._modules = new HashMap<String, LuaModule>();
 
         File cacheDir = context.getExternalCacheDir();
         if (cacheDir != null && cacheDir.exists())
@@ -168,18 +167,8 @@ public class LuaContext extends LuaBaseObject
     {
         try
         {
-            Log.v("lsc", "begin register module");
-            String moduleName = LuaModule.getModuleName(moduleClass);
-            if (!LuaNativeUtil.isModuleRegisted(_nativeId, moduleName))
-            {
-                Log.v("lsc", String.format("register module = %s", moduleName));
-                Method regMethod = moduleClass.getMethod("register", LuaContext.class, String.class, moduleClass.getClass());
-                LuaModule module = (LuaModule) regMethod.invoke(moduleClass, this, moduleName, moduleClass);
-                if (module != null)
-                {
-                    _modules.put(moduleName, module);
-                }
-            }
+            Method regMethod = moduleClass.getMethod("_register", LuaContext.class, moduleClass.getClass());
+            regMethod.invoke(moduleClass, this, moduleClass);
         }
         catch (NoSuchMethodException e) {
             e.printStackTrace();

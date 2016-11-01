@@ -215,16 +215,44 @@ jclass LuaJavaType::hashMapClass(JNIEnv *env)
     return jHashMap;
 }
 
-jclass LuaJavaType::objectClassInstanceClass(JNIEnv *env)
+jclass LuaJavaType::luaObjectClass(JNIEnv *env)
 {
-    static jclass jObjectClassInstance = NULL;
+    static jclass jLuaObject = NULL;
 
-    if (jObjectClassInstance == NULL)
+    if (jLuaObject == NULL)
     {
-        jclass jHashMapCls = env -> FindClass("cn/vimfung/luascriptcore/modules/oo/LuaClassInstance");
-        jObjectClassInstance = (jclass)env -> NewGlobalRef(jHashMapCls);
-        env -> DeleteLocalRef(jHashMapCls);
+        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/modules/oo/LuaObjectClass");
+        jLuaObject = (jclass)env -> NewGlobalRef(jTempClass);
+        env -> DeleteLocalRef(jTempClass);
     }
 
-    return jObjectClassInstance;
+    return jLuaObject;
+}
+
+jclass LuaJavaType::pointerClass(JNIEnv *env)
+{
+    static jclass jPointer = NULL;
+
+    if (jPointer == NULL)
+    {
+        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaPointer");
+        jPointer = (jclass)env -> NewGlobalRef(jTempClass);
+        env -> DeleteLocalRef(jTempClass);
+    }
+
+    return jPointer;
+}
+
+jclass LuaJavaType::functionClass(JNIEnv *env)
+{
+    static jclass jFunction = NULL;
+
+    if (jFunction == NULL)
+    {
+        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaFunction");
+        jFunction = (jclass)env -> NewGlobalRef(jTempClass);
+        env -> DeleteLocalRef(jTempClass);
+    }
+
+    return jFunction;
 }

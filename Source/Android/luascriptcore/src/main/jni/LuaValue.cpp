@@ -5,6 +5,26 @@
 #include <stddef.h>
 #include "LuaValue.h"
 #include "LuaDefine.h"
+#include "../../../../../lua-core/src/lua.h"
+#include "LuaObjectManager.h"
+
+/**
+ 对象引用回收处理
+
+ @param state Lua状态机
+
+ @return 返回值数量
+ */
+static int objectReferenceGCHandler(lua_State *state)
+{
+    using namespace cn::vimfung::luascriptcore;
+
+    //释放对象
+    LuaObjectDescriptor **ref = (LuaObjectDescriptor **)lua_touserdata(state, 1);
+    (*ref) -> release();
+
+    return 0;
+}
 
 cn::vimfung::luascriptcore::LuaValue::LuaValue()
         : LuaObject()
@@ -67,10 +87,28 @@ cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaValueMap value)
     _value = new LuaValueMap (value);
 }
 
-cn::vimfung::luascriptcore::LuaValue::LuaValue (const void *value)
+cn::vimfung::luascriptcore::LuaValue::LuaValue (LuaPointer *value)
         :LuaObject()
 {
     _type = LuaValueTypePtr;
+
+    value -> retain();
+    _value = (void *)value;
+}
+
+cn::vimfung::luascriptcore::LuaValue::LuaValue (LuaObjectDescriptor *value)
+{
+    _type = LuaValueTypeObject;
+
+    value -> retain();
+    _value = (void *)value;
+}
+
+cn::vimfung::luascriptcore::LuaValue::LuaValue(LuaFunction *value)
+{
+    _type = LuaValueTypeFunction;
+
+    value -> retain();
     _value = (void *)value;
 }
 
@@ -105,8 +143,12 @@ cn::vimfung::luascriptcore::LuaValue::~LuaValue()
                 }
             }
         }
+        else if (_type == LuaValueTypePtr || _type == LuaValueTypeObject || _type == LuaValueTypeFunction)
+        {
+            ((LuaObject *)_value) -> release();
+        }
 
-        if (_type != LuaValueTypePtr)
+        if (_type != LuaValueTypePtr && _type != LuaValueTypeObject && _type != LuaValueTypeFunction)
         {
             delete _value;
         }
@@ -155,7 +197,17 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::Dict
     return new LuaValue(value);
 }
 
-cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::PtrValue(const void *value)
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::PointerValue(LuaPointer *value)
+{
+    return new LuaValue(value);
+}
+
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::FunctionValue(LuaFunction *value)
+{
+    return new LuaValue(value);
+}
+
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaValue::ObjectValue(LuaObjectDescriptor *value)
 {
     return new LuaValue(value);
 }
@@ -172,7 +224,8 @@ void cn::vimfung::luascriptcore::LuaValue::push(lua_State *state)
 
 void cn::vimfung::luascriptcore::LuaValue::pushValue(lua_State *state, cn::vimfung::luascriptcore::LuaValue *value)
 {
-    switch (value -> getType()) {
+    switch (value -> getType())
+    {
         case LuaValueTypeInteger:
             lua_pushinteger(state, value -> _intValue);
             break;
@@ -198,8 +251,34 @@ void cn::vimfung::luascriptcore::LuaValue::pushValue(lua_State *state, cn::vimfu
             lua_pushlstring(state, (char *)value -> _value, value -> _bytesLen);
             break;
         case LuaValueTypePtr:
-            lua_pushlightuserdata(state, value -> _value);
+            lua_pushlightuserdata(state, (void *)value -> toPointer() -> getValue());
             break;
+        case LuaValueTypeFunction:
+            value -> toFunction() -> push();
+            break;
+        case LuaValueTypeObject:
+        {
+            //先为实例对象在lua中创建内存
+            LuaObjectDescriptor **ref = (LuaObjectDescriptor **)lua_newuserdata(state, sizeof(LuaObjectDescriptor **));
+            //创建本地实例对象，赋予lua的内存块
+            *ref = value -> toObject();
+            (*ref) -> retain();
+
+            //设置userdata的元表
+            luaL_getmetatable(state, "_ObjectReference_");
+            if (lua_isnil(state, -1))
+            {
+                lua_pop(state, 1);
+
+                //尚未注册_ObjectReference,开始注册对象
+                luaL_newmetatable(state, "_ObjectReference_");
+
+                lua_pushcfunction(state, objectReferenceGCHandler);
+                lua_setfield(state, -2, "__gc");
+            }
+            lua_setmetatable(state, -2);
+            break;
+        }
         default:
             break;
     }
@@ -312,11 +391,31 @@ cn::vimfung::luascriptcore::LuaValueMap* cn::vimfung::luascriptcore::LuaValue::t
     return NULL;
 }
 
-const void* cn::vimfung::luascriptcore::LuaValue::toPtr()
+cn::vimfung::luascriptcore::LuaPointer* cn::vimfung::luascriptcore::LuaValue::toPointer()
 {
     if (_type == LuaValueTypePtr)
     {
-        return (const void *)_value;
+        return (LuaPointer *)_value;
+    }
+
+    return NULL;
+}
+
+cn::vimfung::luascriptcore::LuaFunction* cn::vimfung::luascriptcore::LuaValue::toFunction()
+{
+    if (_type == LuaValueTypeFunction)
+    {
+        return (LuaFunction *)_value;
+    }
+
+    return NULL;
+}
+
+cn::vimfung::luascriptcore::LuaObjectDescriptor* cn::vimfung::luascriptcore::LuaValue::toObject()
+{
+    if (_type == LuaValueTypeObject)
+    {
+        return (LuaObjectDescriptor *)_value;
     }
 
     return NULL;

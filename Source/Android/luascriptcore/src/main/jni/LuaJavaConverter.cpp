@@ -6,6 +6,8 @@
 #include "LuaJavaConverter.h"
 #include "LuaJavaType.h"
 #include "LuaObjectManager.h"
+#include "LuaJavaObjectDescriptor.h"
+#include "LuaJavaEnv.h"
 
 LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject context)
 {
@@ -78,9 +80,46 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, jobject obje
         //LuaValue类型
         value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, object);
     }
+    else if (env -> IsInstanceOf(object, LuaJavaType::pointerClass(env)) == JNI_TRUE)
+    {
+        //LuaPointer类型
+        //先查找LuaPointer是否有对应的本地对象
+        jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::pointerClass(env), "_nativeId", "I");
+        jint nativeId = env -> GetIntField(object, nativeIdFieldId);
+        LuaPointer *pointer = (LuaPointer *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+        if (pointer != NULL)
+        {
+            value = new LuaValue(pointer);
+        }
+        else
+        {
+            //没找到相关的Pointer则使用nil代替
+            value = new LuaValue();
+        }
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::functionClass(env)) == JNI_TRUE)
+    {
+        //LuaFunction类型
+        jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::functionClass(env), "_nativeId", "I");
+        jint nativeId = env -> GetIntField(object, nativeIdFieldId);
+        LuaFunction *function = (LuaFunction *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+        if (function != NULL)
+        {
+            value = new LuaValue(function);
+        }
+        else
+        {
+            //没找到相关的Function则使用nil代替
+            value = new LuaValue();
+        }
+
+    }
     else
     {
-        value = new LuaValue();
+        //对象类型
+        LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(object);
+        value = new LuaValue(objDesc);
+        objDesc -> release();
     }
 
     return value;
@@ -101,6 +140,9 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject va
     static jmethodID toByteArrMethodId = env -> GetMethodID(jLuaValueClass, "toByteArray", "()[B");
     static jmethodID toListMethodId = env -> GetMethodID(jLuaValueClass, "toArrayList", "()Ljava/util/ArrayList;");
     static jmethodID toMapMethodId = env -> GetMethodID(jLuaValueClass, "toHashMap", "()Ljava/util/HashMap;");
+    static jmethodID toPointerId = env -> GetMethodID(jLuaValueClass, "toPointer", "()Lcn/vimfung/luascriptcore/LuaPointer;");
+    static jmethodID toFunctionId = env -> GetMethodID(jLuaValueClass, "toFunction", "()Lcn/vimfung/luascriptcore/LuaFunction;");
+    static jmethodID toObjectId = env -> GetMethodID(jLuaValueClass, "toObject", "()Ljava/lang/Object;");
 
     jobject itemType = env -> CallObjectMethod(value, typeMethodId);
     jint valueType = env -> CallIntMethod(itemType, typeValueMethodId);
@@ -189,6 +231,54 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject va
 
             break;
         }
+        case LuaValueTypePtr:
+        {
+            jobject jPointer = env -> CallObjectMethod(value, toPointerId);
+
+            //先查找是否有对应的本地LuaPointer
+            jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::pointerClass(env), "_nativeId", "I");
+            jint nativeId = env -> GetIntField(jPointer, nativeIdFieldId);
+
+            LuaPointer *pointer = (LuaPointer *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+            if (pointer != NULL)
+            {
+                retValue = new LuaValue(pointer);
+            }
+            else
+            {
+                retValue = new LuaValue();
+            }
+
+            break;
+        }
+        case LuaValueTypeFunction:
+        {
+            jobject jFunction = env -> CallObjectMethod(value, toFunctionId);
+
+            //先查找是否有对应的本地LuaFunction
+            jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::functionClass(env), "_nativeId", "I");
+            jint nativeId = env -> GetIntField(jFunction, nativeIdFieldId);
+
+            LuaFunction *function = (LuaFunction *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+            if (function != NULL)
+            {
+                retValue = new LuaValue(function);
+            }
+            else
+            {
+                retValue = new LuaValue();
+            }
+
+            break;
+        }
+        case LuaValueTypeObject:
+        {
+            jobject obj = env -> CallObjectMethod(value, toObjectId);
+            LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(obj);
+            retValue = new LuaValue(objDesc);
+            objDesc -> release();
+            break;
+        }
         default:
             break;
     }
@@ -196,7 +286,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject va
     return retValue;
 }
 
-jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaValue *luaValue)
+jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext *context, LuaValue *luaValue)
 {
     jobject retObj = NULL;
     if (luaValue != NULL)
@@ -245,7 +335,7 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaValue *l
                     for (LuaValueList::iterator i = list->begin(); i != list->end(); ++i)
                     {
                         LuaValue *item = *i;
-                        jobject itemObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, item);
+                        jobject itemObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, item);
                         if (itemObj != NULL)
                         {
                             env->CallBooleanMethod(retObj, addMethodId, itemObj);
@@ -270,12 +360,46 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaValue *l
                         LuaValue *item = i -> second;
 
                         jstring keyStr = env -> NewStringUTF(key.c_str());
-                        jobject itemObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, item);
+                        jobject itemObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, item);
                         if (keyStr != NULL && itemObj != NULL)
                         {
                             env -> CallObjectMethod(retObj, putMethodId, keyStr, itemObj);
                         }
                     }
+                }
+                break;
+            }
+            case LuaValueTypePtr:
+            {
+                LuaPointer *pointer = luaValue -> toPointer();
+                if (pointer != NULL)
+                {
+                    int nativeId = LuaObjectManager::SharedInstance() -> putObject(pointer);
+                    //创建Java层的LuaPointer对象
+                    jmethodID initMethodId = env -> GetMethodID(LuaJavaType::pointerClass(env), "<init>", "(I)V");
+                    retObj = env -> NewObject(LuaJavaType::pointerClass(env), initMethodId, nativeId);
+                }
+                break;
+            }
+            case LuaValueTypeFunction:
+            {
+                LuaFunction *function = luaValue -> toFunction();
+                if (function != NULL)
+                {
+                    int nativeId = LuaObjectManager::SharedInstance() -> putObject(function);
+                    jmethodID initMethodId = env -> GetMethodID(LuaJavaType::functionClass(env), "<init>", "(ILcn/vimfung/luascriptcore/LuaContext;)V");
+                    jobject jcontext = LuaJavaEnv::getJavaLuaContext(env, context);
+                    retObj = env -> NewObject(LuaJavaType::functionClass(env), initMethodId, nativeId, jcontext);
+                }
+                break;
+            }
+            case LuaValueTypeObject:
+            {
+                LuaObjectDescriptor *objDesc = luaValue -> toObject();
+                if (dynamic_cast<LuaJavaObjectDescriptor *>(objDesc) != NULL)
+                {
+                    //如果为LuaJavaObjectDescriptor则转换为jobject类型
+                    retObj = (jobject)objDesc -> getObject();
                 }
                 break;
             }
@@ -287,7 +411,7 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaValue *l
     return retObj;
 }
 
-jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaValue *luaValue)
+jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContext *context, LuaValue *luaValue)
 {
     jobject retObj = NULL;
     if (luaValue != NULL)
@@ -334,6 +458,24 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaValue 
                 initMethodId = mapInitMethodId;
                 break;
             }
+            case LuaValueTypePtr:
+            {
+                static jmethodID pointerInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILcn/vimfung/luascriptcore/LuaPointer;)V");
+                initMethodId = pointerInitMethodId;
+                break;
+            }
+            case LuaValueTypeFunction:
+            {
+                static jmethodID functionInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILcn/vimfung/luascriptcore/LuaFunction;)V");
+                initMethodId = functionInitMethodId;
+                break;
+            }
+            case LuaValueTypeObject:
+            {
+                static jmethodID objectInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILjava/lang/Object;)V");
+                initMethodId = objectInitMethodId;
+                break;
+            }
             default:
                 break;
         }
@@ -346,7 +488,7 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaValue 
         }
         else
         {
-            retObj = env -> NewObject(jLuaValue, initMethodId, objectId, LuaJavaConverter::convertToJavaObjectByLuaValue(env, luaValue));
+            retObj = env -> NewObject(jLuaValue, initMethodId, objectId, LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, luaValue));
         }
     }
 

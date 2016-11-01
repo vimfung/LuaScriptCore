@@ -2,6 +2,7 @@ package cn.vimfung.luascriptcore.sample;
 
 import android.util.Log;
 
+import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
 /**
@@ -21,4 +22,9 @@ public class Person extends LuaObjectClass
     {
         Log.v("luascriptcore", String.format("%s walk", name));
     }
+
+    public Person(LuaContext context)
+    {
+        super(context);
+    };
 }

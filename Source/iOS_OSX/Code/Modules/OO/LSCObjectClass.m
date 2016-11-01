@@ -421,8 +421,8 @@ static int objectNewIndexHandler (lua_State *state)
  */
 static int objectCreateHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_touserdata(state, lua_upvalueindex(1));
-    Class moduleClass = (__bridge Class)lua_touserdata(state, lua_upvalueindex(2));
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
 
     //创建本地实例对象，赋予lua的内存块
     LSCObjectClass *instance = [[moduleClass alloc] initWithContext:context];
@@ -440,8 +440,8 @@ static int objectCreateHandler (lua_State *state)
  */
 static int subClassHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_touserdata(state, lua_upvalueindex(1));
-    Class moduleClass = (__bridge Class)lua_touserdata(state, lua_upvalueindex(2));
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
     
     if (lua_gettop(state) == 0)
     {
@@ -513,11 +513,12 @@ static int subClassHandler (lua_State *state)
         lua_getglobal(state, [[[cls superclass] moduleName] UTF8String]);
         if (lua_istable(state, -1))
         {
-            lua_pushvalue(state, -1);
-            lua_setmetatable(state, -3);
-            
             //设置父类指向
-            lua_setfield(state, -2, "super");
+            lua_pushvalue(state, -1);
+            lua_setfield(state, -3, "super");
+            
+            //关联元表
+            lua_setmetatable(state, -2);
         }
     }
     else

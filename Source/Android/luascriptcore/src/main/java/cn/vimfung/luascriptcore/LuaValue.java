@@ -258,12 +258,93 @@ public class LuaValue extends LuaBaseObject
         _valueContainer = value;
     }
 
+    /**
+     * 初始化指针对象的LuaValue对象
+     * @param value 指针对象
+     */
+    public LuaValue (LuaPointer value)
+    {
+        super();
+        setPointerValue(value);
+    }
+
+    /**
+     * 初始化指针对象的LuaValue对象
+     * @param nativeId  本地标识对象
+     * @param value 指针对象
+     */
+    protected LuaValue (int nativeId, LuaPointer value)
+    {
+        super(nativeId);
+        setPointerValue(value);
+    }
+
+    /**
+     * 设置指针对象
+     * @param value 指针对象
+     */
+    private void setPointerValue (LuaPointer value)
+    {
+        _type = LuaValueType.Pointer;
+        _valueContainer = value;
+    }
+
+    /**
+     * 初始化值对象
+     * @param value 方法对象
+     */
+    public LuaValue (LuaFunction value)
+    {
+        super();
+        setFunctionValue(value);
+    }
+
+    /**
+     * 初始化值对象
+     * @param nativeId  本地标识
+     * @param value     方法对象
+     */
+    protected  LuaValue (int nativeId, LuaFunction value)
+    {
+        super(nativeId);
+        setFunctionValue(value);
+    }
+
+    /**
+     * 设置方法对象
+     * @param value 方法对象
+     */
+    private void setFunctionValue (LuaFunction value)
+    {
+        _type = LuaValueType.Function;
+        _valueContainer = value;
+    }
+
+    /**
+     * 初始化值对象
+     * @param value 对象
+     */
     public LuaValue (Object value)
     {
         super();
         setObjectValue(value);
     }
 
+    /**
+     * 初始化值对象
+     * @param nativeId  本地标识
+     * @param value 对象
+     */
+    protected LuaValue (int nativeId, Object value)
+    {
+        super(nativeId);
+        setObjectValue(value);
+    }
+
+    /**
+     * 设置对象值
+     * @param value 对象
+     */
     private void setObjectValue (Object value)
     {
         if (value instanceof Integer)
@@ -290,9 +371,18 @@ public class LuaValue extends LuaBaseObject
         {
             setHasMapValue((HashMap)value);
         }
+        else if (value instanceof LuaPointer)
+        {
+            setPointerValue((LuaPointer) value);
+        }
+        else if (value instanceof LuaFunction)
+        {
+            setFunctionValue((LuaFunction) value);
+        }
         else
         {
-            setNilValue();
+            _type = LuaValueType.Object;
+            _valueContainer = value;
         }
     }
 
@@ -405,6 +495,34 @@ public class LuaValue extends LuaBaseObject
         {
             return (HashMap) _valueContainer;
         }
+        return null;
+    }
+
+    /**
+     * 转换为指针对象
+     * @return  指针对象
+     */
+    public LuaPointer toPointer()
+    {
+        if (_type == LuaValueType.Pointer)
+        {
+            return (LuaPointer) _valueContainer;
+        }
+
+        return null;
+    }
+
+    /**
+     * 转换为方法对象
+     * @return 方法对象
+     */
+    public LuaFunction toFunction()
+    {
+        if (_type == LuaValueType.Function)
+        {
+            return (LuaFunction)_valueContainer;
+        }
+
         return null;
     }
 

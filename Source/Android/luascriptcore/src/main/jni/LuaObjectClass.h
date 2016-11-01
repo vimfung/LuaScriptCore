@@ -6,7 +6,6 @@
 #define ANDROID_LUAOBJECTCLASS_H
 
 #include "LuaModule.h"
-#include "LuaClassInstance.h"
 
 namespace cn
 {
@@ -18,22 +17,21 @@ namespace cn
             {
                 namespace oo
                 {
-                    class LuaClassInstance;
                     class LuaObjectClass;
 
                     /**
                      * 类对象实例化处理器
                      *
-                     * @param instance 类实例
+                     * @param objectClass 要实例化的类型
                      */
-                    typedef void (*LuaClassObjectCreatedHandler) (LuaClassInstance *instance);
+                    typedef void (*LuaClassObjectCreatedHandler) (LuaObjectClass *objectClass);
 
                     /**
                      * 类对象实例销毁处理器
                      *
                      * @param instance 类实例
                      */
-                    typedef void (*LuaClassObjectDestroyHandler) (LuaClassInstance *instance);
+                    typedef void (*LuaClassObjectDestroyHandler) (LuaObjectClass *instance);
 
                     /**
                      * 类对象实例获取描述处理器
@@ -42,29 +40,29 @@ namespace cn
                      *
                      * @return 对象描述
                      */
-                    typedef std::string (*LuaClassObjectGetDescriptionHandler) (LuaClassInstance *instance);
+                    typedef std::string (*LuaClassObjectGetDescriptionHandler) (LuaObjectClass *objectClass);
 
                     /**
                      * 子类化事件处理器
                      *
                      * @param objectClass 对象类型
                      */
-                    typedef void (*LuaSubClassHandler) (LuaObjectClass *objectClass);
+                    typedef void (*LuaSubClassHandler) (LuaObjectClass *objectClass, std::string subclassName);
 
                     /**
                      * 类实例方法处理器
                      */
-                    typedef LuaValue* (*LuaInstanceMethodHandler) (LuaClassInstance *instance, std::string methodName, LuaArgumentList arguments);
+                    typedef LuaValue* (*LuaInstanceMethodHandler) (LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments);
 
                     /**
                      * 类属性Getter处理器
                      */
-                    typedef LuaValue* (*LuaInstanceGetterHandler) (LuaClassInstance *instance, std::string fieldName);
+                    typedef LuaValue* (*LuaInstanceGetterHandler) (LuaObjectClass *objectClass, std::string fieldName);
 
                     /**
                      * 类属性Setter处理器
                      */
-                    typedef void (*LuaInstanceSetterHandler) (LuaClassInstance *instance, std::string fieldName, LuaValue *value);
+                    typedef void (*LuaInstanceSetterHandler) (LuaObjectClass *objectClass, std::string fieldName, LuaValue *value);
 
                     /**
                      * 类方法映射表类型
@@ -126,6 +124,14 @@ namespace cn
                          * 实例属性Getter表
                          */
                         LuaInstanceGetterMap _instanceGetterMap;
+
+                    protected:
+
+                        /**
+                         * 是否为内部调用，如果该标识为true，部分操作行为可能改变，如__newindex处理中
+                         * 如果处于内部调用则不自动添加实例方法或属性。
+                         */
+                        bool _isInternalCall;
 
                     public:
 
@@ -189,12 +195,19 @@ namespace cn
 
                         /**
                          * 获取子类化事件处理器
-                         *
+                          *
                          * @return 事件处理器
-                         */
+                          */
                         LuaSubClassHandler getSubClassHandler();
 
                     public:
+
+                        /**
+                         * 获取是否为内部调用
+                          *
+                         * @return true 为内部调用，false 非内部调用
+                          */
+                        bool getIsInternalCall();
 
                         /**
                          * 注册模块时调用
@@ -233,6 +246,14 @@ namespace cn
                         LuaInstanceGetterHandler getGetterHandler(std::string fieldName);
 
                     public:
+
+                        /**
+                         * 注册方法
+                         *
+                         * @param methodName 方法名称
+                         * @param handler 方法处理器
+                         */
+                        void registerMethod(std::string methodName, LuaModuleMethodHandler handler);
 
                         /**
                          * 注册实例属性

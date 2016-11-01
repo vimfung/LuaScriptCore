@@ -68,7 +68,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_evalScript
     {
         const char* scriptText = env ->GetStringUTFChars(script, NULL);
         LuaValue *value = context->evalScript(scriptText);
-        retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, value);
+        retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, value);
         value -> release();
         env -> ReleaseStringUTFChars(script, scriptText);
     }
@@ -88,7 +88,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_evalScript
         const char* scriptPath = env ->GetStringUTFChars(path, NULL);
 
         LuaValue *value = context->evalScriptFromFile(scriptPath);
-        retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, value);
+        retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, value);
         value -> release();
         env -> ReleaseStringUTFChars(path, scriptPath);
     }
@@ -119,7 +119,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_callMethod
 
         const char *methodNameStr = env -> GetStringUTFChars(methodName, NULL);
         LuaValue *retValue = context->callMethod(methodNameStr, &argumentList);
-        retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, retValue);
+        retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, retValue);
         retValue -> release();
         env -> ReleaseStringUTFChars(methodName, methodNameStr);
 
@@ -152,8 +152,8 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseNative
     LuaJavaEnv::releaseObject(env, nativeObjectId);
 }
 
-JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerModule
-        (JNIEnv *env, jclass thiz, jint nativeContextId, jstring moduleName, jclass moduleClass, jobjectArray fields, jobjectArray methods)
+JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerModule
+        (JNIEnv *env, jclass thiz, jint nativeContextId, jstring moduleName, jclass moduleClass, jobjectArray methods)
 
 {
     LuaContext *context = (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeContextId);
@@ -166,21 +166,17 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerMo
         LuaJavaModule *javaModule = new LuaJavaModule(
                 env,
                 moduleClass,
-                fields,
                 methods);
         context -> registerModule(moduleNameCStr, javaModule);
-
-        //创建Java层中对应的实例对象
-        jobject jmodule = LuaJavaEnv::createJavaLuaModule(env, moduleClass, javaModule);
 
         javaModule -> release();
 
         env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
 
-        return jmodule;
+        return JNI_TRUE;
     }
 
-    return NULL;
+    return JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_isModuleRegisted
@@ -196,11 +192,11 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_isModuleR
         return (jboolean)registed;
     }
 
-    return 0;
+    return JNI_FALSE;
 }
 
-JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClass
-        (JNIEnv *env, jclass thiz, jobject jcontext, jstring className, jstring superClassName, jclass jobjectClass, jobjectArray fields, jobjectArray methods)
+JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClass
+        (JNIEnv *env, jclass thiz, jobject jcontext, jstring className, jstring superClassName, jclass jobjectClass, jobjectArray fields, jobjectArray instanceMethods, jobjectArray classMethods)
 {
     LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
     if (context != NULL)
@@ -216,11 +212,14 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerCl
             superClassNameStr = superClassNameCStr;
         }
 
-        LuaJavaObjectClass *objectClass = new LuaJavaObjectClass(env,(const std::string)superClassNameStr, jobjectClass, fields, methods);
+        LuaJavaObjectClass *objectClass = new LuaJavaObjectClass(
+                env,
+                (const std::string)superClassNameStr,
+                jobjectClass,
+                fields,
+                instanceMethods,
+                classMethods);
         context -> registerModule(classNameStr, objectClass);
-
-        //创建Java层中对应的实例对象
-        jobject jmodule = LuaJavaEnv::createJavaLuaModule(env, jobjectClass, objectClass);
 
         objectClass -> release();
 
@@ -230,8 +229,50 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerCl
         }
         env -> ReleaseStringUTFChars(className, classNameStr);
 
-        return jmodule;
+        return JNI_TRUE;
     }
 
-    return NULL;
+    return JNI_FALSE;
+}
+
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunction
+        (JNIEnv *env, jclass thiz, jobject jcontext, jobject func, jobjectArray arguments)
+{
+    jobject retObj = NULL;
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
+    {
+        //获取LuaFunction
+        LuaValue *value = LuaJavaConverter::convertToLuaValueByJObject(env, func);
+        if (value != NULL)
+        {
+            LuaArgumentList argumentList;
+
+            if (arguments != NULL) {
+                jsize length = env->GetArrayLength(arguments);
+                for (int i = 0; i < length; ++i) {
+                    jobject item = env->GetObjectArrayElement(arguments, i);
+                    LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, item);
+                    if (value != NULL) {
+                        argumentList.push_back(value);
+                    }
+                }
+            }
+
+            LuaValue *retValue = value -> toFunction() -> invoke(&argumentList);
+            retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, retValue);
+            retValue -> release();
+
+            //释放参数内存
+            for (LuaArgumentList::iterator it = argumentList.begin(); it != argumentList.end() ; ++it)
+            {
+                LuaValue *item = *it;
+                item -> release();
+            }
+
+            value -> release();
+        }
+    }
+
+    return retObj;
 }
