@@ -301,6 +301,10 @@ public class LuaObjectClass extends LuaModule
                         argumentArray.add(item.toArrayList().toArray());
                     }
                 }
+                else
+                {
+                    argumentArray.add(item.toObject());
+                }
 
             }
 

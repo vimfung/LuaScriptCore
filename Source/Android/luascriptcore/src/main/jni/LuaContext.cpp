@@ -30,7 +30,7 @@ static int methodRouteHandler(lua_State *state) {
         cn::vimfung::luascriptcore::LuaValue *retValue = handler (context, methodName, args);
         if (retValue != NULL)
         {
-            retValue -> push(state);
+            retValue -> push(context);
             retValue -> release();
         }
         else
@@ -330,7 +330,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
         for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
         {
             LuaValue *item = *i;
-            item->push(_state);
+            item->push(this);
         }
 
         if (lua_pcall(_state, (int)arguments -> size(), 1, 0) == 0)

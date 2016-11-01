@@ -171,7 +171,7 @@ static int instanceMethodRouteHandler(lua_State *state)
 
         int top = lua_gettop(state);
         cn::vimfung::luascriptcore::LuaArgumentList args;
-        for (int i = 2; i < top; i++)
+        for (int i = 2; i <= top; i++)
         {
             cn::vimfung::luascriptcore::LuaValue *value = context -> getValueByIndex(i);
             args.push_back(value);
@@ -182,7 +182,7 @@ static int instanceMethodRouteHandler(lua_State *state)
         if (retValue != NULL)
         {
             //释放返回值
-            retValue -> push(state);
+            retValue -> push(context);
             retValue -> release();
         }
 
@@ -258,7 +258,7 @@ static int instanceGetterRouteHandler (lua_State *state)
         cn::vimfung::luascriptcore::LuaValue *retValue = handler (objectClass, fieldName);
         if (retValue != NULL)
         {
-            retValue -> push(state);
+            retValue -> push(objectClass -> getContext());
             retValue -> release();
         }
         else

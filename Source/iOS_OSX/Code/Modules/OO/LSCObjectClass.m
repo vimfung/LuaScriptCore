@@ -10,8 +10,7 @@
 #import "LSCModule_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
-#import "LSCObjectValue.h"
-#import "LSCObjectClass_Private.h"
+#import "LSCLuaObjectPushProtocol.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 
@@ -81,6 +80,24 @@ static void removeInstance(LSCObjectClass *instance)
     [_luaInstancePool removeObjectForKey:key];
     [_instancePool removeObject:instance];
 }
+
+@interface LSCObjectClass () <LSCLuaObjectPushProtocol>
+
+/**
+ 上下文对象
+ */
+@property (nonatomic, weak) LSCContext *context;
+
+/**
+ 查找实例对应的lua引用
+ 
+ @param instance 实例对象
+ 
+ @return lua的实例引用
+ */
++ (void**)_findLuaRef:(LSCObjectClass *)instance;
+
+@end
 
 @implementation LSCObjectClass
 
@@ -228,7 +245,7 @@ static int InstanceMethodRouteHandler(lua_State *state)
             LSCValue *value = nil;
             if (i <= top)
             {
-                value = [LSCObjectValue valueWithContext:context atIndex:i];
+                value = [LSCValue valueWithContext:context atIndex:i];
             }
             else
             {
@@ -286,7 +303,7 @@ static int InstanceMethodRouteHandler(lua_State *state)
             //返回值为对象，添加__unsafe_unretained修饰用于修复ARC下retObj对象被释放问题。
             id __unsafe_unretained retObj = nil;
             [invocation getReturnValue:&retObj];
-            retValue = [LSCObjectValue objectValue:retObj];
+            retValue = [LSCValue objectValue:retObj];
         }
         else if (strcmp(returnType, @encode(int)) == 0
                  || strcmp(returnType, @encode(unsigned int)) == 0
@@ -307,14 +324,14 @@ static int InstanceMethodRouteHandler(lua_State *state)
             
             NSInteger intValue = 0;
             [invocation getReturnValue:&intValue];
-            retValue = [LSCObjectValue integerValue:intValue];
+            retValue = [LSCValue integerValue:intValue];
         }
         else if (strcmp(returnType, @encode(float)) == 0)
         {
             // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
             LSCFloatStruct floatStruct = {0};
             [invocation getReturnValue:&floatStruct];
-            retValue = [LSCObjectValue numberValue:@(floatStruct.f)];
+            retValue = [LSCValue numberValue:@(floatStruct.f)];
             
         }
         else if (strcmp(returnType, @encode(double)) == 0)
@@ -322,14 +339,14 @@ static int InstanceMethodRouteHandler(lua_State *state)
             // d 双精度浮点型
             double doubleValue = 0.0;
             [invocation getReturnValue:&doubleValue];
-            retValue = [LSCObjectValue numberValue:@(doubleValue)];
+            retValue = [LSCValue numberValue:@(doubleValue)];
         }
         else if (strcmp(returnType, @encode(BOOL)) == 0)
         {
             //B 布尔类型
             BOOL boolValue = NO;
             [invocation getReturnValue:&boolValue];
-            retValue = [LSCObjectValue booleanValue:boolValue];
+            retValue = [LSCValue booleanValue:boolValue];
         }
         else
         {
@@ -456,6 +473,28 @@ static int subClassHandler (lua_State *state)
     [context registerModuleWithClass:subCls];
     
     return 0;
+}
+
+#pragma mark - LSCLuaObjectPushProtocol
+
+- (void)pushWithContext:(LSCContext *)context
+{
+    lua_State *state = context.state;
+    void **ref = [LSCObjectClass _findLuaRef:self];
+    if (ref != NULL)
+    {
+        //直接原指针返回并不等于原始变量，因此需要重新绑定元表
+        lua_pushlightuserdata(state, ref);
+        luaL_getmetatable(state, [[self class] moduleName].UTF8String);
+        if (lua_istable(state, -1))
+        {
+            lua_setmetatable(state, -2);
+        }
+    }
+    else
+    {
+        lua_pushnil(state);
+    }
 }
 
 #pragma mark - Private

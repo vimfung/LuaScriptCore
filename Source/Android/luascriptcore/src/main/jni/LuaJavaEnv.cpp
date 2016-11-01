@@ -237,6 +237,40 @@ void LuaJavaEnv::removeAssociateInstance(jobject instance, void **ref)
 
 }
 
+void** LuaJavaEnv::getAssociateInstanceRef(jobject instance)
+{
+    long key = 0;
+    std::set<jobject>::iterator setIt = _instanceSet.find(instance);
+    if (setIt == _instanceSet.end())
+    {
+        JNIEnv *env = LuaJavaEnv::getEnv();
+
+        //没找到对应的实例，则使用遍历方式对比对象
+        for (std::set<jobject>::iterator it = _instanceSet.begin(); it != _instanceSet.end() ; ++it)
+        {
+            if (env -> IsSameObject(instance, (jobject)*it) == JNI_TRUE)
+            {
+                key = (long)*it;
+                break;
+            }
+        }
+
+        LuaJavaEnv::resetEnv(env);
+    }
+    else
+    {
+        key = (long)instance;
+    }
+
+    std::map<long, void**>::iterator it =  _instanceMap.find(key);
+    if (it != _instanceMap.end())
+    {
+        return it -> second;
+    }
+
+    return NULL;
+}
+
 jobject LuaJavaEnv::releaseObject(JNIEnv *env, jint objectId)
 {
     std::map<jint, jobject>::iterator it =  _javaObjectMap.find(objectId);
