@@ -8,9 +8,6 @@
 
 #import "LSCObjectClass.h"
 
-@class LSCFunction;
-
-
 @interface LSCTPerson : LSCObjectClass
 
 @property (nonatomic, copy) NSString *name;

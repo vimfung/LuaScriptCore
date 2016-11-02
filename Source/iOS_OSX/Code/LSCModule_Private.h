@@ -46,8 +46,12 @@ static NSString *const NativeModuleType = @"module";
  @param thiz 注册的模块类型
  @param module 导出方法的模块类型,可能是注册模块类或者其父类
  @param context         上下文对象
+ @param filterMethodNames   过滤的方法名称
  */
-+ (void)_exportModuleAllMethod:(Class)thiz module:(Class)module context:(LSCContext *)context;
++ (void)_exportModuleAllMethod:(Class)thiz
+                        module:(Class)module
+                       context:(LSCContext *)context
+             filterMethodNames:(NSArray<NSString *> *)filterMethodNames;
 
 /**
  导出模块的所有类方法
@@ -55,8 +59,12 @@ static NSString *const NativeModuleType = @"module";
  @param thiz    注册的模块类型
  @param module  导出的模块类型
  @param context 上下文对象
+ @param filterMethodNames 过滤的方法名称
  */
-+ (void)_exportModuleMethod:(Class)thiz module:(Class)module context:(LSCContext *)context;
++ (void)_exportModuleMethod:(Class)thiz
+                     module:(Class)module
+                    context:(LSCContext *)context
+          filterMethodNames:(NSArray<NSString *> *)filterMethodNames;
 
 /**
  反注册模块

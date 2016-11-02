@@ -228,7 +228,10 @@ static int ModuleMethodRouteHandler(lua_State *state)
         lua_pushstring(state, NativeModuleType.UTF8String);
         lua_setfield(state, -2, NativeTypeKey.UTF8String);
         
-        [self _exportModuleAllMethod:module module:module context:context];
+        [self _exportModuleAllMethod:module
+                              module:module
+                             context:context
+                   filterMethodNames:nil];
         
         lua_setglobal(state, [name UTF8String]);
     }
@@ -239,11 +242,13 @@ static int ModuleMethodRouteHandler(lua_State *state)
     }
 }
 
-+ (void)_exportModuleMethod:(Class)thiz module:(Class)module context:(LSCContext *)context
++ (void)_exportModuleMethod:(Class)thiz
+                     module:(Class)module
+                    context:(LSCContext *)context
+          filterMethodNames:(NSArray<NSString *> *)filterMethodNames
 {
     lua_State *state = context.state;
     
-    NSMutableArray *filterMethodList = [NSMutableArray array];
     Class metaClass = objc_getMetaClass(NSStringFromClass(module).UTF8String);
     
     //解析方法
@@ -256,7 +261,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
         NSString *methodName = NSStringFromSelector(selector);
         if (![methodName hasPrefix:@"_"]
             && ![methodName hasPrefix:@"."]
-            && ![filterMethodList containsObject:methodName])
+            && ![filterMethodNames containsObject:methodName])
         {
             NSString *luaMethodName = [self _getLuaMethodNameWithName:methodName];
             
@@ -283,14 +288,17 @@ static int ModuleMethodRouteHandler(lua_State *state)
     free(methods);
 }
 
-+ (void)_exportModuleAllMethod:(Class)thiz module:(Class)module context:(LSCContext *)context
++ (void)_exportModuleAllMethod:(Class)thiz
+                        module:(Class)module
+                       context:(LSCContext *)context
+             filterMethodNames:(NSArray<NSString *> *)filterMethodNames
 {
-    [self _exportModuleMethod:thiz module:module context:context];
+    [self _exportModuleMethod:thiz module:module context:context filterMethodNames:nil];
     
     if (module != [LSCModule class])
     {
         //如果模块不是LSCModule，则获取其父类继续进行方法导出
-        [self _exportModuleMethod:thiz module:class_getSuperclass(module) context:context];
+        [self _exportModuleMethod:thiz module:class_getSuperclass(module) context:context filterMethodNames:nil];
     }
 }
 

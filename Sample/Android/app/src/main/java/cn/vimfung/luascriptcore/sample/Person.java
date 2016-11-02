@@ -22,9 +22,4 @@ public class Person extends LuaObjectClass
     {
         Log.v("luascriptcore", String.format("%s walk", name));
     }
-
-    public Person(LuaContext context)
-    {
-        super(context);
-    };
 }

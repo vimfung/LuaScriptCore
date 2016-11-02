@@ -14,10 +14,6 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-/**
- *  实例缓存池，主要用于与lua中的对象保持相同的生命周期而设定，创建时放入池中，当gc回收时从池中移除。
- */
-static NSMutableSet *_instancePool = nil;
 static NSMutableDictionary *_luaInstancePool = nil;
 
 
@@ -39,6 +35,12 @@ static void associcateInstance(LSCObjectClass *instance, void **ref)
     [_luaInstancePool setObject:luaRefValue forKey:key];
 }
 
+static void removeAssociateInstance(LSCObjectClass *instance, void **ref)
+{
+    NSString *key = [NSString stringWithFormat:@"0x%llx", (long long)instance];
+    [_luaInstancePool removeObjectForKey:key];
+}
+
 static void** findInstanceRef(LSCObjectClass *instance)
 {
     NSString *key = [NSString stringWithFormat:@"0x%llx", (long long)instance];
@@ -52,33 +54,6 @@ static void** findInstanceRef(LSCObjectClass *instance)
     }
     
     return nil;
-}
-
-/**
- *  放入实例到缓存池中
- *
- *  @param instance 实例
- */
-static void putInstance(LSCObjectClass *instance)
-{
-    static dispatch_once_t predicate;
-    dispatch_once(&predicate, ^{
-        _instancePool = [NSMutableSet set];
-    });
-    
-    [_instancePool addObject:instance];
-}
-
-/**
- *  从缓存池中移除实例
- *
- *  @param instance 实例
- */
-static void removeInstance(LSCObjectClass *instance)
-{
-    NSString *key = [NSString stringWithFormat:@"0x%llx", (long long)instance];
-    [_luaInstancePool removeObjectForKey:key];
-    [_instancePool removeObject:instance];
 }
 
 @interface LSCObjectClass () <LSCLuaObjectPushProtocol>
@@ -101,45 +76,10 @@ static void removeInstance(LSCObjectClass *instance)
 
 @implementation LSCObjectClass
 
-- (instancetype)initWithContext:(LSCContext *)context
++ (instancetype)createInsanceWithContext:(LSCContext *)context
 {
-    if (self = [super init])
-    {
-        self.context = context;
-        
-        lua_State *state = self.context.state;
-        
-        //先为实例对象在lua中创建内存
-        void **ref = (void **)lua_newuserdata(state, sizeof(LSCObjectClass **));
-        
-        //创建本地实例对象，赋予lua的内存块
-        *ref = (__bridge void *)self;
-        
-        luaL_getmetatable(state, [self.class moduleName].UTF8String);
-        if (lua_istable(state, -1))
-        {
-            lua_setmetatable(state, -2);
-        }
-        
-        //关联对象
-        associcateInstance(self, ref);
-        
-        //调用实例对象的init方法
-        lua_pushvalue(state, 1);
-        lua_getfield(state, -1, "init");
-        if (lua_isfunction(state, -1))
-        {
-            lua_pushvalue(state, 1);
-            lua_pcall(state, 1, 0, 0);
-            lua_pop(state, 1);
-        }
-        else
-        {
-            lua_pop(state, 2);
-        }
-    }
-    
-    return self;
+    LSCValue *instance = [context evalScriptFromString:[NSString stringWithFormat:@"return %@.create();", [self moduleName]]];
+    return [instance toObject];
 }
 
 - (void)dealloc
@@ -377,8 +317,10 @@ static int InstanceMethodRouteHandler(lua_State *state)
 static int objectDestroyHandler (lua_State *state)
 {
     void **ref = (void **)lua_touserdata(state, 1);
-    LSCObjectClass *instance = (__bridge LSCObjectClass *)(*ref);
-    removeInstance(instance);
+    //移除关联
+    removeAssociateInstance((__bridge LSCObjectClass *)(*ref), ref);
+    //释放内存
+    CFBridgingRelease(*ref);
     
     return 0;
 }
@@ -440,10 +382,9 @@ static int objectCreateHandler (lua_State *state)
 {
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
-
-    //创建本地实例对象，赋予lua的内存块
-    LSCObjectClass *instance = [[moduleClass alloc] initWithContext:context];
-    putInstance(instance);
+    
+    //创建对象
+    [moduleClass _constructObjectWithContext:context];
 
     return 1;
 }
@@ -499,6 +440,52 @@ static int subClassHandler (lua_State *state)
 
 #pragma mark - Private
 
+
+/**
+ 构造对象
+
+ @param context 上下文对象
+
+ @return 类实例对象
+ */
++ (instancetype)_constructObjectWithContext:(LSCContext *)context;
+{
+    LSCObjectClass *instance = [[self alloc] init];
+    instance.context = context;
+    
+    lua_State *state = context.state;
+    
+    //先为实例对象在lua中创建内存
+    void **ref = (void **)lua_newuserdata(state, sizeof(LSCObjectClass **));
+    //创建本地实例对象，赋予lua的内存块并进行保留引用
+    *ref = (void *)CFBridgingRetain(instance);
+    
+    luaL_getmetatable(state, [instance.class moduleName].UTF8String);
+    if (lua_istable(state, -1))
+    {
+        lua_setmetatable(state, -2);
+    }
+    
+    //关联对象
+    associcateInstance(instance, ref);
+    
+    //调用实例对象的init方法
+    lua_pushvalue(state, 1);
+    lua_getfield(state, -1, "init");
+    if (lua_isfunction(state, -1))
+    {
+        lua_pushvalue(state, 1);
+        lua_pcall(state, 1, 0, 0);
+        lua_pop(state, 1);
+    }
+    else
+    {
+        lua_pop(state, 2);
+    }
+    
+    return instance;
+}
+
 /**
  *  注册类型
  *
@@ -531,7 +518,10 @@ static int subClassHandler (lua_State *state)
     lua_setfield(state, -2, NativeTypeKey.UTF8String);
     
     //导出声明的类方法
-    [self _exportModuleMethod:cls module:cls context:context];
+    [self _exportModuleMethod:cls
+                       module:cls
+                      context:context
+            filterMethodNames:@[@"createInsanceWithContext:"]];
     
     //添加创建对象方法
     lua_pushlightuserdata(state, (__bridge void *)context);
