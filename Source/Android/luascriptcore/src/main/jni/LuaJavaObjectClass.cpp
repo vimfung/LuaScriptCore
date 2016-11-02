@@ -28,12 +28,15 @@ static void _luaClassObjectCreated (cn::vimfung::luascriptcore::modules::oo::Lua
         lua_State *state = jobjectClass->getContext()->getLuaState();
 
         //创建实例对象
-        jmethodID initMethodId = env->GetMethodID(cls, "<init>",
-                                                  "(Lcn/vimfung/luascriptcore/LuaContext;)V");
+        jmethodID initMethodId = env->GetMethodID(cls, "<init>", "()V");
 
         //创建Java层的实例对象
         jobject jcontext = LuaJavaEnv::getJavaLuaContext(env, objectClass->getContext());
-        jobject jInstance = env->NewObject(cls, initMethodId, jcontext);
+        jobject jInstance = env->NewObject(cls, initMethodId);
+
+        //设置LuaContext
+        jfieldID contextFieldId = env -> GetFieldID(cls, "_context", "Lcn/vimfung/luascriptcore/LuaContext;");
+        env -> SetObjectField(jInstance, contextFieldId, jcontext);
 
         LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(jInstance);
         objDesc -> setUserdata(objectClass);

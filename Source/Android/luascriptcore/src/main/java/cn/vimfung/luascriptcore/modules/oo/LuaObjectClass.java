@@ -34,12 +34,19 @@ public class LuaObjectClass extends LuaModule
     }
 
     /**
-     * 初始化类对象
+     * 创建类实例对象
      * @param context   Lua的上下文对象
+     * @return 实例对象
      */
-    public LuaObjectClass(LuaContext context)
+    public static <T> T createInstance(LuaContext context, Class<T> objectClass)
     {
-        //初始化对象实例
+        if (LuaObjectClass.class.isAssignableFrom(objectClass))
+        {
+            LuaValue instance = context.evalScript(String.format("return %s.create();", _getModuleName((Class<? extends LuaModule>) objectClass)));
+            return (T) instance.toObject();
+        }
+
+        return null;
     }
 
     /**
@@ -69,6 +76,8 @@ public class LuaObjectClass extends LuaModule
         ArrayList<Method> exportInstanceMethods = new ArrayList<Method>();
 
         filterMethodNames.add("access$super");
+        filterMethodNames.add("createInstance");
+        filterMethodNames.add("getContext");
 
         //导出字段
         Field[] fields = moduleClass.getDeclaredFields();
@@ -177,6 +186,63 @@ public class LuaObjectClass extends LuaModule
             LuaModule._setExportMethods(moduleClass, exportClassMethodsArr);
             LuaObjectClass._setExportInstanceMethods((Class<? extends LuaObjectClass>) moduleClass, exportInstanceMethodsArr);
         }
+    }
+
+    /**
+     * 保存导出方法的哈希表
+     */
+    static private HashMap<Class<? extends LuaObjectClass>, HashMap<String, Method>> _exportInstanceMethods;
+
+    /**
+     * 导出实例方法
+     * @param moduleClass 模块类型
+     * @param methods   方法集合
+     */
+    static private void _setExportInstanceMethods(Class<? extends LuaObjectClass> moduleClass, Method[] methods)
+    {
+        if (_exportInstanceMethods == null)
+        {
+            _exportInstanceMethods = new HashMap<Class<? extends LuaObjectClass>, HashMap<String, Method>>();
+        }
+
+        if (!_exportInstanceMethods.containsKey(moduleClass))
+        {
+            HashMap<String, Method> exportMethods = new HashMap<String, Method>();
+
+            for (Method m : methods)
+            {
+                exportMethods.put(m.getName(), m);
+            }
+            _exportInstanceMethods.put(moduleClass, exportMethods);
+        }
+    }
+
+    /**
+     * 获取导出实例方法
+     * @param moduleClass   模块类型
+     * @param methodName    方法名称
+     * @return  方法对象
+     */
+    static private Method _getExportInstanceMethod(Class<? extends  LuaObjectClass> moduleClass, String methodName)
+    {
+        if (_exportInstanceMethods != null && _exportInstanceMethods.containsKey(moduleClass))
+        {
+            HashMap<String, Method> methods = _exportInstanceMethods.get(moduleClass);
+            return methods.get(methodName);
+        }
+
+        return null;
+    }
+
+    private LuaContext _context;
+
+    /**
+     * 获取Lua上下文对象
+     * @return 上下文对象
+     */
+    public LuaContext getContext()
+    {
+        return _context;
     }
 
     /**
@@ -382,51 +448,5 @@ public class LuaObjectClass extends LuaModule
         {
             return new LuaValue();
         }
-    }
-
-    /**
-     * 保存导出方法的哈希表
-     */
-    static private HashMap<Class<? extends LuaObjectClass>, HashMap<String, Method>> _exportInstanceMethods;
-
-    /**
-     * 导出实例方法
-     * @param moduleClass 模块类型
-     * @param methods   方法集合
-     */
-    static private void _setExportInstanceMethods(Class<? extends LuaObjectClass> moduleClass, Method[] methods)
-    {
-        if (_exportInstanceMethods == null)
-        {
-            _exportInstanceMethods = new HashMap<Class<? extends LuaObjectClass>, HashMap<String, Method>>();
-        }
-
-        if (!_exportInstanceMethods.containsKey(moduleClass))
-        {
-            HashMap<String, Method> exportMethods = new HashMap<String, Method>();
-
-            for (Method m : methods)
-            {
-                exportMethods.put(m.getName(), m);
-            }
-            _exportInstanceMethods.put(moduleClass, exportMethods);
-        }
-    }
-
-    /**
-     * 获取导出实例方法
-     * @param moduleClass   模块类型
-     * @param methodName    方法名称
-     * @return  方法对象
-     */
-    static private Method _getExportInstanceMethod(Class<? extends  LuaObjectClass> moduleClass, String methodName)
-    {
-        if (_exportInstanceMethods != null && _exportInstanceMethods.containsKey(moduleClass))
-        {
-            HashMap<String, Method> methods = _exportInstanceMethods.get(moduleClass);
-            return methods.get(methodName);
-        }
-
-        return null;
     }
 }

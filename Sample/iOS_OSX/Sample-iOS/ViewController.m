@@ -160,7 +160,7 @@
         [self.context registerModuleWithClass:[LSCTPerson class]];
     }
 
-    [self.context evalScriptFromString:@"local person = LSCTPerson.create();person:setName('vimfung');person:walk();person:speak();"];
+    [self.context evalScriptFromString:@"local person = LSCTPerson.create();person:setName('vimfung');person:walk();person:speak();person=nil;collectgarbage();"];
 }
 
 @end

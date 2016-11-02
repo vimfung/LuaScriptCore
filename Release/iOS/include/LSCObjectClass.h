@@ -26,12 +26,12 @@
 
 
 /**
- 初始化类实例
-
+ 创建实例
+ 
  @param context 上下文对象
-
- @return 类实例对象
+ 
+ @return 实例对象
  */
-- (instancetype)initWithContext:(LSCContext *)context;
++ (instancetype)createInsanceWithContext:(LSCContext *)context;
 
 @end
