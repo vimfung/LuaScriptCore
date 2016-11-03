@@ -44,9 +44,12 @@ void LuaJavaObjectDescriptor::push(LuaContext *context)
         void **ref = LuaJavaEnv::getAssociateInstanceRef(obj);
         if (ref != NULL)
         {
-            lua_pushlightuserdata(state, ref);
-
             LuaJavaObjectDescriptor *objDesc = (LuaJavaObjectDescriptor *)*ref;
+
+            //先为实例对象在lua中创建内存
+            LuaJavaObjectDescriptor **copyRef = (LuaJavaObjectDescriptor **) lua_newuserdata(state, sizeof(LuaJavaObjectDescriptor *));
+            *copyRef = objDesc;
+
             cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass = (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *)objDesc -> getUserdata();
 
             if (objectClass != NULL)

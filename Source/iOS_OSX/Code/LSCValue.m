@@ -208,7 +208,7 @@
 {
     if (self.valueType == LSCValueTypePtr)
     {
-        return nil;
+        return [(LSCPointer *)self.valueContainer value];
     }
     
     return self.valueContainer;

@@ -14,63 +14,12 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-static NSMutableDictionary *_luaInstancePool = nil;
-
-
-/**
- 关联实例对象
-
- @param instance 本地实例对象
- @param ref      Lua中的实例对象引用
- */
-static void associcateInstance(LSCObjectClass *instance, void **ref)
-{
-    static dispatch_once_t predicate;
-    dispatch_once(&predicate, ^{
-        _luaInstancePool = [NSMutableDictionary dictionary];
-    });
-    
-    NSValue *luaRefValue = [NSValue valueWithPointer:ref];
-    NSString *key = [NSString stringWithFormat:@"0x%llx", (long long)instance];
-    [_luaInstancePool setObject:luaRefValue forKey:key];
-}
-
-static void removeAssociateInstance(LSCObjectClass *instance, void **ref)
-{
-    NSString *key = [NSString stringWithFormat:@"0x%llx", (long long)instance];
-    [_luaInstancePool removeObjectForKey:key];
-}
-
-static void** findInstanceRef(LSCObjectClass *instance)
-{
-    NSString *key = [NSString stringWithFormat:@"0x%llx", (long long)instance];
-    NSValue *value = [_luaInstancePool objectForKey:key];
-    if (value)
-    {
-        void **ref = NULL;
-        [value getValue:&ref];
-        
-        return ref;
-    }
-    
-    return nil;
-}
-
 @interface LSCObjectClass () <LSCLuaObjectPushProtocol>
 
 /**
  上下文对象
  */
 @property (nonatomic, weak) LSCContext *context;
-
-/**
- 查找实例对应的lua引用
- 
- @param instance 实例对象
- 
- @return lua的实例引用
- */
-+ (void**)_findLuaRef:(LSCObjectClass *)instance;
 
 @end
 
@@ -110,11 +59,6 @@ static void** findInstanceRef(LSCObjectClass *instance)
     }
     
     return [super moduleName];
-}
-
-+ (void**)_findLuaRef:(LSCObjectClass *)instance
-{
-    return findInstanceRef(instance);
 }
 
 + (void)_regModule:(Class)module context:(LSCContext *)context
@@ -317,8 +261,6 @@ static int InstanceMethodRouteHandler(lua_State *state)
 static int objectDestroyHandler (lua_State *state)
 {
     void **ref = (void **)lua_touserdata(state, 1);
-    //移除关联
-    removeAssociateInstance((__bridge LSCObjectClass *)(*ref), ref);
     //释放内存
     CFBridgingRelease(*ref);
     
@@ -421,21 +363,17 @@ static int subClassHandler (lua_State *state)
 - (void)pushWithContext:(LSCContext *)context
 {
     lua_State *state = context.state;
-    void **ref = [LSCObjectClass _findLuaRef:self];
-    if (ref != NULL)
+
+    //直接原指针返回并不等于原始变量，因此需要重新绑定元表
+    void ** ref = lua_newuserdata(state, sizeof(NSObject **));
+    *ref = (void *)CFBridgingRetain(self);
+    
+    luaL_getmetatable(state, [[self class] moduleName].UTF8String);
+    if (lua_istable(state, -1))
     {
-        //直接原指针返回并不等于原始变量，因此需要重新绑定元表
-        lua_pushlightuserdata(state, ref);
-        luaL_getmetatable(state, [[self class] moduleName].UTF8String);
-        if (lua_istable(state, -1))
-        {
-            lua_setmetatable(state, -2);
-        }
+        lua_setmetatable(state, -2);
     }
-    else
-    {
-        lua_pushnil(state);
-    }
+
 }
 
 #pragma mark - Private
@@ -465,9 +403,6 @@ static int subClassHandler (lua_State *state)
     {
         lua_setmetatable(state, -2);
     }
-    
-    //关联对象
-    associcateInstance(instance, ref);
     
     //调用实例对象的init方法
     lua_pushvalue(state, 1);
