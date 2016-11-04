@@ -10,7 +10,6 @@
 #import "ViewController.h"
 #import "LogModule.h"
 #import "LSCTPerson.h"
-#import "LSCTColor.h"
 
 @interface ViewController ()
 
@@ -150,7 +149,8 @@
         [self.context registerModuleWithClass:[LSCTPerson class]];
     }
     
-    [self.context evalScriptFromString:@"local person = LSCTPerson.create();person:setName('vimfung');person:walk();person:speak();person=nil;collectgarbage();"];
+    [self.context evalScriptFromFile:[[NSBundle mainBundle] pathForResource:@"test"
+                                                                     ofType:@"lua"]];
 }
 
 @end

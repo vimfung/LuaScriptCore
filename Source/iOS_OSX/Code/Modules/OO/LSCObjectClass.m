@@ -31,21 +31,6 @@
     return [instance toObject];
 }
 
-- (void)dealloc
-{
-    lua_State *state = self.context.state;
-    
-    //调用实例对象的init方法
-    lua_pushvalue(state, 1);
-    lua_getfield(state, -1, "destroy");
-    if (lua_isfunction(state, -1))
-    {
-        lua_pushvalue(state, 1);
-        lua_pcall(state, 1, 0, 0);
-    }
-    lua_pop(state, 2);
-}
-
 + (NSString *)version
 {
     return @"1.0.0";
@@ -98,6 +83,8 @@
 
 static int InstanceMethodRouteHandler(lua_State *state)
 {
+    int retCount = 0;
+    
     //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
     typedef struct {float f;} LSCFloatStruct;
     
@@ -243,12 +230,15 @@ static int InstanceMethodRouteHandler(lua_State *state)
         if (retValue)
         {
             [retValue pushWithContext:context];
-            return 1;
+            retCount = 1;
         }
         
     }
     
-    return 0;
+    //回收内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
+    
+    return retCount;
 }
 
 /**
@@ -261,6 +251,16 @@ static int InstanceMethodRouteHandler(lua_State *state)
 static int objectDestroyHandler (lua_State *state)
 {
     void **ref = (void **)lua_touserdata(state, 1);
+    
+    lua_pushvalue(state, 1);
+    lua_getfield(state, -1, "destroy");
+    if (lua_isfunction(state, -1))
+    {
+        lua_pushvalue(state, 1);
+        lua_pcall(state, 1, 0, 0);
+    }
+    lua_pop(state, 2);
+    
     //释放内存
     CFBridgingRelease(*ref);
     

@@ -19,6 +19,8 @@
 
 static int ModuleMethodRouteHandler(lua_State *state)
 {
+    int retCount = 0;
+    
     //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
     typedef struct {float f;} LSCFloatStruct;
     id obj = nil;
@@ -158,10 +160,13 @@ static int ModuleMethodRouteHandler(lua_State *state)
     {
         [retValue pushWithContext:context];
         
-        return 1;
+        retCount = 1;
     }
     
-    return 0;
+    //释放内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
+    
+    return retCount;
 }
 
 + (NSString *)version

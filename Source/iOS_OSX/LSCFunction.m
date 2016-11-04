@@ -69,31 +69,37 @@
         lua_pushvalue(state, lua_upvalueindex(0));
         lua_getfield(state, -1, self.index.UTF8String);
         
-        [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
-            
-            [value pushWithContext:theFunc.context];
-            
-        }];
-        
-        if (lua_pcall(state, (int)arguments.count, 1, 0) == 0)
+        if (lua_isfunction(state, -1))
         {
-            retValue = [LSCValue valueWithContext:self.context atIndex:-1];
-        }
-        else
-        {
-            //调用失败
-            LSCValue *value = [LSCValue valueWithContext:self.context atIndex:-1];
-            NSString *errMessage = [value toString];
-            [self.context raiseExceptionWithMessage:errMessage];
+            [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
+                
+                [value pushWithContext:theFunc.context];
+                
+            }];
+            
+            if (lua_pcall(state, (int)arguments.count, 1, 0) == 0)
+            {
+                retValue = [LSCValue valueWithContext:self.context atIndex:-1];
+            }
+            else
+            {
+                //调用失败
+                LSCValue *value = [LSCValue valueWithContext:self.context atIndex:-1];
+                NSString *errMessage = [value toString];
+                [self.context raiseExceptionWithMessage:errMessage];
+            }
         }
         
-        lua_pop(state, 1);
+        lua_pop(state, 2);
     }
     
     if (!retValue)
     {
         retValue = [LSCValue nilValue];
     }
+    
+    //释放内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
     
     return retValue;
 }

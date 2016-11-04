@@ -194,6 +194,9 @@ static int instanceMethodRouteHandler(lua_State *state)
         }
     }
 
+    //回收内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
+
     return 1;
 }
 
@@ -234,6 +237,9 @@ static int instanceSetterRouteHandler (lua_State *state)
         value -> release();
     }
 
+    //回收内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
+
     return 0;
 }
 
@@ -266,6 +272,9 @@ static int instanceGetterRouteHandler (lua_State *state)
             lua_pushnil(state);
         }
     }
+
+    //回收内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
 
     return 1;
 }
