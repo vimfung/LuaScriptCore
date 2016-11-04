@@ -8,6 +8,7 @@
 
 #import "LSCTPerson.h"
 #import "LSCValue.h"
+#import "LSCFunction.h"
 
 @interface LSCTPerson ()
 

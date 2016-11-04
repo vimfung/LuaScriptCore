@@ -114,7 +114,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, jobject obje
         }
 
     }
-    else
+    else if (env -> IsSameObject(object, NULL) != JNI_TRUE)
     {
         //对象类型
         LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(object);
@@ -274,9 +274,12 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject va
         case LuaValueTypeObject:
         {
             jobject obj = env -> CallObjectMethod(value, toObjectId);
-            LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(obj);
-            retValue = new LuaValue(objDesc);
-            objDesc -> release();
+            if (env -> IsSameObject(obj, NULL) != JNI_TRUE)
+            {
+                LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(obj);
+                retValue = new LuaValue(objDesc);
+                objDesc -> release();
+            }
             break;
         }
         default:

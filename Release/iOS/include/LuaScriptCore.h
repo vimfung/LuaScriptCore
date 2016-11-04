@@ -10,6 +10,7 @@
 #import "LSCValue.h"
 #import "LSCModule.h"
 #import "LSCFunction.h"
+#import "LSCPointer.h"
 
 //面向对象模块
 #import "LSCObjectClass.h"

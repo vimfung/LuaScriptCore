@@ -6,6 +6,7 @@
 #include "LuaValue.h"
 #include "LuaModule.h"
 #include "LuaDefine.h"
+#include "../../../../../lua-core/src/lua.hpp"
 #include <map>
 #include <list>
 #include <iostream>
@@ -46,6 +47,9 @@ static int methodRouteHandler(lua_State *state) {
         }
     }
 
+    //回收内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
+
     return 1;
 }
 
@@ -56,8 +60,10 @@ cn::vimfung::luascriptcore::LuaContext::LuaContext()
     _exceptionHandler = NULL;
     _state = luaL_newstate();
 
+    lua_gc(_state, LUA_GCSTOP, 0);
     //加载标准库
     luaL_openlibs(_state);
+    lua_gc(_state, LUA_GCRESTART, 0);
 }
 
 cn::vimfung::luascriptcore::LuaContext::~LuaContext()
@@ -241,6 +247,8 @@ void cn::vimfung::luascriptcore::LuaContext::addSearchPath(std::string path)
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScript(std::string script)
 {
+    LuaValue *retValue = NULL;
+
     int curTop = lua_gettop(_state);
     int ret = luaL_loadstring(_state, script.c_str()) ||
     lua_pcall(_state, 0, 1, 0);
@@ -267,19 +275,27 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         if (lua_gettop(_state) > curTop) {
 
             //有返回值
-            LuaValue *value = this -> getValueByIndex(-1);
+            retValue = this -> getValueByIndex(-1);
             lua_pop(_state, 1);
-
-            return value;
         }
     }
 
-    return LuaValue::NilValue();
+    if (retValue == NULL)
+    {
+        retValue = LuaValue::NilValue();
+    }
+
+    //释放内存
+    lua_gc(_state, LUA_GCCOLLECT, 0);
+
+    return retValue;
 }
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScriptFromFile(
         std::string path)
 {
+    LuaValue *retValue = NULL;
+
     int curTop = lua_gettop(_state);
     int ret = luaL_loadfile(_state, path.c_str()) ||
     lua_pcall(_state, 0, 1, 0);
@@ -306,12 +322,18 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         if (lua_gettop(_state) > curTop) {
 
             //有返回值
-            LuaValue *value = this -> getValueByIndex(-1);
+            retValue = this -> getValueByIndex(-1);
             lua_pop(_state, 1);
-
-            return value;
         }
     }
+
+    if (retValue == NULL)
+    {
+        retValue = LuaValue::NilValue();
+    }
+
+    //释放内存
+    lua_gc(_state, LUA_GCCOLLECT, 0);
 
     return LuaValue::NilValue();
 }
@@ -365,6 +387,9 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
     {
         resultValue = LuaValue::NilValue();
     }
+
+    //回收内存
+    lua_gc(_state, LUA_GCCOLLECT, 0);
 
     return resultValue;
 }

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "LuaObjectDescriptor.h"
 #include "LuaContext.h"
+#include "LuaDefine.h"
 
 /**
  对象引用回收处理
@@ -25,12 +26,13 @@ static int objectReferenceGCHandler(lua_State *state)
 }
 
 cn::vimfung::luascriptcore::LuaObjectDescriptor::LuaObjectDescriptor()
-        : _object(NULL)
+        : _object(NULL), _userData(NULL)
 {
 
 }
 
 cn::vimfung::luascriptcore::LuaObjectDescriptor::LuaObjectDescriptor(const void *object)
+        :_userData(NULL)
 {
     setObject(object);
 }
@@ -38,6 +40,7 @@ cn::vimfung::luascriptcore::LuaObjectDescriptor::LuaObjectDescriptor(const void 
 cn::vimfung::luascriptcore::LuaObjectDescriptor::~LuaObjectDescriptor()
 {
     _object = NULL;
+    _userData = NULL;
 }
 
 void cn::vimfung::luascriptcore::LuaObjectDescriptor::setObject(const void *object)

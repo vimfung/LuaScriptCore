@@ -106,18 +106,17 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaFunction::i
                 value -> release();
             }
         }
-        else
-        {
-            lua_pop(state, 1);
-        }
 
-        lua_pop(state, 1);
+        lua_pop(state, 2);
     }
 
     if (!retValue)
     {
         retValue = new LuaValue();
     }
+
+    //回收内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
 
     return retValue;
 }
