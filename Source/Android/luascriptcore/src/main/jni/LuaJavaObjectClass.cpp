@@ -71,6 +71,8 @@ static void _luaClassObjectCreated (cn::vimfung::luascriptcore::modules::oo::Lua
         {
             lua_pop(state, 2);
         }
+
+        env -> DeleteLocalRef(jInstance);
     }
 
     LuaJavaEnv::resetEnv(env);

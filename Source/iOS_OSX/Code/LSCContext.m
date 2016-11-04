@@ -27,12 +27,18 @@
         self.methodBlocks = [NSMutableDictionary dictionary];
         
         self.state = luaL_newstate();
+        
+        lua_gc(self.state, LUA_GCSTOP, 0);
+        
         //加载标准库
         luaL_openlibs(self.state);
+        
+        lua_gc(self.state, LUA_GCRESTART, 0);
         
         //设置搜索路径
         NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
         [self addSearchPath:resourcePath];
+        
     }
     
     return self;
@@ -59,6 +65,7 @@
     int ret = luaL_loadstring(self.state, [string UTF8String]) ||
     lua_pcall(self.state, 0, 1, 0);
     
+    LSCValue *retValue = nil;
     BOOL res = ret == 0;
     if (!res)
     {
@@ -77,14 +84,15 @@
         if (lua_gettop(self.state) > curTop)
         {
             //有返回值
-            LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
+            retValue = [LSCValue valueWithContext:self atIndex:-1];
             lua_pop(self.state, 1);
-            
-            return value;
         }
     }
     
-    return nil;
+    //回收内存
+    lua_gc(self.state, LUA_GCCOLLECT, 0);
+    
+    return retValue;
 }
 
 - (id)evalScriptFromFile:(NSString *)path
@@ -93,6 +101,7 @@
     int ret = luaL_loadfile(self.state, [path UTF8String]) ||
     lua_pcall(self.state, 0, 1, 0);
     
+    LSCValue *retValue = nil;
     BOOL res = ret == 0;
     if (!res)
     {
@@ -110,14 +119,16 @@
         if (lua_gettop(self.state) > curTop)
         {
             //有返回值
-            LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
+            retValue = [LSCValue valueWithContext:self atIndex:-1];
             lua_pop(self.state, 1);
-            
-            return value;
+
         }
     }
     
-    return nil;
+    //回收内存
+    lua_gc(self.state, LUA_GCCOLLECT, 0);
+    
+    return retValue;
 }
 
 - (LSCValue *)callMethodWithName:(NSString *)methodName
@@ -160,6 +171,9 @@
         //将变量从栈中移除
         lua_pop(self.state, 1);
     }
+    
+    //内存回收
+    lua_gc(self.state, LUA_GCCOLLECT, 0);
     
     return resultValue;
 }
@@ -238,6 +252,9 @@ static int cfuncRouteHandler(lua_State *state)
         LSCValue *retValue = handler(arguments);
         [retValue pushWithContext:context];
     }
+    
+    //释放内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
     
     return 1;
 }

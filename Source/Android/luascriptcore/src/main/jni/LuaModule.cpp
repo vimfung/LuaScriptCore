@@ -46,6 +46,9 @@ static int methodRouteHandler(lua_State *state)
         }
     }
 
+    //回收内存
+    lua_gc(state, LUA_GCCOLLECT, 0);
+
     return 1;
 }
 
