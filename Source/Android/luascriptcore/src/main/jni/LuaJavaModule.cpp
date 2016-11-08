@@ -6,56 +6,98 @@
 #include "LuaJavaModule.h"
 #include "LuaJavaType.h"
 #include "LuaJavaEnv.h"
+#include "LuaDefine.h"
+#include "LuaJavaConverter.h"
+
+/**
+ * Lua模块方法处理器
+ *
+ * @param module 模块对象
+ * @param methodName 方法名称
+ * @param arguments 方法参数列表
+ *
+ * @return 方法返回值
+ */
+static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodName, LuaArgumentList arguments)
+{
+    JNIEnv *env = LuaJavaEnv::getEnv();
+    LuaValue *retValue = NULL;
+
+    LuaJavaModule *jmodule = (LuaJavaModule *)module;
+    if (jmodule != NULL)
+    {
+        static jclass moduleClass = jmodule -> getModuleClass(env);
+        static jmethodID invokeMethodID = env -> GetStaticMethodID(LuaJavaType::moduleClass(env), "_methodInvoke", "(Ljava/lang/Class;Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
+
+        static jclass luaValueClass = LuaJavaType::luaValueClass(env);
+
+        jstring jMethodName = env -> NewStringUTF(methodName.c_str());
+
+        //参数
+        jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
+        int index = 0;
+        for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
+        {
+            LuaValue *argument = *it;
+            jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, jmodule -> getContext(), argument);
+            env -> SetObjectArrayElement(argumentArr, index, jArgument);
+            index++;
+        }
+
+        jobject result = env -> CallStaticObjectMethod(moduleClass, invokeMethodID, moduleClass, jMethodName, argumentArr);
+        retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, result);
+    }
+
+    LuaJavaEnv::resetEnv(env);
+
+    if (retValue == NULL)
+    {
+        retValue = new LuaValue();
+    }
+
+    return retValue;
+}
 
 LuaJavaModule::LuaJavaModule(
         JNIEnv *env,
         jclass moduleClass,
         jobjectArray methods)
 {
-    _env = env;
-    _moduleClass = (jclass)_env -> NewWeakGlobalRef(moduleClass);
+    _moduleClass = (jclass)env -> NewWeakGlobalRef(moduleClass);
     _methods = methods;
 }
 
-jclass LuaJavaModule::getModuleClass()
+jclass LuaJavaModule::getModuleClass(JNIEnv *env)
 {
-    if (_env -> IsSameObject(_moduleClass, NULL) != JNI_TRUE)
+    jclass retClass = NULL;
+
+    if (env -> IsSameObject(_moduleClass, NULL) != JNI_TRUE)
     {
-        return _moduleClass;
+        retClass = _moduleClass;
     }
 
-    return NULL;
+    return retClass;
 }
 
 void LuaJavaModule::onRegister(const std::string &name, cn::vimfung::luascriptcore::LuaContext *context)
 {
     cn::vimfung::luascriptcore::LuaModule::onRegister(name, context);
 
-//    //注册模块字段
-//    jsize fieldCount = _env -> GetArrayLength(_fields);
-//    jclass jfieldClass = LuaJavaType::fieldClass(_env);
-//    jmethodID getFieldNameMethodId = _env -> GetMethodID(jfieldClass, "getName", "()Ljava/lang/String;");
-//    for (int i = 0; i < fieldCount; ++i)
-//    {
-//        jobject field = _env -> GetObjectArrayElement(_fields, i);
-//        jstring fieldName = (jstring)_env -> CallObjectMethod(field, getFieldNameMethodId);
-//
-//        const char *fieldNameCStr = _env -> GetStringUTFChars(fieldName, NULL);
-//        this -> registerField(fieldNameCStr, LuaJavaEnv::luaModuleGetterHandler(), LuaJavaEnv::luaModuleSetterHandler());
-//        _env -> ReleaseStringUTFChars(fieldName, fieldNameCStr);
-//    }
+    JNIEnv *env = LuaJavaEnv::getEnv();
 
     //注册模块方法
-    jsize methodCount = _env -> GetArrayLength(_methods);
-    jclass jmethodClass = LuaJavaType::methodClass(_env);
-    jmethodID getMethodNameMethodId = _env -> GetMethodID(jmethodClass, "getName", "()Ljava/lang/String;");
+    jsize methodCount = env -> GetArrayLength(_methods);
+    jclass jmethodClass = LuaJavaType::methodClass(env);
+    jmethodID getMethodNameMethodId = env -> GetMethodID(jmethodClass, "getName", "()Ljava/lang/String;");
     for (int i = 0; i < methodCount; ++i)
     {
-        jobject method = _env -> GetObjectArrayElement(_methods, i);
-        jstring methodName = (jstring)_env -> CallObjectMethod(method, getMethodNameMethodId);
+        jobject method = env -> GetObjectArrayElement(_methods, i);
+        jstring methodName = (jstring)env -> CallObjectMethod(method, getMethodNameMethodId);
 
-        const char *methodNameCStr = _env -> GetStringUTFChars(methodName, NULL);
-        this -> registerMethod(methodNameCStr, LuaJavaEnv::luaModuleMethodHandler());
-        _env -> ReleaseStringUTFChars(methodName, methodNameCStr);
+        const char *methodNameCStr = env -> GetStringUTFChars(methodName, NULL);
+        this -> registerMethod(methodNameCStr, _luaModuleMethodHandler);
+        env -> ReleaseStringUTFChars(methodName, methodNameCStr);
     }
+
+    LuaJavaEnv::resetEnv(env);
 }

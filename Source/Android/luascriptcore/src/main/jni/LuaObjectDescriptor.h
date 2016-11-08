@@ -6,6 +6,7 @@
 #define ANDROID_LUAOBJECTDESC_H
 
 #include "LuaObject.h"
+#include "LuaPointer.h"
 
 namespace cn {
     namespace vimfung {
@@ -22,7 +23,14 @@ namespace cn {
                 void *_object;
                 void *_userData;
 
+
+
             protected:
+
+                /**
+                 * Userdata引用
+                 */
+                LuaUserdataRef _userdataRef;
 
                 /**
                  * 设置对象
@@ -72,6 +80,18 @@ namespace cn {
                  * @return 对象引用
                  */
                 const void* getObject();
+
+                /**
+                 * 设置引用
+                 *
+                 * @param ref 引用
+                 */
+                void setReference(LuaUserdataRef ref);
+
+                /**
+                 * 销毁lua中的引用
+                 */
+                void destroyReference();
 
                 /**
                  * 入栈数据

@@ -8,6 +8,7 @@
 #include "LuaObjectManager.h"
 #include "LuaJavaObjectDescriptor.h"
 #include "LuaJavaEnv.h"
+#include "LuaDefine.h"
 
 LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject context)
 {
@@ -117,9 +118,22 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, jobject obje
     else if (env -> IsSameObject(object, NULL) != JNI_TRUE)
     {
         //对象类型
-        LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(object);
+        //查找对象是否存在ObjectDescriptor
+        bool needRelease = false;
+        LuaObjectDescriptor *objDesc = LuaJavaEnv::getAssociateInstanceRef(env, object);
+        if (objDesc == NULL)
+        {
+            //不存在则创建对象
+            objDesc = new LuaJavaObjectDescriptor(env, object);
+            needRelease = true;
+        }
+
         value = new LuaValue(objDesc);
-        objDesc -> release();
+
+        if (needRelease)
+        {
+            objDesc->release();
+        }
     }
 
     return value;
@@ -276,9 +290,21 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject va
             jobject obj = env -> CallObjectMethod(value, toObjectId);
             if (env -> IsSameObject(obj, NULL) != JNI_TRUE)
             {
-                LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(obj);
+                bool needRelease = false;
+                LuaObjectDescriptor *objDesc = LuaJavaEnv::getAssociateInstanceRef(env, obj);
+                if (objDesc == NULL)
+                {
+                    //不存在则创建对象
+                    objDesc = new LuaJavaObjectDescriptor(env, obj);
+                    needRelease = true;
+                }
+
                 retValue = new LuaValue(objDesc);
-                objDesc -> release();
+
+                if (needRelease)
+                {
+                    objDesc->release();
+                }
             }
             break;
         }

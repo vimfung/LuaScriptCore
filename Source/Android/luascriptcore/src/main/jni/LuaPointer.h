@@ -12,14 +12,25 @@ namespace cn {
         namespace luascriptcore {
 
             /**
+             * Userdata引用
+             */
+            typedef struct {
+
+                void *value;
+
+            }LuaUserdata, *LuaUserdataRef;
+
+            /**
              * Lua的指针对象
              */
             class LuaPointer : public LuaObject
             {
             private:
-                void *_value;
+                LuaUserdataRef _value;
+                bool _needFree;
 
             public:
+                LuaPointer (LuaUserdataRef userdata);
                 LuaPointer (const void *value);
                 ~LuaPointer();
 
@@ -28,7 +39,7 @@ namespace cn {
                 /**
                  * 获取指针值
                  */
-                const void* getValue();
+                const LuaUserdataRef getValue();
             };
 
         }

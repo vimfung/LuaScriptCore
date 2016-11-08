@@ -215,6 +215,20 @@ jclass LuaJavaType::hashMapClass(JNIEnv *env)
     return jHashMap;
 }
 
+jclass LuaJavaType::luaBaseObjectClass(JNIEnv *env)
+{
+    static jclass jLuaBaseObject = NULL;
+
+    if (jLuaBaseObject == NULL)
+    {
+        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaBaseObject");
+        jLuaBaseObject = (jclass)env -> NewGlobalRef(jTempClass);
+        env -> DeleteLocalRef(jTempClass);
+    }
+
+    return jLuaBaseObject;
+}
+
 jclass LuaJavaType::luaObjectClass(JNIEnv *env)
 {
     static jclass jLuaObject = NULL;

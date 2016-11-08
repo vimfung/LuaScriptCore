@@ -34,22 +34,6 @@ public class LuaObjectClass extends LuaModule
     }
 
     /**
-     * 创建类实例对象
-     * @param context   Lua的上下文对象
-     * @return 实例对象
-     */
-    public static <T> T createInstance(LuaContext context, Class<T> objectClass)
-    {
-        if (LuaObjectClass.class.isAssignableFrom(objectClass))
-        {
-            LuaValue instance = context.evalScript(String.format("return %s.create();", _getModuleName((Class<? extends LuaModule>) objectClass)));
-            return (T) instance.toObject();
-        }
-
-        return null;
-    }
-
-    /**
      * 注册模块
      * @param context   Lua上下文对象
      * @param moduleClass    模块类型

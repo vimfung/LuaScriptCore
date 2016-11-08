@@ -11,6 +11,7 @@
 #include "LuaJavaConverter.h"
 #include "LuaJavaModule.h"
 #include "LuaDefine.h"
+#include "LuaJavaObjectClass.h"
 
 /**
  * Java虚拟机对象
@@ -23,6 +24,16 @@ static JavaVM *_javaVM;
 static bool _attatedThread;
 
 /**
+ * JNI环境
+ */
+static JNIEnv *_env;
+
+/**
+ * JNI环境引用次数，每次获取环境时引用次数增加，reset时次数减少，直到为0时释放env
+ */
+static int _envRetainCount = 0;
+
+/**
  * Java中上下文对象集合
  */
 static std::map<jint, jobject> _javaObjectMap;
@@ -30,12 +41,7 @@ static std::map<jint, jobject> _javaObjectMap;
 /**
  * 对象实例的lua引用对照表
  */
-static std::map<long, void**> _instanceMap;
-
-/**
- * 对象实例的缓存集合
- */
-static std::set<jobject> _instanceSet;
+static std::map<int, cn::vimfung::luascriptcore::LuaObjectDescriptor*> _instanceMap;
 
 /**
  * Lua方法处理器
@@ -90,54 +96,6 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
     return retValue;
 }
 
-/**
- * Lua模块方法处理器
- *
- * @param module 模块对象
- * @param methodName 方法名称
- * @param arguments 方法参数列表
- *
- * @return 方法返回值
- */
-static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodName, LuaArgumentList arguments)
-{
-    JNIEnv *env = LuaJavaEnv::getEnv();
-    LuaValue *retValue = NULL;
-
-    LuaJavaModule *jmodule = (LuaJavaModule *)module;
-    if (jmodule != NULL)
-    {
-        static jclass moduleClass = jmodule -> getModuleClass();
-        static jmethodID invokeMethodID = env -> GetStaticMethodID(moduleClass, "_methodInvoke", "(Ljava/lang/Class;Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
-        static jclass luaValueClass = LuaJavaType::luaValueClass(env);
-
-        jstring jMethodName = env -> NewStringUTF(methodName.c_str());
-
-        //参数
-        jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
-        int index = 0;
-        for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
-        {
-            LuaValue *argument = *it;
-            jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, jmodule -> getContext(), argument);
-            env -> SetObjectArrayElement(argumentArr, index, jArgument);
-            index++;
-        }
-
-        jobject result = env -> CallStaticObjectMethod(moduleClass, invokeMethodID, moduleClass, jMethodName, argumentArr);
-        retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, result);
-    }
-
-    LuaJavaEnv::resetEnv(env);
-
-    if (retValue == NULL)
-    {
-        retValue = new LuaValue();
-    }
-
-    return retValue;
-}
-
 void LuaJavaEnv::init(JavaVM *javaVM)
 {
     _javaVM = javaVM;
@@ -146,30 +104,45 @@ void LuaJavaEnv::init(JavaVM *javaVM)
 
 JNIEnv* LuaJavaEnv::getEnv()
 {
-    int status;
-
-    JNIEnv *envnow = NULL;
-    status = _javaVM -> GetEnv((void **)&envnow, JNI_VERSION_1_4);
-
-    if(status < 0)
+    if (_env == NULL)
     {
-        status = _javaVM -> AttachCurrentThread(&envnow, NULL);
+        int status;
+
+        status = _javaVM -> GetEnv((void **)&_env, JNI_VERSION_1_4);
+
         if(status < 0)
         {
-            return NULL;
+            status = _javaVM -> AttachCurrentThread(&_env, NULL);
+            if(status < 0)
+            {
+                return NULL;
+            }
+            _attatedThread = true;
         }
-        _attatedThread = true;
     }
 
-    return envnow;
+    //增加引用次数
+    _envRetainCount++;
+
+    return _env;
 }
 
 void LuaJavaEnv::resetEnv(JNIEnv *env)
 {
-    if(_attatedThread)
+    if (_envRetainCount > 0)
     {
-        _javaVM -> DetachCurrentThread();
-        _attatedThread = false;
+        _envRetainCount --;
+
+        if (_envRetainCount == 0)
+        {
+            if(_attatedThread)
+            {
+                _javaVM -> DetachCurrentThread();
+                _attatedThread = false;
+            }
+
+            _env = NULL;
+        }
     }
 }
 
@@ -207,68 +180,55 @@ jobject LuaJavaEnv::getJavaLuaContext(JNIEnv *env, LuaContext *context)
     return NULL;
 }
 
-void LuaJavaEnv::associcateInstance(jobject instance, void **ref)
+void LuaJavaEnv::associcateInstance(JNIEnv *env, jobject instance, cn::vimfung::luascriptcore::LuaObjectDescriptor *descriptor)
 {
-    long key = (long)instance;
-    std::map<long, void**>::iterator it =  _instanceMap.find(key);
-    if (it == _instanceMap.end())
+    if (env -> IsInstanceOf(instance, LuaJavaType::luaBaseObjectClass(env)) == JNI_TRUE)
     {
-        _instanceMap[key] = ref;
-    }
+        //设置instance的nativeId为LuaObjectDescriptor的objectId
+        jfieldID nativeFieldId = env -> GetFieldID(env -> GetObjectClass(instance), "_nativeId", "I");
+        env -> SetIntField(instance, nativeFieldId, descriptor -> objectId());
 
-    //保存实例到集合中
-    _instanceSet.insert(instance);
-}
-
-void LuaJavaEnv::removeAssociateInstance(jobject instance, void **ref)
-{
-    long key = (long)instance;
-    std::map<long, void**>::iterator it =  _instanceMap.find(key);
-    if (it != _instanceMap.end())
-    {
-        _instanceMap.erase(it);
-    }
-
-    std::set<jobject>::iterator setIt = _instanceSet.find(instance);
-    if (setIt != _instanceSet.end())
-    {
-        _instanceSet.erase(setIt);
-    }
-
-}
-
-void** LuaJavaEnv::getAssociateInstanceRef(jobject instance)
-{
-    long key = 0;
-    std::set<jobject>::iterator setIt = _instanceSet.find(instance);
-    if (setIt == _instanceSet.end())
-    {
-        JNIEnv *env = LuaJavaEnv::getEnv();
-
-        //没找到对应的实例，则使用遍历方式对比对象
-        for (std::set<jobject>::iterator it = _instanceSet.begin(); it != _instanceSet.end() ; ++it)
+        std::map<int, LuaObjectDescriptor*>::iterator it =  _instanceMap.find(descriptor -> objectId());
+        if (it == _instanceMap.end())
         {
-            if (env -> IsSameObject(instance, (jobject)*it) == JNI_TRUE)
-            {
-                key = (long)*it;
-                break;
-            }
+            _instanceMap[descriptor -> objectId()] = descriptor;
+        }
+    }
+}
+
+void LuaJavaEnv::removeAssociateInstance(JNIEnv *env, jobject instance)
+{
+    if (env -> IsInstanceOf(instance, LuaJavaType::luaBaseObjectClass(env)) == JNI_TRUE)
+    {
+        jfieldID nativeFieldId = env->GetFieldID(env->GetObjectClass(instance), "_nativeId", "I");
+        jint nativeId = env->GetIntField(instance, nativeFieldId);
+
+        std::map<int, LuaObjectDescriptor*>::iterator it =  _instanceMap.find(nativeId);
+        if (it != _instanceMap.end())
+        {
+            _instanceMap.erase(it);
+        }
+    }
+}
+
+LuaObjectDescriptor* LuaJavaEnv::getAssociateInstanceRef(JNIEnv *env, jobject instance)
+{
+    LuaObjectDescriptor *objectDescriptor = NULL;
+
+    if (env -> IsInstanceOf(instance, LuaJavaType::luaBaseObjectClass(env)) == JNI_TRUE)
+    {
+        jfieldID nativeFieldId = env -> GetFieldID(env -> GetObjectClass(instance), "_nativeId", "I");
+        jint nativeId = env -> GetIntField(instance, nativeFieldId);
+
+        std::map<int, LuaObjectDescriptor*>::iterator it =  _instanceMap.find(nativeId);
+        if (it != _instanceMap.end())
+        {
+            objectDescriptor = it -> second;
         }
 
-        LuaJavaEnv::resetEnv(env);
-    }
-    else
-    {
-        key = (long)instance;
     }
 
-    std::map<long, void**>::iterator it =  _instanceMap.find(key);
-    if (it != _instanceMap.end())
-    {
-        return it -> second;
-    }
-
-    return NULL;
+    return objectDescriptor;
 }
 
 jobject LuaJavaEnv::releaseObject(JNIEnv *env, jint objectId)
@@ -289,7 +249,20 @@ LuaMethodHandler LuaJavaEnv::luaMethodHandler()
     return (LuaMethodHandler) _luaMethodHandler;
 }
 
-LuaModuleMethodHandler LuaJavaEnv::luaModuleMethodHandler()
+std::string LuaJavaEnv::getJavaClassNameByInstance(JNIEnv *env, jobject instance)
 {
-    return (LuaModuleMethodHandler) _luaModuleMethodHandler;
+    std::string className;
+    if (env -> IsInstanceOf(instance, LuaJavaType::luaObjectClass(env)) == JNI_TRUE)
+    {
+        jmethodID getModuleNameMethodId = env -> GetStaticMethodID(LuaJavaType::moduleClass(env), "_getModuleName", "(Ljava/lang/Class;)Ljava/lang/String;");
+        jstring jclassName = (jstring)env -> CallStaticObjectMethod(LuaJavaType::moduleClass(env), getModuleNameMethodId, env -> GetObjectClass(instance));
+        if (jclassName != NULL)
+        {
+            const char *classNameCStr = env -> GetStringUTFChars(jclassName, NULL);
+            className = classNameCStr;
+            env -> ReleaseStringUTFChars(jclassName, classNameCStr);
+        }
+    }
+
+    return className;
 }
