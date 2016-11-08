@@ -7,6 +7,7 @@
 #include "LuaModule.h"
 #include "LuaDefine.h"
 #include "../../../../../lua-core/src/lua.hpp"
+#include "LuaPointer.h"
 #include <map>
 #include <list>
 #include <iostream>
@@ -200,7 +201,8 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
         }
         case LUA_TLIGHTUSERDATA:
         {
-            LuaPointer *pointer = new LuaPointer(lua_topointer(_state, index));
+            LuaUserdataRef ref = (LuaUserdataRef)lua_topointer(_state, index);
+            LuaPointer *pointer = new LuaPointer(ref);
             value = LuaValue::PointerValue(pointer);
             pointer -> release();
 
@@ -208,8 +210,8 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
         }
         case LUA_TUSERDATA:
         {
-            LuaObjectDescriptor **ref = (LuaObjectDescriptor **)lua_touserdata(_state, index);
-            value = LuaValue::ObjectValue(*ref);
+            LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(_state, index);
+            value = LuaValue::ObjectValue((LuaObjectDescriptor *)ref -> value);
             break;
         }
         case LUA_TFUNCTION:

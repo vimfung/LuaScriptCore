@@ -22,4 +22,10 @@ public class Person extends LuaObjectClass
     {
         Log.v("luascriptcore", String.format("%s walk", name));
     }
+
+    public static Person test()
+    {
+        return new Person();
+    }
+
 }

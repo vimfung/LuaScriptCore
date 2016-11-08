@@ -64,27 +64,29 @@ public:
     /**
      * 关联对象实例
      *
+     * @param env JNI环境
      * @param instance Java中的实例对象
-     * @param ref Lua中的实例对象引用
+     * @param descriptor 对象描述
      */
-    static void associcateInstance(jobject instance, void **ref);
+    static void associcateInstance(JNIEnv *env, jobject instance, LuaObjectDescriptor *descriptor);
 
     /**
      * 移除关联对象实例
      *
+     * @param env JNI环境
      * @param instance Java中的实例对象
-     * @param ref Lua中的实例对象引用
      */
-    static void removeAssociateInstance(jobject instance, void **ref);
+    static void removeAssociateInstance(JNIEnv *env, jobject instance);
 
     /**
      * 获取关联对象实例引用
      *
+     * @param env JNI环境
      * @param instance Java中的实例对象
      *
      * @return 关联实例对象的引用
      */
-    static void** getAssociateInstanceRef(jobject instance);
+    static LuaObjectDescriptor* getAssociateInstanceRef(JNIEnv *env, jobject instance);
 
     /**
      * 释放对象,由于Java层中对象需要引用本地对象,因此为确保Java对象释放时也释放本地对象,则需要调用该方法。
@@ -102,13 +104,12 @@ public:
     static LuaMethodHandler luaMethodHandler();
 
     /**
-     * 获取模块方法处理器
+     * 根据实例
      *
-     * @return 模块方法处理器
+     * @param env JNI环境
+     * @param instance 实例对象
      */
-    static LuaModuleMethodHandler luaModuleMethodHandler();
-
-
+    static std::string getJavaClassNameByInstance(JNIEnv *env, jobject instance);
 };
 
 

@@ -7,24 +7,20 @@
 #include "LuaDefine.h"
 #include "LuaJavaType.h"
 #include "LuaObjectClass.h"
+#include "LuaPointer.h"
+#include "../../../../../lua-core/src/lua.hpp"
 
-LuaJavaObjectDescriptor::LuaJavaObjectDescriptor(jobject object)
+LuaJavaObjectDescriptor::LuaJavaObjectDescriptor(JNIEnv *env, jobject object)
 {
-    JNIEnv *env = LuaJavaEnv::getEnv();
-
     //添加引用
     setObject((const void *)env -> NewGlobalRef(object));
-
-    LuaJavaEnv::resetEnv(env);
 }
 
 LuaJavaObjectDescriptor::~LuaJavaObjectDescriptor()
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
-
     //移除引用
     env -> DeleteGlobalRef((jobject)getObject());
-
     LuaJavaEnv::resetEnv(env);
 }
 
@@ -41,33 +37,46 @@ void LuaJavaObjectDescriptor::push(LuaContext *context)
         lua_State *state = context -> getLuaState();
 
         //获取关联引用
-        void **ref = LuaJavaEnv::getAssociateInstanceRef(obj);
-        if (ref != NULL)
+        if (_userdataRef == NULL)
         {
-            LuaJavaObjectDescriptor *objDesc = (LuaJavaObjectDescriptor *)*ref;
-
-            //先为实例对象在lua中创建内存
-            LuaJavaObjectDescriptor **copyRef = (LuaJavaObjectDescriptor **) lua_newuserdata(state, sizeof(LuaJavaObjectDescriptor *));
-            *copyRef = objDesc;
-
-            cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass = (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *)objDesc -> getUserdata();
-
-            if (objectClass != NULL)
-            {
-                //将其关联元表
-                luaL_getmetatable(state, objectClass->getName().c_str());
-                if (lua_istable(state, -1))
-                {
-                    lua_setmetatable(state, -2);
-                }
-                else
-                {
-                    lua_pop(state, 1);
-                }
-            }
-
-            process = true;
+            //创建关联引用
+            LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
+            ref -> value = this;
+            setReference(ref);
         }
+        else
+        {
+            lua_pushlightuserdata(state, _userdataRef);
+        }
+
+        cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass = (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *)this -> getUserdata();
+
+        std::string className;
+        if (objectClass == NULL)
+        {
+            //如果Descriptor的userdata中没有类型信息，则表示该对象是由Java层创建，直接获取类型名称
+            className = LuaJavaEnv::getJavaClassNameByInstance(env, obj);
+        }
+        else
+        {
+            className = objectClass->getName();
+        }
+
+        if (!className.empty())
+        {
+            //将其关联元表
+            luaL_getmetatable(state, className.c_str());
+            if (lua_istable(state, -1))
+            {
+                lua_setmetatable(state, -2);
+            }
+            else
+            {
+                lua_pop(state, 1);
+            }
+        }
+
+        process = true;
 
     }
 

@@ -168,9 +168,9 @@
             else
             {
                 //先为实例对象在lua中创建内存
-                void **ref = (void **)lua_newuserdata(state, sizeof(NSObject **));
+                LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
                 //创建本地实例对象，赋予lua的内存块
-                *ref = (void *)CFBridgingRetain(self.valueContainer);
+                ref -> value = (void *)CFBridgingRetain(self.valueContainer);
                 
                 //设置userdata的元表
                 luaL_getmetatable(state, "_ObjectReference_");
@@ -208,7 +208,7 @@
 {
     if (self.valueType == LSCValueTypePtr)
     {
-        return [(LSCPointer *)self.valueContainer value];
+        return (__bridge id)([(LSCPointer *)self.valueContainer value] -> value);
     }
     
     return self.valueContainer;
@@ -448,14 +448,15 @@
         }
         case LUA_TLIGHTUSERDATA:
         {
-            LSCPointer *pointer = [[LSCPointer alloc] initWithPtr:lua_topointer(state, (int)index)];
+            LSCUserdataRef userdataRef = (LSCUserdataRef)(lua_topointer(state, (int)index));
+            LSCPointer *pointer = [[LSCPointer alloc] initWithUserdata:userdataRef];
             value = [LSCValue pointerValue:pointer];
             break;
         }
         case LUA_TUSERDATA:
         {
-            void **ref = lua_touserdata(state, (int)index);
-            id obj = (__bridge id)*ref;
+            LSCUserdataRef userdataRef = (LSCUserdataRef)lua_touserdata(state, (int)index);
+            id obj = (__bridge id)(userdataRef -> value);
             value = [LSCValue objectValue:obj];
             break;
         }
@@ -548,9 +549,9 @@
  */
 static int objectReferenceGCHandler(lua_State *state)
 {
-    void **ref = (void **)lua_touserdata(state, 1);
+    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
     //释放对象
-    CFBridgingRelease(*ref);
+    CFBridgingRelease(ref -> value);
     
     return 0;
 }

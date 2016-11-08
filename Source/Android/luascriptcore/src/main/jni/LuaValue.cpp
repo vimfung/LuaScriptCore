@@ -8,6 +8,7 @@
 #include "LuaContext.h"
 #include "../../../../../lua-core/src/lua.h"
 #include "LuaObjectManager.h"
+#include "LuaPointer.h"
 
 /**
  对象引用回收处理
@@ -21,8 +22,8 @@ static int objectReferenceGCHandler(lua_State *state)
     using namespace cn::vimfung::luascriptcore;
 
     //释放对象
-    LuaObjectDescriptor **ref = (LuaObjectDescriptor **)lua_touserdata(state, 1);
-    (*ref) -> release();
+    LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
+    ((LuaObjectDescriptor *)ref -> value) -> destroyReference();
 
     return 0;
 }
@@ -405,6 +406,10 @@ cn::vimfung::luascriptcore::LuaObjectDescriptor* cn::vimfung::luascriptcore::Lua
     if (_type == LuaValueTypeObject)
     {
         return (LuaObjectDescriptor *)_value;
+    }
+    else if (_type == LuaValueTypePtr)
+    {
+        return (LuaObjectDescriptor *)((LuaPointer *)_value) -> getValue() -> value;
     }
 
     return NULL;

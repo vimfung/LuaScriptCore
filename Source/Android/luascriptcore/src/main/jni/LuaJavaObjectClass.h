@@ -14,7 +14,6 @@
 class LuaJavaObjectClass : public cn::vimfung::luascriptcore::modules::oo::LuaObjectClass
 {
 private:
-    JNIEnv *_env;
     jclass  _moduleClass;
     jobjectArray _fields;
     jobjectArray _instanceMethods;
@@ -43,9 +42,11 @@ public:
     /**
      * 获取模块类型
      *
+     * @param env JNI环境
+     *
      * @return 模块类型
      */
-    jclass getModuleClass();
+    jclass getModuleClass(JNIEnv *env);
 
 public:
     /**

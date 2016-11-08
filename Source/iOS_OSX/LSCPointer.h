@@ -8,6 +8,16 @@
 
 #import <Foundation/Foundation.h>
 
+
+/**
+ Userdata引用
+ */
+typedef struct
+{
+    void *value;
+    
+} *LSCUserdataRef;
+
 /**
  Lua指针
  */
@@ -17,18 +27,26 @@
 /**
  初始化Lua指针对象
 
- @param ptr 指针
+ @param udRef userdata引用
+ @return 指针对象
+ */
+- (instancetype)initWithUserdata:(LSCUserdataRef)ref;
 
+
+/**
+ 初始化Lua指针对象
+
+ @param ptr 指针
  @return 指针对象
  */
 - (instancetype)initWithPtr:(const void *)ptr;
 
 
 /**
- 获取指针值
+ 获取Userdata引用
 
- @return 指针地址
+ @return 引用对象
  */
-- (const void *)value;
+- (const LSCUserdataRef)value;
 
 @end
