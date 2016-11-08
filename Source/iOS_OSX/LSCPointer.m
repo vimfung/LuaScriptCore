@@ -10,25 +10,52 @@
 
 @interface LSCPointer ()
 
-@property (nonatomic) const void *ptr;
+@property (nonatomic) LSCUserdataRef userdataRef;
+
+/**
+ 是否需要释放内存，对于传入原始指针的构造方法会为指针包装一层LSCPointerRef结构体，因此，在对象释放时需要进行释放LSCPointerRef结构体。
+ */
+@property (nonatomic) BOOL needFree;
 
 @end
 
 @implementation LSCPointer
 
+- (instancetype)initWithUserdata:(LSCUserdataRef)ref
+{
+    if (self = [super init])
+    {
+        self.needFree = NO;
+        self.userdataRef = ref;
+    }
+    return self;
+}
+
 - (instancetype)initWithPtr:(const void *)ptr
 {
     if (self = [super init])
     {
-        self.ptr = ptr;
+        self.needFree = YES;
+        
+        self.userdataRef = malloc(sizeof(LSCUserdataRef));
+        self.userdataRef -> value = (void *)ptr;
+        
     }
-    
     return self;
 }
 
-- (const void *)value
+- (void)dealloc
 {
-    return self.ptr;
+    if (self.needFree)
+    {
+        free(self.userdataRef);
+        self.userdataRef = NULL;
+    }
+}
+
+- (const LSCUserdataRef)value
+{
+    return self.userdataRef;
 }
 
 @end

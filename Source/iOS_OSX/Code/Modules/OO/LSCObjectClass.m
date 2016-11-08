@@ -11,6 +11,7 @@
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
 #import "LSCLuaObjectPushProtocol.h"
+#import "LSCPointer.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 
@@ -21,14 +22,18 @@
  */
 @property (nonatomic, weak) LSCContext *context;
 
+/**
+ 对象指针
+ */
+@property (nonatomic) LSCUserdataRef userdataRef;
+
 @end
 
 @implementation LSCObjectClass
 
 + (instancetype)createInsanceWithContext:(LSCContext *)context
 {
-    LSCValue *instance = [context evalScriptFromString:[NSString stringWithFormat:@"return %@.create();", [self moduleName]]];
-    return [instance toObject];
+    return [[self alloc] init];
 }
 
 + (NSString *)version
@@ -88,8 +93,8 @@ static int InstanceMethodRouteHandler(lua_State *state)
     //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
     typedef struct {float f;} LSCFloatStruct;
     
-    void **ref = (void **)lua_touserdata(state, 1);
-    LSCObjectClass *instance = (__bridge LSCObjectClass *)(*ref);
+    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+    LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
     
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
@@ -250,7 +255,9 @@ static int InstanceMethodRouteHandler(lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    void **ref = (void **)lua_touserdata(state, 1);
+    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+    LSCObjectClass *instance = (__bridge LSCObjectClass *)ref -> value;
+    instance.userdataRef = NULL;
     
     lua_pushvalue(state, 1);
     lua_getfield(state, -1, "destroy");
@@ -262,7 +269,7 @@ static int objectDestroyHandler (lua_State *state)
     lua_pop(state, 2);
     
     //释放内存
-    CFBridgingRelease(*ref);
+    CFBridgingRelease(ref -> value);
     
     return 0;
 }
@@ -276,8 +283,8 @@ static int objectDestroyHandler (lua_State *state)
  */
 static int objectToStringHandler (lua_State *state)
 {
-    void **ref = (void **)lua_touserdata(state, 1);
-    LSCObjectClass *instance = (__bridge LSCObjectClass *)(*ref);
+    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+    LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
     lua_pushstring(state, [[instance description] UTF8String]);
     
     return 1;
@@ -364,10 +371,20 @@ static int subClassHandler (lua_State *state)
 {
     lua_State *state = context.state;
 
-    //直接原指针返回并不等于原始变量，因此需要重新绑定元表
-    void ** ref = lua_newuserdata(state, sizeof(NSObject **));
-    *ref = (void *)CFBridgingRetain(self);
+    if (self.userdataRef == NULL)
+    {
+        //创建Lua实例引用
+        LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+        //创建本地实例对象，赋予lua的内存块并进行保留引用
+        ref -> value = (void *)CFBridgingRetain(self);
+        self.userdataRef = ref;
+    }
+    else
+    {
+        lua_pushlightuserdata(state, (void *)(self.userdataRef));
+    }
     
+    //直接原指针返回并不等于原始变量，因此需要重新绑定元表
     luaL_getmetatable(state, [[self class] moduleName].UTF8String);
     if (lua_istable(state, -1))
     {
@@ -394,9 +411,10 @@ static int subClassHandler (lua_State *state)
     lua_State *state = context.state;
     
     //先为实例对象在lua中创建内存
-    void **ref = (void **)lua_newuserdata(state, sizeof(LSCObjectClass **));
+    LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
     //创建本地实例对象，赋予lua的内存块并进行保留引用
-    *ref = (void *)CFBridgingRetain(instance);
+    ref -> value = (void *)CFBridgingRetain(instance);
+    instance.userdataRef = ref;
     
     luaL_getmetatable(state, [instance.class moduleName].UTF8String);
     if (lua_istable(state, -1))

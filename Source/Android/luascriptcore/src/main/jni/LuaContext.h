@@ -18,18 +18,42 @@ namespace cn
         namespace luascriptcore
         {
             /**
-             * Lua上下文对象
+             * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。
              */
             class LuaContext : public LuaObject
             {
             private:
+
+                /**
+                 * Lua状态机
+                 */
                 lua_State *_state;
+
+                /**
+                 * Lua运行异常处理器
+                 */
                 LuaExceptionHandler _exceptionHandler;
+
+                /**
+                 * 方法映射表
+                 */
                 LuaMethodMap _methodMap;
+
+                /**
+                 * 模块映射表
+                 */
                 LuaModuleMap _moduleMap;
 
             public:
+
+                /**
+                 * 初始化上下文对象
+                 */
                 LuaContext();
+
+                /**
+                 * 销毁上下文对象
+                 */
                 ~LuaContext();
 
             public:
@@ -105,9 +129,30 @@ namespace cn
                 bool isModuleRegisted(const std::string &moduleName);
 
             public:
-                //获取方法处理器,方法名称
+
+                /**
+                 * 根据方法名称获取对应的方法处理器
+                 *
+                 * @param methodName 方法名称
+                 *
+                 * @return 方法处理器
+                 */
                 LuaMethodHandler getMethodHandler(std::string methodName);
+
+                /**
+                 * 获取数据栈中对应索引的值
+                 *
+                 * @param index 数据栈索引
+                 *
+                 * @return 值对象
+                 */
                 LuaValue* getValueByIndex(int index);
+
+                /**
+                 * 获取Lua状态机
+                 *
+                 * @return Lua状态机
+                 */
                 lua_State* getLuaState();
 
             };
