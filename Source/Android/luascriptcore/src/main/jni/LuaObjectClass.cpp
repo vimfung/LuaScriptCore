@@ -4,8 +4,21 @@
 
 #include <stdio.h>
 #include <ctype.h>
+#include <sys/time.h>
 #include "LuaObjectClass.h"
 #include "LuaDefine.h"
+#include "../../../../../lua-core/src/lua.hpp"
+#include "LuaJavaEnv.h"
+
+/**
+ * 实例种子，参与实例索引的生成，每次创建实例，该值会自增.
+ */
+static int InstanceSeed = 0;
+
+/**
+ * 实例引用表名称
+ */
+static std::string InstanceRefsTableName = "_instanceRefs_";
 
 /**
  *  对象销毁处理
@@ -96,7 +109,6 @@ static int objectNewIndexHandler (lua_State *state)
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
     //限于当前无法判断所定义的方法是使用.或:定义，因此对添加的属性或者方法统一添加到类表和实例元表中。
-    const char *key = luaL_checkstring(state, 2);
     lua_pushvalue(state, 2);
     lua_pushvalue(state, 3);
     lua_rawset(state, 1);
@@ -104,19 +116,34 @@ static int objectNewIndexHandler (lua_State *state)
     //查找实例元表进行添加
     lua_getfield(state, 1, "_nativeClass");
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_topointer(state, -1);
-    if (objectClass -> getIsInternalCall())
-    {
-        //内部调用，忽略下面操作
-        return 0;
-    }
-
     luaL_getmetatable(state, objectClass -> getName().c_str());
     if (lua_istable(state, -1))
     {
+        lua_pushvalue(state, 2);
         lua_pushvalue(state, 3);
-        lua_setfield(state, -2, key);
+        lua_rawset(state, -3);
     }
     lua_pop(state, 1);
+
+    return 0;
+}
+
+/**
+ 实例对象更新索引处理
+
+ @param state 状态机
+ @return 参数数量
+ */
+static int instanceNewIndexHandler (lua_State *state)
+{
+    //先找到实例对象的元表，向元表添加属性
+    lua_getmetatable(state, 1);
+    if (lua_istable(state, -1))
+    {
+        lua_pushvalue(state, 2);
+        lua_pushvalue(state, 3);
+        lua_rawset(state, -3);
+    }
 
     return 0;
 }
@@ -375,6 +402,9 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
         //创建类实例元表
         luaL_newmetatable(state, name.c_str());
 
+        lua_pushlightuserdata(state, this);
+        lua_setfield(state, -2, "_nativeClass");
+
         lua_pushvalue(state, -1);
         lua_setfield(state, -2, "__index");
 
@@ -551,4 +581,128 @@ cn::vimfung::luascriptcore::modules::oo::LuaInstanceGetterHandler cn::vimfung::l
     }
 
     return NULL;
+}
+
+void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor)
+{
+    lua_State *state = getContext() -> getLuaState();
+
+    //先为实例对象在lua中创建内存
+    LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
+    //创建本地实例对象，赋予lua的内存块并进行保留引用
+    ref -> value = objectDescriptor;
+
+    //创建实例索引
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    long timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000 + InstanceSeed;
+    char buf[40];
+    sprintf(buf, "func%ld", timestamp);
+    objectDescriptor -> setReferenceId(buf);
+    InstanceSeed ++;
+
+    //对描述器进行引用
+    objectDescriptor -> retain();
+
+    //创建一个临时table作为元表，用于在lua上动态添加属性或方法
+    lua_newtable(state);
+
+    lua_pushvalue(state, -1);
+    lua_setfield(state, -2, "__index");
+
+    lua_pushcclosure(state, instanceNewIndexHandler, 0);
+    lua_setfield(state, -2, "__newindex");
+
+    lua_pushlightuserdata(state, this);
+    lua_pushcclosure(state, objectDestroyHandler, 1);
+    lua_setfield(state, -2, "__gc");
+
+    lua_pushlightuserdata(state, this);
+    lua_pushcclosure(state, objectToStringHandler, 1);
+    lua_setfield(state, -2, "__tostring");
+
+    lua_pushvalue(state, -1);
+    lua_setmetatable(state, -3);
+
+    luaL_getmetatable(state, getName().c_str());
+    if (lua_istable(state, -1))
+    {
+        lua_setmetatable(state, -2);
+    }
+    else
+    {
+        lua_pop(state, 1);
+    }
+
+    lua_pop(state, 1);
+
+    //将实例对象放入_instanceRefs_表中
+    lua_getglobal(state, "_G");
+    if (lua_istable(state, -1))
+    {
+        lua_getfield(state, -1, InstanceRefsTableName.c_str());
+        if (lua_isnil(state, -1))
+        {
+            lua_pop(state, 1);
+
+            //创建_instanceRefs_表，该表为弱引用表
+            lua_newtable(state);
+
+            //创建弱引用表元表
+            lua_newtable(state);
+            lua_pushstring(state, "kv");
+            lua_setfield(state, -2, "__mode");
+            lua_setmetatable(state, -2);
+
+            lua_pushvalue(state, -1);
+            lua_setfield(state, -3, InstanceRefsTableName.c_str());
+        }
+
+        //将实例对象放入表中
+        lua_pushvalue(state, -3);
+        lua_setfield(state, -2, objectDescriptor -> getReferenceId().c_str());
+
+        lua_pop(state, 1);
+    }
+    lua_pop(state, 1);
+}
+
+void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor)
+{
+    //对LuaObjectClass的类型对象需要进行特殊处理
+    lua_State *state = getContext() -> getLuaState();
+
+    bool hasExists = false;
+    if (!objectDescriptor -> getReferenceId().empty())
+    {
+        //先查找_instanceRefs_中是否存在实例
+        lua_getglobal(state, "_G");
+        if (lua_istable(state, -1))
+        {
+            lua_getfield(state, -1, InstanceRefsTableName.c_str());
+            if (lua_istable(state, -1))
+            {
+                lua_getfield(state, -1, objectDescriptor -> getReferenceId().c_str());
+                if (lua_isuserdata(state, -1))
+                {
+                    //存在实例
+                    lua_insert(state, -3);
+                    hasExists = true;
+                }
+                else
+                {
+                    lua_pop(state, 1);
+                }
+            }
+
+            lua_pop(state, 1);
+        }
+
+        lua_pop(state, 1);
+    }
+
+    if (!hasExists)
+    {
+        createLuaInstance(objectDescriptor);
+    }
 }

@@ -7,6 +7,7 @@
 
 #include "LuaObject.h"
 #include "LuaPointer.h"
+#include <string>
 
 namespace cn {
     namespace vimfung {
@@ -20,17 +21,19 @@ namespace cn {
             class LuaObjectDescriptor : public LuaObject
             {
             private:
-                void *_object;
-                void *_userData;
 
+                /**
+                 * 对象
+                 */
+                void *_object;
+
+                /**
+                 * 引用标识，每个实例对象在创建lua实例时都会向_G表的_instanceRefs_表写入一个引用，方便查找对应的引用对象，而改表对应引用的key就是该属性的值。
+                 */
+                std::string _refId;
 
 
             protected:
-
-                /**
-                 * Userdata引用
-                 */
-                LuaUserdataRef _userdataRef;
 
                 /**
                  * 设置对象
@@ -61,20 +64,6 @@ namespace cn {
             public:
 
                 /**
-                 * 设置自定义数据
-                 *
-                 * @param userdata 数据对象
-                 */
-                void setUserdata(void *userdata);
-
-                /**
-                 * 获取自定义数据
-                 *
-                 * @return 数据对象
-                 */
-                const void* getUserdata();
-
-                /**
                  * 获取对象
                  *
                  * @return 对象引用
@@ -82,16 +71,14 @@ namespace cn {
                 const void* getObject();
 
                 /**
-                 * 设置引用
-                 *
-                 * @param ref 引用
+                 * 获取引用标识
                  */
-                void setReference(LuaUserdataRef ref);
+                void setReferenceId(const std::string &refId);
 
                 /**
-                 * 销毁lua中的引用
+                 * 设置引用标识
                  */
-                void destroyReference();
+                std::string getReferenceId();
 
                 /**
                  * 入栈数据
