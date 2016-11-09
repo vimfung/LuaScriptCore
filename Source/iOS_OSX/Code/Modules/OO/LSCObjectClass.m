@@ -15,26 +15,21 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
+/**
+ 实例引用表名称
+ */
+static NSString *const InstanceRefsTableName = @"_instanceRefs_";
+
 @interface LSCObjectClass () <LSCLuaObjectPushProtocol>
 
 /**
- 上下文对象
+ 引用标识，每个实例对象在创建lua实例时都会向_G表的_instanceRefs_表写入一个引用，方便查找对应的引用对象，而改表对应引用的key就是该属性的值。
  */
-@property (nonatomic, weak) LSCContext *context;
-
-/**
- 对象指针
- */
-@property (nonatomic) LSCUserdataRef userdataRef;
+@property (nonatomic) NSString *_refId;
 
 @end
 
 @implementation LSCObjectClass
-
-+ (instancetype)createInsanceWithContext:(LSCContext *)context
-{
-    return [[self alloc] init];
-}
 
 + (NSString *)version
 {
@@ -255,21 +250,23 @@ static int InstanceMethodRouteHandler(lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
-    LSCObjectClass *instance = (__bridge LSCObjectClass *)ref -> value;
-    instance.userdataRef = NULL;
-    
-    lua_pushvalue(state, 1);
-    lua_getfield(state, -1, "destroy");
-    if (lua_isfunction(state, -1))
+    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
     {
+        //如果为userdata类型，则进行释放
+        LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+        
         lua_pushvalue(state, 1);
-        lua_pcall(state, 1, 0, 0);
+        lua_getfield(state, -1, "destroy");
+        if (lua_isfunction(state, -1))
+        {
+            lua_pushvalue(state, 1);
+            lua_pcall(state, 1, 0, 0);
+        }
+        lua_pop(state, 2);
+        
+        //释放内存
+        CFBridgingRelease(ref -> value);
     }
-    lua_pop(state, 2);
-    
-    //释放内存
-    CFBridgingRelease(ref -> value);
     
     return 0;
 }
@@ -300,7 +297,6 @@ static int objectToStringHandler (lua_State *state)
 static int objectNewIndexHandler (lua_State *state)
 {
     //限于当前无法判断所定义的方法是使用.或:定义，因此对添加的属性或者方法统一添加到类表和实例元表中。
-    const char *key = luaL_checkstring(state, 2);
     lua_pushvalue(state, 2);
     lua_pushvalue(state, 3);
     lua_rawset(state, 1);
@@ -309,13 +305,35 @@ static int objectNewIndexHandler (lua_State *state)
     lua_getfield(state, 1, "_nativeClass");
     Class moduleClass = (__bridge Class)lua_topointer(state, -1);
     
-    luaL_getmetatable(state, [moduleClass moduleName].UTF8String);
+    NSString *metaClsName = [LSCObjectClass _metaClassNameWithClass:[moduleClass moduleName]];
+    luaL_getmetatable(state, metaClsName.UTF8String);
     if (lua_istable(state, -1))
     {
+        lua_pushvalue(state, 2);
         lua_pushvalue(state, 3);
-        lua_setfield(state, -2, key);
+        lua_rawset(state, -3);
     }
     lua_pop(state, 1);
+    
+    return 0;
+}
+
+/**
+ 实例对象更新索引处理
+
+ @param state 状态机
+ @return 参数数量
+ */
+static int instanceNewIndexHandler (lua_State *state)
+{
+    //先找到实例对象的元表，向元表添加属性
+    lua_getmetatable(state, 1);
+    if (lua_istable(state, -1))
+    {
+        lua_pushvalue(state, 2);
+        lua_pushvalue(state, 3);
+        lua_rawset(state, -3);
+    }
     
     return 0;
 }
@@ -371,24 +389,39 @@ static int subClassHandler (lua_State *state)
 {
     lua_State *state = context.state;
 
-    if (self.userdataRef == NULL)
+    
+    BOOL hasExists = NO;
+    if (self._refId)
     {
-        //创建Lua实例引用
-        LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
-        //创建本地实例对象，赋予lua的内存块并进行保留引用
-        ref -> value = (void *)CFBridgingRetain(self);
-        self.userdataRef = ref;
-    }
-    else
-    {
-        lua_pushlightuserdata(state, (void *)(self.userdataRef));
+        //先查找_instanceRefs_中是否存在实例
+        lua_getglobal(state, "_G");
+        if (lua_istable(state, -1))
+        {
+            lua_getfield(state, -1, InstanceRefsTableName.UTF8String);
+            if (lua_istable(state, -1))
+            {
+                lua_getfield(state, -1, self._refId.UTF8String);
+                if (lua_isuserdata(state, -1))
+                {
+                    //存在实例
+                    lua_insert(state, -3);
+                    hasExists = YES;
+                }
+                else
+                {
+                    lua_pop(state, 1);
+                }
+            }
+            
+            lua_pop(state, 1);
+        }
+
+        lua_pop(state, 1);
     }
     
-    //直接原指针返回并不等于原始变量，因此需要重新绑定元表
-    luaL_getmetatable(state, [[self class] moduleName].UTF8String);
-    if (lua_istable(state, -1))
+    if (!hasExists)
     {
-        lua_setmetatable(state, -2);
+        [LSCObjectClass _createLuaInstanceWithState:state instance:self];
     }
 
 }
@@ -406,28 +439,17 @@ static int subClassHandler (lua_State *state)
 + (instancetype)_constructObjectWithContext:(LSCContext *)context;
 {
     LSCObjectClass *instance = [[self alloc] init];
-    instance.context = context;
     
     lua_State *state = context.state;
     
-    //先为实例对象在lua中创建内存
-    LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
-    //创建本地实例对象，赋予lua的内存块并进行保留引用
-    ref -> value = (void *)CFBridgingRetain(instance);
-    instance.userdataRef = ref;
-    
-    luaL_getmetatable(state, [instance.class moduleName].UTF8String);
-    if (lua_istable(state, -1))
-    {
-        lua_setmetatable(state, -2);
-    }
+    [self _createLuaInstanceWithState:state instance:instance];
     
     //调用实例对象的init方法
     lua_pushvalue(state, 1);
     lua_getfield(state, -1, "init");
     if (lua_isfunction(state, -1))
     {
-        lua_pushvalue(state, 1);
+        lua_pushvalue(state, -2);
         lua_pcall(state, 1, 0, 0);
         lua_pop(state, 1);
     }
@@ -437,6 +459,83 @@ static int subClassHandler (lua_State *state)
     }
     
     return instance;
+}
+
+
+/**
+ 创建lua实例
+
+ @param state 状态机
+ @param instance 实例对象
+ */
++ (void)_createLuaInstanceWithState:(lua_State *)state instance:(LSCObjectClass *)instance
+{
+    //先为实例对象在lua中创建内存
+    LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+    //创建本地实例对象，赋予lua的内存块并进行保留引用
+    ref -> value = (void *)CFBridgingRetain(instance);
+    instance._refId = [NSUUID UUID].UUIDString;
+    
+    //创建一个临时table作为元表，用于在lua上动态添加属性或方法
+    lua_newtable(state);
+    
+    lua_pushvalue(state, -1);
+    lua_setfield(state, -2, "__index");
+    
+    lua_pushcclosure(state, instanceNewIndexHandler, 0);
+    lua_setfield(state, -2, "__newindex");
+    
+    lua_pushcfunction(state, objectDestroyHandler);
+    lua_setfield(state, -2, "__gc");
+    
+    lua_pushcfunction(state, objectToStringHandler);
+    lua_setfield(state, -2, "__tostring");
+    
+    lua_pushvalue(state, -1);
+    lua_setmetatable(state, -3);
+    
+    NSString *metaClsName = [self _metaClassNameWithClass:[instance.class moduleName]];
+    luaL_getmetatable(state, metaClsName.UTF8String);
+    if (lua_istable(state, -1))
+    {
+        lua_setmetatable(state, -2);
+    }
+    else
+    {
+        lua_pop(state, 1);
+    }
+    
+    lua_pop(state, 1);
+    
+    //将实例对象放入_instanceRefs_表中
+    lua_getglobal(state, "_G");
+    if (lua_istable(state, -1))
+    {
+        lua_getfield(state, -1, InstanceRefsTableName.UTF8String);
+        if (lua_isnil(state, -1))
+        {
+            lua_pop(state, 1);
+            
+            //创建_instanceRefs_表，该表为弱引用表
+            lua_newtable(state);
+            
+            //创建弱引用表元表
+            lua_newtable(state);
+            lua_pushstring(state, "kv");
+            lua_setfield(state, -2, "__mode");
+            lua_setmetatable(state, -2);
+            
+            lua_pushvalue(state, -1);
+            lua_setfield(state, -3, InstanceRefsTableName.UTF8String);
+        }
+        
+        //将实例对象放入表中
+        lua_pushvalue(state, -3);
+        lua_setfield(state, -2, instance._refId.UTF8String);
+        
+        lua_pop(state, 1);
+    }
+    lua_pop(state, 1);
 }
 
 /**
@@ -474,7 +573,7 @@ static int subClassHandler (lua_State *state)
     [self _exportModuleMethod:cls
                        module:cls
                       context:context
-            filterMethodNames:@[@"createInsanceWithContext:"]];
+            filterMethodNames:nil];
     
     //添加创建对象方法
     lua_pushlightuserdata(state, (__bridge void *)context);
@@ -519,8 +618,9 @@ static int subClassHandler (lua_State *state)
     
     lua_setglobal(state, [moduleName UTF8String]);
     
-    //创建实例对象元表
-    luaL_newmetatable(state, moduleName.UTF8String);
+    //---------创建实例对象元表---------------
+    NSString *metaClassName = [self _metaClassNameWithClass:moduleName];
+    luaL_newmetatable(state, metaClassName.UTF8String);
     
     lua_pushlightuserdata(state, (__bridge void *)(cls));
     lua_setfield(state, -2, "_nativeClass");
@@ -534,25 +634,7 @@ static int subClassHandler (lua_State *state)
     lua_pushcfunction(state, objectToStringHandler);
     lua_setfield(state, -2, "__tostring");
     
-    Class superClass = NULL;
-    if (cls != [LSCObjectClass class])
-    {
-        //设置父类
-        superClass = [cls superclass];
-        
-        //获取父级元表
-        luaL_getmetatable(state, [[superClass moduleName] UTF8String]);
-        if (lua_istable(state, -1))
-        {
-            //设置父类元表
-            lua_setmetatable(state, -2);
-        }
-        else
-        {
-            lua_pop(state, 1);
-        }
-    }
-    
+    //注册实例方法
     NSMutableArray *filterMethodList = [NSMutableArray arrayWithObjects:
                                         @"create",
                                         @"subclass",
@@ -583,6 +665,42 @@ static int subClassHandler (lua_State *state)
         }
     }
     free(methods);
+    
+    //关联父类
+    Class superClass = NULL;
+    if (cls != [LSCObjectClass class])
+    {
+        //设置父类
+        superClass = [cls superclass];
+        
+        //获取父级元表
+        NSString *superMetaClassName = [self _metaClassNameWithClass:[superClass moduleName]];
+        luaL_getmetatable(state, [superMetaClassName UTF8String]);
+        if (lua_istable(state, -1))
+        {
+            //设置父类元表
+            lua_setmetatable(state, -2);
+        }
+        else
+        {
+            lua_pop(state, 1);
+        }
+    }
+    
+    lua_pop(state, 1);
+    
+}
+
+
+/**
+ 获取元类名称
+
+ @param cls 类型
+ @return 元类名称
+ */
++ (NSString *)_metaClassNameWithClass:(NSString *)moduleName
+{
+    return [NSString stringWithFormat:@"_%@_META_", moduleName];
 }
 
 @end

@@ -266,3 +266,10 @@ std::string LuaJavaEnv::getJavaClassNameByInstance(JNIEnv *env, jobject instance
 
     return className;
 }
+
+LuaJavaObjectClass* LuaJavaEnv::getObjectClassByInstance(JNIEnv *env, jobject instance, LuaContext *context)
+{
+    std::string className = getJavaClassNameByInstance(env, instance);
+    LuaModule *module = context -> getModule((const std::string)className);
+    return dynamic_cast<LuaJavaObjectClass *>(module);
+}

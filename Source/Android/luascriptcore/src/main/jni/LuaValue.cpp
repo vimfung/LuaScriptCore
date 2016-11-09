@@ -10,24 +10,6 @@
 #include "LuaObjectManager.h"
 #include "LuaPointer.h"
 
-/**
- 对象引用回收处理
-
- @param state Lua状态机
-
- @return 返回值数量
- */
-static int objectReferenceGCHandler(lua_State *state)
-{
-    using namespace cn::vimfung::luascriptcore;
-
-    //释放对象
-    LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
-    ((LuaObjectDescriptor *)ref -> value) -> destroyReference();
-
-    return 0;
-}
-
 cn::vimfung::luascriptcore::LuaValue::LuaValue()
         : LuaObject()
 {
