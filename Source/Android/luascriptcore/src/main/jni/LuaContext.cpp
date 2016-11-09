@@ -441,6 +441,11 @@ bool cn::vimfung::luascriptcore::LuaContext::isModuleRegisted(const std::string 
     return !retValue;
 }
 
+cn::vimfung::luascriptcore::LuaModule* cn::vimfung::luascriptcore::LuaContext::getModule(const std::string &moduleName)
+{
+    return _moduleMap[moduleName];
+}
+
 lua_State* cn::vimfung::luascriptcore::LuaContext::getLuaState()
 {
     return _state;

@@ -219,6 +219,20 @@ namespace cn
                                                 cn::vimfung::luascriptcore::LuaContext *context);
 
                         /**
+                         * 创建Lua实例对象
+                         *
+                         * @param objectDescriptor 对象描述器
+                         */
+                        virtual void createLuaInstance(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor);
+
+                        /**
+                         * 入栈数据
+                         *
+                         * @param objectDescriptor 对象描述器
+                         */
+                        void push(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor);
+
+                        /**
                          * 获取模块方法处理器, 提供Lua回调方法调用
                          *
                          * @param methodName 方法名称

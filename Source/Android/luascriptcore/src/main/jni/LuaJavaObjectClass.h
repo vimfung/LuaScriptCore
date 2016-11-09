@@ -6,6 +6,7 @@
 #define ANDROID_LUAJAVAOBJECTCLASS_H
 
 #include "LuaObjectClass.h"
+#include "LuaJavaObjectDescriptor.h"
 #include <jni.h>
 
 /**
@@ -49,6 +50,8 @@ public:
     jclass getModuleClass(JNIEnv *env);
 
 public:
+
+
     /**
      * 注册模块时调用
      *
@@ -57,6 +60,13 @@ public:
      */
     void onRegister(const std::string &name,
                     cn::vimfung::luascriptcore::LuaContext *context);
+
+    /**
+     * 创建Lua实例对象
+     *
+     * @param objectDescriptor 对象描述器
+     */
+    void createLuaInstance(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor);
 };
 
 

@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 #include <jni.h>
+#include <sys/time.h>
+#include <stdio.h>
 #include "LuaJavaObjectClass.h"
 #include "LuaJavaType.h"
 #include "LuaJavaEnv.h"
@@ -37,37 +39,16 @@ static void _luaClassObjectCreated (cn::vimfung::luascriptcore::modules::oo::Lua
         jobject jcontext = LuaJavaEnv::getJavaLuaContext(env, objectClass->getContext());
         jobject jInstance = env->NewObject(cls, initMethodId);
 
-        //设置LuaContext
-        jfieldID contextFieldId = env -> GetFieldID(cls, "_context", "Lcn/vimfung/luascriptcore/LuaContext;");
-        env -> SetObjectField(jInstance, contextFieldId, jcontext);
-
         LuaJavaObjectDescriptor *objDesc = new LuaJavaObjectDescriptor(env, jInstance);
-        objDesc -> setUserdata(objectClass);
-
-        //先为实例对象在lua中创建内存
-        LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
-        ref -> value = objDesc;
-        objDesc -> setReference(ref);
-
-        luaL_getmetatable(state, jobjectClass->getName().c_str());
-        if (lua_istable(state, -1))
-        {
-            lua_setmetatable(state, -2);
-        }
-        else
-        {
-            lua_pop(state, 1);
-        }
-
-        //关联对象
-        LuaJavaEnv::associcateInstance(env, (jobject)objDesc -> getObject(), objDesc);
+        //创建Lua中的实例对象
+        objectClass -> createLuaInstance(objDesc);
 
         //调用实例对象的init方法
         lua_pushvalue(state, 1);
         lua_getfield(state, -1, "init");
         if (lua_isfunction(state, -1))
         {
-            lua_pushvalue(state, 1);
+            lua_pushvalue(state, -2);
             lua_pcall(state, 1, 0, 0);
             lua_pop(state, 1);
         }
@@ -76,6 +57,7 @@ static void _luaClassObjectCreated (cn::vimfung::luascriptcore::modules::oo::Lua
             lua_pop(state, 2);
         }
 
+        objDesc -> release();
         env -> DeleteLocalRef(jInstance);
     }
 
@@ -85,12 +67,13 @@ static void _luaClassObjectCreated (cn::vimfung::luascriptcore::modules::oo::Lua
 static void _luaClassObjectDestroy (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass)
 {
     using namespace cn::vimfung::luascriptcore;
-    JNIEnv *env = LuaJavaEnv::getEnv();
 
     lua_State *state = objectClass -> getContext() -> getLuaState();
 
     if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
     {
+        JNIEnv *env = LuaJavaEnv::getEnv();
+
         //表示有实例对象传入
         LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
         LuaObjectDescriptor *objDesc = (LuaObjectDescriptor *)ref -> value;
@@ -109,10 +92,10 @@ static void _luaClassObjectDestroy (cn::vimfung::luascriptcore::modules::oo::Lua
         lua_pop(state, 2);
 
         //移除对象引用
-        objDesc -> destroyReference();
-    }
+        objDesc -> release();
 
-    LuaJavaEnv::resetEnv(env);
+        LuaJavaEnv::resetEnv(env);
+    }
 }
 
 static std::string _luaClassObjectDescription (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass)
@@ -431,4 +414,14 @@ void LuaJavaObjectClass::onRegister(const std::string &name,
 
     LuaJavaEnv::resetEnv(env);
 
+}
+
+void LuaJavaObjectClass::createLuaInstance(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor)
+{
+    cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(objectDescriptor);
+
+    //关联对象
+    JNIEnv *env = LuaJavaEnv::getEnv();
+    LuaJavaEnv::associcateInstance(env, (jobject)objectDescriptor -> getObject(), objectDescriptor);
+    LuaJavaEnv::resetEnv(env);
 }

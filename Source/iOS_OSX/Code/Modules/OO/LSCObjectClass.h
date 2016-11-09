@@ -18,20 +18,4 @@
  */
 @interface LSCObjectClass : LSCModule
 
-
-/**
- 上下文对象
- */
-@property (nonatomic, weak, readonly) LSCContext *context;
-
-
-/**
- 创建实例
- 
- @param context 上下文对象
- 
- @return 实例对象
- */
-+ (instancetype)createInsanceWithContext:(LSCContext *)context;
-
 @end

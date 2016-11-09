@@ -61,7 +61,6 @@ public class LuaObjectClass extends LuaModule
 
         filterMethodNames.add("access$super");
         filterMethodNames.add("createInstance");
-        filterMethodNames.add("getContext");
 
         //导出字段
         Field[] fields = moduleClass.getDeclaredFields();
@@ -216,17 +215,6 @@ public class LuaObjectClass extends LuaModule
         }
 
         return null;
-    }
-
-    private LuaContext _context;
-
-    /**
-     * 获取Lua上下文对象
-     * @return 上下文对象
-     */
-    public LuaContext getContext()
-    {
-        return _context;
     }
 
     /**

@@ -128,6 +128,15 @@ namespace cn
                  */
                 bool isModuleRegisted(const std::string &moduleName);
 
+                /**
+                 * 根据模块名称获取模块对象
+                 *
+                 * @param moduleName 模块名称
+                 *
+                 * @return 模块对象，如果不存在则返回NULL
+                 */
+                LuaModule* getModule(const std::string &moduleName);
+
             public:
 
                 /**

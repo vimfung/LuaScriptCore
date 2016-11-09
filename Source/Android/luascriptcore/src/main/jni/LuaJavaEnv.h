@@ -8,6 +8,7 @@
 #include <jni.h>
 #include "LuaContext.h"
 #include "LuaJavaModule.h"
+#include "LuaJavaObjectClass.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -104,12 +105,25 @@ public:
     static LuaMethodHandler luaMethodHandler();
 
     /**
-     * 根据实例
+     * 根据实例获取类名
      *
      * @param env JNI环境
      * @param instance 实例对象
+     *
+     * @return 类名
      */
     static std::string getJavaClassNameByInstance(JNIEnv *env, jobject instance);
+
+    /**
+     * 根据实例获取类型
+     *
+     * @param env JNI环境
+     * @param instance 实例对象
+     * @param context 上下文对象
+     *
+     * @return 类型
+     */
+    static LuaJavaObjectClass* getObjectClassByInstance(JNIEnv *env, jobject instance, LuaContext *context);
 };
 
 
