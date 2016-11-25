@@ -1,0 +1,7 @@
+#Fri Nov 25 10:48:22 CST 2016
+base.0=/Users/vimfung/Documents/project/LuaScriptCore/Sample/Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run_4d4ea812e5962b95b07efdced5ba8f3eb00de8b1
+renamed.1=classes2.dex
+renamed.0=classes.dex
+file.1=/Users/vimfung/Documents/project/LuaScriptCore/Sample/Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_6920dc0b92b22c6303e812a02cc70882dbe1771f/classes.dex
+base.1=/Users/vimfung/Documents/project/LuaScriptCore/Sample/Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run-bootstrap_6920dc0b92b22c6303e812a02cc70882dbe1771f
+file.0=/Users/vimfung/Documents/project/LuaScriptCore/Sample/Android/app/build/intermediates/transforms/dex/debug/folders/1000/10/instant-run_4d4ea812e5962b95b07efdced5ba8f3eb00de8b1/classes.dex

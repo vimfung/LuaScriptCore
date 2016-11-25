@@ -16,6 +16,10 @@
 
 #include <android/log.h>
 
+#elif LUA_PLATFORM == LUA_PLATFORM_UNITY_EDITOR
+
+#include "lunity.h"
+
 #endif
 
 /* extra error code for 'luaL_load' */
@@ -207,6 +211,11 @@ LUALIB_API void(luaL_openlib)(lua_State *L, const char *libname,
 // Androi平台下使用__android_log_print方法进行输出
 #define lua_writestring(s, l)                                                  \
   __android_log_print(ANDROID_LOG_INFO, "android_lua", "%s", s)
+
+#elif LUA_PLATFORM == LUA_PLATFORM_UNITY_EDITOR
+
+// Unity编辑器下需要使用该方法进行输出
+#define lua_writestring(s, l) unityDebug(s)
 
 #else
 

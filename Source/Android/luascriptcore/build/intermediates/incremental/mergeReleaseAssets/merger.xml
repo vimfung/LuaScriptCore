@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="main"><source path="/Users/vimfung/Documents/project/LuaScriptCore/Source/Android/luascriptcore/src/main/assets"/><source path="/Users/vimfung/Documents/project/LuaScriptCore/Source/Android/luascriptcore/build/generated/assets/shaders/release"/></dataSet><dataSet config="release"><source path="/Users/vimfung/Documents/project/LuaScriptCore/Source/Android/luascriptcore/src/release/assets"/></dataSet></merger>
