@@ -5,7 +5,7 @@ LuaScriptCore旨在能够在多种平台上方便地使用Lua。其提供了与�
 * **从平台原生层代码调用Lua中的方法和变量，控制Lua的业务逻辑**
 * **从Lua中调用原生层提供的方法，让一些Lua无法处理或者耗时的处理交由原生方法实现**
 * **从原生层中直接扩展Lua的功能**
-* **从原生层定义的类直接映射到Lua中使用，让Lua更方便地实现面向对象的编程**
+* **从原生层定义的类直接映射到Lua中使用，让Lua更方便地实现面向对象的编程(仅支持iOS、OSX和Android)**
 
 # 如何使用
 
@@ -16,6 +16,11 @@ LuaScriptCore旨在能够在多种平台上方便地使用Lua。其提供了与�
 ## Android 平台
 
 关于Android平台下如何使用LuaScriptCore，请参考《[Android平台文档](https://github.com/vimfung/LuaScriptCore/wiki/Android-%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3)》
+
+## Unity3D
+
+关于Unity3D下如何使用LuaScriptCore，请参考《[Unity3D集成使用文档](https://github.com/vimfung/LuaScriptCore/wiki/Unity3D%E9%9B%86%E6%88%90%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3)》
+
 
 # 建议&支持
 
