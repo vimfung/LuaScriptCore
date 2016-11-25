@@ -2,6 +2,7 @@ package cn.vimfung.luascriptcore;
 
 import android.app.Application;
 import android.content.Context;
+import android.graphics.Path;
 import android.os.Debug;
 import android.os.Environment;
 import android.provider.ContactsContract;
@@ -38,6 +39,76 @@ public class LuaContext extends LuaBaseObject
     private HashMap<String, LuaMethodHandler> _methods;
 
     /**
+     * 建立Lua目录标识
+     */
+    private static boolean _isSetupLuaFolder = false;
+
+    /**
+     * 建立Lua目录结构
+     */
+    private void setupLuaFolder()
+    {
+        if (!_isSetupLuaFolder)
+        {
+            copyLuaFileFromAssets("");
+            _isSetupLuaFolder = true;
+        }
+    }
+
+    /**
+     * 从资源中拷贝Lua文件
+     * @param path 资源文件路径
+     */
+    private void copyLuaFileFromAssets(String path)
+    {
+        try
+        {
+            String[] paths = _context.getAssets().list(path);
+            if (paths.length > 0)
+            {
+                //为目录，继续迭代查找
+                for (String subPath : paths)
+                {
+                    copyLuaFileFromAssets(String.format("%s%s/", path, subPath));
+                }
+            }
+            else
+            {
+                //为文件，拷贝到临时目录
+                String fileName = path.substring(0, path.length() - 1);
+                if (fileName.toLowerCase().endsWith(".lua"))
+                {
+                    //为lua文件，进行拷贝
+                    ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
+                    try
+                    {
+                        String filePath = String.format("%s/lua/%s", _context.getExternalCacheDir(), fileName);
+                        File file = new File(filePath);
+                        File parentFile = file.getParentFile();
+                        if (!parentFile.exists())
+                        {
+                            parentFile.mkdirs();
+                        }
+
+                        readAssetFileContent(fileName, dataStream);
+                        writeToFile(file, dataStream);
+                        dataStream.close();
+
+                    }
+                    catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * 创建上下文对象
      * @param nativeId  本地对象标识
      */
@@ -57,11 +128,12 @@ public class LuaContext extends LuaBaseObject
         LuaContext luaContext = LuaNativeUtil.createContext();
         luaContext._context = context;
 
-        File cacheDir = context.getExternalCacheDir();
-        if (cacheDir != null && cacheDir.exists())
+        File cacheDir = new File (String.format("%s/lua", context.getExternalCacheDir()));
+        if (!cacheDir.exists())
         {
-            luaContext.addSearchPath(cacheDir.toString());
+            cacheDir.mkdirs();
         }
+        luaContext.addSearchPath(cacheDir.toString());
 
         return luaContext;
     }
@@ -94,33 +166,22 @@ public class LuaContext extends LuaBaseObject
     {
         LuaValue retValue = null;
 
-        String AssetsPathPrefix = "file:///android_asset";
-        if (filePath.startsWith(AssetsPathPrefix))
+        String AssetsPathPrefix = "/android_asset";
+        if (!filePath.startsWith("/") || filePath.startsWith(AssetsPathPrefix))
         {
-            //asssets目录文件，需要先拷贝到手机目录下再执行解析
-            ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
-            try
+            if (filePath.startsWith(AssetsPathPrefix))
             {
-                //创建临时文件
-                File tmpFile = File.createTempFile("eval_lua_",".lua", _context.getExternalCacheDir());
-
-                readAssetFileContent(filePath.substring(AssetsPathPrefix.length() + 1), dataStream);
-                writeToFile(tmpFile, dataStream);
-                dataStream.close();
-
-                retValue = LuaNativeUtil.evalScriptFromFile(_nativeId, tmpFile.toString());
-
-                tmpFile.delete();
+                filePath = filePath.substring(AssetsPathPrefix.length() + 1);
             }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
+
+            //拷贝资源包中的所有lua文件到临时目录中
+            setupLuaFolder();
+            //转换路径为Lua文件目录路径
+            filePath = String.format("%s/lua/%s",  _context.getExternalCacheDir(), filePath);
         }
-        else
-        {
-            retValue = LuaNativeUtil.evalScriptFromFile(_nativeId, filePath);
-        }
+
+        File f = new File(filePath);
+        retValue = LuaNativeUtil.evalScriptFromFile(_nativeId, filePath);
 
         if (retValue == null)
         {
@@ -242,6 +303,7 @@ public class LuaContext extends LuaBaseObject
         {
             FileOutputStream stream = new FileOutputStream(file);
             dataStream.writeTo(stream);
+            stream.flush();
             stream.close();
         }
         catch (IOException e)
