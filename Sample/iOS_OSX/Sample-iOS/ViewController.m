@@ -103,9 +103,7 @@
   }
 
   //调用脚本
-  [self.context
-      evalScriptFromFile:[[NSBundle mainBundle] pathForResource:@"main"
-                                                         ofType:@"lua"]];
+  [self.context evalScriptFromFile:@"main.lua"];
 }
 
 
@@ -116,9 +114,7 @@
  */
 - (IBAction)callLuaMethodClickedHandler:(id)sender {
   //加载Lua脚本
-  [self.context
-      evalScriptFromFile:[[NSBundle mainBundle] pathForResource:@"todo"
-                                                         ofType:@"lua"]];
+  [self.context evalScriptFromFile:@"todo.lua"];
 
   //调用Lua方法
   LSCValue *value = [self.context callMethodWithName:@"add"
@@ -160,8 +156,7 @@
         [self.context registerModuleWithClass:[LSCTPerson class]];
     }
 
-    [self.context evalScriptFromFile:[[NSBundle mainBundle] pathForResource:@"test"
-                                                                     ofType:@"lua"]];
+    [self.context evalScriptFromFile:@"test.lua"];
 }
 
 @end

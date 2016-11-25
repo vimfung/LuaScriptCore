@@ -97,6 +97,20 @@
 
 - (id)evalScriptFromFile:(NSString *)path
 {
+    if (!path)
+    {
+        NSString *errMessage = @"Lua file path is empty!";
+        [self raiseExceptionWithMessage:errMessage];
+        
+        return nil;
+    }
+    
+    if (![path hasPrefix:@"/"])
+    {
+        //应用包内路径
+        path = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] resourcePath], path];
+    }
+    
     int curTop = lua_gettop(self.state);
     int ret = luaL_loadfile(self.state, [path UTF8String]) ||
     lua_pcall(self.state, 0, 1, 0);
@@ -107,11 +121,8 @@
     {
         LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
         NSString *errMessage = [value toString];
-        if (self.exceptionHandler)
-        {
-            self.exceptionHandler(errMessage);
-        }
-        
+        [self raiseExceptionWithMessage:errMessage];
+
         lua_pop(self.state, 1);
     }
     else
