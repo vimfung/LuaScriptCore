@@ -31,7 +31,7 @@ android {
         main {
 
             jniLibs.srcDirs = []
-            jni.srcDirs "src/main/jni", "../../lua-core/src"
+            jni.srcDirs "src/main/jni", "../../lua-core/src", "../../lua-common"
 
         }
     }

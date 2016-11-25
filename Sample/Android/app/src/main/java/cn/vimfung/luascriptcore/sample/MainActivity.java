@@ -39,58 +39,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //先拷贝Assets的文件到应用目录中
-        File cacheDir = getExternalCacheDir();
-        if (!cacheDir.exists())
-        {
-            cacheDir.mkdirs();
-        }
-
-        File dkjsonFile = new File(cacheDir, "dkjson.lua");
-        ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
-        readAssetFileContent("dkjson.lua", dataStream);
-        writeToFile(dkjsonFile, dataStream);
-        try {
-            dataStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (dkjsonFile.exists())
-        {
-            Log.v("luaScriptCore", "copy dkjson.lua success");
-        }
-
-        File todoFile = new File (cacheDir, "todo.lua");
-        dataStream = new ByteArrayOutputStream();
-        readAssetFileContent("todo.lua", dataStream);
-        writeToFile(todoFile, dataStream);
-        try {
-            dataStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (todoFile.exists())
-        {
-            Log.v("luaScriptCore", "copy todo.lua success");
-        }
-
-        File mainFile = new File (cacheDir, "main.lua");
-        dataStream = new ByteArrayOutputStream();
-        readAssetFileContent("main.lua", dataStream);
-        writeToFile(mainFile, dataStream);
-        try {
-            dataStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        if (mainFile.exists())
-        {
-            Log.v("luaScriptCore", "copy main.lua success");
-        }
-
         //创建LuaContext
         _luaContext = LuaContext.create(this);
 
@@ -137,8 +85,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     //调用脚本
-                    File mainFile = new File (getExternalCacheDir(), "main.lua");
-                    _luaContext.evalScriptFromFile(mainFile.toString());
+                    _luaContext.evalScriptFromFile("main.lua");
 
                 }
             });
@@ -154,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
 
                     //调用脚本
-                    File todoFile = new File (getExternalCacheDir(), "todo.lua");
+                    File todoFile = new File ("todo.lua");
                     _luaContext.evalScriptFromFile(todoFile.toString());
 
                     LuaValue retValue = _luaContext.callMethod("add", new LuaValue[]{new LuaValue(100), new LuaValue(924)});
