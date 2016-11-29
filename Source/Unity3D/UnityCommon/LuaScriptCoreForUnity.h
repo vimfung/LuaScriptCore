@@ -9,6 +9,17 @@
 #ifndef LuaScriptCore_h
 #define LuaScriptCore_h
 
+#if _WINDOWS
+
+#define LuaScriptCoreApi __declspec(dllexport)
+
+#else
+
+#define LuaScriptCoreApi
+
+#endif
+
+
 #if defined (__cplusplus)
 extern "C" {
 #endif
@@ -28,14 +39,14 @@ extern "C" {
 
      @return 上下文对象标识
      */
-    extern int createLuaContext();
+	LuaScriptCoreApi extern int createLuaContext();
     
     /**
      释放对象
      
      @param objectId 对象ID
      */
-    extern void releaseObject(int objectId);
+	LuaScriptCoreApi extern void releaseObject(int objectId);
     
     /**
      添加Lua的搜索路径
@@ -43,7 +54,7 @@ extern "C" {
      @param nativeContextId 本地上下文对象ID
      @param path 路径
      */
-    extern void addSearchPath(int nativeContextId, const char *path);
+	LuaScriptCoreApi extern void addSearchPath(int nativeContextId, const char *path);
     
     /**
      设置异常处理器
@@ -51,7 +62,7 @@ extern "C" {
      @param nativeContextId 本地上下文对象ID
      @param handler 处理器
      */
-    extern void setExceptionHandler (int nativeContextId, LuaExceptionHandlerPtr handler);
+	LuaScriptCoreApi extern void setExceptionHandler (int nativeContextId, LuaExceptionHandlerPtr handler);
     
     /**
      解析Lua脚本
@@ -62,7 +73,7 @@ extern "C" {
      
      @return 返回值的缓冲区大小
      */
-    extern int evalScript(int nativeContextId, const char* script, const void** result);
+	LuaScriptCoreApi extern int evalScript(int nativeContextId, const char* script, const void** result);
     
     
     /**
@@ -74,7 +85,7 @@ extern "C" {
      
      @return 返回值的缓冲区大小
      */
-    extern int evalScriptFromFile(int nativeContextId, const char* filePath, const void** result);
+	LuaScriptCoreApi extern int evalScriptFromFile(int nativeContextId, const char* filePath, const void** result);
     
     /**
      调用Lua方法
@@ -86,7 +97,7 @@ extern "C" {
      
      @return 返回值的缓冲区大小
      */
-    extern int callMethod(int nativeContextId, const char* methodName, const void *params, const void** result);
+	LuaScriptCoreApi extern int callMethod(int nativeContextId, const char* methodName, const void *params, const void** result);
     
     
     /**
@@ -96,7 +107,7 @@ extern "C" {
      @param methodName 方法名称
      @param methodPtr 方法处理器指针
      */
-    extern void registerMethod(int nativeContextId, const char* methodName, LuaMethodHandlerPtr methodPtr);
+	LuaScriptCoreApi extern void registerMethod(int nativeContextId, const char* methodName, LuaMethodHandlerPtr methodPtr);
     
 #if defined (__cplusplus)
 }
