@@ -591,7 +591,11 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(
 
     //创建实例索引
     char buf[40];
-    sprintf_s(buf, 40, "Instance_%ld", InstanceSeed);
+#if _WINDOWS
+    sprintf_s(buf, sizeof(buf), "Instance_%ld", InstanceSeed);
+#else
+    snprintf(buf, sizeof(buf), "Instance_%d", InstanceSeed);
+#endif
     objectDescriptor -> setReferenceId(buf);
 	InstanceSeed++;
 	InstanceSeed %= INT_MAX;
