@@ -33,7 +33,11 @@ extern "C" {
         else
         {
             char buffer[4096] = {0};
-            vsprintf_s(buffer, 4096, format, arg_ptr);
+#if _WINDOWS
+            vsprintf_s(buffer, sizeof(buffer), format, arg_ptr);
+#else
+            vsnprintf(buffer, sizeof(buffer), format, arg_ptr);
+#endif
             _unitDebugLogPtr (buffer);
         }
         
