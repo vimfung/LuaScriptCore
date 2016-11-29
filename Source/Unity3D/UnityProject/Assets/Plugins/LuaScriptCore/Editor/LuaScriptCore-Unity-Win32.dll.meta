@@ -1,8 +1,7 @@
 fileFormatVersion: 2
-guid: a80c1f0bcc2004bb1906c67c391b5591
-folderAsset: yes
-timeCreated: 1479714242
-licenseType: Pro
+guid: 369d1b1930e7bda40a9dbde0e435ff0b
+timeCreated: 1480413771
+licenseType: Free
 PluginImporter:
   serializedVersion: 1
   iconMap: {}
@@ -19,9 +18,9 @@ PluginImporter:
     Editor:
       enabled: 1
       settings:
-        CPU: AnyCPU
+        CPU: x86
         DefaultValueInitialized: true
-        OS: OSX
+        OS: Windows
     Linux:
       enabled: 1
       settings:
@@ -55,9 +54,9 @@ PluginImporter:
       settings:
         CPU: AnyCPU
     Win64:
-      enabled: 1
+      enabled: 0
       settings:
-        CPU: AnyCPU
+        CPU: None
     WindowsStoreApps:
       enabled: 0
       settings:

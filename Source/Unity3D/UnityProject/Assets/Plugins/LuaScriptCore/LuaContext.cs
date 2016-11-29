@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using AOT;
 using System.IO;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace cn.vimfung.luascriptcore
 {
@@ -121,7 +122,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="filePath">Lua脚本文件路径</param>
 		public LuaValue evalScriptFromFile(string filePath)
 		{
-			#if UNITY_ANDROID && !UNITY_EDITOR
+#if UNITY_ANDROID && !UNITY_EDITOR
 			if (!filePath.StartsWith("/") || filePath.StartsWith(Application.streamingAssetsPath, true, null))
 			{
 				if (filePath.StartsWith (Application.streamingAssetsPath, true, null)) 
@@ -134,27 +135,26 @@ namespace cn.vimfung.luascriptcore
 
 				filePath = getLuaCacheFilePath (filePath);
 			}
-			#else
 
-			if (!filePath.StartsWith("/"))
+#elif UNITY_EDITOR_WIN
+
+            Regex regex = new Regex("^[a-zA-Z]:/.*");
+            if (!regex.IsMatch(filePath))
+            {
+                //Window下不带盘符的路径为相对路径，需要拼接streamingAssetsPath
+                filePath = string.Format("{0}/{1}", Application.streamingAssetsPath, filePath);
+            }
+#else
+
+            if (!filePath.StartsWith("/"))
 			{
 				filePath = string.Format("{0}/{1}", Application.streamingAssetsPath, filePath);
 			}
 
-			#endif
-
+#endif
 			IntPtr resultPtr;
 			int size = NativeUtils.evalScriptFromFile (_nativeObjectId, filePath, out resultPtr);
 			LuaValue retValue = LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
-
-//			#if UNITY_ANDROID && !UNITY_EDITOR
-//
-//			if (needRemoveFile && File.Exists(filePath))
-//			{
-//				File.Delete(filePath);
-//			}
-//
-//			#endif
 
 			return retValue;
 
