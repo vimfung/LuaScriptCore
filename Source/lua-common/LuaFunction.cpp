@@ -46,7 +46,11 @@ cn::vimfung::luascriptcore::LuaFunction::LuaFunction(LuaContext *context, int in
 
         //根据时间戳创建索引
         char buf[40];
-        sprintf_s(buf, 40, "func_%ld", FunctionSeed);
+#if _WINDOWS
+        sprintf_s(buf, sizeof(buf), "func_%ld", FunctionSeed);
+#else
+        snprintf(buf, sizeof(buf), "func_%d", FunctionSeed);
+#endif
         _index = buf;
         FunctionSeed ++;
 		FunctionSeed %= INT_MAX;
