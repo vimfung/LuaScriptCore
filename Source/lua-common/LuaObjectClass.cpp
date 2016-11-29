@@ -2,9 +2,9 @@
 // Created by 冯鸿杰 on 16/9/27.
 //
 
+#include <limits>
 #include <stdio.h>
 #include <ctype.h>
-#include <sys/time.h>
 #include "LuaObjectClass.h"
 
 /**
@@ -590,13 +590,11 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(
     ref -> value = objectDescriptor;
 
     //创建实例索引
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    long timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000 + InstanceSeed;
     char buf[40];
-    sprintf(buf, "func%ld", timestamp);
+    sprintf_s(buf, 40, "Instance_%ld", InstanceSeed);
     objectDescriptor -> setReferenceId(buf);
-    InstanceSeed ++;
+	InstanceSeed++;
+	InstanceSeed %= INT_MAX;
 
     //对描述器进行引用
     objectDescriptor -> retain();

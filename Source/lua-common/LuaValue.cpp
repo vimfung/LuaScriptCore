@@ -103,8 +103,12 @@ LuaValue::LuaValue(LuaFunction *value)
 }
 
 LuaValue::LuaValue(LuaObjectDecoder *decoder)
-    : _value(NULL), _intValue(0), _numberValue(0), _booleanValue(false), _type(LuaValueTypeNil), _bytesLen(0)
 {
+	_value = NULL;
+	_intValue = 0;
+	_numberValue = 0;
+	_booleanValue = false;
+	_bytesLen = 0;
     _type = (LuaValueType)decoder -> readInt16();
 
     switch (_type)
