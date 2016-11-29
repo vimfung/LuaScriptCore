@@ -1,9 +1,0 @@
-<linker>
-	<assembly fullname="Assembly-CSharp">
-		<type fullname="Sample">
-			<method name="callLuaMethodButtonClickedHandler"/>
-			<method name="registerMethodButtonClickedHandler"/>
-			<method name="evalScriptButtonClickedHandler"/>
-		</type>
-	</assembly>
-</linker>
