@@ -2,7 +2,7 @@
 // Created by 冯鸿杰 on 16/11/1.
 //
 
-#include <sys/time.h>
+#include <limits>
 #include <stdio.h>
 #include "LuaFunction.h"
 #include "LuaContext.h"
@@ -45,13 +45,11 @@ cn::vimfung::luascriptcore::LuaFunction::LuaFunction(LuaContext *context, int in
         }
 
         //根据时间戳创建索引
-        struct timeval tv;
-        gettimeofday(&tv,NULL);
-        long timestamp = tv.tv_sec * 1000 + tv.tv_usec / 1000 + FunctionSeed;
         char buf[40];
-        sprintf(buf, "func%ld", timestamp);
+        sprintf_s(buf, 40, "func_%ld", FunctionSeed);
         _index = buf;
         FunctionSeed ++;
+		FunctionSeed %= INT_MAX;
 
         lua_pushvalue(state, (int)index);
         lua_setfield(state, -2, _index.c_str());

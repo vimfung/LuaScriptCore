@@ -1,0 +1,315 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\lua-core">
+      <UniqueIdentifier>{cc983f1d-9ec9-450f-9c44-4958c8e63ea8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\lua-core">
+      <UniqueIdentifier>{ed352920-1daa-4610-b9c3-e709507d389b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\lua-common">
+      <UniqueIdentifier>{b2fcdd40-45e4-46b7-90be-c63b93215870}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\lua-common">
+      <UniqueIdentifier>{54c3caae-fa00-4b90-be16-d8584063f8a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UnityCommon">
+      <UniqueIdentifier>{2cfc9176-765a-44e7-b127-6dfbe2a1a4e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\UnityCommon">
+      <UniqueIdentifier>{6b78bae2-1f78-4270-afe8-210d33db242b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lapi.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lauxlib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lbaselib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lbitlib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lcode.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lcorolib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lctype.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\ldblib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\ldebug.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\ldo.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\ldump.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lfunc.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lgc.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\linit.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\liolib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\llex.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lmathlib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lmem.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\loadlib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lobject.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lopcodes.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\loslib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lparser.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lstate.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lstring.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lstrlib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\ltable.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\ltablib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\ltm.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lundump.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lunity.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lutf8lib.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lvm.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-core\src\lzio.c">
+      <Filter>Source Files\lua-core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaObjectClass.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaObjectDecoder.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaObjectDescriptor.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaObjectEncoder.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaObjectManager.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaPointer.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaValue.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaContext.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaFunction.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaModule.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaNativeClass.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaNativeClassFactory.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaObject.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaScriptCoreForUnity.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\lua-core\src\lapi.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lauxlib.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lcode.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lctype.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\ldebug.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\ldo.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lfunc.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lgc.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\llex.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\llimits.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lmem.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lobject.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lopcodes.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lparser.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lprefix.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lstate.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lstring.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\ltable.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\ltm.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lua.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lua.hpp">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\luaconf.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lualib.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lundump.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lunity.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lvm.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-core\src\lzio.h">
+      <Filter>Header Files\lua-core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaObjectEncoder.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaObjectManager.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaObjectSerializationTypes.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaPointer.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaValue.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaContext.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaDefined.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaFunction.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaModule.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaNativeClass.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaNativeClassFactory.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaObject.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaObjectClass.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaObjectDecoder.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaObjectDescriptor.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaScriptCoreForUnity.h">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
