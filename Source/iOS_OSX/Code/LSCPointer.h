@@ -27,7 +27,7 @@ typedef struct
 /**
  初始化Lua指针对象
 
- @param udRef userdata引用
+ @param ref userdata引用
  @return 指针对象
  */
 - (instancetype)initWithUserdata:(LSCUserdataRef)ref;

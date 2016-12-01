@@ -7,14 +7,30 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C177B971DEFDC39008C9DF1 /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C177B961DEFDC39008C9DF1 /* libLuaScriptCore.a */; };
+		7C177B9A1DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C177B991DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework */; };
+		7C177C121DEFEE73008C9DF1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */; };
+		7C177C141DEFEE73008C9DF1 /* ViewController1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C177C131DEFEE73008C9DF1 /* ViewController1.swift */; };
+		7C177C161DEFEE73008C9DF1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C177C151DEFEE73008C9DF1 /* Assets.xcassets */; };
+		7C177C191DEFEE73008C9DF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C177C171DEFEE73008C9DF1 /* Main.storyboard */; };
 		7C210E041DCB5FD3000838F9 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
 		7C210E051DCB5FD3000838F9 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
+		7C21ED051DEFBE9A00507DA2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED041DEFBE9A00507DA2 /* AppDelegate.swift */; };
+		7C21ED071DEFBE9A00507DA2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED061DEFBE9A00507DA2 /* ViewController.swift */; };
+		7C21ED0A1DEFBE9A00507DA2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C21ED081DEFBE9A00507DA2 /* Main.storyboard */; };
+		7C21ED0C1DEFBE9A00507DA2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C21ED0B1DEFBE9A00507DA2 /* Assets.xcassets */; };
+		7C21ED0F1DEFBE9A00507DA2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C21ED0D1DEFBE9A00507DA2 /* LaunchScreen.storyboard */; };
+		7C21ED331DEFC39400507DA2 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
+		7C21ED341DEFC39400507DA2 /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625101D93B3AA007533D7 /* main.lua */; };
+		7C21ED351DEFC39400507DA2 /* todo.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625111D93B3AA007533D7 /* todo.lua */; };
+		7C21ED361DEFC39400507DA2 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
+		7C21ED381DEFCEFA00507DA2 /* LogModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED371DEFCEFA00507DA2 /* LogModule.swift */; };
+		7C21ED3D1DEFD41200507DA2 /* LSCTPerson.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED3C1DEFD41200507DA2 /* LSCTPerson.swift */; };
 		7C5A61811D6AE2A3007D4308 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C5A61801D6AE2A3007D4308 /* AppDelegate.m */; };
 		7C5A61841D6AE2A3007D4308 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C5A61831D6AE2A3007D4308 /* main.m */; };
 		7C5A61871D6AE2A3007D4308 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C5A61861D6AE2A3007D4308 /* ViewController.m */; };
 		7C5A61891D6AE2A3007D4308 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C5A61881D6AE2A3007D4308 /* Assets.xcassets */; };
 		7C5A618C1D6AE2A3007D4308 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C5A618A1D6AE2A3007D4308 /* Main.storyboard */; };
-		7C63CC831DE7EE09001A0E22 /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C63CC821DE7EE09001A0E22 /* libLuaScriptCore.a */; };
 		7C6B127E1D6AFD1400489D9E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B12741D6AFD1400489D9E /* AppDelegate.m */; };
 		7C6B127F1D6AFD1400489D9E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C6B12751D6AFD1400489D9E /* Assets.xcassets */; };
 		7C6B12801D6AFD1400489D9E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6B12761D6AFD1400489D9E /* LaunchScreen.storyboard */; };
@@ -22,6 +38,9 @@
 		7C6B12831D6AFD1400489D9E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B127B1D6AFD1400489D9E /* main.m */; };
 		7C6B12841D6AFD1400489D9E /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B127D1D6AFD1400489D9E /* ViewController.m */; };
 		7C96366F1DC9BF8F00E423CF /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C96366E1DC9BF8F00E423CF /* libLuaScriptCore.a */; };
+		7CA46E561DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7CA46E551DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework */; };
+		7CA46E5A1DEFFE3C0014253A /* LogModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA46E591DEFFE3C0014253A /* LogModule.swift */; };
+		7CA46E5C1DEFFE820014253A /* LSCTPerson.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */; };
 		7CE625121D93B3AA007533D7 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
 		7CE625131D93B3AA007533D7 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
 		7CE625141D93B3AA007533D7 /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625101D93B3AA007533D7 /* main.lua */; };
@@ -32,10 +51,52 @@
 		7CE6251C1D93B3C8007533D7 /* LogModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE6251A1D93B3C8007533D7 /* LogModule.m */; };
 		7CE6252A1D93B435007533D7 /* LSCTPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE625291D93B435007533D7 /* LSCTPerson.m */; };
 		7CE6252B1D93B435007533D7 /* LSCTPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE625291D93B435007533D7 /* LSCTPerson.m */; };
+		7CFE0B501DF00E4200C41B89 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
+		7CFE0B511DF00E4200C41B89 /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625101D93B3AA007533D7 /* main.lua */; };
+		7CFE0B521DF00E4200C41B89 /* todo.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625111D93B3AA007533D7 /* todo.lua */; };
+		7CFE0B531DF00E4200C41B89 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		7C21ED321DEFBEDD00507DA2 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		7C177B8E1DEFDC39008C9DF1 /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCContext.h; sourceTree = "<group>"; };
+		7C177B8F1DEFDC39008C9DF1 /* LSCFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction.h; sourceTree = "<group>"; };
+		7C177B901DEFDC39008C9DF1 /* LSCModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCModule.h; sourceTree = "<group>"; };
+		7C177B911DEFDC39008C9DF1 /* LSCObjectClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectClass.h; sourceTree = "<group>"; };
+		7C177B921DEFDC39008C9DF1 /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCPointer.h; sourceTree = "<group>"; };
+		7C177B931DEFDC39008C9DF1 /* LSCTypeDefinied.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTypeDefinied.h; sourceTree = "<group>"; };
+		7C177B941DEFDC39008C9DF1 /* LSCValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCValue.h; sourceTree = "<group>"; };
+		7C177B951DEFDC39008C9DF1 /* LuaScriptCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaScriptCore.h; sourceTree = "<group>"; };
+		7C177B961DEFDC39008C9DF1 /* libLuaScriptCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLuaScriptCore.a; sourceTree = "<group>"; };
+		7C177B991DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = LuaScriptCore_iOS_Swift.framework; sourceTree = "<group>"; };
+		7C177C0F1DEFEE73008C9DF1 /* Sample-OSX-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-OSX-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		7C177C131DEFEE73008C9DF1 /* ViewController1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ViewController1.swift; path = "Sample-OSX-Swift/ViewController1.swift"; sourceTree = SOURCE_ROOT; };
+		7C177C151DEFEE73008C9DF1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7C177C181DEFEE73008C9DF1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		7C177C1A1DEFEE73008C9DF1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7C210E031DCB5FD3000838F9 /* test.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.lua; sourceTree = "<group>"; };
+		7C21ED021DEFBE9A00507DA2 /* Sample-iOS-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-iOS-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C21ED041DEFBE9A00507DA2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		7C21ED061DEFBE9A00507DA2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		7C21ED091DEFBE9A00507DA2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		7C21ED0B1DEFBE9A00507DA2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		7C21ED0E1DEFBE9A00507DA2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		7C21ED101DEFBE9A00507DA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7C21ED371DEFCEFA00507DA2 /* LogModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogModule.swift; sourceTree = "<group>"; };
+		7C21ED3C1DEFD41200507DA2 /* LSCTPerson.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTPerson.swift; sourceTree = "<group>"; };
 		7C5A617D1D6AE2A3007D4308 /* Sample-OSX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-OSX.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C5A617F1D6AE2A3007D4308 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		7C5A61801D6AE2A3007D4308 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -45,15 +106,6 @@
 		7C5A61881D6AE2A3007D4308 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C5A618B1D6AE2A3007D4308 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C5A618D1D6AE2A3007D4308 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7C63CC7A1DE7EE09001A0E22 /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCContext.h; sourceTree = "<group>"; };
-		7C63CC7B1DE7EE09001A0E22 /* LSCFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction.h; sourceTree = "<group>"; };
-		7C63CC7C1DE7EE09001A0E22 /* LSCModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCModule.h; sourceTree = "<group>"; };
-		7C63CC7D1DE7EE09001A0E22 /* LSCObjectClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectClass.h; sourceTree = "<group>"; };
-		7C63CC7E1DE7EE09001A0E22 /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCPointer.h; sourceTree = "<group>"; };
-		7C63CC7F1DE7EE09001A0E22 /* LSCTypeDefinied.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTypeDefinied.h; sourceTree = "<group>"; };
-		7C63CC801DE7EE09001A0E22 /* LSCValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCValue.h; sourceTree = "<group>"; };
-		7C63CC811DE7EE09001A0E22 /* LuaScriptCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaScriptCore.h; sourceTree = "<group>"; };
-		7C63CC821DE7EE09001A0E22 /* libLuaScriptCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLuaScriptCore.a; sourceTree = "<group>"; };
 		7C6B12731D6AFD1400489D9E /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		7C6B12741D6AFD1400489D9E /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		7C6B12751D6AFD1400489D9E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -73,6 +125,9 @@
 		7C96366C1DC9BF8F00E423CF /* LSCValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCValue.h; sourceTree = "<group>"; };
 		7C96366D1DC9BF8F00E423CF /* LuaScriptCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaScriptCore.h; sourceTree = "<group>"; };
 		7C96366E1DC9BF8F00E423CF /* libLuaScriptCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLuaScriptCore.a; sourceTree = "<group>"; };
+		7CA46E551DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = LuaScriptCore_OSX_Swift.framework; sourceTree = "<group>"; };
+		7CA46E591DEFFE3C0014253A /* LogModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogModule.swift; sourceTree = "<group>"; };
+		7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTPerson.swift; sourceTree = "<group>"; };
 		7CE6250F1D93B3AA007533D7 /* dkjson.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dkjson.lua; sourceTree = "<group>"; };
 		7CE625101D93B3AA007533D7 /* main.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.lua; sourceTree = "<group>"; };
 		7CE625111D93B3AA007533D7 /* todo.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = todo.lua; sourceTree = "<group>"; };
@@ -83,6 +138,22 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		7C177C0C1DEFEE73008C9DF1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7CA46E561DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7C21ECFF1DEFBE9A00507DA2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C177B9A1DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7C5A617A1D6AE2A3007D4308 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -95,13 +166,78 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C63CC831DE7EE09001A0E22 /* libLuaScriptCore.a in Frameworks */,
+				7C177B971DEFDC39008C9DF1 /* libLuaScriptCore.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7C177B8C1DEFDC39008C9DF1 /* LuaScriptCore */ = {
+			isa = PBXGroup;
+			children = (
+				7C177B8D1DEFDC39008C9DF1 /* include */,
+				7C177B961DEFDC39008C9DF1 /* libLuaScriptCore.a */,
+			);
+			name = LuaScriptCore;
+			path = ../../../Release/iOS;
+			sourceTree = "<group>";
+		};
+		7C177B8D1DEFDC39008C9DF1 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				7C177B8E1DEFDC39008C9DF1 /* LSCContext.h */,
+				7C177B8F1DEFDC39008C9DF1 /* LSCFunction.h */,
+				7C177B901DEFDC39008C9DF1 /* LSCModule.h */,
+				7C177B911DEFDC39008C9DF1 /* LSCObjectClass.h */,
+				7C177B921DEFDC39008C9DF1 /* LSCPointer.h */,
+				7C177B931DEFDC39008C9DF1 /* LSCTypeDefinied.h */,
+				7C177B941DEFDC39008C9DF1 /* LSCValue.h */,
+				7C177B951DEFDC39008C9DF1 /* LuaScriptCore.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		7C177B981DEFDC6E008C9DF1 /* LuaScriptCore */ = {
+			isa = PBXGroup;
+			children = (
+				7C177B991DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework */,
+			);
+			name = LuaScriptCore;
+			path = "../../../Release/iOS-Swift";
+			sourceTree = "<group>";
+		};
+		7C177C101DEFEE73008C9DF1 /* Sample-OSX-Swift */ = {
+			isa = PBXGroup;
+			children = (
+				7CA46E541DEFF6CB0014253A /* LuaScriptCore */,
+				7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */,
+				7C177C131DEFEE73008C9DF1 /* ViewController1.swift */,
+				7C177C151DEFEE73008C9DF1 /* Assets.xcassets */,
+				7C177C171DEFEE73008C9DF1 /* Main.storyboard */,
+				7C177C1A1DEFEE73008C9DF1 /* Info.plist */,
+				7CA46E591DEFFE3C0014253A /* LogModule.swift */,
+				7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */,
+			);
+			path = "Sample-OSX-Swift";
+			sourceTree = "<group>";
+		};
+		7C21ED031DEFBE9A00507DA2 /* Sample-iOS-Swift */ = {
+			isa = PBXGroup;
+			children = (
+				7C177B981DEFDC6E008C9DF1 /* LuaScriptCore */,
+				7C21ED041DEFBE9A00507DA2 /* AppDelegate.swift */,
+				7C21ED061DEFBE9A00507DA2 /* ViewController.swift */,
+				7C21ED371DEFCEFA00507DA2 /* LogModule.swift */,
+				7C21ED3C1DEFD41200507DA2 /* LSCTPerson.swift */,
+				7C21ED081DEFBE9A00507DA2 /* Main.storyboard */,
+				7C21ED0B1DEFBE9A00507DA2 /* Assets.xcassets */,
+				7C21ED0D1DEFBE9A00507DA2 /* LaunchScreen.storyboard */,
+				7C21ED101DEFBE9A00507DA2 /* Info.plist */,
+			);
+			path = "Sample-iOS-Swift";
+			sourceTree = "<group>";
+		};
 		7C5A617E1D6AE2A3007D4308 /* Sample-OSX */ = {
 			isa = PBXGroup;
 			children = (
@@ -126,35 +262,10 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		7C63CC781DE7EE09001A0E22 /* iOS */ = {
-			isa = PBXGroup;
-			children = (
-				7C63CC791DE7EE09001A0E22 /* include */,
-				7C63CC821DE7EE09001A0E22 /* libLuaScriptCore.a */,
-			);
-			name = iOS;
-			path = ../../../Release/iOS;
-			sourceTree = "<group>";
-		};
-		7C63CC791DE7EE09001A0E22 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				7C63CC7A1DE7EE09001A0E22 /* LSCContext.h */,
-				7C63CC7B1DE7EE09001A0E22 /* LSCFunction.h */,
-				7C63CC7C1DE7EE09001A0E22 /* LSCModule.h */,
-				7C63CC7D1DE7EE09001A0E22 /* LSCObjectClass.h */,
-				7C63CC7E1DE7EE09001A0E22 /* LSCPointer.h */,
-				7C63CC7F1DE7EE09001A0E22 /* LSCTypeDefinied.h */,
-				7C63CC801DE7EE09001A0E22 /* LSCValue.h */,
-				7C63CC811DE7EE09001A0E22 /* LuaScriptCore.h */,
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
 		7C6B12721D6AFD1400489D9E /* Sample-iOS */ = {
 			isa = PBXGroup;
 			children = (
-				7C63CC781DE7EE09001A0E22 /* iOS */,
+				7C177B8C1DEFDC39008C9DF1 /* LuaScriptCore */,
 				7C6B12731D6AFD1400489D9E /* AppDelegate.h */,
 				7C6B12741D6AFD1400489D9E /* AppDelegate.m */,
 				7C6B12751D6AFD1400489D9E /* Assets.xcassets */,
@@ -175,6 +286,8 @@
 				7CE6250E1D93B3AA007533D7 /* LuaScript */,
 				7C6B12721D6AFD1400489D9E /* Sample-iOS */,
 				7C5A617E1D6AE2A3007D4308 /* Sample-OSX */,
+				7C21ED031DEFBE9A00507DA2 /* Sample-iOS-Swift */,
+				7C177C101DEFEE73008C9DF1 /* Sample-OSX-Swift */,
 				7C8C2DE11D38C345009345EB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -184,6 +297,8 @@
 			children = (
 				7C8C2DE01D38C345009345EB /* Sample-iOS.app */,
 				7C5A617D1D6AE2A3007D4308 /* Sample-OSX.app */,
+				7C21ED021DEFBE9A00507DA2 /* Sample-iOS-Swift.app */,
+				7C177C0F1DEFEE73008C9DF1 /* Sample-OSX-Swift.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -213,6 +328,15 @@
 			path = include;
 			sourceTree = "<group>";
 		};
+		7CA46E541DEFF6CB0014253A /* LuaScriptCore */ = {
+			isa = PBXGroup;
+			children = (
+				7CA46E551DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework */,
+			);
+			name = LuaScriptCore;
+			path = "../../../Release/OSX-Swift";
+			sourceTree = "<group>";
+		};
 		7CE6250E1D93B3AA007533D7 /* LuaScript */ = {
 			isa = PBXGroup;
 			children = (
@@ -238,6 +362,41 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		7C177C0E1DEFEE73008C9DF1 /* Sample-OSX-Swift */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C177C1B1DEFEE73008C9DF1 /* Build configuration list for PBXNativeTarget "Sample-OSX-Swift" */;
+			buildPhases = (
+				7C177C0B1DEFEE73008C9DF1 /* Sources */,
+				7C177C0C1DEFEE73008C9DF1 /* Frameworks */,
+				7C177C0D1DEFEE73008C9DF1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Sample-OSX-Swift";
+			productName = "Sample-OSX-Swift";
+			productReference = 7C177C0F1DEFEE73008C9DF1 /* Sample-OSX-Swift.app */;
+			productType = "com.apple.product-type.application";
+		};
+		7C21ED011DEFBE9A00507DA2 /* Sample-iOS-Swift */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7C21ED131DEFBE9A00507DA2 /* Build configuration list for PBXNativeTarget "Sample-iOS-Swift" */;
+			buildPhases = (
+				7C21ECFE1DEFBE9A00507DA2 /* Sources */,
+				7C21ECFF1DEFBE9A00507DA2 /* Frameworks */,
+				7C21ED001DEFBE9A00507DA2 /* Resources */,
+				7C21ED321DEFBEDD00507DA2 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Sample-iOS-Swift";
+			productName = "Sample-iOS-Swift";
+			productReference = 7C21ED021DEFBE9A00507DA2 /* Sample-iOS-Swift.app */;
+			productType = "com.apple.product-type.application";
+		};
 		7C5A617C1D6AE2A3007D4308 /* Sample-OSX */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7C5A61901D6AE2A3007D4308 /* Build configuration list for PBXNativeTarget "Sample-OSX" */;
@@ -278,9 +437,18 @@
 		7C8C2DD81D38C345009345EB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0810;
 				LastUpgradeCheck = 0730;
 				ORGANIZATIONNAME = vimfung;
 				TargetAttributes = {
+					7C177C0E1DEFEE73008C9DF1 = {
+						CreatedOnToolsVersion = 8.1;
+						ProvisioningStyle = Automatic;
+					};
+					7C21ED011DEFBE9A00507DA2 = {
+						CreatedOnToolsVersion = 8.1;
+						ProvisioningStyle = Automatic;
+					};
 					7C5A617C1D6AE2A3007D4308 = {
 						CreatedOnToolsVersion = 7.3;
 					};
@@ -305,11 +473,40 @@
 			targets = (
 				7C8C2DDF1D38C345009345EB /* Sample-iOS */,
 				7C5A617C1D6AE2A3007D4308 /* Sample-OSX */,
+				7C21ED011DEFBE9A00507DA2 /* Sample-iOS-Swift */,
+				7C177C0E1DEFEE73008C9DF1 /* Sample-OSX-Swift */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		7C177C0D1DEFEE73008C9DF1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7CFE0B501DF00E4200C41B89 /* dkjson.lua in Resources */,
+				7CFE0B511DF00E4200C41B89 /* main.lua in Resources */,
+				7CFE0B521DF00E4200C41B89 /* todo.lua in Resources */,
+				7CFE0B531DF00E4200C41B89 /* test.lua in Resources */,
+				7C177C161DEFEE73008C9DF1 /* Assets.xcassets in Resources */,
+				7C177C191DEFEE73008C9DF1 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7C21ED001DEFBE9A00507DA2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C21ED331DEFC39400507DA2 /* dkjson.lua in Resources */,
+				7C21ED341DEFC39400507DA2 /* main.lua in Resources */,
+				7C21ED351DEFC39400507DA2 /* todo.lua in Resources */,
+				7C21ED361DEFC39400507DA2 /* test.lua in Resources */,
+				7C21ED0F1DEFBE9A00507DA2 /* LaunchScreen.storyboard in Resources */,
+				7C21ED0C1DEFBE9A00507DA2 /* Assets.xcassets in Resources */,
+				7C21ED0A1DEFBE9A00507DA2 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7C5A617B1D6AE2A3007D4308 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -340,6 +537,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		7C177C0B1DEFEE73008C9DF1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7CA46E5C1DEFFE820014253A /* LSCTPerson.swift in Sources */,
+				7C177C141DEFEE73008C9DF1 /* ViewController1.swift in Sources */,
+				7C177C121DEFEE73008C9DF1 /* AppDelegate.swift in Sources */,
+				7CA46E5A1DEFFE3C0014253A /* LogModule.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7C21ECFE1DEFBE9A00507DA2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7C21ED3D1DEFD41200507DA2 /* LSCTPerson.swift in Sources */,
+				7C21ED071DEFBE9A00507DA2 /* ViewController.swift in Sources */,
+				7C21ED051DEFBE9A00507DA2 /* AppDelegate.swift in Sources */,
+				7C21ED381DEFCEFA00507DA2 /* LogModule.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7C5A61791D6AE2A3007D4308 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -367,6 +586,30 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		7C177C171DEFEE73008C9DF1 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7C177C181DEFEE73008C9DF1 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		7C21ED081DEFBE9A00507DA2 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7C21ED091DEFBE9A00507DA2 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		7C21ED0D1DEFBE9A00507DA2 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				7C21ED0E1DEFBE9A00507DA2 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
 		7C5A618A1D6AE2A3007D4308 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -394,6 +637,90 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		7C177C1C1DEFEE73008C9DF1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/../../Release/OSX-Swift";
+				INFOPLIST_FILE = "Sample-OSX-Swift/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = "cn.vimfung.Sample-OSX-Swift";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		7C177C1D1DEFEE73008C9DF1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/../../Release/OSX-Swift";
+				INFOPLIST_FILE = "Sample-OSX-Swift/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = "cn.vimfung.Sample-OSX-Swift";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
+		7C21ED111DEFBE9A00507DA2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/../../Release/iOS-Swift";
+				INFOPLIST_FILE = "Sample-iOS-Swift/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "cn.vimfung.Sample-iOS-Swift";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7C21ED121DEFBE9A00507DA2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/../../Release/iOS-Swift";
+				INFOPLIST_FILE = "Sample-iOS-Swift/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "cn.vimfung.Sample-iOS-Swift";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 3.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		7C5A618E1D6AE2A3007D4308 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -547,6 +874,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		7C177C1B1DEFEE73008C9DF1 /* Build configuration list for PBXNativeTarget "Sample-OSX-Swift" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C177C1C1DEFEE73008C9DF1 /* Debug */,
+				7C177C1D1DEFEE73008C9DF1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7C21ED131DEFBE9A00507DA2 /* Build configuration list for PBXNativeTarget "Sample-iOS-Swift" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7C21ED111DEFBE9A00507DA2 /* Debug */,
+				7C21ED121DEFBE9A00507DA2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		7C5A61901D6AE2A3007D4308 /* Build configuration list for PBXNativeTarget "Sample-OSX" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
