@@ -176,7 +176,11 @@ static int ModuleMethodRouteHandler(lua_State *state)
 
 + (NSString *)moduleName
 {
-    return NSStringFromClass([self class]);
+    NSString *name = NSStringFromClass([self class]);
+    
+    //Fixed : 由于Swift中类名带有模块名称，因此需要根据.分割字符串，并取最后一部份为导出类名
+    NSArray<NSString *> *nameComponents = [name componentsSeparatedByString:@"."];
+    return nameComponents.lastObject;
 }
 
 #pragma mark - Private

@@ -695,7 +695,7 @@ static int subClassHandler (lua_State *state)
 /**
  获取元类名称
 
- @param cls 类型
+ @param moduleName 类型
  @return 元类名称
  */
 + (NSString *)_metaClassNameWithClass:(NSString *)moduleName

@@ -1,0 +1,10 @@
+framework module LuaScriptCore_OSX_Swift {
+  umbrella header "LuaScriptCore_OSX_Swift.h"
+
+  export *
+  module * { export * }
+}
+
+module LuaScriptCore_OSX_Swift.Swift {
+    header "LuaScriptCore_OSX_Swift-Swift.h"
+}

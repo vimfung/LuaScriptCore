@@ -40,7 +40,7 @@ typedef void (^LSCExceptionHandler) (NSString *message);
  *
  *  @return 返回值
  */
-typedef LSCValue* (^LSCFunctionHandler) (NSArray *arguments);
+typedef LSCValue* (^LSCFunctionHandler) (NSArray<LSCValue *> *arguments);
 
 
 #endif /* LSCTypeDefinied_h */
