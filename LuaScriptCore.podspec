@@ -105,7 +105,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'OCLua' do |oclua|
 
-    oclua.source_files = 'Source/iOS_OSX/Code/**/*'
+    oclua.source_files = 'Source/iOS_OSX/Code/**/*', "Source/iOS_OSX/*.{h,m}"
     oclua.dependency 'LuaScriptCore/Core'
     oclua.requires_arc = true
 
