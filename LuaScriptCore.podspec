@@ -98,7 +98,7 @@ Pod::Spec.new do |s|
 
   s.subspec 'Core' do |core|
 
-    core.source_files = 'Source/lua-core/src/*.{h,hpp,c}'
+    core.source_files = 'Source/lua-core/src/*.{h,c}'
     core.requires_arc = true
 
   end
