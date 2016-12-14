@@ -99,6 +99,7 @@ Pod::Spec.new do |s|
   s.subspec 'Core' do |core|
 
     core.source_files = 'Source/lua-core/src/*.{h,hpp,c}'
+    core.requires_arc = true
 
   end
 
@@ -106,6 +107,7 @@ Pod::Spec.new do |s|
 
     oclua.source_files = 'Source/iOS_OSX/Code/**/*'
     oclua.dependency 'LuaScriptCore/Core'
+    oclua.requires_arc = true
 
   end
 
