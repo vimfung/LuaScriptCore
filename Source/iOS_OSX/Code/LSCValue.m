@@ -375,12 +375,13 @@
         {
             
             size_t len = 0;
-            const char *bytes = luaL_checklstring(state, (int)index, &len);
+            const char *bytes = lua_tolstring(state, (int)index, &len);
             
-            if (bytes[len] == 0)
+            //尝试转换成字符串
+            NSString *strValue = [NSString stringWithCString:bytes encoding:NSUTF8StringEncoding];
+            if (strValue)
             {
                 //为NSString
-                NSString *strValue = [NSString stringWithCString:bytes encoding:NSUTF8StringEncoding];
                 value = [LSCValue stringValue:strValue];
             }
             else
