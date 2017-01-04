@@ -31,17 +31,17 @@ namespace cn.vimfung.luascriptcore
 			NativeUtils.releaseObject(_nativeObjectId);
 		}
 
-//		/// <summary>
-//		/// 获取原生类名称
-//		/// </summary>
-//		/// <value>类名称.</value>
-//		public virtual string nativeClassName
-//		{
-//			get 
-//			{
-//				return "Object";
-//			}
-//		}
+		/// <summary>
+		/// 获取本地对象标识
+		/// </summary>
+		/// <value>本地对象标识</value>
+		public int objectId
+		{
+			get 
+			{
+				return _nativeObjectId;
+			}
+		}
 
 		/// <summary>
 		/// 序列化对象

@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7C177B971DEFDC39008C9DF1 /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C177B961DEFDC39008C9DF1 /* libLuaScriptCore.a */; };
 		7C177B9A1DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C177B991DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework */; };
 		7C177C121DEFEE73008C9DF1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */; };
 		7C177C141DEFEE73008C9DF1 /* ViewController1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C177C131DEFEE73008C9DF1 /* ViewController1.swift */; };
 		7C177C161DEFEE73008C9DF1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C177C151DEFEE73008C9DF1 /* Assets.xcassets */; };
 		7C177C191DEFEE73008C9DF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C177C171DEFEE73008C9DF1 /* Main.storyboard */; };
+		7C1E5A4C1E0113EC00C3C2E2 /* LogModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE6251A1D93B3C8007533D7 /* LogModule.m */; };
+		7C1E5A4D1E0113EC00C3C2E2 /* LSCTPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE625291D93B435007533D7 /* LSCTPerson.m */; };
+		7C1E5A591E01142900C3C2E2 /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C1E5A581E01142900C3C2E2 /* libLuaScriptCore.a */; };
 		7C210E041DCB5FD3000838F9 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
 		7C210E051DCB5FD3000838F9 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
 		7C21ED051DEFBE9A00507DA2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED041DEFBE9A00507DA2 /* AppDelegate.swift */; };
@@ -47,9 +49,7 @@
 		7CE625151D93B3AA007533D7 /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625101D93B3AA007533D7 /* main.lua */; };
 		7CE625161D93B3AA007533D7 /* todo.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625111D93B3AA007533D7 /* todo.lua */; };
 		7CE625171D93B3AA007533D7 /* todo.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625111D93B3AA007533D7 /* todo.lua */; };
-		7CE6251B1D93B3C8007533D7 /* LogModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE6251A1D93B3C8007533D7 /* LogModule.m */; };
 		7CE6251C1D93B3C8007533D7 /* LogModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE6251A1D93B3C8007533D7 /* LogModule.m */; };
-		7CE6252A1D93B435007533D7 /* LSCTPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE625291D93B435007533D7 /* LSCTPerson.m */; };
 		7CE6252B1D93B435007533D7 /* LSCTPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE625291D93B435007533D7 /* LSCTPerson.m */; };
 		7CFE0B501DF00E4200C41B89 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
 		7CFE0B511DF00E4200C41B89 /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625101D93B3AA007533D7 /* main.lua */; };
@@ -71,15 +71,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		7C177B8E1DEFDC39008C9DF1 /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCContext.h; sourceTree = "<group>"; };
-		7C177B8F1DEFDC39008C9DF1 /* LSCFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction.h; sourceTree = "<group>"; };
-		7C177B901DEFDC39008C9DF1 /* LSCModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCModule.h; sourceTree = "<group>"; };
-		7C177B911DEFDC39008C9DF1 /* LSCObjectClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectClass.h; sourceTree = "<group>"; };
-		7C177B921DEFDC39008C9DF1 /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCPointer.h; sourceTree = "<group>"; };
-		7C177B931DEFDC39008C9DF1 /* LSCTypeDefinied.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTypeDefinied.h; sourceTree = "<group>"; };
-		7C177B941DEFDC39008C9DF1 /* LSCValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCValue.h; sourceTree = "<group>"; };
-		7C177B951DEFDC39008C9DF1 /* LuaScriptCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaScriptCore.h; sourceTree = "<group>"; };
-		7C177B961DEFDC39008C9DF1 /* libLuaScriptCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLuaScriptCore.a; sourceTree = "<group>"; };
 		7C177B991DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = LuaScriptCore_iOS_Swift.framework; sourceTree = "<group>"; };
 		7C177C0F1DEFEE73008C9DF1 /* Sample-OSX-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-OSX-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -87,6 +78,15 @@
 		7C177C151DEFEE73008C9DF1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C177C181DEFEE73008C9DF1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C177C1A1DEFEE73008C9DF1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7C1E5A501E01142900C3C2E2 /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCContext.h; sourceTree = "<group>"; };
+		7C1E5A511E01142900C3C2E2 /* LSCFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction.h; sourceTree = "<group>"; };
+		7C1E5A521E01142900C3C2E2 /* LSCModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCModule.h; sourceTree = "<group>"; };
+		7C1E5A531E01142900C3C2E2 /* LSCObjectClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectClass.h; sourceTree = "<group>"; };
+		7C1E5A541E01142900C3C2E2 /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCPointer.h; sourceTree = "<group>"; };
+		7C1E5A551E01142900C3C2E2 /* LSCTypeDefinied.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTypeDefinied.h; sourceTree = "<group>"; };
+		7C1E5A561E01142900C3C2E2 /* LSCValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCValue.h; sourceTree = "<group>"; };
+		7C1E5A571E01142900C3C2E2 /* LuaScriptCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaScriptCore.h; sourceTree = "<group>"; };
+		7C1E5A581E01142900C3C2E2 /* libLuaScriptCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLuaScriptCore.a; sourceTree = "<group>"; };
 		7C210E031DCB5FD3000838F9 /* test.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.lua; sourceTree = "<group>"; };
 		7C21ED021DEFBE9A00507DA2 /* Sample-iOS-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-iOS-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C21ED041DEFBE9A00507DA2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -166,38 +166,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C177B971DEFDC39008C9DF1 /* libLuaScriptCore.a in Frameworks */,
+				7C1E5A591E01142900C3C2E2 /* libLuaScriptCore.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		7C177B8C1DEFDC39008C9DF1 /* LuaScriptCore */ = {
-			isa = PBXGroup;
-			children = (
-				7C177B8D1DEFDC39008C9DF1 /* include */,
-				7C177B961DEFDC39008C9DF1 /* libLuaScriptCore.a */,
-			);
-			name = LuaScriptCore;
-			path = ../../../Release/iOS;
-			sourceTree = "<group>";
-		};
-		7C177B8D1DEFDC39008C9DF1 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				7C177B8E1DEFDC39008C9DF1 /* LSCContext.h */,
-				7C177B8F1DEFDC39008C9DF1 /* LSCFunction.h */,
-				7C177B901DEFDC39008C9DF1 /* LSCModule.h */,
-				7C177B911DEFDC39008C9DF1 /* LSCObjectClass.h */,
-				7C177B921DEFDC39008C9DF1 /* LSCPointer.h */,
-				7C177B931DEFDC39008C9DF1 /* LSCTypeDefinied.h */,
-				7C177B941DEFDC39008C9DF1 /* LSCValue.h */,
-				7C177B951DEFDC39008C9DF1 /* LuaScriptCore.h */,
-			);
-			path = include;
-			sourceTree = "<group>";
-		};
 		7C177B981DEFDC6E008C9DF1 /* LuaScriptCore */ = {
 			isa = PBXGroup;
 			children = (
@@ -220,6 +195,31 @@
 				7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */,
 			);
 			path = "Sample-OSX-Swift";
+			sourceTree = "<group>";
+		};
+		7C1E5A4E1E01142900C3C2E2 /* LuaScriptCore */ = {
+			isa = PBXGroup;
+			children = (
+				7C1E5A4F1E01142900C3C2E2 /* include */,
+				7C1E5A581E01142900C3C2E2 /* libLuaScriptCore.a */,
+			);
+			name = LuaScriptCore;
+			path = ../../../Release/iOS;
+			sourceTree = "<group>";
+		};
+		7C1E5A4F1E01142900C3C2E2 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				7C1E5A501E01142900C3C2E2 /* LSCContext.h */,
+				7C1E5A511E01142900C3C2E2 /* LSCFunction.h */,
+				7C1E5A521E01142900C3C2E2 /* LSCModule.h */,
+				7C1E5A531E01142900C3C2E2 /* LSCObjectClass.h */,
+				7C1E5A541E01142900C3C2E2 /* LSCPointer.h */,
+				7C1E5A551E01142900C3C2E2 /* LSCTypeDefinied.h */,
+				7C1E5A561E01142900C3C2E2 /* LSCValue.h */,
+				7C1E5A571E01142900C3C2E2 /* LuaScriptCore.h */,
+			);
+			path = include;
 			sourceTree = "<group>";
 		};
 		7C21ED031DEFBE9A00507DA2 /* Sample-iOS-Swift */ = {
@@ -265,7 +265,7 @@
 		7C6B12721D6AFD1400489D9E /* Sample-iOS */ = {
 			isa = PBXGroup;
 			children = (
-				7C177B8C1DEFDC39008C9DF1 /* LuaScriptCore */,
+				7C1E5A4E1E01142900C3C2E2 /* LuaScriptCore */,
 				7C6B12731D6AFD1400489D9E /* AppDelegate.h */,
 				7C6B12741D6AFD1400489D9E /* AppDelegate.m */,
 				7C6B12751D6AFD1400489D9E /* Assets.xcassets */,
@@ -575,10 +575,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C1E5A4C1E0113EC00C3C2E2 /* LogModule.m in Sources */,
+				7C1E5A4D1E0113EC00C3C2E2 /* LSCTPerson.m in Sources */,
 				7C6B12841D6AFD1400489D9E /* ViewController.m in Sources */,
 				7C6B12831D6AFD1400489D9E /* main.m in Sources */,
-				7CE6251B1D93B3C8007533D7 /* LogModule.m in Sources */,
-				7CE6252A1D93B435007533D7 /* LSCTPerson.m in Sources */,
 				7C6B127E1D6AFD1400489D9E /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

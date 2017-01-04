@@ -22,13 +22,21 @@ extern "C" {
     using namespace cn::vimfung::luascriptcore;
     
     typedef std::map<std::string, LuaMethodHandlerPtr> LuaMethodPtrMap;
+    typedef std::map<std::string, LuaModuleMethodHandlerPtr> LuaModuleMethodPtrMap;
+    
     typedef std::map<int, LuaExceptionHandlerPtr> LuaContextExceptionPtrMap;
     typedef std::map<int, LuaMethodPtrMap> LuaContextMethodPtrMap;
+    typedef std::map<int, LuaModuleMethodPtrMap> LuaContextModuleMethodPtrMap;
     
     /**
      方法指针集合
      */
     static LuaContextMethodPtrMap _luaMethodPtrMap;
+    
+    /**
+     模块方法指针集合
+     */
+    static LuaContextModuleMethodPtrMap _luaModuleMethodPtrMap;
     
     /**
      异常处理器指针集合
@@ -64,6 +72,61 @@ extern "C" {
             //paramsBuffer的内由C#端进行释放
             const void *paramsBuffer = encoder -> cloneBuffer();
             void *returnBuffer = methodPtr(context -> objectId(), methodName.c_str(), paramsBuffer, encoder -> getBufferLength());
+            
+            encoder -> release();
+            
+            LuaValue *retValue = NULL;
+            if (returnBuffer != NULL)
+            {
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(returnBuffer);
+                retValue = dynamic_cast<LuaValue *>(decoder -> readObject());
+                decoder -> release();
+                
+                //释放C＃中申请的内存
+                free(returnBuffer);
+            }
+            else
+            {
+                retValue = LuaValue::NilValue();
+            }
+            
+            return retValue;
+        }
+        
+        return NULL;
+    }
+    
+    
+    /**
+     Lua模块方法处理器
+
+     @param module 模块对象
+     @param methodName 方法名称
+     @param arguments 参数列表
+     @return 返回值
+     */
+    static LuaValue* luaModuleMethodHandler(LuaModule *module, std::string methodName, LuaArgumentList arguments)
+    {
+        LuaModuleMethodPtrMap methodPtrMap = _luaModuleMethodPtrMap[module  -> objectId()];
+        LuaModuleMethodPtrMap::iterator it = methodPtrMap.find(methodName);
+        if (it != methodPtrMap.end())
+        {
+            //找到相关注册方法
+            LuaModuleMethodHandlerPtr methodPtr = it -> second;
+            
+            //编码参数列表
+            LuaObjectEncoder *encoder = new LuaObjectEncoder();
+            encoder -> writeInt32((int)arguments.size());
+            
+            for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); ++it)
+            {
+                LuaValue *value = *it;
+                encoder -> writeObject(value);
+            }
+            
+            //paramsBuffer的内容由C#端进行释放
+            const void *paramsBuffer = encoder -> cloneBuffer();
+            void *returnBuffer = methodPtr(module -> objectId(), methodName.c_str(), paramsBuffer, encoder -> getBufferLength());
             
             encoder -> release();
             
@@ -231,7 +294,7 @@ extern "C" {
             {
                 LuaObjectDecoder *decoder = new LuaObjectDecoder(params);
                 int size = decoder -> readInt32();
-
+                
                 for (int i = 0; i < size; i++)
                 {
                     LuaValue *value = dynamic_cast<LuaValue *>(decoder -> readObject());
@@ -277,6 +340,62 @@ extern "C" {
             _luaMethodPtrMap[nativeContextId][methodName] = methodPtr;
             context -> registerMethod(methodName, luaMethodHandler);
         }
+    }
+    
+    /**
+     注册模块
+     
+     @param nativeContextId 本地上下文对象ID
+     @param moduleName 模块名称
+     */
+    int registerModule(int nativeContextId, const char *moduleName, const void *exportsMethodNames, LuaModuleMethodHandlerPtr methodRouteHandler)
+    {
+        LuaModule *module = NULL;
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL)
+        {
+            module = new LuaModule();
+            context -> registerModule(moduleName, module);
+            
+            if (exportsMethodNames != NULL)
+            {
+                //注册方法
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(exportsMethodNames);
+                int size = decoder -> readInt32();
+                for (int i = 0; i < size; i++)
+                {
+                    std::string methodName = decoder -> readString();
+                    
+                    _luaModuleMethodPtrMap[module -> objectId()][methodName] = methodRouteHandler;
+                    module -> registerMethod(methodName, luaModuleMethodHandler);
+                }
+            }
+            
+        }
+        
+        if (exportsMethodNames != NULL)
+        {
+            free((void *)exportsMethodNames);
+        }
+        
+        return module != NULL ? module -> objectId() : -1;
+    }
+    
+    /**
+     判断模块是否注册
+     
+     @param nativeContextId 本地上下文对象ID
+     @param moduleName 模块名称
+     @return true 表示已注册，false 表示尚未注册。
+     */
+    bool isModuleRegisted(int nativeContextId, const char *moduleName)
+    {
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL)
+        {
+            return context -> isModuleRegisted(moduleName);
+        }
+        return false;
     }
     
 #if defined (__cplusplus)

@@ -63,8 +63,9 @@ namespace cn.vimfung.luascriptcore
 		public void writeDouble(double value)
 		{
 			byte[] bytes = BitConverter.GetBytes (value);
-			if (BitConverter.IsLittleEndian)
+			if (!BitConverter.IsLittleEndian)
 			{
+				//置换数组位置
 				Array.Reverse (bytes);
 			}
 			_buffer.AddRange (bytes);
