@@ -11,6 +11,11 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	private bool _isRegMethod = false;
 
+	/// <summary>
+	/// 是否注册模块
+	/// </summary>
+	private bool _isRegModule = false;
+
 	public void Start()
 	{
 		LuaContext.currentContext.onException((errMessage) => {
@@ -56,7 +61,21 @@ public class Sample : MonoBehaviour {
 	{
 		//加载Lua脚本
 		LuaContext.currentContext.evalScriptFromFile("todo.lua");
-		LuaValue retValue = LuaContext.currentContext.callMethod ("add", new List<LuaValue> (){ new LuaValue (1000), new LuaValue (24)});
+		LuaValue retValue = LuaContext.currentContext.callMethod ("add", new List<LuaValue> (){ new LuaValue (1000.0), new LuaValue (24.0)});
 		Debug.Log (string.Format ("result = {0}", retValue.toNumber ()));
+	}
+
+	/// <summary>
+	/// 注册模块方法按钮点击
+	/// </summary>
+	public void registerModuleButtonClickedHandler()
+	{
+		if (!_isRegModule)
+		{
+			_isRegModule = true;
+			LuaContext.currentContext.registerModule<LogModule> ();
+		}
+
+		LuaContext.currentContext.evalScript ("LogModule.writeLog('Hello World!'); local a = LogModule.test({1,2,3,4,5}); print(a);");
 	}
 }

@@ -7,7 +7,10 @@ using AOT;
 namespace cn.vimfung.luascriptcore
 {
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaMethodHandlerDelegate(int nativeContextId, string methodName, IntPtr arguments, int size);
+	public delegate IntPtr LuaMethodHandleDelegate(int nativeContextId, string methodName, IntPtr arguments, int size);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaModuleMethodHandleDelegate (int nativeModuleId, string methodName, IntPtr arguments, int size);
 
 	public class NativeUtils  
 	{
@@ -118,12 +121,31 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void releaseObject(int objectId);
 
 		/// <summary>
+		/// 注册模块
+		/// </summary>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
+		/// <param name="moduleName">模块名称</param>
+		/// <param name="exportsMethodNames">导出方法名称列表.</param>
+		/// <param name="methodRouteHandler">方法路由处理器，所有的方法都会由此方法来回调</param>
+		/// <returns>模块的本地标识</returns>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static int registerModule (int nativeContextId, string moduleName, IntPtr exportsMethodNames, IntPtr methodRouteHandler);
+
+		/// <summary>
+		/// 判断模块是否注册
+		/// </summary>
+		/// <returns>true表示注册，false表示尚未注册</returns>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
+		/// <param name="moduleName">模块名称</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static bool isModuleRegisted (int nativeContextId, string moduleName);
+
+		/// <summary>
 		/// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。
 		/// </summary>
 		/// <param name="fp">方法回调</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
 		private extern static void setUnityDebugLog (IntPtr fp);
-
 
 #elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
 
@@ -278,6 +300,26 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("__Internal")]
 		internal extern static void releaseObject(int objectId);
 
+		/// <summary>
+		/// 注册模块
+		/// </summary>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
+		/// <param name="moduleName">模块名称</param>
+		/// <param name="exportsMethodNames">导出方法名称列表.</param>
+		/// <param name="methodRouteHandler">方法路由处理器，所有的方法都会由此方法来回调</param>
+		/// <returns>模块的本地标识</returns>
+		[DllImport("__Internal")]
+		internal extern static int registerModule (int nativeContextId, string moduleName, IntPtr exportsMethodNames, IntPtr methodRouteHandler);
+
+		/// <summary>
+		/// 判断模块是否注册
+		/// </summary>
+		/// <returns>true表示注册，false表示尚未注册</returns>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
+		/// <param name="moduleName">模块名称</param>
+		[DllImport("__Internal")]
+		internal extern static bool isModuleRegisted (int nativeContextId, string moduleName);
+
 #elif UNITY_ANDROID
 
 		/// <summary>
@@ -350,6 +392,26 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="objectId">本地对象标识.</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
 		internal extern static void releaseObject(int objectId);
+
+		/// <summary>
+		/// 注册模块
+		/// </summary>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
+		/// <param name="moduleName">模块名称</param>
+		/// <param name="exportsMethodNames">导出方法名称列表.</param>
+		/// <param name="methodRouteHandler">方法路由处理器，所有的方法都会由此方法来回调</param>
+		/// <returns>模块的本地标识</returns>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static int registerModule (int nativeContextId, string moduleName, IntPtr exportsMethodNames, IntPtr methodRouteHandler);
+
+		/// <summary>
+		/// 判断模块是否注册
+		/// </summary>
+		/// <returns>true表示注册，false表示尚未注册</returns>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
+		/// <param name="moduleName">模块名称</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static bool isModuleRegisted (int nativeContextId, string moduleName);
 
 #endif
 	}
