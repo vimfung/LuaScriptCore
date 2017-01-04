@@ -12,7 +12,7 @@
 typedef union
 {
     double value;
-    char   bytes[8];
+    unsigned char   bytes[8];
     
 }DoubleStruct;
 

@@ -71,7 +71,9 @@ long long LuaObjectDecoder::readInt64()
 double LuaObjectDecoder::readDouble()
 {
     DoubleStruct ds;
-    memcpy(ds.bytes, (((char *)_buf) + _offset), 8);
+    memcpy(ds.bytes, (((unsigned char *)_buf) + _offset), 8);
+    _offset += 8;
+    
     return ds.value;
 }
 
@@ -102,6 +104,7 @@ LuaObject* LuaObjectDecoder::readObject()
 {
     if (readByte () == 'L')
     {
+        
         std::string className = readString ();
         
         if (readByte () == ';')

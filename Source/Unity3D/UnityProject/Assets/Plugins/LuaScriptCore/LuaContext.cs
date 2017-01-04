@@ -35,7 +35,7 @@ namespace cn.vimfung.luascriptcore
 		/// <summary>
 		/// 方法处理委托
 		/// </summary>
-		private static LuaMethodHandlerDelegate _methodHandlerDelegate;
+		private static LuaMethodHandleDelegate _methodHandleDelegate;
 
 		/// <summary>
 		/// The contexts.
@@ -198,13 +198,32 @@ namespace cn.vimfung.luascriptcore
 		{
 			_methodHandlers [methodName] = handler;
 
-			if (_methodHandlerDelegate == null) 
+			if (_methodHandleDelegate == null) 
 			{
-				_methodHandlerDelegate = new LuaMethodHandlerDelegate(luaMethodRoute);
+				_methodHandleDelegate = new LuaMethodHandleDelegate(luaMethodRoute);
 			}
 
-			IntPtr fp = Marshal.GetFunctionPointerForDelegate(_methodHandlerDelegate);
+			IntPtr fp = Marshal.GetFunctionPointerForDelegate(_methodHandleDelegate);
 			NativeUtils.registerMethod (_nativeObjectId, methodName, fp);
+		}
+
+		/// <summary>
+		/// 注册模块
+		/// </summary>
+		/// <typeparam name="T">模块类型</typeparam>
+		public void registerModule<T>()
+		{
+			LuaModule.register<T> (this);
+		}
+
+		/// <summary>
+		/// 判断模块是否注册
+		/// </summary>
+		/// <returns>true表示已注册,false表示尚未注册</returns>
+		/// <param name="moduleName">模块名称.</param>
+		public bool isModuleRegisted(string moduleName)
+		{
+			return NativeUtils.isModuleRegisted(_nativeObjectId, moduleName);
 		}
 
 		/// <summary>
@@ -378,8 +397,8 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="methodName">方法名称.</param>
 		/// <param name="arguments">参数列表缓冲区.</param>
 		/// <param name="size">参数列表缓冲区大小.</param>
-		[MonoPInvokeCallback (typeof (LuaMethodHandlerDelegate))]
-		static IntPtr luaMethodRoute (int nativeContextId, string methodName, IntPtr arguments, int size)
+		[MonoPInvokeCallback (typeof (LuaMethodHandleDelegate))]
+		private static IntPtr luaMethodRoute (int nativeContextId, string methodName, IntPtr arguments, int size)
 		{
 			if (_contexts.ContainsKey (nativeContextId)) 
 			{

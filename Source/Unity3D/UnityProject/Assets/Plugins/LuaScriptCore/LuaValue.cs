@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace cn.vimfung.luascriptcore
 {
@@ -101,6 +102,75 @@ namespace cn.vimfung.luascriptcore
 		{
 			_value = value;
 			_type = LuaValueType.Data;
+		}
+
+		/// <summary>
+		/// 初始化一个对象值
+		/// </summary>
+		/// <param name="value">对象</param>
+		public LuaValue (object value)
+		{
+			if (value is int
+				|| value is uint
+				|| value is Int16
+				|| value is UInt16
+				|| value is Int64
+				|| value is UInt64)
+			{
+				_value = value;
+				_type = LuaValueType.Integer;
+			}
+			else if (value is double 
+				|| value is float)
+			{
+				_value = value;
+				_type = LuaValueType.Number;
+			}
+			else if (value is bool)
+			{
+				_value = value;
+				_type = LuaValueType.Boolean;
+			}
+			else if (value is byte[])
+			{
+				_value = value;
+				_type = LuaValueType.Data;
+			}
+			else if (value is string)
+			{
+				_value = value;
+				_type = LuaValueType.String;
+			}
+			else if (value is Array)
+			{
+				List<LuaValue> arr = new List<LuaValue> ();
+				_value = arr;
+				_type = LuaValueType.Array;
+
+				//转换数据
+				foreach (object item in (value as Array)) 
+				{
+					LuaValue itemValue = new LuaValue (item);
+					arr.Add (itemValue);
+				}
+			}
+			else if (value is IDictionary)
+			{
+				Dictionary<string, LuaValue> dict = new Dictionary<string, LuaValue> ();
+				_value = dict;
+				_type = LuaValueType.Map;
+
+				foreach (DictionaryEntry de in (value as IDictionary))
+				{
+					LuaValue itemValue = new LuaValue (de.Value);
+					dict.Add (Convert.ToString(de.Key), itemValue);
+				}
+			}
+			else
+			{
+				_value = null;
+				_type = LuaValueType.Nil;
+			}
 		}
 
 		/// <summary>
@@ -311,7 +381,19 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>二进制数据流</returns>
 		public byte[] toData()
 		{
-			return (byte[])_value;
+			switch (_type) 
+			{
+			case LuaValueType.Integer:
+				return BitConverter.GetBytes (Convert.ToInt32 (_value));
+			case LuaValueType.Number:
+				return BitConverter.GetBytes (Convert.ToDouble(_value));
+			case LuaValueType.String:
+				return Encoding.UTF8.GetBytes (Convert.ToString(_value));
+			case LuaValueType.Data:
+				return (byte[])_value;
+			default:
+				return null;
+			}
 		}
 
 		/// <summary>
@@ -339,6 +421,15 @@ namespace cn.vimfung.luascriptcore
 		public Dictionary<string, LuaValue> toMap()
 		{
 			return _value as Dictionary<string, LuaValue>;
+		}
+
+		/// <summary>
+		/// 转换为对象
+		/// </summary>
+		/// <returns>对象.</returns>
+		public object toObject()
+		{
+			return _value;
 		}
 	}
 }
