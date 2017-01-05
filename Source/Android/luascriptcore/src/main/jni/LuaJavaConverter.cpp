@@ -9,6 +9,7 @@
 #include "LuaJavaObjectDescriptor.h"
 #include "LuaJavaEnv.h"
 #include "LuaDefine.h"
+#include "LuaFunction.h"
 
 LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject context)
 {

@@ -12,7 +12,6 @@
 #include "LuaObject.h"
 #include "LuaPointer.h"
 #include "LuaObjectDescriptor.h"
-#include "LuaFunction.h"
 
 namespace cn
 {
@@ -22,6 +21,7 @@ namespace cn
         {
             class LuaValue;
             class LuaContext;
+            class LuaFunction;
 
             typedef std::list<LuaValue *> LuaValueList;
             typedef std::map<std::string, LuaValue*> LuaValueMap;
