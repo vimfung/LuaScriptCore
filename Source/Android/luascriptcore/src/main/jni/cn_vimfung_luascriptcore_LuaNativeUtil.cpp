@@ -16,6 +16,7 @@
 #include "LuaJavaType.h"
 #include "LuaObjectClass.h"
 #include "LuaJavaObjectClass.h"
+#include "LuaFunction.h"
 
 using namespace cn::vimfung::luascriptcore;
 using namespace cn::vimfung::luascriptcore::modules::oo;

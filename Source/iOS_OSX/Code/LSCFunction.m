@@ -146,9 +146,9 @@ static NSString *const FunctionsTableName = @"_tmpFuncs_";
     return retValue;
 }
 
-- (void)push
+- (void)pushWithContext:(LSCContext *)context
 {
-    lua_State *state = self.context.state;
+    lua_State *state = context.state;
     
     lua_getglobal(state, "_G");
     if (lua_istable(state, -1))

@@ -6,6 +6,7 @@
 #include "LuaValue.h"
 #include "LuaModule.h"
 #include "LuaPointer.h"
+#include "LuaFunction.h"
 #include <map>
 #include <list>
 #include <iostream>

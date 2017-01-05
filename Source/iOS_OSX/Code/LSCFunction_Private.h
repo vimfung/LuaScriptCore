@@ -37,7 +37,9 @@
 
 /**
  将方法入栈
+ 
+ @param context 上下文对象
  */
-- (void)push;
+- (void)pushWithContext:(LSCContext *)context;
 
 @end
