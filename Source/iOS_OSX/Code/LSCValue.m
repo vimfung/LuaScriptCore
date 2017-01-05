@@ -74,33 +74,36 @@
 
 + (instancetype)objectValue:(id)objectValue
 {
-    if ([objectValue isKindOfClass:[NSDictionary class]])
+    if (objectValue)
     {
-        return [self dictionaryValue:objectValue];
-    }
-    else if ([objectValue isKindOfClass:[NSArray class]])
-    {
-        return [self arrayValue:objectValue];
-    }
-    else if ([objectValue isKindOfClass:[NSNumber class]])
-    {
-        return [self numberValue:objectValue];
-    }
-    else if ([objectValue isKindOfClass:[NSString class]])
-    {
-        return [self stringValue:objectValue];
-    }
-    else if ([objectValue isKindOfClass:[NSData class]])
-    {
-        return [self dataValue:objectValue];
-    }
-    else if ([objectValue isKindOfClass:[LSCFunction class]])
-    {
-        return [self functionValue:objectValue];
-    }
-    else
-    {
-        return [[self alloc] initWithType:LSCValueTypeObject value:objectValue];
+        if ([objectValue isKindOfClass:[NSDictionary class]])
+        {
+            return [self dictionaryValue:objectValue];
+        }
+        else if ([objectValue isKindOfClass:[NSArray class]])
+        {
+            return [self arrayValue:objectValue];
+        }
+        else if ([objectValue isKindOfClass:[NSNumber class]])
+        {
+            return [self numberValue:objectValue];
+        }
+        else if ([objectValue isKindOfClass:[NSString class]])
+        {
+            return [self stringValue:objectValue];
+        }
+        else if ([objectValue isKindOfClass:[NSData class]])
+        {
+            return [self dataValue:objectValue];
+        }
+        else if ([objectValue isKindOfClass:[LSCFunction class]])
+        {
+            return [self functionValue:objectValue];
+        }
+        else
+        {
+            return [[self alloc] initWithType:LSCValueTypeObject value:objectValue];
+        }
     }
     
     return [self nilValue];
@@ -150,7 +153,7 @@
         case LSCValueTypeArray:
         case LSCValueTypeMap:
         {
-            [self pushTable:state value:self.valueContainer];
+            [self pushTable:context value:self.valueContainer];
             break;
         }
         case LSCValueTypeData:
@@ -196,10 +199,11 @@
         }
         case LSCValueTypeFunction:
         {
-            [[self toFunction] push];
+            [[self toFunction] pushWithContext:context];
             break;
         }
         default:
+            lua_pushnil(state);
             break;
     }
 }
@@ -500,11 +504,13 @@
 /**
  *  压入一个Table类型
  *
- *  @param state Lua解析器
+ *  @param context 上下文对象
  *  @param value 值
  */
-- (void)pushTable:(lua_State *)state value:(id)value
+- (void)pushTable:(LSCContext *)context value:(id)value
 {
+    lua_State *state = context.state;
+    
     __weak LSCValue *theValue = self;
     if ([value isKindOfClass:[NSDictionary class]])
     {
@@ -512,7 +518,7 @@
         [(NSDictionary *)value
          enumerateKeysAndObjectsUsingBlock:^(id _Nonnull key, id _Nonnull obj, BOOL *_Nonnull stop) {
              
-             [theValue pushTable:state value:obj];
+             [theValue pushTable:context value:obj];
              lua_setfield(state, -2, [[NSString stringWithFormat:@"%@", key] UTF8String]);
              
          }];
@@ -523,7 +529,7 @@
         [(NSArray *)value enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL *_Nonnull stop) {
              
              // lua数组下标从1开始
-             [theValue pushTable:state value:obj];
+             [theValue pushTable:context value:obj];
              lua_rawseti(state, -2, idx + 1);
              
          }];
@@ -535,6 +541,47 @@
     else if ([value isKindOfClass:[NSString class]])
     {
         lua_pushstring(state, [value UTF8String]);
+    }
+    else if ([value isKindOfClass:[NSData class]])
+    {
+        lua_pushlstring(state, [value bytes], [value length]);
+    }
+    else if ([value isKindOfClass:[LSCPointer class]])
+    {
+        lua_pushlightuserdata(state, (void *)[(LSCPointer *)value value]);
+    }
+    else if ([value isKindOfClass:[LSCFunction class]])
+    {
+        [value pushWithContext:context];
+    }
+    else
+    {
+        //作为Userdata放入
+        if ([value conformsToProtocol:@protocol(LSCLuaObjectPushProtocol)])
+        {
+            [value pushWithContext:context];
+        }
+        else
+        {
+            //先为实例对象在lua中创建内存
+            LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+            //创建本地实例对象，赋予lua的内存块
+            ref -> value = (void *)CFBridgingRetain(self.valueContainer);
+            
+            //设置userdata的元表
+            luaL_getmetatable(state, "_ObjectReference_");
+            if (lua_isnil(state, -1))
+            {
+                lua_pop(state, 1);
+                
+                //尚未注册_ObjectReference,开始注册对象
+                luaL_newmetatable(state, "_ObjectReference_");
+                
+                lua_pushcfunction(state, objectReferenceGCHandler);
+                lua_setfield(state, -2, "__gc");
+            }
+            lua_setmetatable(state, -2);
+        }
     }
 }
 

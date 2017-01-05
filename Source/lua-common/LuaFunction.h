@@ -7,6 +7,7 @@
 
 #include "LuaObject.h"
 #include "LuaDefined.h"
+#include "LuaContext.h"
 
 namespace cn {
     namespace vimfung {
@@ -52,7 +53,7 @@ namespace cn {
                 /**
                  * 入栈数据
                  */
-                void push();
+                void push(LuaContext *context);
 
                 /**
                  * 调用方法

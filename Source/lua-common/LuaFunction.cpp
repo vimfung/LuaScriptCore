@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "LuaFunction.h"
 #include "LuaContext.h"
+#include "LuaValue.h"
 
 /**
  * 方法种子，主要参与方法索引的生成，每次创建一个Function，该值就会自增。
@@ -89,9 +90,9 @@ cn::vimfung::luascriptcore::LuaFunction::~LuaFunction()
     }
 }
 
-void cn::vimfung::luascriptcore::LuaFunction::push()
+void cn::vimfung::luascriptcore::LuaFunction::push(LuaContext *context)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = context -> getLuaState();
 
     lua_getglobal(state, "_G");
     if (lua_istable(state, -1))
