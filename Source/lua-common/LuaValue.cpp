@@ -11,6 +11,7 @@
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectDecoder.hpp"
 #include "lunity.h"
+#include "LuaFunction.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -308,7 +309,7 @@ void LuaValue::pushValue(LuaContext *context, LuaValue *value)
             lua_pushlightuserdata(state, (void *)value -> toPointer() -> getValue());
             break;
         case LuaValueTypeFunction:
-            value -> toFunction() -> push();
+            value -> toFunction() -> push(context);
             break;
         case LuaValueTypeObject:
         {
@@ -316,6 +317,7 @@ void LuaValue::pushValue(LuaContext *context, LuaValue *value)
             break;
         }
         default:
+            lua_pushnil(state);
             break;
     }
 }
