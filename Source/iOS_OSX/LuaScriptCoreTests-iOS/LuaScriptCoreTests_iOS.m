@@ -74,6 +74,12 @@
     [self.context evalScriptFromString:@"local p = Person.createPerson(); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!');"];
 }
 
+- (void)testCreateObjectWithParams
+{
+    [self.context registerModuleWithClass:[Person class]];
+    [self.context evalScriptFromString:@"function Person:init(value) print(value); end local p = Person.create(); print(p);"];
+}
+
 - (void)tearDown
 {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
