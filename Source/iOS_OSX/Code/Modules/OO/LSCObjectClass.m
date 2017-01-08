@@ -444,18 +444,26 @@ static int subClassHandler (lua_State *state)
     
     [self _createLuaInstanceWithState:state instance:instance];
     
+    //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
     //调用实例对象的init方法
-    lua_pushvalue(state, 1);
     lua_getfield(state, -1, "init");
     if (lua_isfunction(state, -1))
     {
         lua_pushvalue(state, -2);
-        lua_pcall(state, 1, 0, 0);
-        lua_pop(state, 1);
+        
+        //将create传入的参数传递给init方法
+        //-3 代表有3个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象
+        int paramCount = lua_gettop(state) - 3;
+        for (int i = 1; i <= paramCount; i++)
+        {
+            lua_pushvalue(state, i);
+        }
+        
+        lua_pcall(state, paramCount + 1, 0, 0);
     }
     else
     {
-        lua_pop(state, 2);
+        lua_pop(state, 1);
     }
     
     return instance;
