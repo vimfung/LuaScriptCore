@@ -4,6 +4,7 @@
 
 #ifndef _Included_cn_vimfung_luascriptcore_LuaNativeUtil
 #define _Included_cn_vimfung_luascriptcore_LuaNativeUtil
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -22,6 +23,14 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createCont
  */
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_addSearchPath
   (JNIEnv *, jclass, jint, jstring);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    catchException
+ * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Z)V
+ */
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_catchException
+        (JNIEnv *, jclass, jobject, jboolean);
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil

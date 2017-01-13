@@ -45,7 +45,7 @@ static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodN
         }
 
         jobject result = env -> CallStaticObjectMethod(moduleClass, invokeMethodID, moduleClass, jMethodName, argumentArr);
-        retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, result);
+        retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, jmodule -> getContext(), result);
     }
 
     LuaJavaEnv::resetEnv(env);

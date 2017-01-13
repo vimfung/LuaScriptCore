@@ -32,7 +32,6 @@ namespace cn {
                  */
                 std::string _refId;
 
-
             protected:
 
                 /**

@@ -468,6 +468,10 @@ public class LuaValue extends LuaBaseObject
         {
             return (byte[]) _valueContainer;
         }
+        else if (_type == LuaValueType.String)
+        {
+            return ((String)_valueContainer).getBytes();
+        }
 
         return null;
     }

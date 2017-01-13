@@ -41,7 +41,6 @@ static int ModuleMethodRouteHandler(lua_State *state)
     for (int i = 2; i < method_getNumberOfArguments(m); i++)
     {
         char *argType = method_copyArgumentType(m, i);
-//        NSLog(@"---- argType = %s", argType);
         
         LSCValue *value = nil;
         if (i - 1 <= top)
@@ -233,6 +232,10 @@ static int ModuleMethodRouteHandler(lua_State *state)
         //允许注册
         lua_newtable(state);
         
+        //设置模块名, since ver 1.3
+        lua_pushstring(state, name.UTF8String);
+        lua_setfield(state, -2, "name");
+        
         //写入模块标识
         lua_pushstring(state, NativeModuleType.UTF8String);
         lua_setfield(state, -2, NativeTypeKey.UTF8String);
@@ -240,7 +243,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
         [self _exportModuleAllMethod:module
                               module:module
                              context:context
-                   filterMethodNames:nil];
+                   filterMethodNames:@[@"moduleName", @"version"]];
         
         lua_setglobal(state, [name UTF8String]);
     }
@@ -302,12 +305,12 @@ static int ModuleMethodRouteHandler(lua_State *state)
                        context:(LSCContext *)context
              filterMethodNames:(NSArray<NSString *> *)filterMethodNames
 {
-    [self _exportModuleMethod:thiz module:module context:context filterMethodNames:nil];
+    [self _exportModuleMethod:thiz module:module context:context filterMethodNames:filterMethodNames];
     
     if (module != [LSCModule class])
     {
         //如果模块不是LSCModule，则获取其父类继续进行方法导出
-        [self _exportModuleMethod:thiz module:class_getSuperclass(module) context:context filterMethodNames:nil];
+        [self _exportModuleAllMethod:thiz module:class_getSuperclass(module) context:context filterMethodNames:filterMethodNames];
     }
 }
 
