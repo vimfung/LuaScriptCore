@@ -50,6 +50,8 @@ public abstract class LuaModule extends LuaBaseObject
         //获取导出方法
         ArrayList<String> filterMethodNames = new ArrayList<String>();
         filterMethodNames.add("access$super");
+        filterMethodNames.add("moduleName");
+        filterMethodNames.add("version");
 
         ArrayList<Method> exportMethods = new ArrayList<Method>();
         Method[] methods = moduleClass.getMethods();

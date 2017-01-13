@@ -24,6 +24,11 @@
     [super setUp];
     
     self.context = [[LSCContext alloc] init];
+    [self.context onException:^(NSString *message) {
+       
+        NSLog(@"error = %@", message);
+        
+    }];
 }
 
 - (void)testEvalScript
@@ -78,6 +83,30 @@
 {
     [self.context registerModuleWithClass:[Person class]];
     [self.context evalScriptFromString:@"function Person:init(value) print(value); end local p = Person.create(); print(p);"];
+}
+
+- (void)testClassModuleName
+{
+    [self.context registerModuleWithClass:[Person class]];
+    [self.context evalScriptFromString:@"print(name);"];
+}
+
+- (void)testClassIsSubclassOf
+{
+    [self.context registerModuleWithClass:[Person class]];
+    [self.context evalScriptFromString:@"print(Person.subclassOf(Object));"];
+}
+
+- (void)testClassIsInstanceOf
+{
+    [self.context registerModuleWithClass:[Person class]];
+    [self.context evalScriptFromString:@"local p = Person.create(); print(p:instanceOf(Person)); print(p:instanceOf(Object));"];
+}
+
+- (void)testClassMethodInherited
+{
+    [self.context registerModuleWithClass:[Person class]];
+    [self.context evalScriptFromString:@"Person.subclass('Chinese'); function Person:init () print ('Person init') end function Chinese:init () self.super.init(self); print ('Chinese init'); end local c = Chinese.create();"];
 }
 
 - (void)tearDown

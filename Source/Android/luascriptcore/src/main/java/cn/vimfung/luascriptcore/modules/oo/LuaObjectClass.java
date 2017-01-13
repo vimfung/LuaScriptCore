@@ -61,6 +61,8 @@ public class LuaObjectClass extends LuaModule
 
         filterMethodNames.add("access$super");
         filterMethodNames.add("createInstance");
+        filterMethodNames.add("moduleName");
+        filterMethodNames.add("version");
 
         //导出字段
         Field[] fields = moduleClass.getDeclaredFields();

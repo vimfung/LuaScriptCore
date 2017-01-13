@@ -5,10 +5,10 @@
 #include <stdint.h>
 #include "LuaJavaConverter.h"
 #include "LuaJavaType.h"
-#include "LuaObjectManager.h"
 #include "LuaJavaObjectDescriptor.h"
 #include "LuaJavaEnv.h"
-#include "LuaDefine.h"
+#include "LuaJavaObjectInstanceDescriptor.h"
+#include "LuaObjectManager.h"
 #include "LuaFunction.h"
 
 LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject context)
@@ -19,7 +19,7 @@ LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject
     return (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
 }
 
-LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, jobject object)
+LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *context, jobject object)
 {
     LuaValue *value = NULL;
 
@@ -80,7 +80,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, jobject obje
     else if (env -> IsInstanceOf(object, LuaJavaType::luaValueClass(env)) == JNI_TRUE)
     {
         //LuaValue类型
-        value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, object);
+        value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, object);
     }
     else if (env -> IsInstanceOf(object, LuaJavaType::pointerClass(env)) == JNI_TRUE)
     {
@@ -125,7 +125,16 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, jobject obje
         if (objDesc == NULL)
         {
             //不存在则创建对象
-            objDesc = new LuaJavaObjectDescriptor(env, object);
+            if (env -> IsInstanceOf(object, LuaJavaType::luaObjectClass(env)))
+            {
+                //为LuaObjectClass
+                LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, object, context);
+                objDesc = new LuaJavaObjectInstanceDescriptor(env, object, objectClass);
+            }
+            else
+            {
+                objDesc = new LuaJavaObjectDescriptor(env, object);
+            }
             needRelease = true;
         }
 
@@ -140,7 +149,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, jobject obje
     return value;
 }
 
-LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject value)
+LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext *context, jobject value)
 {
     //构造调用参数
     static jclass jLuaValueTypeClass = LuaJavaType::luaValueTypeClass(env);
@@ -208,7 +217,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject va
             for (int i = 0; i < len; ++i)
             {
                 jobject item = env -> CallObjectMethod(arrayList, getMethodId, i);
-                LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, item);
+                LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
             }
 
             retValue = LuaValue::ArrayValue(list);
@@ -237,7 +246,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject va
                 jobject item = env -> CallObjectMethod(hashMap, getMethodId, key);
 
                 const char *keyStr = env -> GetStringUTFChars((jstring)key, NULL);
-                LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, item);
+                LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
                 map[keyStr] = valueItem;
                 env -> ReleaseStringUTFChars((jstring)key, keyStr);
             }
@@ -296,7 +305,17 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, jobject va
                 if (objDesc == NULL)
                 {
                     //不存在则创建对象
-                    objDesc = new LuaJavaObjectDescriptor(env, obj);
+                    if (env -> IsInstanceOf(obj, LuaJavaType::luaObjectClass(env)))
+                    {
+                        //为LuaObjectClass
+                        LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, obj, context);
+                        objDesc = new LuaJavaObjectInstanceDescriptor(env, obj, objectClass);
+                    }
+                    else
+                    {
+                        objDesc = new LuaJavaObjectDescriptor(env, obj);
+                    }
+
                     needRelease = true;
                 }
 
@@ -426,7 +445,8 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
             case LuaValueTypeObject:
             {
                 LuaObjectDescriptor *objDesc = luaValue -> toObject();
-                if (dynamic_cast<LuaJavaObjectDescriptor *>(objDesc) != NULL)
+                if (dynamic_cast<LuaJavaObjectDescriptor *>(objDesc) != NULL
+                        || dynamic_cast<LuaJavaObjectInstanceDescriptor *>(objDesc) != NULL)
                 {
                     //如果为LuaJavaObjectDescriptor则转换为jobject类型
                     retObj = (jobject)objDesc -> getObject();

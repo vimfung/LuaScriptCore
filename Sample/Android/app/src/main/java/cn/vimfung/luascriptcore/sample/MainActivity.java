@@ -21,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 
 import cn.vimfung.luascriptcore.LuaContext;
+import cn.vimfung.luascriptcore.LuaExceptionHandler;
 import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
 import cn.vimfung.luascriptcore.LuaValue;
@@ -41,6 +42,14 @@ public class MainActivity extends AppCompatActivity {
 
         //创建LuaContext
         _luaContext = LuaContext.create(this);
+        _luaContext.onException(new LuaExceptionHandler() {
+            @Override
+            public void onException(String message) {
+
+                Log.v("lua exception log", message);
+
+            }
+        });
 
         //解析脚本按钮点击
         Button evalScriptBtn = (Button) findViewById(R.id.evalScriptButton);

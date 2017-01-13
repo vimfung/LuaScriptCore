@@ -280,9 +280,28 @@ static int objectDestroyHandler (lua_State *state)
  */
 static int objectToStringHandler (lua_State *state)
 {
-    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
-    LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
-    lua_pushstring(state, [[instance description] UTF8String]);
+    //由于加入了实例的super对象，因此需要根据不同类型进行不同输出。since ver 1.3
+    int type = lua_type(state, 1);
+    switch (type)
+    {
+        case LUA_TUSERDATA:
+        {
+            LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+            LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
+            lua_pushstring(state, [[instance description] UTF8String]);
+            break;
+        }
+        case LUA_TTABLE:
+        {
+            lua_pushstring(state, "<SuperClass Type>");
+            break;
+        }
+        default:
+        {
+            lua_pushstring(state, "<Unknown Type>");
+            break;
+        }
+    }
     
     return 1;
 }
@@ -381,6 +400,75 @@ static int subClassHandler (lua_State *state)
     [context registerModuleWithClass:subCls];
     
     return 0;
+}
+
+
+/**
+ 判断是否是该类型的子类
+
+ @param state 状态机
+ @return 参数数量
+ */
+static int subclassOfHandler (lua_State *state)
+{
+    if (lua_gettop(state) == 0)
+    {
+        lua_pushboolean(state, NO);
+        return 1;
+    }
+    
+    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
+    
+    if (lua_type(state, 1) == LUA_TTABLE)
+    {
+        lua_getfield(state, 1, "_nativeClass");
+        if (lua_type(state, -1) == LUA_TLIGHTUSERDATA)
+        {
+            Class checkClass = (__bridge Class)lua_topointer(state, -1);
+            BOOL flag = [moduleClass isSubclassOfClass:checkClass];
+            
+            lua_pushboolean(state, flag);
+            return 1;
+        }
+    }
+    
+    lua_pushboolean(state, NO);
+    return 1;
+}
+
+
+/**
+ 判断是否是该类型的实例对象
+
+ @param state 状态机
+ @return 参数数量
+ */
+static int instanceOfHandler (lua_State *state)
+{
+    if (lua_gettop(state) < 2)
+    {
+        lua_pushboolean(state, NO);
+        return 1;
+    }
+    
+    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+    LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
+    
+    if (lua_type(state, 2) == LUA_TTABLE)
+    {
+        lua_getfield(state, 2, "_nativeClass");
+        if (lua_type(state, -1) == LUA_TLIGHTUSERDATA)
+        {
+            Class checkClass = (__bridge Class)lua_topointer(state, -1);
+            BOOL flag = [instance isKindOfClass:checkClass];
+            
+            lua_pushboolean(state, flag);
+            return 1;
+        }
+    }
+    
+    lua_pushboolean(state, NO);
+    return 1;
 }
 
 #pragma mark - LSCLuaObjectPushProtocol
@@ -560,6 +648,10 @@ static int subClassHandler (lua_State *state)
     //创建类模块
     lua_newtable(state);
     
+    //设置类名, since ver 1.3
+    lua_pushstring(state, moduleName.UTF8String);
+    lua_setfield(state, -2, "name");
+    
     //关联本地类型
     lua_pushlightuserdata(state, (__bridge void *)(cls));
     lua_setfield(state, -2, "_nativeClass");
@@ -577,11 +669,20 @@ static int subClassHandler (lua_State *state)
     lua_pushstring(state, NativeModuleType.UTF8String);
     lua_setfield(state, -2, NativeTypeKey.UTF8String);
     
+    /**
+     fixed : 由于OC中类方法存在继承关系，因此，直接导出某个类定义的类方法无法满足这种继承关系。
+     例如：moduleName方法在Object中定义，但是当其子类调用时由于只能取到当前导出方法的类型，无法取到调用方法的类型，因此导致逻辑处理的异常。
+     所以，该处改为导出其继承的所有类方法来满足该功能需要。
+    **/
     //导出声明的类方法
-    [self _exportModuleMethod:cls
-                       module:cls
-                      context:context
-            filterMethodNames:nil];
+    [self _exportModuleAllMethod:cls
+                          module:cls
+                         context:context
+               filterMethodNames:@[@"moduleName", @"version"]];
+//    [self _exportModuleMethod:cls
+//                       module:cls
+//                      context:context
+//            filterMethodNames:nil];
     
     //添加创建对象方法
     lua_pushlightuserdata(state, (__bridge void *)context);
@@ -594,6 +695,12 @@ static int subClassHandler (lua_State *state)
     lua_pushlightuserdata(state, (__bridge void *)cls);
     lua_pushcclosure(state, subClassHandler, 2);
     lua_setfield(state, -2, "subclass");
+    
+    //增加子类判断方法, since ver 1.3
+    lua_pushlightuserdata(state, (__bridge void *)context);
+    lua_pushlightuserdata(state, (__bridge void *)cls);
+    lua_pushcclosure(state, subclassOfHandler, 2);
+    lua_setfield(state, -2, "subclassOf");
     
     //关联父类模块, 放在所有方法导出之后进行关联，否则会触发__newindex方法
     if (cls != [LSCObjectClass class])
@@ -686,6 +793,10 @@ static int subClassHandler (lua_State *state)
         luaL_getmetatable(state, [superMetaClassName UTF8String]);
         if (lua_istable(state, -1))
         {
+            //设置父类访问属性 since ver 1.3
+            lua_pushvalue(state, -1);
+            lua_setfield(state, -3, "super");
+            
             //设置父类元表
             lua_setmetatable(state, -2);
         }
@@ -693,6 +804,15 @@ static int subClassHandler (lua_State *state)
         {
             lua_pop(state, 1);
         }
+    }
+    else
+    {
+        //Object类需要增加一些特殊方法
+        //创建instanceOf方法 since ver 1.3
+        lua_pushlightuserdata(state, (__bridge void *)context);
+        lua_pushlightuserdata(state, (__bridge void *)cls);
+        lua_pushcclosure(state, instanceOfHandler, 2);
+        lua_setfield(state, -2, "instanceOf");
     }
     
     lua_pop(state, 1);
