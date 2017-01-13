@@ -36,6 +36,7 @@ import java.util.Objects;
 public class LuaContext extends LuaBaseObject
 {
     private Context _context;
+    private LuaExceptionHandler _exceptionHandler;
     private HashMap<String, LuaMethodHandler> _methods;
 
     /**
@@ -136,6 +137,16 @@ public class LuaContext extends LuaBaseObject
         luaContext.addSearchPath(cacheDir.toString());
 
         return luaContext;
+    }
+
+    /**
+     * 异常时触发
+     * @param handler 异常处理器
+     */
+    public void onException (LuaExceptionHandler handler)
+    {
+        _exceptionHandler = handler;
+        LuaNativeUtil.catchException(this, handler != null);
     }
 
     /**

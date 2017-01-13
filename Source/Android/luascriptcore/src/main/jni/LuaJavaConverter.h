@@ -31,21 +31,23 @@ public:
      * 转换Java中的Object为C++中的LuaValue
      *
      * @param env JNI环境
+     * @param context 上下文对象
      * @param object Java中的Object实例对象
      *
      * @return C++中的LuaValue实例对象
      */
-    static LuaValue* convertToLuaValueByJObject(JNIEnv *env, jobject object);
+    static LuaValue* convertToLuaValueByJObject(JNIEnv *env, LuaContext *context, jobject object);
 
     /**
      * 转换Java中的LuaValue为C++中的LuaValue
      *
      * @param env JNI环境
+     * @param context 上下文对象
      * @param value Java中的LuaValue实例对象
      *
      * @return C++中的LuaValue实例对象
      */
-    static LuaValue* convertToLuaValueByJLuaValue(JNIEnv *env, jobject value);
+    static LuaValue* convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext *context, jobject value);
 
 public:
 

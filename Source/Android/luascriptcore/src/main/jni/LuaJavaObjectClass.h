@@ -26,14 +26,14 @@ public:
      * 初始化Java类型
      *
      * @param env JNI环境
-     * @param superClassName 父类名称
+     * @param superClass 父级类型
      * @param moduleClass 类型
      * @param fields 导出字段集合
      * @param instanceMethods 导出实例方法集合
      * @param classMethods 导出类方法集合
      */
     LuaJavaObjectClass(JNIEnv *env,
-                       const std::string &superClassName,
+                       LuaJavaObjectClass *superClass,
                        jclass moduleClass,
                        jobjectArray fields,
                        jobjectArray instanceMethods,
@@ -53,6 +53,15 @@ public:
 
 
     /**
+     * 判断是否为指定类型的子类
+     *
+     * @param type 类型
+     *
+     * @return true 是 false 不是
+     */
+    bool subclassOf(cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *type);
+
+    /**
      * 注册模块时调用
      *
      * @param name 模块名称
@@ -66,7 +75,7 @@ public:
      *
      * @param objectDescriptor 对象描述器
      */
-    void createLuaInstance(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor);
+    void createLuaInstance(cn::vimfung::luascriptcore::modules::oo::LuaObjectInstanceDescriptor *objectDescriptor);
 };
 
 

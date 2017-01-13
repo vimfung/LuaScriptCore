@@ -37,7 +37,7 @@ public:
      *
      * @param context 上下文对象
      */
-    void push(LuaContext *context);
+//    void push(LuaContext *context);
 };
 
 

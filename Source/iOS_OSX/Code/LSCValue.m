@@ -302,6 +302,10 @@
     {
         return self.valueContainer;
     }
+    else if (self.valueType == LSCValueTypeString)
+    {
+        return [(NSString *)self.valueContainer dataUsingEncoding:NSUTF8StringEncoding];
+    }
     
     return nil;
 }

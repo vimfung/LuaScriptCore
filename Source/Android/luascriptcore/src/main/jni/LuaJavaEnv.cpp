@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <map>
 #include <set>
+#include <string>
 #include "LuaJavaEnv.h"
 #include "LuaObjectManager.h"
 #include "LuaJavaType.h"
@@ -82,7 +83,7 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
             jobject result = env -> CallObjectMethod(jcontext, invokeMethodID, jMethodName, argumentArr);
             if (result != NULL)
             {
-                retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, result);
+                retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, result);
             }
             else
             {
@@ -94,6 +95,29 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
     LuaJavaEnv::resetEnv(env);
 
     return retValue;
+}
+
+/**
+ * Lua异常处理器
+ */
+static void _luaExceptionHandler (LuaContext *context, std::string message)
+{
+    JNIEnv *env = LuaJavaEnv::getEnv();
+
+    jobject jcontext = LuaJavaEnv::getJavaLuaContext(env, context);
+    if (jcontext != NULL)
+    {
+        jfieldID exceptHandlerFieldId = env -> GetFieldID(env -> GetObjectClass(jcontext), "_exceptionHandler", "Lcn/vimfung/luascriptcore/LuaExceptionHandler;");
+        jobject exceptHandler = env -> GetObjectField(jcontext, exceptHandlerFieldId);
+        if (exceptHandler != NULL)
+        {
+            jstring messageStr = env -> NewStringUTF(message.c_str());
+            jmethodID onExceptMethodId = env -> GetMethodID(env -> GetObjectClass(exceptHandler), "onException", "(Ljava/lang/String;)V");
+            env -> CallVoidMethod(exceptHandler, onExceptMethodId, messageStr);
+        }
+    }
+
+    LuaJavaEnv::resetEnv(env);
 }
 
 void LuaJavaEnv::init(JavaVM *javaVM)
@@ -272,4 +296,9 @@ LuaJavaObjectClass* LuaJavaEnv::getObjectClassByInstance(JNIEnv *env, jobject in
     std::string className = getJavaClassNameByInstance(env, instance);
     LuaModule *module = context -> getModule((const std::string)className);
     return dynamic_cast<LuaJavaObjectClass *>(module);
+}
+
+cn::vimfung::luascriptcore::LuaExceptionHandler LuaJavaEnv::getExceptionhandler()
+{
+    return _luaExceptionHandler;
 }

@@ -9,6 +9,7 @@
 #include "LuaContext.h"
 #include "LuaJavaModule.h"
 #include "LuaJavaObjectClass.h"
+#include "../../../../../lua-common/LuaDefined.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -124,6 +125,13 @@ public:
      * @return 类型
      */
     static LuaJavaObjectClass* getObjectClassByInstance(JNIEnv *env, jobject instance, LuaContext *context);
+
+    /**
+     * 获取异常处理方法
+     *
+     * @return Lua异常处理器
+     */
+    static LuaExceptionHandler getExceptionhandler();
 };
 
 

@@ -18,6 +18,7 @@ namespace cn
                 namespace oo
                 {
                     class LuaObjectClass;
+                    class LuaObjectInstanceDescriptor;
 
                     /**
                      * 类对象实例化处理器
@@ -85,10 +86,11 @@ namespace cn
                     class LuaObjectClass : public LuaModule
                     {
                     private:
+
                         /**
-                         * 父类名称
+                         * 父类
                          */
-                        std::string _superClassName;
+                        LuaObjectClass *_superClass;
 
                         /**
                          * 类对象实例化处理器
@@ -138,9 +140,9 @@ namespace cn
                         /**
                          * 初始化Lua类描述对象
                          *
-                         * @param superClassName 父级类型
+                         * @param superClass 父级类型
                          */
-                        LuaObjectClass(const std::string &superClassName);
+                        LuaObjectClass(LuaObjectClass *superClass);
 
                     public:
 
@@ -203,11 +205,20 @@ namespace cn
                     public:
 
                         /**
-                         * 获取是否为内部调用
-                          *
-                         * @return true 为内部调用，false 非内部调用
-                          */
-                        bool getIsInternalCall();
+                         * 获取父级类型
+                         *
+                         * @return 类型对象
+                         */
+                        LuaObjectClass* getSupuerClass();
+
+                        /**
+                         * 判断是否为指定类型的子类
+                         *
+                         * @param type 类型
+                         *
+                         * @return true 是指定类型的子类，false 不是
+                         */
+                        virtual bool subclassOf(LuaObjectClass *type);
 
                         /**
                          * 注册模块时调用
@@ -223,14 +234,14 @@ namespace cn
                          *
                          * @param objectDescriptor 对象描述器
                          */
-                        virtual void createLuaInstance(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor);
+                        virtual void createLuaInstance(LuaObjectInstanceDescriptor *objectDescriptor);
 
                         /**
                          * 入栈数据
                          *
                          * @param objectDescriptor 对象描述器
                          */
-                        void push(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor);
+                        void push(LuaObjectInstanceDescriptor *objectDescriptor);
 
                         /**
                          * 获取模块方法处理器, 提供Lua回调方法调用
