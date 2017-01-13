@@ -59,6 +59,10 @@ void cn::vimfung::luascriptcore::LuaModule::onRegister (const std::string &name,
     lua_State *state = _context -> getLuaState();
     lua_newtable(state);
 
+    //设置模块名称。since ver 1.3
+    lua_pushstring(state, name.c_str());
+    lua_setfield(state, -2, "name");
+
     //写入模块标识
     lua_pushstring(state, "module");
     lua_setfield(state, -2, "_nativeType");

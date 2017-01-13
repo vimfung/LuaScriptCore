@@ -34,6 +34,13 @@ public class LuaNativeUtil
     public static native void addSearchPath(int contextNativeId, String path);
 
     /**
+     * 捕获Lua异常
+     * @param context   上下文对象
+     * @param enabled   true表示捕获异常，false表示不进行捕获
+     */
+    public static native void catchException(LuaContext context, boolean enabled);
+
+    /**
      * 解析Lua脚本
      * @param contextNativeId   上下文的本地标识
      * @param script            Lua脚本

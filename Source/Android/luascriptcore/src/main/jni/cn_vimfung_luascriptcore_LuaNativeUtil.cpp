@@ -54,6 +54,26 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_addSearchPath
     }
 }
 
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_catchException
+        (JNIEnv *env, jclass type, jobject jcontext, jboolean enabled)
+{
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
+    {
+        if (enabled)
+        {
+            //设置异常捕获
+            context -> onException(LuaJavaEnv::getExceptionhandler());
+        }
+        else
+        {
+            //取消异常捕获
+            context -> onException(NULL);
+        }
+
+    }
+}
+
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
  * Method:    evalScript
@@ -111,7 +131,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_callMethod
             jsize length = env->GetArrayLength(arguments);
             for (int i = 0; i < length; ++i) {
                 jobject item = env->GetObjectArrayElement(arguments, i);
-                LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, item);
+                LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, item);
                 if (value != NULL) {
                     argumentList.push_back(value);
                 }
@@ -204,18 +224,21 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerC
     {
         const char *classNameStr = env -> GetStringUTFChars(className, NULL);
 
-        std::string superClassNameStr;
-        const char *superClassNameCStr = NULL;
+        LuaJavaObjectClass *superClass = NULL;
 
-        if (superClassName != NULL)
+        if (env -> IsSameObject(superClassName, NULL) != JNI_TRUE)
         {
+            const char *superClassNameCStr = NULL;
             superClassNameCStr = env -> GetStringUTFChars(superClassName, NULL);
-            superClassNameStr = superClassNameCStr;
+
+            superClass = (LuaJavaObjectClass *)context -> getModule(superClassNameCStr);
+
+            env -> ReleaseStringUTFChars(superClassName, superClassNameCStr);
         }
 
         LuaJavaObjectClass *objectClass = new LuaJavaObjectClass(
                 env,
-                (const std::string)superClassNameStr,
+                superClass,
                 jobjectClass,
                 fields,
                 instanceMethods,
@@ -223,11 +246,6 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerC
         context -> registerModule(classNameStr, objectClass);
 
         objectClass -> release();
-
-        if (superClassNameCStr != NULL)
-        {
-            env -> ReleaseStringUTFChars(superClassName, superClassNameCStr);
-        }
         env -> ReleaseStringUTFChars(className, classNameStr);
 
         return JNI_TRUE;
@@ -244,7 +262,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunc
     if (context != NULL)
     {
         //获取LuaFunction
-        LuaValue *value = LuaJavaConverter::convertToLuaValueByJObject(env, func);
+        LuaValue *value = LuaJavaConverter::convertToLuaValueByJObject(env, context, func);
         if (value != NULL)
         {
             LuaArgumentList argumentList;
@@ -253,7 +271,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunc
                 jsize length = env->GetArrayLength(arguments);
                 for (int i = 0; i < length; ++i) {
                     jobject item = env->GetObjectArrayElement(arguments, i);
-                    LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, item);
+                    LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, item);
                     if (value != NULL) {
                         argumentList.push_back(value);
                     }

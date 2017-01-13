@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include "LuaObjectClass.h"
+#include "LuaObjectInstanceDescriptor.h"
 
 /**
  * 实例种子，参与实例索引的生成，每次创建实例，该值会自增.
@@ -51,23 +52,43 @@ static int objectToStringHandler (lua_State *state)
 
     std::string desc;
 
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    if (objectClass -> getObjectDescriptionHandler() != NULL)
-    {
-        desc = objectClass -> getObjectDescriptionHandler()(objectClass);
-    }
+    int type = lua_type(state, 1);
 
-    if (desc.empty())
+    //由于加入了实例的super对象，因此需要根据不同类型进行不同输出。since ver 1.3
+    switch (type)
     {
-        char strbuf[256] = {0};
-        int size = sprintf(strbuf, "[%s object]", objectClass -> getName().c_str());
-        strbuf[size] = '\0';
+        case LUA_TUSERDATA:
+        {
+            LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+            if (objectClass -> getObjectDescriptionHandler() != NULL)
+            {
+                desc = objectClass -> getObjectDescriptionHandler()(objectClass);
+            }
 
-        lua_pushstring(state, strbuf);
-    }
-    else
-    {
-        lua_pushstring(state, desc.c_str());
+            if (desc.empty())
+            {
+                char strbuf[256] = {0};
+                int size = sprintf(strbuf, "[%s object]", objectClass -> getName().c_str());
+                strbuf[size] = '\0';
+
+                lua_pushstring(state, strbuf);
+            }
+            else
+            {
+                lua_pushstring(state, desc.c_str());
+            }
+            break;
+        }
+        case LUA_TTABLE:
+        {
+            lua_pushstring(state, "<SuperClass Type>");
+            break;
+        }
+        default:
+        {
+            lua_pushstring(state, "<Unknown Type>");
+            break;
+        }
     }
 
     return 1;
@@ -171,6 +192,80 @@ static int subClassHandler (lua_State *state)
     }
 
     return 0;
+}
+
+/**
+ 判断是否是该类型的子类
+
+ @param state 状态机
+ @return 参数数量
+ */
+static int subclassOfHandler (lua_State *state)
+{
+    using namespace cn::vimfung::luascriptcore::modules::oo;
+
+    if (lua_gettop(state) == 0)
+    {
+        lua_pushboolean(state, false);
+        return 1;
+    }
+
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+
+    if (lua_type(state, 1) == LUA_TTABLE)
+    {
+        lua_getfield(state, 1, "_nativeClass");
+        if (lua_type(state, -1) == LUA_TLIGHTUSERDATA)
+        {
+            LuaObjectClass *checkClass = (LuaObjectClass *)lua_touserdata(state, -1);
+
+            bool flag = objectClass -> subclassOf(checkClass);
+            lua_pushboolean(state, flag);
+
+            return 1;
+        }
+    }
+
+    lua_pushboolean(state, false);
+    return 1;
+}
+
+/**
+ 判断是否是该类型的实例对象
+
+ @param state 状态机
+ @return 参数数量
+ */
+static int instanceOfHandler (lua_State *state)
+{
+    using namespace cn::vimfung::luascriptcore;
+    using namespace cn::vimfung::luascriptcore::modules::oo;
+
+    if (lua_gettop(state) < 2)
+    {
+        lua_pushboolean(state, false);
+        return 1;
+    }
+
+    //表示有实例对象传入
+    LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
+    LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)ref -> value;
+
+    if (lua_type(state, 2) == LUA_TTABLE)
+    {
+        lua_getfield(state, 2, "_nativeClass");
+        if (lua_type(state, -1) == LUA_TLIGHTUSERDATA)
+        {
+            LuaObjectClass *objectClass = (LuaObjectClass *)lua_topointer(state, -1);
+
+            bool flag = objDesc -> instanceOf(objectClass);
+            lua_pushboolean(state, flag);
+            return 1;
+        }
+    }
+
+    lua_pushboolean(state, false);
+    return 1;
 }
 
 /**
@@ -303,14 +398,23 @@ static int instanceGetterRouteHandler (lua_State *state)
     return 1;
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::LuaObjectClass(const std::string &superClassName)
+cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::LuaObjectClass(LuaObjectClass *superClass)
 {
-    _superClassName = superClassName;
+    _superClass = superClass;
     _classObjectCreatedHandler = NULL;
     _classObjectDescriptionHandler = NULL;
     _classObjectDestroyHandler = NULL;
     _subclassHandler = NULL;
 }
+
+//cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::LuaObjectClass(const std::string &superClassName)
+//{
+//    _superClassName = superClassName;
+//    _classObjectCreatedHandler = NULL;
+//    _classObjectDescriptionHandler = NULL;
+//    _classObjectDestroyHandler = NULL;
+//    _subclassHandler = NULL;
+//}
 
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onObjectCreated(LuaClassObjectCreatedHandler handler)
 {
@@ -348,6 +452,10 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
         lua_pushlightuserdata(state, this);
         lua_setfield(state, -2, "_nativeClass");
 
+        //设置类型名称。since ver 1.3
+        lua_pushstring(state, name.c_str());
+        lua_setfield(state, -2, "name");
+
         //关联索引
         lua_pushvalue(state, -1);
         lua_setfield(state, -2, "__index");
@@ -369,10 +477,16 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
         lua_pushcclosure(state, subClassHandler, 2);
         lua_setfield(state, -2, "subclass");
 
-        if (!_superClassName.empty())
+        //增加子类判断方法, since ver 1.3
+        lua_pushlightuserdata(state, context);
+        lua_pushlightuserdata(state, this);
+        lua_pushcclosure(state, subclassOfHandler, 2);
+        lua_setfield(state, -2, "subclassOf");
+
+        if (_superClass != NULL)
         {
             //存在父类，则直接设置父类为元表
-            lua_getglobal(state, _superClassName.c_str());
+            lua_getglobal(state, _superClass -> getName().c_str());
             if (lua_istable(state, -1))
             {
                 //设置父类元表
@@ -413,12 +527,16 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
         lua_pushcclosure(state, objectToStringHandler, 1);
         lua_setfield(state, -2, "__tostring");
 
-        if (!_superClassName.empty())
+        if (_superClass != NULL)
         {
             //获取父级元表
-            luaL_getmetatable(state, _superClassName.c_str());
+            luaL_getmetatable(state, _superClass -> getName().c_str());
             if (lua_istable(state, -1))
             {
+                //设置父类访问属性 since ver 1.3
+                lua_pushvalue(state, -1);
+                lua_setfield(state, -2, "super");
+
                 //设置父类元表
                 lua_setmetatable(state, -2);
             }
@@ -426,6 +544,15 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
             {
                 lua_pop(state, 1);
             }
+        }
+        else
+        {
+            //Object类需要增加一些特殊方法
+            //创建instanceOf方法 since ver 1.3
+            lua_pushlightuserdata(state, context);
+            lua_pushlightuserdata(state, this);
+            lua_pushcclosure(state, instanceOfHandler, 2);
+            lua_setfield(state, -2, "instanceOf");
         }
     }
 
@@ -506,9 +633,28 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
     _isInternalCall = false;
 }
 
-bool cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getIsInternalCall()
+cn::vimfung::luascriptcore::modules::oo::LuaObjectClass* cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getSupuerClass()
 {
-    return _isInternalCall;
+    return _superClass;
+}
+
+bool cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::subclassOf(LuaObjectClass *type)
+{
+    bool isSubclass = false;
+
+    LuaObjectClass *tmpClass = this;
+    while (tmpClass != NULL)
+    {
+        if (tmpClass -> getName() == type -> getName())
+        {
+            isSubclass = true;
+            break;
+        }
+
+        tmpClass = tmpClass -> getSupuerClass();
+    }
+
+    return isSubclass;
 }
 
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerMethod(
@@ -580,7 +726,7 @@ cn::vimfung::luascriptcore::modules::oo::LuaInstanceGetterHandler cn::vimfung::l
     return NULL;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor)
+void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(LuaObjectInstanceDescriptor *objectDescriptor)
 {
     lua_State *state = getContext() -> getLuaState();
 
@@ -666,7 +812,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(
     lua_pop(state, 1);
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(cn::vimfung::luascriptcore::LuaObjectDescriptor *objectDescriptor)
+void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInstanceDescriptor *objectDescriptor)
 {
     //对LuaObjectClass的类型对象需要进行特殊处理
     lua_State *state = getContext() -> getLuaState();
