@@ -389,6 +389,7 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                         {
                             env->CallBooleanMethod(retObj, addMethodId, itemObj);
                         }
+                        env -> DeleteLocalRef(itemObj);
                     }
                 }
                 break;
@@ -414,6 +415,9 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                         {
                             env -> CallObjectMethod(retObj, putMethodId, keyStr, itemObj);
                         }
+
+                        env -> DeleteLocalRef(keyStr);
+                        env -> DeleteLocalRef(itemObj);
                     }
                 }
                 break;
