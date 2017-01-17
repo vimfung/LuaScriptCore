@@ -88,13 +88,20 @@ static int InstanceMethodRouteHandler(lua_State *state)
     //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
     typedef struct {float f;} LSCFloatStruct;
     
-    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
-    LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
-    
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
     NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
     SEL selector = NSSelectorFromString(methodName);
+    
+    if (lua_type(state, 1) != LUA_TUSERDATA)
+    {
+        NSString *errMsg = [NSString stringWithFormat:@"call %@ method error : missing self parameter, please call by instance:methodName(param)", methodName];
+        [context raiseExceptionWithMessage:errMsg];
+        return retCount;
+    }
+    
+    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+    LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
 
     NSMethodSignature *sign = [moduleClass instanceMethodSignatureForSelector:selector];
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
@@ -736,6 +743,9 @@ static int instanceOfHandler (lua_State *state)
     //---------创建实例对象元表---------------
     NSString *metaClassName = [self _metaClassNameWithClass:moduleName];
     luaL_newmetatable(state, metaClassName.UTF8String);
+    
+    lua_getglobal(state, [moduleName UTF8String]);
+    lua_setfield(state, -2, "class");
     
     lua_pushlightuserdata(state, (__bridge void *)(cls));
     lua_setfield(state, -2, "_nativeClass");

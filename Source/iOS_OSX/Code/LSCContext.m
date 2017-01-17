@@ -254,10 +254,10 @@ static int cfuncRouteHandler(lua_State *state)
     {
         int top = lua_gettop(state);
         NSMutableArray *arguments = [NSMutableArray array];
-        for (int i = 0; i < top; i++)
+        for (int i = 1; i <= top; i++)
         {
-            LSCValue *value = [LSCValue valueWithContext:context atIndex:-i - 1];
-            [arguments insertObject:value atIndex:0];
+            LSCValue *value = [LSCValue valueWithContext:context atIndex:i];
+            [arguments addObject:value];
         }
         
         LSCValue *retValue = handler(arguments);
