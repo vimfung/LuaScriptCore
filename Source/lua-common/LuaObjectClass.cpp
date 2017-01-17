@@ -281,7 +281,20 @@ static int instanceMethodRouteHandler(lua_State *state)
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    const char *methodName = lua_tostring(state, lua_upvalueindex(2));
+    std::string methodName = lua_tostring(state, lua_upvalueindex(2));
+
+    if (lua_type(state, 1) != LUA_TUSERDATA)
+    {
+        std::string errMsg = "call " + methodName + " method error : missing self parameter, please call by instance:methodName(param)";
+        objectClass -> getContext() -> raiseException(errMsg);
+
+        //回收内存
+        lua_gc(state, LUA_GCCOLLECT, 0);
+
+        return 0;
+    }
+
+    cn::vimfung::luascriptcore::LuaUserdataRef instance = (cn::vimfung::luascriptcore::LuaUserdataRef)lua_touserdata(state, 1);
 
     LuaInstanceMethodHandler handler = objectClass -> getInstanceMethodHandler(methodName);
     if (handler != NULL)
@@ -296,7 +309,7 @@ static int instanceMethodRouteHandler(lua_State *state)
             args.push_back(value);
         }
 
-        cn::vimfung::luascriptcore::LuaValue *retValue = handler (objectClass, methodName, args);
+        cn::vimfung::luascriptcore::LuaValue *retValue = handler (instance, objectClass, methodName, args);
 
         if (retValue != NULL)
         {
@@ -332,7 +345,20 @@ static int instanceSetterRouteHandler (lua_State *state)
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    const char *fieldName = lua_tostring(state, lua_upvalueindex(2));
+    std::string fieldName = lua_tostring(state, lua_upvalueindex(2));
+
+    if (lua_type(state, 1) != LUA_TUSERDATA)
+    {
+        std::string errMsg = "call " + fieldName + " method error : missing self parameter, please call by instance:methodName(param)";
+        objectClass -> getContext() -> raiseException(errMsg);
+
+        //回收内存
+        lua_gc(state, LUA_GCCOLLECT, 0);
+
+        return 0;
+    }
+
+    cn::vimfung::luascriptcore::LuaUserdataRef instance = (cn::vimfung::luascriptcore::LuaUserdataRef)lua_touserdata(state, 1);
 
     LuaInstanceSetterHandler handler = objectClass -> getInstanceSetterHandler(fieldName);
     if (handler != NULL)
@@ -350,7 +376,7 @@ static int instanceSetterRouteHandler (lua_State *state)
             value = new cn::vimfung::luascriptcore::LuaValue();
         }
 
-        handler (objectClass, fieldName, value);
+        handler (instance, objectClass, fieldName, value);
 
         //释放参数内存
         value -> release();
@@ -375,12 +401,25 @@ static int instanceGetterRouteHandler (lua_State *state)
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    const char *fieldName = lua_tostring(state, lua_upvalueindex(2));
+    std::string fieldName = lua_tostring(state, lua_upvalueindex(2));
+
+    if (lua_type(state, 1) != LUA_TUSERDATA)
+    {
+        std::string errMsg = "call " + fieldName + " method error : missing self parameter, please call by instance:methodName(param)";
+        objectClass -> getContext() -> raiseException(errMsg);
+
+        //回收内存
+        lua_gc(state, LUA_GCCOLLECT, 0);
+
+        return 0;
+    }
+
+    cn::vimfung::luascriptcore::LuaUserdataRef instance = (cn::vimfung::luascriptcore::LuaUserdataRef)lua_touserdata(state, 1);
 
     LuaInstanceGetterHandler handler = objectClass -> getGetterHandler(fieldName);
     if (handler != NULL)
     {
-        cn::vimfung::luascriptcore::LuaValue *retValue = handler (objectClass, fieldName);
+        cn::vimfung::luascriptcore::LuaValue *retValue = handler (instance, objectClass, fieldName);
         if (retValue != NULL)
         {
             retValue -> push(objectClass -> getContext());

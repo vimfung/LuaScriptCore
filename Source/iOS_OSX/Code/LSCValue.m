@@ -407,7 +407,7 @@
             NSMutableArray *arrayValue = [NSMutableArray array];
             
             lua_pushnil(state);
-            while (lua_next(state, -2))
+            while (lua_next(state, (int)index))
             {
                 LSCValue *value = [self valueWithContext:context atIndex:-1];
                 LSCValue *key = [self valueWithContext:context atIndex:-2];
