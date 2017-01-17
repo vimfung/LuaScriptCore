@@ -654,7 +654,17 @@
 ** macro must include header 'locale.h'.)
 */
 #if !defined(lua_getlocaledecpoint)
+
+#if LUA_PLATFORM == LUA_PLATFORM_ANDROID
+
+#define lua_getlocaledecpoint()		('.')
+
+#else
+
 #define lua_getlocaledecpoint()		(localeconv()->decimal_point[0])
+
+#endif
+
 #endif
 
 /* }================================================================== */

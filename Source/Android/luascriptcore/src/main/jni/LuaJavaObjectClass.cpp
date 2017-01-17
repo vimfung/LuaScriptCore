@@ -15,6 +15,7 @@
 #include "LuaJavaObjectDescriptor.h"
 #include "LuaPointer.h"
 #include "LuaJavaObjectInstanceDescriptor.h"
+#include "../../../../../lua-common/LuaPointer.h"
 
 /**
  * 类实例化处理器
@@ -195,41 +196,35 @@ static LuaValue* _luaClassMethodHandler(LuaModule *module, std::string methodNam
  *
  * @return 方法返回值
  */
-static LuaValue* _luaInstanceMethodHandler (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments)
+static LuaValue* _luaInstanceMethodHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance, cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments)
 {
     using namespace cn::vimfung::luascriptcore;
     LuaValue *retValue = NULL;
 
     JNIEnv *env = LuaJavaEnv::getEnv();
 
-    lua_State *state = objectClass -> getContext() -> getLuaState();
+    //转换为Java的实例对象
+    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
 
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
+    jmethodID invokeMethodID = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_instanceMethodInvoke", "(Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
+
+    static jclass luaValueClass = LuaJavaType::luaValueClass(env);
+
+    jstring jMethodName = env -> NewStringUTF(methodName.c_str());
+
+    //参数
+    jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
+    int index = 0;
+    for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
     {
-        //表示有实例对象传入
-        LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
-        jobject instance = (jobject)((LuaObjectDescriptor *)ref -> value) -> getObject();
-
-        jmethodID invokeMethodID = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_instanceMethodInvoke", "(Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
-
-        static jclass luaValueClass = LuaJavaType::luaValueClass(env);
-
-        jstring jMethodName = env -> NewStringUTF(methodName.c_str());
-
-        //参数
-        jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
-        int index = 0;
-        for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
-        {
-            LuaValue *argument = *it;
-            jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, objectClass -> getContext(), argument);
-            env -> SetObjectArrayElement(argumentArr, index, jArgument);
-            index++;
-        }
-
-        jobject result = env -> CallObjectMethod(instance, invokeMethodID, jMethodName, argumentArr);
-        retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, objectClass -> getContext(), result);
+        LuaValue *argument = *it;
+        jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, objectClass -> getContext(), argument);
+        env -> SetObjectArrayElement(argumentArr, index, jArgument);
+        index++;
     }
+
+    jobject result = env -> CallObjectMethod(jInstance, invokeMethodID, jMethodName, argumentArr);
+    retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, objectClass -> getContext(), result);
 
     LuaJavaEnv::resetEnv(env);
 
@@ -244,34 +239,30 @@ static LuaValue* _luaInstanceMethodHandler (cn::vimfung::luascriptcore::modules:
 /**
  * 类获取器处理器
  *
- * @param module 模块对象
+ * @param instance 实例对象
+ * @param objectClass 实例类型对象
  * @param fieldName 字段名称
  *
  * @return 返回值
  */
-static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string fieldName)
+static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance, cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string fieldName)
 {
     using namespace cn::vimfung::luascriptcore;
 
     JNIEnv *env = LuaJavaEnv::getEnv();
     LuaValue *retValue = NULL;
 
-    lua_State *state = objectClass -> getContext() -> getLuaState();
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
+    //转换为Java的实例对象
+    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
+
+    jmethodID getFieldId = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_getField", "(Ljava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;");
+
+    jstring fieldNameStr = env -> NewStringUTF(fieldName.c_str());
+    jobject retObj = env -> CallObjectMethod(jInstance, getFieldId, fieldNameStr);
+
+    if (retObj != NULL)
     {
-        //表示有实例对象传入
-        LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
-        jobject instance = (jobject)((LuaObjectDescriptor *)ref -> value) -> getObject();
-
-        jmethodID getFieldId = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_getField", "(Ljava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;");
-
-        jstring fieldNameStr = env -> NewStringUTF(fieldName.c_str());
-        jobject retObj = env -> CallObjectMethod(instance, getFieldId, fieldNameStr);
-
-        if (retObj != NULL)
-        {
-            retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, objectClass -> getContext(), retObj);
-        }
+        retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, objectClass -> getContext(), retObj);
     }
 
     LuaJavaEnv::resetEnv(env);
@@ -287,28 +278,23 @@ static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::modules::oo
 /**
  * 类设置器处理器
  *
- * @param module 模块对象
+ * @param instance 实例对象
+ * @param objectClass 实例类型对象
  * @param fieldName 字段名称
  * @param value 字段值
  */
-static void _luaClassSetterHandler (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string fieldName, LuaValue *value)
+static void _luaClassSetterHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance, cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string fieldName, LuaValue *value)
 {
     using namespace cn::vimfung::luascriptcore;
     JNIEnv *env = LuaJavaEnv::getEnv();
 
-    lua_State *state = objectClass -> getContext() -> getLuaState();
+    //转换为Java的实例对象
+    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
 
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
-    {
-        //表示有实例对象传入
-        LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
-        jobject instance = (jobject)((LuaObjectDescriptor *)ref -> value) -> getObject();
+    jmethodID setFieldId = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_setField", "(Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
 
-        jmethodID setFieldId = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_setField", "(Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
-
-        jstring fieldNameStr = env -> NewStringUTF(fieldName.c_str());
-        env -> CallVoidMethod(instance, setFieldId, fieldNameStr, LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, objectClass -> getContext(), value));
-    }
+    jstring fieldNameStr = env -> NewStringUTF(fieldName.c_str());
+    env -> CallVoidMethod(jInstance, setFieldId, fieldNameStr, LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, objectClass -> getContext(), value));
 
     LuaJavaEnv::resetEnv(env);
 }
