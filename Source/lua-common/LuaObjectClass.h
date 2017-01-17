@@ -53,17 +53,17 @@ namespace cn
                     /**
                      * 类实例方法处理器
                      */
-                    typedef LuaValue* (*LuaInstanceMethodHandler) (LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments);
+                    typedef LuaValue* (*LuaInstanceMethodHandler) (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments);
 
                     /**
                      * 类属性Getter处理器
                      */
-                    typedef LuaValue* (*LuaInstanceGetterHandler) (LuaObjectClass *objectClass, std::string fieldName);
+                    typedef LuaValue* (*LuaInstanceGetterHandler) (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string fieldName);
 
                     /**
                      * 类属性Setter处理器
                      */
-                    typedef void (*LuaInstanceSetterHandler) (LuaObjectClass *objectClass, std::string fieldName, LuaValue *value);
+                    typedef void (*LuaInstanceSetterHandler) (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string fieldName, LuaValue *value);
 
                     /**
                      * 类方法映射表类型

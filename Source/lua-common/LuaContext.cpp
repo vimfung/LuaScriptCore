@@ -22,10 +22,10 @@ static int methodRouteHandler(lua_State *state) {
     {
         int top = lua_gettop(state);
         cn::vimfung::luascriptcore::LuaArgumentList args;
-        for (int i = 0; i < top; i++)
+        for (int i = 1; i <= top; i++)
         {
-            cn::vimfung::luascriptcore::LuaValue *value = context -> getValueByIndex(-i - 1);
-            args.push_front(value);
+            cn::vimfung::luascriptcore::LuaValue *value = context -> getValueByIndex(i);
+            args.push_back(value);
         }
 
         cn::vimfung::luascriptcore::LuaValue *retValue = handler (context, methodName, args);
@@ -134,7 +134,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
             bool isArray = true;
 
             lua_pushnil(_state);
-            while (lua_next(_state, -2))
+            while (lua_next(_state, index))
             {
                 LuaValue *item = getValueByIndex(-1);
                 LuaValue *key = getValueByIndex(-2);
