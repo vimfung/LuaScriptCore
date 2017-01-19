@@ -255,7 +255,7 @@ LuaObjectDescriptor* LuaJavaEnv::getAssociateInstanceRef(JNIEnv *env, jobject in
     return objectDescriptor;
 }
 
-jobject LuaJavaEnv::releaseObject(JNIEnv *env, jint objectId)
+void LuaJavaEnv::releaseObject(JNIEnv *env, jint objectId)
 {
     std::map<jint, jobject>::iterator it =  _javaObjectMap.find(objectId);
     if (it != _javaObjectMap.end())

@@ -9,7 +9,7 @@
 #include "LuaObject.h"
 #include "LuaValue.h"
 #include "LuaModule.h"
-#import "LuaDefined.h"
+#include "LuaDefined.h"
 
 namespace cn
 {
