@@ -9,7 +9,7 @@ jclass LuaJavaType::fieldClass(JNIEnv *env)
 {
     static jclass fieldClass = NULL;
 
-    if (fieldClass == NULL);
+    if (fieldClass == NULL)
     {
         jclass jTmpClass = env -> FindClass("java/lang/reflect/Field");
         fieldClass = (jclass)env -> NewGlobalRef(jTmpClass);
@@ -23,7 +23,7 @@ jclass LuaJavaType::methodClass(JNIEnv *env)
 {
     static jclass methodClass = NULL;
 
-    if (methodClass == NULL);
+    if (methodClass == NULL)
     {
         jclass jTmpClass = env -> FindClass("java/lang/reflect/Method");
         methodClass = (jclass)env -> NewGlobalRef(jTmpClass);

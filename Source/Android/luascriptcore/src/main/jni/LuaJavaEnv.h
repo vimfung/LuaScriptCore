@@ -96,7 +96,7 @@ public:
      * @param env JNI环境
      * @param objectId 本地对象标识
      */
-    static jobject releaseObject(JNIEnv *env, jint objectId);
+    static void releaseObject(JNIEnv *env, jint objectId);
 
     /**
      * 获取方法处理器

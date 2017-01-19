@@ -1,6 +1,6 @@
 package cn.vimfung.luascriptcore.modules.oo;
 
-import android.util.ArraySet;
+//import android.util.ArraySet;
 import android.util.Log;
 
 import java.lang.reflect.Field;
@@ -132,7 +132,7 @@ public class LuaObjectClass extends LuaModule
         }
 
         //导出类方法
-        methods = moduleClass.getDeclaredMethods();
+        methods = moduleClass.getMethods();
         for (Method method : methods)
         {
             String methodName = method.getName();
@@ -231,7 +231,20 @@ public class LuaObjectClass extends LuaModule
         {
             //将LuaValue数组转换为对象数组
             ArrayList argumentArray = new ArrayList();
-            Method method =  LuaObjectClass._getExportInstanceMethod(this.getClass(), methodName);
+
+            //从子类到父类逐个类型查找导出方法集合中是否存在指定方法
+            Method method = null;
+            Class cls = this.getClass();
+            while (true)
+            {
+                method =  LuaObjectClass._getExportInstanceMethod(cls, methodName);
+                if (method != null || cls == LuaObjectClass.class)
+                {
+                    break;
+                }
+                cls = cls.getSuperclass();
+            }
+
             if (method == null)
             {
                 return new LuaValue();

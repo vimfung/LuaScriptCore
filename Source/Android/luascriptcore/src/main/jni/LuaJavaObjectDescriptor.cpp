@@ -8,7 +8,7 @@
 #include "LuaJavaType.h"
 #include "LuaObjectClass.h"
 #include "LuaPointer.h"
-#include "../../../../../lua-core/src/lua.hpp"
+#include "lua.hpp"
 
 LuaJavaObjectDescriptor::LuaJavaObjectDescriptor(JNIEnv *env, jobject object)
 {
