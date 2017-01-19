@@ -2,6 +2,7 @@ package cn.vimfung.luascriptcore;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Path;
 import android.os.Debug;
 import android.os.Environment;
@@ -27,7 +28,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+
+import static android.os.Environment.MEDIA_MOUNTED;
+//import java.util.Objects;
 
 /**
  * Lua上下文对象
@@ -57,6 +60,29 @@ public class LuaContext extends LuaBaseObject
     }
 
     /**
+     * 获取缓存目录路径
+     * @return  缓存目录
+     */
+    private File getCacheDir()
+    {
+        File appCacheDir = null;
+
+        int perm = _context.checkCallingOrSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE");
+        if (MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) &&  perm == PackageManager.PERMISSION_GRANTED)
+        {
+            appCacheDir = _context.getExternalCacheDir();;
+        }
+
+        if (appCacheDir == null)
+        {
+
+            appCacheDir = _context.getCacheDir();
+        }
+
+        return appCacheDir;
+    }
+
+    /**
      * 从资源中拷贝Lua文件
      * @param path 资源文件路径
      */
@@ -83,7 +109,7 @@ public class LuaContext extends LuaBaseObject
                     ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
                     try
                     {
-                        String filePath = String.format("%s/lua/%s", _context.getExternalCacheDir(), fileName);
+                        String filePath = String.format("%s/lua/%s", getCacheDir(), fileName);
                         File file = new File(filePath);
                         File parentFile = file.getParentFile();
                         if (!parentFile.exists())
@@ -129,7 +155,7 @@ public class LuaContext extends LuaBaseObject
         LuaContext luaContext = LuaNativeUtil.createContext();
         luaContext._context = context;
 
-        File cacheDir = new File (String.format("%s/lua", context.getExternalCacheDir()));
+        File cacheDir = new File (String.format("%s/lua", luaContext.getCacheDir()));
         if (!cacheDir.exists())
         {
             cacheDir.mkdirs();
@@ -188,7 +214,7 @@ public class LuaContext extends LuaBaseObject
             //拷贝资源包中的所有lua文件到临时目录中
             setupLuaFolder();
             //转换路径为Lua文件目录路径
-            filePath = String.format("%s/lua/%s",  _context.getExternalCacheDir(), filePath);
+            filePath = String.format("%s/lua/%s",  getCacheDir(), filePath);
         }
 
         File f = new File(filePath);

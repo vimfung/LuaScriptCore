@@ -1,0 +1,16 @@
+Executable : /Users/vimfung/Library/Android/sdk/ndk-bundle/ndk-build
+arguments : 
+NDK_PROJECT_PATH=null
+APP_BUILD_SCRIPT=/Users/vimfung/Documents/project/LuaScriptCore/Source/Android/luascriptcore/src/main/jni/Android.mk
+APP_ABI=x86
+NDK_ALL_ABIS=x86
+NDK_DEBUG=1
+APP_PLATFORM=android-13
+NDK_OUT=/Users/vimfung/Documents/project/LuaScriptCore/Sample/Android/app/build/intermediates/ndkBuild/debug/obj
+NDK_LIBS_OUT=/Users/vimfung/Documents/project/LuaScriptCore/Sample/Android/app/build/intermediates/ndkBuild/debug/lib
+APP_SHORT_COMMANDS=false
+LOCAL_SHORT_COMMANDS=false
+-B
+-n
+jvmArgs : 
+

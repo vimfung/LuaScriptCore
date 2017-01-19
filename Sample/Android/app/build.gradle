@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 24
+    buildToolsVersion '24.0.1'
 
     defaultConfig {
         applicationId "cn.vimfung.luascriptcore.sample"
-        minSdkVersion 15
+        minSdkVersion 13
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
