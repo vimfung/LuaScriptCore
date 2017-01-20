@@ -28,10 +28,10 @@ static int methodRouteHandler(lua_State *state)
 
         int top = lua_gettop(state);
         LuaArgumentList args;
-        for (int i = 0; i < top; i++)
+        for (int i = 1; i <= top; i++)
         {
-            LuaValue *value = context -> getValueByIndex(-i - 1);
-            args.push_front(value);
+            LuaValue *value = context -> getValueByIndex(i);
+            args.push_back(value);
         }
 
         LuaValue *retValue = handler (module, methodName, args);
