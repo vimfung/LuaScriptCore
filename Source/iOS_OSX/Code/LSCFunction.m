@@ -10,6 +10,7 @@
 #import "LSCFunction_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
+#import "LSCTuple_Private.h"
 
 /**
  方法表名称
@@ -87,12 +88,12 @@ static NSString *const FunctionsTableName = @"_tmpFuncs_";
     }
 }
 
-- (LSCValue *)invokeWithArguments:(NSArray<LSCValue *> *)arguments
+- (id)invokeWithArguments:(NSArray<LSCValue *> *)arguments
 {
     __weak LSCFunction *theFunc = self;
     lua_State *state = self.context.state;
     
-    LSCValue *retValue = nil;
+    id retValue = nil;
     
     lua_getglobal(state, "_G");
     if (lua_istable(state, -1))
@@ -100,31 +101,56 @@ static NSString *const FunctionsTableName = @"_tmpFuncs_";
         lua_getfield(state, -1, FunctionsTableName.UTF8String);
         if (lua_istable(state, -1))
         {
+            //记录栈顶位置，用于计算返回值数量
+            int top = lua_gettop(state);
+            
             lua_getfield(state, -1, self.index.UTF8String);
             if (lua_isfunction(state, -1))
             {
+                int returnCount = 0;
+                
                 [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
                     
                     [value pushWithContext:theFunc.context];
                     
                 }];
                 
-                if (lua_pcall(state, (int)arguments.count, 1, 0) == 0)
+                if (lua_pcall(state, (int)arguments.count, LUA_MULTRET, 0) == 0)
                 {
-                    retValue = [LSCValue valueWithContext:self.context atIndex:-1];
+                    returnCount = lua_gettop(state) - top;
+                    if (returnCount > 1)
+                    {
+                        LSCTuple *tuple = [[LSCTuple alloc] init];
+                        for (int i = 1; i <= returnCount; i++)
+                        {
+                            LSCValue *value = [LSCValue valueWithContext:self.context atIndex:top + i];
+                            [tuple addReturnValue:[value toObject]];
+                        }
+                        retValue = tuple;
+                    }
+                    else if (returnCount == 1)
+                    {
+                        retValue = [LSCValue valueWithContext:self.context atIndex:-1];
+                    }
+                    
                 }
                 else
                 {
                     //调用失败
+                    returnCount = 1;
                     LSCValue *value = [LSCValue valueWithContext:self.context atIndex:-1];
                     NSString *errMessage = [value toString];
                     [self.context raiseExceptionWithMessage:errMessage];
                 }
+                
+                //弹出返回值
+                lua_pop(state, returnCount);
             }
-            
-            //弹出返回值
-            lua_pop(state, 1);
-            
+            else
+            {
+                //弹出function
+                lua_pop(state, 1);
+            }
         }
         
         //弹出_tmpFuncs_

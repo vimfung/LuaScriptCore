@@ -7,6 +7,7 @@
 
 #include <map>
 #include "LuaObject.h"
+#include "LuaDefined.h"
 
 namespace cn
 {
@@ -14,7 +15,6 @@ namespace cn
     {
         namespace luascriptcore
         {
-            typedef std::map<int, LuaObject*> LuaObjectMap;
 
             class LuaObjectManager
             {

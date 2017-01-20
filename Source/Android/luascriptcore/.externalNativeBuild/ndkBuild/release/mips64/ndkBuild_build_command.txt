@@ -16,6 +16,7 @@ APP_CPPFLAGS+="-g"
 APP_CPPFLAGS+="-Wno-deprecated-declarations"
 APP_CPPFLAGS+="-fpermissive"
 APP_STL=stlport_static
+NDK_DEBUG=1
 APP_PLATFORM=android-13
 NDK_TOOLCHAIN_VERSION=4.9
 APP_SHORT_COMMANDS=false

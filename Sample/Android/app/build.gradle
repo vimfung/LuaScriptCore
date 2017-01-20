@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '24.0.1'
+    compileSdkVersion 23
+    buildToolsVersion '23.0.3'
 
     defaultConfig {
         applicationId "cn.vimfung.luascriptcore.sample"
@@ -31,5 +31,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.3.0'
     compile files('src/main/libs/LuaScriptCore.jar')
-//    compile project(':luascriptcore')
+//        compile project(':luascriptcore')
 }

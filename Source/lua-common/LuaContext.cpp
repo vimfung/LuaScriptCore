@@ -7,12 +7,17 @@
 #include "LuaModule.h"
 #include "LuaPointer.h"
 #include "LuaFunction.h"
+#include "LuaTuple.h"
 #include <map>
 #include <list>
 #include <iostream>
 #include <sstream>
 
 static int methodRouteHandler(lua_State *state) {
+
+    int returnCount = 0;
+
+    using namespace cn::vimfung::luascriptcore;
 
     cn::vimfung::luascriptcore::LuaContext *context = (cn::vimfung::luascriptcore::LuaContext *)lua_touserdata(state, lua_upvalueindex(1));
     const char *methodName = lua_tostring(state, lua_upvalueindex(2));
@@ -31,12 +36,17 @@ static int methodRouteHandler(lua_State *state) {
         cn::vimfung::luascriptcore::LuaValue *retValue = handler (context, methodName, args);
         if (retValue != NULL)
         {
+            if (retValue -> getType() == LuaValueTypeTuple)
+            {
+                returnCount = (int)retValue -> toTuple() -> count();
+            }
+            else
+            {
+                returnCount = 1;
+            }
+
             retValue -> push(context);
             retValue -> release();
-        }
-        else
-        {
-            lua_pushnil(state);
         }
 
         //释放参数内存
@@ -50,7 +60,7 @@ static int methodRouteHandler(lua_State *state) {
     //回收内存
     lua_gc(state, LUA_GCCOLLECT, 0);
 
-    return 1;
+    return returnCount;
 }
 
 
@@ -246,36 +256,65 @@ void cn::vimfung::luascriptcore::LuaContext::addSearchPath(std::string path)
     lua_pop(_state, 1);
 }
 
+void cn::vimfung::luascriptcore::LuaContext::setGlobal(std::string name, LuaValue *value)
+{
+    value -> push(this);
+    lua_setglobal(_state, name.c_str());
+}
+
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::getGlobal(std::string name)
+{
+    lua_getglobal(_state, name.c_str());
+    return this -> getValueByIndex(-1);
+}
+
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScript(std::string script)
 {
     LuaValue *retValue = NULL;
 
     int curTop = lua_gettop(_state);
-    int ret = luaL_loadstring(_state, script.c_str()) ||
-    lua_pcall(_state, 0, 1, 0);
+    int returnCount = 0;
 
-    bool res = ret == 0;
-    if (!res) {
+    luaL_loadstring(_state, script.c_str());
+    if (lua_pcall(_state, 0, LUA_MULTRET, 0) == 0)
+    {
+        //调用成功
+        returnCount = lua_gettop(_state) - curTop;
 
-        //错误时触发异常回调
-        LuaValue *value = this->getValueByIndex(-1);
+        if (returnCount > 1)
+        {
+            LuaTuple *tuple = new LuaTuple();
+            for (int i = 1; i <= returnCount; i++)
+            {
+                LuaValue *value = this -> getValueByIndex(curTop + i);
+                tuple -> addReturnValue(value);
+                value -> release();
+            }
+
+            retValue = LuaValue::TupleValue(tuple);
+
+            tuple -> release();
+        }
+        else if (returnCount == 1)
+        {
+            retValue = this -> getValueByIndex(-1);
+        }
+    }
+    else
+    {
+        //调用失败
+        returnCount = 1;
+
+        LuaValue *value = this -> getValueByIndex(-1);
 
         std::string errMessage = value -> toString();
         this -> raiseException(errMessage);
 
-        lua_pop(_state, 1);
-
         value -> release();
-
-    } else {
-
-        if (lua_gettop(_state) > curTop) {
-
-            //有返回值
-            retValue = this -> getValueByIndex(-1);
-            lua_pop(_state, 1);
-        }
     }
+
+    //弹出返回值
+    lua_pop(_state, returnCount);
 
     if (retValue == NULL)
     {
@@ -294,31 +333,48 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
     LuaValue *retValue = NULL;
 
     int curTop = lua_gettop(_state);
-    int ret = luaL_loadfile(_state, path.c_str()) ||
-    lua_pcall(_state, 0, 1, 0);
+    int returnCount = 0;
 
-    bool res = ret == 0;
-    if (!res)
+    luaL_loadfile(_state, path.c_str());
+    if (lua_pcall(_state, 0, LUA_MULTRET, 0) == 0)
     {
-        //错误时触发异常回调
-        LuaValue *value = this->getValueByIndex(-1);
+        //调用成功
+        returnCount = lua_gettop(_state) - curTop;
+
+        if (returnCount > 1)
+        {
+            LuaTuple *tuple = new LuaTuple();
+            for (int i = 1; i <= returnCount; i++)
+            {
+                LuaValue *value = this -> getValueByIndex(curTop + i);
+                tuple -> addReturnValue(value);
+                value -> release();
+            }
+
+            retValue = LuaValue::TupleValue(tuple);
+
+            tuple -> release();
+        }
+        else if (returnCount == 1)
+        {
+            retValue = this -> getValueByIndex(-1);
+        }
+    }
+    else
+    {
+        //调用失败
+        returnCount = 1;
+
+        LuaValue *value = this -> getValueByIndex(-1);
 
         std::string errMessage = value -> toString();
         this -> raiseException(errMessage);
 
-        lua_pop(_state, 1);
-
         value -> release();
     }
-    else
-    {
-        if (lua_gettop(_state) > curTop) {
 
-            //有返回值
-            retValue = this -> getValueByIndex(-1);
-            lua_pop(_state, 1);
-        }
-    }
+    //弹出返回值
+    lua_pop(_state, returnCount);
 
     if (retValue == NULL)
     {
@@ -336,11 +392,14 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
 {
     LuaValue *resultValue = NULL;
 
+    int curTop = lua_gettop(_state);
+
     lua_getglobal(_state, methodName.c_str());
     if (lua_isfunction(_state, -1))
     {
-        //存在指定方法
+        int returnCount = 0;
 
+        //存在指定方法
         //初始化传递参数
         for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
         {
@@ -348,24 +407,43 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
             item->push(this);
         }
 
-        if (lua_pcall(_state, (int)arguments -> size(), 1, 0) == 0)
+        if (lua_pcall(_state, (int)arguments -> size(), LUA_MULTRET, 0) == 0)
         {
             //调用成功
-            resultValue = getValueByIndex(-1);
+            returnCount = lua_gettop(_state) - curTop;
+            if (returnCount > 1)
+            {
+                LuaTuple *tuple = new LuaTuple();
+                for (int i = 1; i <= returnCount; i++)
+                {
+                    LuaValue *value = this -> getValueByIndex(curTop + i);
+                    tuple -> addReturnValue(value);
+                    value -> release();
+                }
+
+                resultValue = LuaValue::TupleValue(tuple);
+
+                tuple -> release();
+            }
+            else if (returnCount == 1)
+            {
+                resultValue = this -> getValueByIndex(-1);
+            }
         }
         else
         {
             //调用失败
+            returnCount = 1;
+
             LuaValue *value = getValueByIndex(-1);
             
             std::string errMessage = value -> toString();
             this -> raiseException(errMessage);
 
             value -> release();
-
         }
 
-        lua_pop(_state, 1);
+        lua_pop(_state, returnCount);
     }
     else
     {

@@ -24,6 +24,7 @@ import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaExceptionHandler;
 import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
+import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             evalScriptBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    LuaValue retValue = _luaContext.evalScript("print(10);return 'Hello World';");
+                    LuaValue retValue = _luaContext.evalScript("print(10); return 'Hello','World';");
                     Log.v("luaScriptCoreSample", retValue.toString());
                 }
             });

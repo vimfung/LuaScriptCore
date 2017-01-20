@@ -7,6 +7,7 @@
 //
 
 #import "TestModule.h"
+#import "LSCTuple.h"
 
 @implementation TestModule
 
@@ -14,5 +15,15 @@
 {
     return @"Hello World!";
 }
+
++ (LSCTuple *)testTuple
+{
+    LSCTuple *tuple = [[LSCTuple alloc] init];
+    [tuple addReturnValue:@"Hello"];
+    [tuple addReturnValue:@"World"];
+    
+    return tuple;
+}
+
 
 @end

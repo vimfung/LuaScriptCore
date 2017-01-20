@@ -34,6 +34,22 @@ public class LuaNativeUtil
     public static native void addSearchPath(int contextNativeId, String path);
 
     /**
+     * 设置全局变量
+     * @param contextNativeId 上下文的本地标识
+     * @param name  变量名称
+     * @param value 变量值
+     */
+    public static native void setGlobal(int contextNativeId, String name, LuaValue value);
+
+    /**
+     * 获取全局变量
+     * @param contextNativeId  上下文的本地标识
+     * @param name  变量名称
+     * @return 变量值
+     */
+    public static native LuaValue getGlobal(int contextNativeId, String name);
+
+    /**
      * 捕获Lua异常
      * @param context   上下文对象
      * @param enabled   true表示捕获异常，false表示不进行捕获

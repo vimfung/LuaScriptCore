@@ -184,6 +184,15 @@ public:
      * @return LuaFunction类型
      */
     static jclass functionClass(JNIEnv *env);
+
+    /**
+     * 获取LuaTuple类
+     *
+     * @param env JNI环境
+     *
+     * @return LuaTuple类型
+     */
+    static jclass tupleClass(JNIEnv *env);
 };
 
 

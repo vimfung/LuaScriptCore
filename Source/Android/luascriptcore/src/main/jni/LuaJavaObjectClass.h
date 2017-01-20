@@ -6,13 +6,34 @@
 #define ANDROID_LUAJAVAOBJECTCLASS_H
 
 #include "LuaObjectClass.h"
-#include "LuaJavaObjectDescriptor.h"
 #include <jni.h>
+
+using namespace cn::vimfung::luascriptcore;
+using namespace cn::vimfung::luascriptcore::modules::oo;
+
+class LuaJavaObjectDescriptor;
+
+namespace cn {
+    namespace vimfung {
+        namespace luascriptcore {
+
+            class LuaContext;
+
+            namespace modules {
+                namespace oo {
+
+                    class LuaObjectInstanceDescriptor;
+
+                }
+            }
+        }
+    }
+}
 
 /**
  * Java的类型
  */
-class LuaJavaObjectClass : public cn::vimfung::luascriptcore::modules::oo::LuaObjectClass
+class LuaJavaObjectClass : public LuaObjectClass
 {
 private:
     jclass  _moduleClass;
@@ -59,7 +80,7 @@ public:
      *
      * @return true 是 false 不是
      */
-    bool subclassOf(cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *type);
+    bool subclassOf(LuaObjectClass *type);
 
     /**
      * 注册模块时调用
@@ -68,14 +89,14 @@ public:
      * @param context 上下文对象
      */
     void onRegister(const std::string &name,
-                    cn::vimfung::luascriptcore::LuaContext *context);
+                    LuaContext *context);
 
     /**
      * 创建Lua实例对象
      *
      * @param objectDescriptor 对象描述器
      */
-    void createLuaInstance(cn::vimfung::luascriptcore::modules::oo::LuaObjectInstanceDescriptor *objectDescriptor);
+    void createLuaInstance(LuaObjectInstanceDescriptor *objectDescriptor);
 };
 
 

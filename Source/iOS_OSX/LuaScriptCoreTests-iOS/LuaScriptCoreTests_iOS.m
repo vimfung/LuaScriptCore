@@ -10,6 +10,7 @@
 #import "LuaScriptCore.h"
 #import "TestModule.h"
 #import "Person.h"
+#import "LSCTuple.h"
 
 @interface LuaScriptCoreTests_iOS : XCTestCase
 
@@ -33,9 +34,13 @@
 
 - (void)testEvalScript
 {
-    LSCValue *value = [self.context evalScriptFromString:@"return 4 * 256;"];
+    id value = [self.context evalScriptFromString:@"return 4 * 256; "];
     XCTAssertNotNil(value, "value is nil");
-    XCTAssertEqual([value toInteger], 1024, "result value not equal 1024.");
+    NSLog(@"retValue = %@", value);
+    
+    value = [self.context evalScriptFromString:@"return 4 * 256, 'aa', 'bb'; "];
+    XCTAssertNotNil(value, "value is nil");
+    NSLog(@"retValue = %@", value);
 }
 
 - (void)testEvalScriptFromFile
@@ -43,9 +48,9 @@
     NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
     NSString *path = [bundle pathForResource:@"Test" ofType:@"lua"];
     XCTAssertNotNil(path, "path is nil");
-    LSCValue *value = [self.context evalScriptFromFile:path];
+    id value = [self.context evalScriptFromFile:path];
     XCTAssertNotNil(value, "value is nil");
-    XCTAssertEqual([value toInteger], 1024, "result value not equal 1024");
+    NSLog(@"retValue = %@", value);
 }
 
 - (void)testRegisterMethodAndCall
@@ -59,11 +64,29 @@
         
     }];
     
+    [self.context registerMethodWithName:@"returnTuple" block:^LSCValue *(NSArray *arguments) {
+        
+        LSCValue *v1 = arguments[0];
+        LSCValue *v2 = arguments[1];
+        LSCTuple *tuple = [[LSCTuple alloc] init];
+        [tuple addReturnValue:[v1 toObject]];
+        [tuple addReturnValue:[v2 toObject]];
+        
+        return [LSCValue tupleValue:tuple];
+        
+    }];
+    
     NSInteger v1 = 30;
     NSInteger v2 = 55;
-    LSCValue *resValue = [self.context callMethodWithName:@"add" arguments:@[[LSCValue integerValue:v1], [LSCValue integerValue:v2]]];
+    id resValue = [self.context callMethodWithName:@"add" arguments:@[[LSCValue integerValue:v1], [LSCValue integerValue:v2]]];
     XCTAssertNotNil(resValue, "result value is nil");
-    XCTAssertEqual([resValue toInteger], v1 + v2, "result is not equal %ld", v1 + v2);
+    NSLog(@"resValue = %@", resValue);
+    
+    resValue = [self.context callMethodWithName:@"returnTuple" arguments:@[[LSCValue integerValue:v1], [LSCValue integerValue:v2]]];
+    XCTAssertNotNil(resValue, "result value is nil");
+    NSLog(@"resValue = %@", resValue);
+    
+    
 }
 
 - (void)testRegisterModule
@@ -88,7 +111,7 @@
 - (void)testClassModuleName
 {
     [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"print(name);"];
+    [self.context evalScriptFromString:@"print(Person.name);"];
 }
 
 - (void)testClassIsSubclassOf
@@ -107,6 +130,57 @@
 {
     [self.context registerModuleWithClass:[Person class]];
     [self.context evalScriptFromString:@"Person.subclass('Chinese'); function Person:init () print ('Person init') end function Chinese:init () self.super.init(self); print ('Chinese init'); end local c = Chinese.create();"];
+}
+
+- (void)testSetGlobalVar
+{
+    [self.context setGlobalWithValue:[LSCValue objectValue:@(1)] forName:@"test"];
+    [self.context evalScriptFromString:@"print(test);"];
+    
+    LSCValue *value = [self.context getGlobalForName:@"test"];
+    NSLog(@"test = %@", value);
+}
+
+- (void)testTupleReturnValue
+{
+    [self.context registerMethodWithName:@"test" block:^LSCValue *(NSArray<LSCValue *> *arguments) {
+       
+        LSCTuple *tuple = [[LSCTuple alloc] init];
+        [tuple addReturnValue:@1000];
+        [tuple addReturnValue:@24];
+        
+        return [LSCValue tupleValue:tuple];
+        
+    }];
+    
+    [self.context evalScriptFromString:@"local a,b = test(); print(a, b);"];
+}
+
+- (void)testModuleTupleReturnValue
+{
+    [self.context registerModuleWithClass:[TestModule class]];
+    [self.context evalScriptFromString:@"local a,b = TestModule.testTuple(); print(a, b);"];
+}
+
+- (void)testClassInstanceTupleReturnValue
+{
+    [self.context registerModuleWithClass:[Person class]];
+    [self.context evalScriptFromString:@"local p = Person.create(); local a,b = p:test(); print(a, b);"];
+}
+
+- (void)testFunctionInvokeReturn
+{
+    [self.context registerMethodWithName:@"test" block:^LSCValue *(NSArray<LSCValue *> *arguments) {
+       
+        LSCFunction *func = [arguments[0] toFunction];
+        id retValue = [func invokeWithArguments:nil];
+        NSLog(@"retValue = %@", retValue);
+        
+        return nil;
+        
+    }];
+    
+    [self.context evalScriptFromString:@"test(function() return 1,'Hello World',3; end); test(function() return 'xxxx'; end); test(function() end);"];
 }
 
 - (void)tearDown

@@ -19,6 +19,7 @@
 /// - Integer: 整型
 /// - Data: 二进制数组类型
 /// - Function: 方法类型
+/// - Tuple: 元组
 public enum LuaValueType : Int
 {
     case Nil = 0
@@ -32,6 +33,7 @@ public enum LuaValueType : Int
     case Integer = 8
     case Data = 9
     case Function = 10
+    case Tuple = 11
 }
 
 
@@ -100,6 +102,30 @@ public class LuaValue: NSObject
     public init(dictionaryValue : Dictionary<AnyHashable, Any>)
     {
         _rawValue = LSCValue.dictionaryValue(dictionaryValue);
+    }
+    
+    /// 初始化
+    ///
+    /// - Parameter pointerValue: 指针
+    public init(pointerValue : LuaPointer)
+    {
+        _rawValue = LSCValue.pointerValue(pointerValue._rawPointer);
+    }
+    
+    /// 初始化
+    ///
+    /// - Parameter functionValue: 方法
+    public init(functionValue : LuaFunction)
+    {
+        _rawValue = LSCValue.functionValue(functionValue._rawFunction);
+    }
+    
+    /// 初始化
+    ///
+    /// - Parameter tupleValue: 元组
+    public init(tupleValue : LuaTuple)
+    {
+        _rawValue = LSCValue.tupleValue(tupleValue._rawTuple);
     }
     
     /// 初始化

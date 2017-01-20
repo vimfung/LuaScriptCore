@@ -7,12 +7,22 @@
 //
 
 #import "Person.h"
+#import "LSCTuple.h"
 
 @implementation Person
 
 - (void)speak:(NSString *)content
 {
     NSLog(@"%@ speak:\"%@\"", self.name, content);
+}
+
+- (LSCTuple *)test
+{
+    LSCTuple *tuple = [[LSCTuple alloc] init];
+    [tuple addReturnValue:@"Hello"];
+    [tuple addReturnValue:@"World"];
+    
+    return tuple;
 }
 
 + (void)printPersonName:(Person *)person

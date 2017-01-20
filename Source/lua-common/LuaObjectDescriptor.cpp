@@ -5,7 +5,6 @@
 #include <stdint.h>
 #include "LuaObjectDescriptor.h"
 #include "LuaContext.h"
-#include "LuaPointer.h"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;

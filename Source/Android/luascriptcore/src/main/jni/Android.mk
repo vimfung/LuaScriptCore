@@ -57,20 +57,17 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaFunction.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaModule.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaNativeClass.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaNativeClass.hpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaNativeClassFactory.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaNativeClassFactory.hpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObject.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectClass.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectDecoder.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectDecoder.hpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectEncoder.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectEncoder.hpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectInstanceDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectManager.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaPointer.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaValue.cpp \
+	$(LOCAL_PATH)/../../../../../lua-common/LuaTuple.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../lua-core/src
