@@ -11,6 +11,7 @@
 #import "LSCContext_Private.h"
 #import "LSCFunction_Private.h"
 #import "LSCPointer.h"
+#import "LSCTuple_Private.h"
 #import "lauxlib.h"
 #import "lua.h"
 #import "LSCLuaObjectPushProtocol.h"
@@ -100,6 +101,15 @@
         {
             return [self functionValue:objectValue];
         }
+        else if ([objectValue isKindOfClass:[LSCValue class]])
+        {
+            //不做任何封装，直接返回
+            return objectValue;
+        }
+        else if ([objectValue isKindOfClass:[LSCTuple class]])
+        {
+            return [self tupleValue:objectValue];
+        }
         else
         {
             return [[self alloc] initWithType:LSCValueTypeObject value:objectValue];
@@ -117,6 +127,11 @@
 + (instancetype)functionValue:(LSCFunction *)functionValue
 {
     return [[self alloc] initWithType:LSCValueTypeFunction value:functionValue];
+}
+
++ (instancetype)tupleValue:(LSCTuple *)tupleValue
+{
+    return [[self alloc] initWithType:LSCValueTypeTuple value:tupleValue];
 }
 
 - (instancetype)init
@@ -200,6 +215,11 @@
         case LSCValueTypeFunction:
         {
             [[self toFunction] pushWithContext:context];
+            break;
+        }
+        case LSCValueTypeTuple:
+        {
+            [[self toTuple] pushWithContext:context];
             break;
         }
         default:
@@ -343,6 +363,16 @@
 - (LSCFunction *)toFunction
 {
     if (self.valueType == LSCValueTypeFunction)
+    {
+        return self.valueContainer;
+    }
+    
+    return nil;
+}
+
+- (LSCTuple *)toTuple
+{
+    if (self.valueType == LSCValueTypeTuple)
     {
         return self.valueContainer;
     }

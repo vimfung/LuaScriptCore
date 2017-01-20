@@ -9,7 +9,7 @@
 /// Lua的方法对象类
 public class LuaFunction: NSObject
 {
-    private var _rawFunction : LSCFunction;
+    var _rawFunction : LSCFunction;
     
     /// 初始化
     public override init ()
@@ -28,15 +28,24 @@ public class LuaFunction: NSObject
     /// 调用方法
     ///
     /// - Parameter arguments: 调用参数
-    /// - Returns: 返回值
-    public func invoke (arguments : Array<LuaValue>) -> LuaValue
+    /// - Returns: 返回值, 如果返回值数量为1时，返回值类型是LuaValue， 如果数量>1时，则返回值类型是LuaTuple
+    public func invoke (arguments : Array<LuaValue>) -> Any!
     {
         var args : Array<LSCValue> = Array<LSCValue>();
         for item in arguments {
             args.append(item.rawValue);
         }
         
-        let retValue : LSCValue = _rawFunction.invoke(withArguments: args);
-        return LuaValue(rawValue: retValue);
+        let retValue : Any = _rawFunction.invoke(withArguments: args);
+        if (retValue is LSCValue)
+        {
+            return LuaValue(rawValue: retValue as! LSCValue);
+        }
+        else if (retValue is LSCTuple)
+        {
+            return LuaTuple(rawTuple: retValue as! LSCTuple);
+        }
+        
+        return nil;
     }
 }

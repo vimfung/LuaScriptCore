@@ -7,6 +7,9 @@
 #include <ctype.h>
 #include "LuaObjectClass.h"
 #include "LuaObjectInstanceDescriptor.h"
+#include "LuaContext.h"
+#include "LuaValue.h"
+#include "LuaTuple.h"
 
 /**
  * 实例种子，参与实例索引的生成，每次创建实例，该值会自增.
@@ -280,6 +283,8 @@ static int instanceMethodRouteHandler(lua_State *state)
     using namespace cn::vimfung::luascriptcore;
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
+    int returnCount = 0;
+
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
     std::string methodName = lua_tostring(state, lua_upvalueindex(2));
 
@@ -314,6 +319,15 @@ static int instanceMethodRouteHandler(lua_State *state)
         if (retValue != NULL)
         {
             //释放返回值
+            if (retValue -> getType() == LuaValueTypeTuple)
+            {
+                returnCount = (int)retValue -> toTuple() -> count();
+            }
+            else
+            {
+                returnCount = 1;
+            }
+
             retValue -> push(context);
             retValue -> release();
         }
@@ -329,7 +343,7 @@ static int instanceMethodRouteHandler(lua_State *state)
     //回收内存
     lua_gc(state, LUA_GCCOLLECT, 0);
 
-    return 1;
+    return returnCount;
 }
 
 /**
@@ -445,15 +459,6 @@ cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::LuaObjectClass(LuaObjec
     _classObjectDestroyHandler = NULL;
     _subclassHandler = NULL;
 }
-
-//cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::LuaObjectClass(const std::string &superClassName)
-//{
-//    _superClassName = superClassName;
-//    _classObjectCreatedHandler = NULL;
-//    _classObjectDescriptionHandler = NULL;
-//    _classObjectDestroyHandler = NULL;
-//    _subclassHandler = NULL;
-//}
 
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onObjectCreated(LuaClassObjectCreatedHandler handler)
 {

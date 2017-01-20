@@ -321,6 +321,37 @@ public class LuaValue extends LuaBaseObject
     }
 
     /**
+     * 设置元组
+     * @param value 元组对象
+     */
+    public LuaValue (LuaTuple value)
+    {
+        super();
+        setTupleValue(value);
+    }
+
+    /**
+     * 初始化值对象
+     * @param nativeId  本地标识
+     * @param value     元组对象
+     */
+    protected  LuaValue (int nativeId, LuaTuple value)
+    {
+        super(nativeId);
+        setTupleValue(value);
+    }
+
+    /**
+     * 设置元组值
+     * @param value 元组对象
+     */
+    private void setTupleValue (LuaTuple value)
+    {
+        _type = LuaValueType.Tuple;
+        _valueContainer = value;
+    }
+
+    /**
      * 初始化值对象
      * @param value 对象
      */
@@ -347,42 +378,54 @@ public class LuaValue extends LuaBaseObject
      */
     private void setObjectValue (Object value)
     {
-        if (value instanceof Integer)
+        if (value != null)
         {
-            setIntValue((Integer)value);
-        }
-        else if (value instanceof Double)
-        {
-            setDoubValue((Double)value);
-        }
-        else if (value instanceof Boolean)
-        {
-            setBoolValue((Boolean)value);
-        }
-        else if (value instanceof String)
-        {
-            setStringValue(value.toString());
-        }
-        else if (value instanceof ArrayList)
-        {
-            setArrayListValue((ArrayList)value);
-        }
-        else if (value instanceof HashMap)
-        {
-            setHasMapValue((HashMap)value);
-        }
-        else if (value instanceof LuaPointer)
-        {
-            setPointerValue((LuaPointer) value);
-        }
-        else if (value instanceof LuaFunction)
-        {
-            setFunctionValue((LuaFunction) value);
+            if (value instanceof Integer)
+            {
+                setIntValue((Integer)value);
+            }
+            else if (value instanceof Double)
+            {
+                setDoubValue((Double)value);
+            }
+            else if (value instanceof Boolean)
+            {
+                setBoolValue((Boolean)value);
+            }
+            else if (value instanceof String)
+            {
+                setStringValue(value.toString());
+            }
+            else if (value instanceof ArrayList)
+            {
+                setArrayListValue((ArrayList)value);
+            }
+            else if (value instanceof HashMap)
+            {
+                setHasMapValue((HashMap)value);
+            }
+            else if (value instanceof LuaPointer)
+            {
+                setPointerValue((LuaPointer) value);
+            }
+            else if (value instanceof LuaFunction)
+            {
+                setFunctionValue((LuaFunction) value);
+            }
+            else if (value instanceof LuaTuple)
+            {
+                setTupleValue((LuaTuple) value);
+            }
+            else
+            {
+                _type = LuaValueType.Object;
+                _valueContainer = value;
+            }
         }
         else
         {
-            _type = LuaValueType.Object;
-            _valueContainer = value;
+            _type = LuaValueType.Nil;
+            _valueContainer = null;
         }
     }
 
@@ -401,13 +444,16 @@ public class LuaValue extends LuaBaseObject
      */
     public int toInteger()
     {
-        if (_valueContainer instanceof Number)
+        if (_valueContainer != null)
         {
-            return ((Number)_valueContainer).intValue();
-        }
-        else if (_valueContainer instanceof String)
-        {
-            return Integer.parseInt((String) _valueContainer);
+            if (_valueContainer instanceof Number)
+            {
+                return ((Number) _valueContainer).intValue();
+            }
+            else if (_valueContainer instanceof String)
+            {
+                return Integer.parseInt((String) _valueContainer);
+            }
         }
 
         return 0;
@@ -419,13 +465,16 @@ public class LuaValue extends LuaBaseObject
      */
     public double toDouble()
     {
-        if (_valueContainer instanceof Number)
+        if (_valueContainer != null)
         {
-            return ((Number)_valueContainer).doubleValue();
-        }
-        else if (_valueContainer instanceof String)
-        {
-            return Double.parseDouble((String) _valueContainer);
+            if (_valueContainer instanceof Number)
+            {
+                return ((Number) _valueContainer).doubleValue();
+            }
+            else if (_valueContainer instanceof String)
+            {
+                return Double.parseDouble((String) _valueContainer);
+            }
         }
 
         return 0.0;
@@ -437,13 +486,16 @@ public class LuaValue extends LuaBaseObject
      */
     public boolean toBoolean()
     {
-        if (_valueContainer instanceof Boolean)
+        if (_valueContainer != null)
         {
-            return (Boolean) _valueContainer;
-        }
-        else if (_valueContainer instanceof String)
-        {
-            return Boolean.parseBoolean((String) _valueContainer);
+            if (_valueContainer instanceof Boolean)
+            {
+                return (Boolean) _valueContainer;
+            }
+            else if (_valueContainer instanceof String)
+            {
+                return Boolean.parseBoolean((String) _valueContainer);
+            }
         }
 
         return false;
@@ -455,7 +507,12 @@ public class LuaValue extends LuaBaseObject
      */
     public String toString()
     {
-        return _valueContainer.toString();
+        if (_valueContainer != null)
+        {
+            return _valueContainer.toString();
+        }
+
+        return null;
     }
 
     /**
@@ -464,13 +521,16 @@ public class LuaValue extends LuaBaseObject
      */
     public byte[] toByteArray()
     {
-        if (_type == LuaValueType.Data)
+        if (_valueContainer != null)
         {
-            return (byte[]) _valueContainer;
-        }
-        else if (_type == LuaValueType.String)
-        {
-            return ((String)_valueContainer).getBytes();
+            if (_valueContainer instanceof byte[])
+            {
+                return (byte[]) _valueContainer;
+            }
+            else if (_valueContainer instanceof String)
+            {
+                return ((String) _valueContainer).getBytes();
+            }
         }
 
         return null;
@@ -482,10 +542,14 @@ public class LuaValue extends LuaBaseObject
      */
     public ArrayList toArrayList()
     {
-        if (_type == LuaValueType.Array)
+        if (_valueContainer != null)
         {
-            return (ArrayList) _valueContainer;
+            if (_valueContainer instanceof ArrayList)
+            {
+                return (ArrayList) _valueContainer;
+            }
         }
+
         return null;
     }
 
@@ -495,10 +559,14 @@ public class LuaValue extends LuaBaseObject
      */
     public HashMap toHashMap()
     {
-        if (_type == LuaValueType.Map)
+        if (_valueContainer != null)
         {
-            return (HashMap) _valueContainer;
+            if (_valueContainer instanceof HashMap)
+            {
+                return (HashMap) _valueContainer;
+            }
         }
+
         return null;
     }
 
@@ -508,9 +576,12 @@ public class LuaValue extends LuaBaseObject
      */
     public LuaPointer toPointer()
     {
-        if (_type == LuaValueType.Pointer)
+        if (_valueContainer != null)
         {
-            return (LuaPointer) _valueContainer;
+            if (_valueContainer instanceof LuaPointer)
+            {
+                return (LuaPointer) _valueContainer;
+            }
         }
 
         return null;
@@ -522,9 +593,29 @@ public class LuaValue extends LuaBaseObject
      */
     public LuaFunction toFunction()
     {
-        if (_type == LuaValueType.Function)
+        if (_valueContainer != null)
         {
-            return (LuaFunction)_valueContainer;
+            if (_valueContainer instanceof LuaFunction)
+            {
+                return (LuaFunction) _valueContainer;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 转换为元组对象
+     * @return  方法对象
+     */
+    public LuaTuple toTuple()
+    {
+        if (_valueContainer != null)
+        {
+            if (_valueContainer instanceof LuaTuple)
+            {
+                return (LuaTuple) _valueContainer;
+            }
         }
 
         return null;

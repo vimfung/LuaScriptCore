@@ -154,7 +154,7 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift10LuaContext")
   returns:
   返回值对象
 */
-- (LuaValue * _Nullable)evalScriptWithScript:(NSString * _Nonnull)script;
+- (id _Null_unspecified)evalScriptWithScript:(NSString * _Nonnull)script;
 /**
   解析脚本
   \param filePath 文件路径
@@ -163,7 +163,7 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift10LuaContext")
   returns:
   返回值对象
 */
-- (LuaValue * _Nullable)evalScriptWithFilePath:(NSString * _Nonnull)filePath;
+- (id _Null_unspecified)evalScriptWithFilePath:(NSString * _Nonnull)filePath;
 /**
   调用方法
   \param methodName 方法名称
@@ -174,7 +174,7 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift10LuaContext")
   returns:
   返回值对象
 */
-- (LuaValue * _Nullable)callMethodWithMethodName:(NSString * _Nonnull)methodName arguments:(NSArray<LuaValue *> * _Nonnull)arguments;
+- (id _Null_unspecified)callMethodWithMethodName:(NSString * _Nonnull)methodName arguments:(NSArray<LuaValue *> * _Nonnull)arguments;
 /**
   注册方法
   \param methodName 方法名称
@@ -220,9 +220,9 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift11LuaFunction")
 
 
   returns:
-  返回值
+  返回值, 如果返回值数量为1时，返回值类型是LuaValue， 如果数量>1时，则返回值类型是LuaTuple
 */
-- (LuaValue * _Nonnull)invokeWithArguments:(NSArray<LuaValue *> * _Nonnull)arguments;
+- (id _Null_unspecified)invokeWithArguments:(NSArray<LuaValue *> * _Nonnull)arguments;
 @end
 
 @class LSCPointer;
@@ -254,6 +254,41 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift10LuaPointer")
 
 */
 - (nonnull instancetype)initWithRawPointer:(LSCPointer * _Nonnull)rawPointer OBJC_DESIGNATED_INITIALIZER;
+@end
+
+@class LSCTuple;
+
+SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift8LuaTuple")
+@interface LuaTuple : NSObject
+/**
+  初始化
+*/
+- (nonnull instancetype)init OBJC_DESIGNATED_INITIALIZER;
+/**
+  初始化
+  \param rawTuple OC中的Lua元组对象实例
+
+*/
+- (nonnull instancetype)initWithRawTuple:(LSCTuple * _Nonnull)rawTuple OBJC_DESIGNATED_INITIALIZER;
+/**
+  获取元组数量
+*/
+- (NSInteger)count;
+/**
+  添加返回值
+  \param value 返回值
+
+*/
+- (void)addReturnValueWithValue:(id _Nonnull)value;
+/**
+  获取返回值
+  \param index 索引
+
+
+  returns:
+  返回值
+*/
+- (id _Nonnull)returnValueForIndexWithIndex:(NSInteger)index;
 @end
 
 @class LSCValue;
@@ -309,6 +344,24 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift8LuaValue")
 
 */
 - (nonnull instancetype)initWithDictionaryValue:(NSDictionary * _Nonnull)dictionaryValue OBJC_DESIGNATED_INITIALIZER;
+/**
+  初始化
+  \param pointerValue 指针
+
+*/
+- (nonnull instancetype)initWithPointerValue:(LuaPointer * _Nonnull)pointerValue OBJC_DESIGNATED_INITIALIZER;
+/**
+  初始化
+  \param functionValue 方法
+
+*/
+- (nonnull instancetype)initWithFunctionValue:(LuaFunction * _Nonnull)functionValue OBJC_DESIGNATED_INITIALIZER;
+/**
+  初始化
+  \param tupleValue 元组
+
+*/
+- (nonnull instancetype)initWithTupleValue:(LuaTuple * _Nonnull)tupleValue OBJC_DESIGNATED_INITIALIZER;
 /**
   初始化
   \param objectValue 对象

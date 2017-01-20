@@ -4,6 +4,7 @@ import android.util.Log;
 
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaFunction;
+import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
 /**
@@ -22,5 +23,14 @@ public class Person extends LuaObjectClass
     public void walk()
     {
         Log.v("luascriptcore", String.format("%s walk", name));
+    }
+
+    public static LuaTuple test(String a, String b)
+    {
+        LuaTuple tuple = new LuaTuple();
+        tuple.addReturnValue(a);
+        tuple.addReturnValue(b);
+
+        return tuple;
     }
 }

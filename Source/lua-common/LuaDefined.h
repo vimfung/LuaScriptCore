@@ -8,6 +8,8 @@
 #include <string>
 #include <map>
 #include <list>
+#include <vector>
+#include <deque>
 
 namespace cn
 {
@@ -18,9 +20,38 @@ namespace cn
             class LuaContext;
             class LuaModule;
             class LuaValue;
+            class LuaObject;
+
+            enum LuaValueType
+            {
+                LuaValueTypeNil = 0,
+                LuaValueTypeNumber = 1,
+                LuaValueTypeBoolean = 2,
+                LuaValueTypeString = 3,
+                LuaValueTypeArray = 4,
+                LuaValueTypeMap = 5,
+                LuaValueTypePtr = 6,
+                LuaValueTypeObject = 7,
+                LuaValueTypeInteger = 8,
+                LuaValueTypeData = 9,
+                LuaValueTypeFunction = 10,
+                LuaValueTypeTuple = 11,
+            };
+
+            /**
+             * Userdata引用
+             */
+            typedef struct {
+
+                void *value;
+
+            }LuaUserdata, *LuaUserdataRef;
 
             typedef void (*LuaExceptionHandler) (LuaContext *context, std::string message);
             typedef std::list<LuaValue *> LuaArgumentList;
+            typedef std::deque<LuaValue *> LuaValueList;
+            typedef std::map<std::string, LuaValue*> LuaValueMap;
+            typedef std::map<int, LuaObject*> LuaObjectMap;
 
             typedef LuaValue* (*LuaMethodHandler) (LuaContext *context, std::string methodName, LuaArgumentList arguments);
             typedef LuaValue* (*LuaModuleMethodHandler) (LuaModule *module, std::string methodName, LuaArgumentList arguments);

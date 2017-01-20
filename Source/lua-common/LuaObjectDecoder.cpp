@@ -8,6 +8,7 @@
 
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectSerializationTypes.h"
+#include "LuaNativeClass.hpp"
 #include <memory.h>
 #include "lunity.h"
 

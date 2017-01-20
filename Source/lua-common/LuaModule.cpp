@@ -5,41 +5,55 @@
 #include "LuaModule.h"
 #include "LuaContext.h"
 #include "LuaValue.h"
+#include "LuaTuple.h"
 #include "lua.hpp"
 #include <ctype.h>
+
+using namespace cn::vimfung::luascriptcore;
 
 /**
  * 方法路由处理
  */
 static int methodRouteHandler(lua_State *state)
 {
-    cn::vimfung::luascriptcore::LuaModule *module = (cn::vimfung::luascriptcore::LuaModule *)lua_touserdata(state, lua_upvalueindex(1));
+    int returnCount = 0;
+
+    LuaModule *module = (LuaModule *)lua_touserdata(state, lua_upvalueindex(1));
     const char *methodName = lua_tostring(state, lua_upvalueindex(2));
 
-    cn::vimfung::luascriptcore::LuaModuleMethodHandler handler = module -> getMethodHandler(methodName);
+    LuaModuleMethodHandler handler = module -> getMethodHandler(methodName);
     if (handler != NULL)
     {
-        cn::vimfung::luascriptcore::LuaContext *context = module -> getContext();
+        LuaContext *context = module -> getContext();
 
         int top = lua_gettop(state);
-        cn::vimfung::luascriptcore::LuaArgumentList args;
+        LuaArgumentList args;
         for (int i = 0; i < top; i++)
         {
-            cn::vimfung::luascriptcore::LuaValue *value = context -> getValueByIndex(-i - 1);
+            LuaValue *value = context -> getValueByIndex(-i - 1);
             args.push_front(value);
         }
 
-        cn::vimfung::luascriptcore::LuaValue *retValue = handler (module, methodName, args);
+        LuaValue *retValue = handler (module, methodName, args);
         if (retValue != NULL)
         {
+            if (retValue -> getType() == LuaValueTypeTuple)
+            {
+                returnCount = (int)retValue -> toTuple() -> count();
+            }
+            else
+            {
+                returnCount = 1;
+            }
+
             retValue -> push(context);
             retValue -> release();
         }
 
         //释放参数内存
-        for (cn::vimfung::luascriptcore::LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
         {
-            cn::vimfung::luascriptcore::LuaValue *item = *it;
+            LuaValue *item = *it;
             item -> release();
         }
     }
@@ -47,10 +61,10 @@ static int methodRouteHandler(lua_State *state)
     //回收内存
     lua_gc(state, LUA_GCCOLLECT, 0);
 
-    return 1;
+    return returnCount;
 }
 
-void cn::vimfung::luascriptcore::LuaModule::onRegister (const std::string &name, LuaContext *context)
+void LuaModule::onRegister (const std::string &name, LuaContext *context)
 {
     _name = name;
     _context = context;
@@ -70,7 +84,7 @@ void cn::vimfung::luascriptcore::LuaModule::onRegister (const std::string &name,
     lua_setglobal(state, name.c_str());
 }
 
-void cn::vimfung::luascriptcore::LuaModule::registerMethod(
+void LuaModule::registerMethod(
         std::string methodName,
         LuaModuleMethodHandler handler)
 {
@@ -96,7 +110,7 @@ void cn::vimfung::luascriptcore::LuaModule::registerMethod(
     }
 }
 
-cn::vimfung::luascriptcore::LuaModuleMethodHandler cn::vimfung::luascriptcore::LuaModule::getMethodHandler(std::string methodName)
+LuaModuleMethodHandler LuaModule::getMethodHandler(std::string methodName)
 {
     LuaModuleMethodMap::iterator it =  _methodMap.find(methodName.c_str());
     if (it != _methodMap.end())
@@ -107,12 +121,12 @@ cn::vimfung::luascriptcore::LuaModuleMethodHandler cn::vimfung::luascriptcore::L
     return NULL;
 }
 
-const std::string cn::vimfung::luascriptcore::LuaModule::getName()
+const std::string LuaModule::getName()
 {
     return (const std::string)_name;
 }
 
-cn::vimfung::luascriptcore::LuaContext* cn::vimfung::luascriptcore::LuaModule::getContext()
+LuaContext* LuaModule::getContext()
 {
     return _context;
 }

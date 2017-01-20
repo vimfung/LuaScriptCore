@@ -10,6 +10,7 @@
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
 #import "LSCModule_Private.h"
+#import "LSCTuple.h"
 #import <objc/runtime.h>
 
 @interface LSCContext ()
@@ -59,40 +60,65 @@
     [self setSearchPath:[NSString stringWithFormat:@"%@/?.lua", path]];
 }
 
-- (LSCValue *)evalScriptFromString:(NSString *)string
+- (void)setGlobalWithValue:(LSCValue *)value forName:(NSString *)name
 {
+    [value pushWithContext:self];
+    lua_setglobal(self.state, name.UTF8String);
+}
+
+- (LSCValue *)getGlobalForName:(NSString *)name
+{
+    lua_getglobal(self.state, name.UTF8String);
+    return [LSCValue valueWithContext:self atIndex:-1];
+}
+
+- (id)evalScriptFromString:(NSString *)string
+{
+    id returnValue = nil;
     int curTop = lua_gettop(self.state);
-    int ret = luaL_loadstring(self.state, [string UTF8String]) ||
-    lua_pcall(self.state, 0, 1, 0);
+    int returnCount = 0;
     
-    LSCValue *retValue = nil;
-    BOOL res = ret == 0;
-    if (!res)
+    luaL_loadstring(self.state, [string UTF8String]);
+    if (lua_pcall(self.state, 0, LUA_MULTRET, 0) == 0)
     {
-        LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
-        NSString *errMessage = [value toString];
-        
-        if (self.exceptionHandler)
+        //调用成功
+        returnCount = lua_gettop(self.state) - curTop;
+        if (returnCount > 1)
         {
-            self.exceptionHandler(errMessage);
+            LSCTuple *tuple = [[LSCTuple alloc] init];
+            for (int i = 1; i <= returnCount; i++)
+            {
+                LSCValue *value = [LSCValue valueWithContext:self atIndex:curTop + i];
+                [tuple addReturnValue:[value toObject]];
+            }
+            returnValue = tuple;
         }
-        
-        lua_pop(self.state, 1);
+        else if (returnCount == 1)
+        {
+            returnValue = [LSCValue valueWithContext:self atIndex:-1];
+        }
     }
     else
     {
-        if (lua_gettop(self.state) > curTop)
-        {
-            //有返回值
-            retValue = [LSCValue valueWithContext:self atIndex:-1];
-            lua_pop(self.state, 1);
-        }
+        //调用失败
+        returnCount = 1;
+        LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
+        NSString *errMessage = [value toString];
+        [self raiseExceptionWithMessage:errMessage];
+    }
+    
+    //弹出返回值
+    lua_pop(self.state, returnCount);
+    
+    if (!returnValue)
+    {
+        returnValue = [LSCValue nilValue];
     }
     
     //回收内存
     lua_gc(self.state, LUA_GCCOLLECT, 0);
     
-    return retValue;
+    return returnValue;
 }
 
 - (id)evalScriptFromFile:(NSString *)path
@@ -111,29 +137,45 @@
         path = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] resourcePath], path];
     }
     
+    id retValue = nil;
     int curTop = lua_gettop(self.state);
-    int ret = luaL_loadfile(self.state, [path UTF8String]) ||
-    lua_pcall(self.state, 0, 1, 0);
+    int returnCount = 0;
     
-    LSCValue *retValue = nil;
-    BOOL res = ret == 0;
-    if (!res)
+    luaL_loadfile(self.state, [path UTF8String]);
+    if (lua_pcall(self.state, 0, LUA_MULTRET, 0) == 0)
     {
-        LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
-        NSString *errMessage = [value toString];
-        [self raiseExceptionWithMessage:errMessage];
-
-        lua_pop(self.state, 1);
+        //调用成功
+        returnCount = lua_gettop(self.state) - curTop;
+        if (returnCount > 1)
+        {
+            LSCTuple *tuple = [[LSCTuple alloc] init];
+            for (int i = 1; i <= returnCount; i++)
+            {
+                LSCValue *value = [LSCValue valueWithContext:self atIndex:curTop + i];
+                [tuple addReturnValue:[value toObject]];
+            }
+            retValue = tuple;
+        }
+        else if (returnCount == 1)
+        {
+            retValue = [LSCValue valueWithContext:self atIndex:-1];
+        }
     }
     else
     {
-        if (lua_gettop(self.state) > curTop)
-        {
-            //有返回值
-            retValue = [LSCValue valueWithContext:self atIndex:-1];
-            lua_pop(self.state, 1);
-
-        }
+        //调用失败
+        returnCount = 1;
+        LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
+        NSString *errMessage = [value toString];
+        [self raiseExceptionWithMessage:errMessage];
+    }
+    
+    //弹出返回值
+    lua_pop(self.state, returnCount);
+    
+    if (!retValue)
+    {
+        retValue = [LSCValue nilValue];
     }
     
     //回收内存
@@ -142,14 +184,18 @@
     return retValue;
 }
 
-- (LSCValue *)callMethodWithName:(NSString *)methodName
+- (id)callMethodWithName:(NSString *)methodName
                        arguments:(NSArray<LSCValue *> *)arguments
 {
-    LSCValue *resultValue = nil;
+    id resultValue = nil;
+    
+    int curTop = lua_gettop(self.state);
     
     lua_getglobal(self.state, [methodName UTF8String]);
     if (lua_isfunction(self.state, -1))
     {
+        int returnCount = 0;
+        
         //如果为function则进行调用
         __weak LSCContext *theContext = self;
         [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
@@ -158,24 +204,35 @@
              
          }];
         
-        if (lua_pcall(self.state, (int)arguments.count, 1, 0) == 0)
+        if (lua_pcall(self.state, (int)arguments.count, LUA_MULTRET, 0) == 0)
         {
             //调用成功
-            resultValue = [LSCValue valueWithContext:self atIndex:-1];
+            returnCount = lua_gettop(self.state) - curTop;
+            if (returnCount > 1)
+            {
+                LSCTuple *tuple = [[LSCTuple alloc] init];
+                for (int i = 1; i <= returnCount; i++)
+                {
+                    LSCValue *value = [LSCValue valueWithContext:self atIndex:curTop + i];
+                    [tuple addReturnValue:[value toObject]];
+                }
+                resultValue = tuple;
+            }
+            else if (returnCount == 1)
+            {
+                resultValue = [LSCValue valueWithContext:self atIndex:-1];
+            }
         }
         else
         {
             //调用失败
+            returnCount = 1;
             LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
             NSString *errMessage = [value toString];
-            
-            if (self.exceptionHandler)
-            {
-                self.exceptionHandler(errMessage);
-            }
+            [self raiseExceptionWithMessage:errMessage];
         }
         
-        lua_pop(self.state, 1);
+        lua_pop(self.state, returnCount);
     }
     else
     {
@@ -246,6 +303,8 @@
 
 static int cfuncRouteHandler(lua_State *state)
 {
+    int count = 0;
+    
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(2))];
     
@@ -261,13 +320,22 @@ static int cfuncRouteHandler(lua_State *state)
         }
         
         LSCValue *retValue = handler(arguments);
+        if (retValue.valueType == LSCValueTypeTuple)
+        {
+            count = (int)[retValue toTuple].count;
+        }
+        else
+        {
+            count = 1;
+        }
+        
         [retValue pushWithContext:context];
     }
     
     //释放内存
     lua_gc(state, LUA_GCCOLLECT, 0);
     
-    return 1;
+    return count;
 }
 
 /**

@@ -21,6 +21,7 @@ android {
             ndkBuild {
 
                 arguments "APP_STL=stlport_static",
+                        "NDK_DEBUG=1",
                         "APP_PLATFORM=android-13",
                         "NDK_TOOLCHAIN_VERSION=4.9"
                 cppFlags "-frtti",

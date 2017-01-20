@@ -26,6 +26,22 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_addSearchPath
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    setGlobal
+ * Signature: (ILjava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V
+ */
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_setGlobal
+        (JNIEnv *, jclass, jint, jstring, jobject);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    getGlobal
+ * Signature: (ILjava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;
+ */
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_getGlobal
+        (JNIEnv *, jclass, jint, jstring);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
  * Method:    catchException
  * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Z)V
  */

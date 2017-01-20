@@ -7,9 +7,8 @@
 
 #include "lua.hpp"
 #include "LuaObject.h"
-#include "LuaValue.h"
-#include "LuaModule.h"
 #include "LuaDefined.h"
+#include "LuaValue.h"
 
 namespace cn
 {
@@ -17,6 +16,9 @@ namespace cn
     {
         namespace luascriptcore
         {
+            class LuaValue;
+            class LuaModule;
+
             /**
              * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。
              */
@@ -80,6 +82,23 @@ namespace cn
                  * @param path 路径
                  */
                 void addSearchPath(std::string path);
+
+                /**
+                 * 设置全局变量
+                 *
+                 * @param name 变量名称
+                 * @param value 变量值
+                 */
+                void setGlobal(std::string name, LuaValue *value);
+
+                /**
+                 * 获取全局变量
+                 *
+                 * @param name 变量名称
+                 *
+                 * @return 变量值
+                 */
+                LuaValue* getGlobal(std::string name);
 
                 /**
                  * 解析脚本

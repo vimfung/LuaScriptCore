@@ -9,7 +9,7 @@
 /// Lua的指针对象
 public class LuaPointer: NSObject
 {
-    private var _rawPointer : LSCPointer;
+    var _rawPointer : LSCPointer;
     
     /// 初始化
     public override init()

@@ -21,8 +21,8 @@
  
  @param arguments 参数列表
  
- @return 返回值
+ @return 返回值, 如果返回值数量为1，则返回类型为LSCValue， 如果>1则返回类型为LSCTuple
  */
-- (LSCValue *)invokeWithArguments:(NSArray<LSCValue *> *)arguments;
+- (id)invokeWithArguments:(NSArray<LSCValue *> *)arguments;
 
 @end

@@ -366,9 +366,8 @@ public class LuaObjectClass extends LuaModule
             return new LuaValue(retValue);
 
         }
-        catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        catch (Exception e)
+        {
             e.printStackTrace();
         }
 
@@ -405,11 +404,7 @@ public class LuaObjectClass extends LuaModule
             }
 
         }
-        catch (NoSuchFieldException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IllegalAccessException e)
+        catch (Exception e)
         {
             e.printStackTrace();
         }

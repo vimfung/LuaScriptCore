@@ -31,22 +31,38 @@
 - (void)addSearchPath:(NSString *)path;
 
 /**
+ 设置全局变量
+
+ @param value 变量值
+ @param name 名称
+ */
+- (void)setGlobalWithValue:(LSCValue *)value forName:(NSString *)name;
+
+/**
+ 获取全局变量
+
+ @param name 变量名称
+ @return 变量值
+ */
+- (LSCValue *)getGlobalForName:(NSString *)name;
+
+/**
  *  解析脚本
  *
  *  @param string 脚本字符串
  *
- *  @return 返回值，如果无返回值则为nil
+ *  @return 返回值，如果有返回值数量为1个时，返回类型为LSCValue, 如果返回值数量>1时，则返回值类型为LSCTuple
  */
-- (LSCValue *)evalScriptFromString:(NSString *)string;
+- (id)evalScriptFromString:(NSString *)string;
 
 /**
  *  解析脚本
  *
  *  @param path 脚本路径
  *
- *  @return 返回值，如果无返回值则为nil
+ *  @return 返回值，如果有返回值数量为1个时，返回类型为LSCValue, 如果返回值数量>1时，则返回值类型为LSCTuple
  */
-- (LSCValue *)evalScriptFromFile:(NSString *)path;
+- (id)evalScriptFromFile:(NSString *)path;
 
 /**
  *  调用方法
@@ -54,9 +70,9 @@
  *  @param methodName 方法名称
  *  @param arguments  参数
  *
- *  @return 返回值
+ *  @return 返回值，如果有返回值数量为1个时，返回类型为LSCValue, 如果返回值数量>1时，则返回值类型为LSCTuple
  */
-- (LSCValue *)callMethodWithName:(NSString *)methodName arguments:(NSArray<LSCValue *> *)arguments;
+- (id)callMethodWithName:(NSString *)methodName arguments:(NSArray<LSCValue *> *)arguments;
 
 /**
  *  注册方法
