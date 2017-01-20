@@ -8,13 +8,25 @@
 #include "LuaObjectInstanceDescriptor.h"
 #include <jni.h>
 
+using namespace cn::vimfung::luascriptcore;
+using namespace cn::vimfung::luascriptcore::modules::oo;
+
 class LuaJavaObjectClass;
-//class LuaContext;
+
+namespace cn {
+    namespace vimfung {
+        namespace luascriptcore {
+
+            class LuaContext;
+
+        }
+    }
+}
 
 /**
  * Java对象实例描述器
  */
-class LuaJavaObjectInstanceDescriptor : public cn::vimfung::luascriptcore::modules::oo::LuaObjectInstanceDescriptor
+class LuaJavaObjectInstanceDescriptor : public LuaObjectInstanceDescriptor
 {
 public:
     /**
@@ -38,7 +50,7 @@ public:
      *
      * @param context 上下文对象
      */
-    void push(cn::vimfung::luascriptcore::LuaContext *context);
+    void push(LuaContext *context);
 
     /**
      * 判断实例是否为指定类型
@@ -47,7 +59,7 @@ public:
      *
      * @return true 是， false 不是
      */
-    virtual bool instanceOf (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass);
+    virtual bool instanceOf (LuaObjectClass *objectClass);
 };
 
 

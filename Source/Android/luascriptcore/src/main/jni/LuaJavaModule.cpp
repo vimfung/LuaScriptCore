@@ -8,6 +8,7 @@
 #include "LuaJavaEnv.h"
 #include "LuaDefine.h"
 #include "LuaJavaConverter.h"
+#include "LuaValue.h"
 
 /**
  * Lua模块方法处理器
@@ -34,7 +35,7 @@ static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodN
         jstring jMethodName = env -> NewStringUTF(methodName.c_str());
 
         //参数
-        jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
+        jobjectArray argumentArr = env -> NewObjectArray((jsize)arguments.size(), luaValueClass, NULL);
         int index = 0;
         for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
         {

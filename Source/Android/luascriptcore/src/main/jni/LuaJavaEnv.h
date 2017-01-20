@@ -6,14 +6,23 @@
 #define ANDROID_LUAJAVAENV_H
 
 #include <jni.h>
-#include "LuaContext.h"
-#include "LuaJavaModule.h"
-#include "LuaJavaObjectClass.h"
-#include "../../../../../lua-common/LuaDefined.h"
+#include "LuaDefined.h"
 
 using namespace cn::vimfung::luascriptcore;
 
+class LuaJavaObjectClass;
 class LuaJavaModule;
+
+namespace cn {
+    namespace vimfung {
+        namespace luascriptcore {
+
+            class LuaContext;
+            class LuaObjectDescriptor;
+
+        }
+    }
+}
 
 /**
  * JNI的环境对象

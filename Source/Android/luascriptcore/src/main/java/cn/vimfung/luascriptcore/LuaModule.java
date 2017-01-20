@@ -119,7 +119,8 @@ public abstract class LuaModule extends LuaBaseObject
     {
         String modName = null;
 
-        try {
+        try
+        {
 
             Method moduleNameMethod = moduleClass.getDeclaredMethod("moduleName");
             if (moduleNameMethod != null)
@@ -131,12 +132,10 @@ public abstract class LuaModule extends LuaBaseObject
                 }
             }
 
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        }
+        catch (Exception e)
+        {
+//            e.printStackTrace();
         }
 
         if (modName == null)
@@ -303,9 +302,8 @@ public abstract class LuaModule extends LuaBaseObject
             return new LuaValue(retValue);
 
         }
-        catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        catch (Exception e)
+        {
             e.printStackTrace();
         }
 

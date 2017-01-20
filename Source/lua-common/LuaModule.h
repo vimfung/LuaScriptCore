@@ -7,7 +7,6 @@
 
 #include "LuaObject.h"
 #include "lua.hpp"
-#include "LuaContext.h"
 #include "LuaDefined.h"
 
 namespace cn

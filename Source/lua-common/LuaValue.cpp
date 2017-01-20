@@ -10,8 +10,11 @@
 #include "LuaPointer.h"
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectDecoder.hpp"
+#include "LuaObjectDescriptor.h"
 #include "lunity.h"
 #include "LuaFunction.h"
+#include "LuaTuple.h"
+#include "LuaNativeClass.hpp"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -103,6 +106,14 @@ LuaValue::LuaValue(LuaFunction *value)
     _value = (void *)value;
 }
 
+LuaValue::LuaValue (LuaTuple *value)
+{
+    _type = LuaValueTypeTuple;
+
+    value -> retain();
+    _value = (void *)value;
+}
+
 LuaValue::LuaValue(LuaObjectDecoder *decoder)
 {
 	_value = NULL;
@@ -158,6 +169,27 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
             _value = map;
             break;
         }
+        case LuaValueTypeTuple:
+        {
+            long count = decoder -> readInt64();
+            LuaTuple *tuple = new LuaTuple();
+            for (int i = 0; i < count; ++i)
+            {
+                LuaValue *item = (LuaValue *)decoder -> readObject();
+                if (item != NULL)
+                {
+                    tuple->addReturnValue(item);
+                }
+            }
+
+            _value = tuple;
+            break;
+        }
+        case LuaValueTypeObject:
+        {
+            _value = decoder -> readObject();
+            break;
+        }
         default:
             _value = NULL;
             break;
@@ -194,7 +226,7 @@ LuaValue::~LuaValue()
                 }
             }
         }
-        else if (_type == LuaValueTypePtr || _type == LuaValueTypeObject || _type == LuaValueTypeFunction)
+        else if (_type == LuaValueTypePtr || _type == LuaValueTypeObject || _type == LuaValueTypeFunction || _type == LuaValueTypeTuple)
         {
             ((LuaObject *)_value) -> release();
         }
@@ -260,6 +292,11 @@ LuaValue* LuaValue::FunctionValue(LuaFunction *value)
     return new LuaValue(value);
 }
 
+LuaValue* LuaValue::TupleValue(LuaTuple *value)
+{
+    return new LuaValue(value);
+}
+
 LuaValue* LuaValue::ObjectValue(LuaObjectDescriptor *value)
 {
     return new LuaValue(value);
@@ -310,6 +347,9 @@ void LuaValue::pushValue(LuaContext *context, LuaValue *value)
             break;
         case LuaValueTypeFunction:
             value -> toFunction() -> push(context);
+            break;
+        case LuaValueTypeTuple:
+            value -> toTuple() -> push(context);
             break;
         case LuaValueTypeObject:
         {
@@ -453,6 +493,16 @@ LuaFunction* LuaValue::toFunction()
     return NULL;
 }
 
+LuaTuple* LuaValue::toTuple()
+{
+    if (_type == LuaValueTypeTuple)
+    {
+        return (LuaTuple *)_value;
+    }
+
+    return NULL;
+}
+
 LuaObjectDescriptor* LuaValue::toObject()
 {
     if (_type == LuaValueTypeObject)
@@ -524,6 +574,17 @@ void LuaValue::serialization (std::string className, LuaObjectEncoder *encoder)
                 LuaValue *value = it -> second;
                 
                 encoder -> writeString(key);
+                encoder -> writeObject(value);
+            }
+            break;
+        }
+        case LuaValueTypeTuple:
+        {
+            LuaTuple *tuple = toTuple();
+            encoder -> writeInt64(tuple -> count());
+            for (int i = 0; i < tuple->count(); ++i)
+            {
+                LuaValue *value = tuple -> getResturValueByIndex(i);
                 encoder -> writeObject(value);
             }
             break;

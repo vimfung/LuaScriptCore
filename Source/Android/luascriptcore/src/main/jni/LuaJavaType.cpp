@@ -270,3 +270,17 @@ jclass LuaJavaType::functionClass(JNIEnv *env)
 
     return jFunction;
 }
+
+jclass LuaJavaType::tupleClass(JNIEnv *env)
+{
+    static jclass jTuple = NULL;
+
+    if (jTuple == NULL)
+    {
+        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaTuple");
+        jTuple = (jclass)env -> NewGlobalRef(jTempClass);
+        env -> DeleteLocalRef(jTempClass);
+    }
+
+    return jTuple;
+}
