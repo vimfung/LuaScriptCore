@@ -154,7 +154,7 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift10LuaContext")
   returns:
   返回值对象
 */
-- (id _Null_unspecified)evalScriptWithScript:(NSString * _Nonnull)script;
+- (LuaValue * _Nonnull)evalScriptWithScript:(NSString * _Nonnull)script;
 /**
   解析脚本
   \param filePath 文件路径
@@ -163,7 +163,7 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift10LuaContext")
   returns:
   返回值对象
 */
-- (id _Null_unspecified)evalScriptWithFilePath:(NSString * _Nonnull)filePath;
+- (LuaValue * _Nonnull)evalScriptWithFilePath:(NSString * _Nonnull)filePath;
 /**
   调用方法
   \param methodName 方法名称
@@ -174,7 +174,7 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift10LuaContext")
   returns:
   返回值对象
 */
-- (id _Null_unspecified)callMethodWithMethodName:(NSString * _Nonnull)methodName arguments:(NSArray<LuaValue *> * _Nonnull)arguments;
+- (LuaValue * _Nonnull)callMethodWithMethodName:(NSString * _Nonnull)methodName arguments:(NSArray<LuaValue *> * _Nonnull)arguments;
 /**
   注册方法
   \param methodName 方法名称
@@ -222,7 +222,7 @@ SWIFT_CLASS("_TtC23LuaScriptCore_OSX_Swift11LuaFunction")
   returns:
   返回值, 如果返回值数量为1时，返回值类型是LuaValue， 如果数量>1时，则返回值类型是LuaTuple
 */
-- (id _Null_unspecified)invokeWithArguments:(NSArray<LuaValue *> * _Nonnull)arguments;
+- (LuaValue * _Nonnull)invokeWithArguments:(NSArray<LuaValue *> * _Nonnull)arguments;
 @end
 
 @class LSCPointer;

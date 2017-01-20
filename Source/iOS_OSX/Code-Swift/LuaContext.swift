@@ -45,40 +45,20 @@ public class LuaContext: NSObject
     ///
     /// - Parameter script: 脚本字符串
     /// - Returns: 返回值对象
-    public func evalScript (script : String) -> Any!
+    public func evalScript (script : String) -> LuaValue
     {
-        let retValue : Any = _rawContext.evalScript(from: script);
-        
-        if (retValue is LSCTuple)
-        {
-            return LuaTuple(rawTuple: retValue as! LSCTuple);
-        }
-        else if (retValue is LSCValue)
-        {
-            return LuaValue(rawValue: retValue as! LSCValue);
-        }
-        
-        return nil;
+        let retValue : LSCValue = _rawContext.evalScript(from: script);
+        return LuaValue(rawValue: retValue as LSCValue);
     }
     
     /// 解析脚本
     ///
     /// - Parameter filePath: 文件路径
     /// - Returns: 返回值对象
-    public func evalScript (filePath : String) -> Any!
+    public func evalScript (filePath : String) -> LuaValue
     {
-        let retValue : Any = _rawContext.evalScript(fromFile: filePath);
-        
-        if (retValue is LSCTuple)
-        {
-            return LuaTuple(rawTuple: retValue as! LSCTuple);
-        }
-        else if (retValue is LSCValue)
-        {
-            return LuaValue(rawValue: retValue as! LSCValue);
-        }
-        
-        return nil;
+        let retValue : LSCValue = _rawContext.evalScript(fromFile: filePath);
+        return LuaValue(rawValue: retValue as LSCValue);
     }
     
     
@@ -88,25 +68,16 @@ public class LuaContext: NSObject
     ///   - methodName: 方法名称
     ///   - arguments: 参数列表
     /// - Returns: 返回值对象
-    public func callMethod (methodName : String, arguments : Array<LuaValue>) -> Any!
+    public func callMethod (methodName : String, arguments : Array<LuaValue>) -> LuaValue
     {
         var args : Array<LSCValue> = Array<LSCValue>();
         for item in arguments {
             args.append(item.rawValue);
         }
         
-        let retValue : Any = _rawContext.callMethod(withName: methodName, arguments: args);
+        let retValue : LSCValue = _rawContext.callMethod(withName: methodName, arguments: args);
+        return LuaValue(rawValue: retValue as LSCValue);
         
-        if (retValue is LSCTuple)
-        {
-            return LuaTuple(rawTuple: retValue as! LSCTuple);
-        }
-        else if (retValue is LSCValue)
-        {
-            return LuaValue(rawValue: retValue as! LSCValue);
-        }
-        
-        return nil;
     }
     
     /// 注册方法

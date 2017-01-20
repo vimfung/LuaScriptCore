@@ -72,9 +72,9 @@
     return [LSCValue valueWithContext:self atIndex:-1];
 }
 
-- (id)evalScriptFromString:(NSString *)string
+- (LSCValue *)evalScriptFromString:(NSString *)string
 {
-    id returnValue = nil;
+    LSCValue *returnValue = nil;
     int curTop = lua_gettop(self.state);
     int returnCount = 0;
     
@@ -91,7 +91,8 @@
                 LSCValue *value = [LSCValue valueWithContext:self atIndex:curTop + i];
                 [tuple addReturnValue:[value toObject]];
             }
-            returnValue = tuple;
+            
+            returnValue = [LSCValue tupleValue:tuple];
         }
         else if (returnCount == 1)
         {
@@ -121,7 +122,7 @@
     return returnValue;
 }
 
-- (id)evalScriptFromFile:(NSString *)path
+- (LSCValue *)evalScriptFromFile:(NSString *)path
 {
     if (!path)
     {
@@ -137,7 +138,7 @@
         path = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] resourcePath], path];
     }
     
-    id retValue = nil;
+    LSCValue *retValue = nil;
     int curTop = lua_gettop(self.state);
     int returnCount = 0;
     
@@ -154,7 +155,7 @@
                 LSCValue *value = [LSCValue valueWithContext:self atIndex:curTop + i];
                 [tuple addReturnValue:[value toObject]];
             }
-            retValue = tuple;
+            retValue = [LSCValue tupleValue:tuple];
         }
         else if (returnCount == 1)
         {
@@ -184,10 +185,10 @@
     return retValue;
 }
 
-- (id)callMethodWithName:(NSString *)methodName
+- (LSCValue *)callMethodWithName:(NSString *)methodName
                        arguments:(NSArray<LSCValue *> *)arguments
 {
-    id resultValue = nil;
+    LSCValue *resultValue = nil;
     
     int curTop = lua_gettop(self.state);
     
@@ -216,7 +217,7 @@
                     LSCValue *value = [LSCValue valueWithContext:self atIndex:curTop + i];
                     [tuple addReturnValue:[value toObject]];
                 }
-                resultValue = tuple;
+                resultValue = [LSCValue tupleValue:tuple];
             }
             else if (returnCount == 1)
             {
