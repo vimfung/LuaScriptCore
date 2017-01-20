@@ -15,7 +15,8 @@
 #include "LuaJavaObjectDescriptor.h"
 #include "LuaPointer.h"
 #include "LuaJavaObjectInstanceDescriptor.h"
-#include "../../../../../lua-common/LuaPointer.h"
+#include "LuaContext.h"
+#include "LuaValue.h"
 
 /**
  * 类实例化处理器

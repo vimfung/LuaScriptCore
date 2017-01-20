@@ -6,19 +6,11 @@
 #define ANDROID_LUAPOINTER_H
 
 #include "LuaObject.h"
+#include "LuaDefined.h"
 
 namespace cn {
     namespace vimfung {
         namespace luascriptcore {
-
-            /**
-             * Userdata引用
-             */
-            typedef struct {
-
-                void *value;
-
-            }LuaUserdata, *LuaUserdataRef;
 
             /**
              * Lua的指针对象

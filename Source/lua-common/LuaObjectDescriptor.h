@@ -6,7 +6,6 @@
 #define ANDROID_LUAOBJECTDESC_H
 
 #include "LuaObject.h"
-#include "LuaPointer.h"
 #include <string>
 
 namespace cn {

@@ -7,6 +7,7 @@
 //
 
 #import "LSCObjectClass.h"
+#import "LSCTuple.h"
 #import "LSCModule_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
@@ -181,6 +182,16 @@ static int InstanceMethodRouteHandler(lua_State *state)
             //返回值为对象，添加__unsafe_unretained修饰用于修复ARC下retObj对象被释放问题。
             id __unsafe_unretained retObj = nil;
             [invocation getReturnValue:&retObj];
+            
+            if ([retObj isKindOfClass:[LSCTuple class]])
+            {
+                retCount = (int)[(LSCTuple *)retObj count];
+            }
+            else
+            {
+                retCount = 1;
+            }
+            
             retValue = [LSCValue objectValue:retObj];
         }
         else if (strcmp(returnType, @encode(int)) == 0
@@ -203,6 +214,8 @@ static int InstanceMethodRouteHandler(lua_State *state)
             NSInteger intValue = 0;
             [invocation getReturnValue:&intValue];
             retValue = [LSCValue integerValue:intValue];
+            
+            retCount = 1;
         }
         else if (strcmp(returnType, @encode(float)) == 0)
         {
@@ -211,6 +224,8 @@ static int InstanceMethodRouteHandler(lua_State *state)
             [invocation getReturnValue:&floatStruct];
             retValue = [LSCValue numberValue:@(floatStruct.f)];
             
+            retCount = 1;
+            
         }
         else if (strcmp(returnType, @encode(double)) == 0)
         {
@@ -218,6 +233,8 @@ static int InstanceMethodRouteHandler(lua_State *state)
             double doubleValue = 0.0;
             [invocation getReturnValue:&doubleValue];
             retValue = [LSCValue numberValue:@(doubleValue)];
+            
+            retCount = 1;
         }
         else if (strcmp(returnType, @encode(BOOL)) == 0)
         {
@@ -225,6 +242,8 @@ static int InstanceMethodRouteHandler(lua_State *state)
             BOOL boolValue = NO;
             [invocation getReturnValue:&boolValue];
             retValue = [LSCValue booleanValue:boolValue];
+            
+            retCount = 1;
         }
         else
         {
@@ -237,7 +256,6 @@ static int InstanceMethodRouteHandler(lua_State *state)
         if (retValue)
         {
             [retValue pushWithContext:context];
-            retCount = 1;
         }
         
     }

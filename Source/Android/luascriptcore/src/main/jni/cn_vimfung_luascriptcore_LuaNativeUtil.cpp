@@ -54,6 +54,38 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_addSearchPath
     }
 }
 
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_setGlobal
+        (JNIEnv *env, jclass type, jint contextNativeId, jstring name_, jobject value)
+{
+    LuaContext *context = (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(contextNativeId);
+    if (context != NULL)
+    {
+        const char *nameStr = env -> GetStringUTFChars(name_, NULL);
+        LuaValue *valueObj = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, value);
+        context -> setGlobal(nameStr, valueObj);
+        valueObj -> release();
+        env -> ReleaseStringUTFChars(name_, nameStr);
+    }
+}
+
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_getGlobal
+        (JNIEnv *env, jclass type, jint contextNativeId, jstring name_)
+{
+    jobject retObj = NULL;
+
+    LuaContext *context = (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(contextNativeId);
+    if (context != NULL)
+    {
+        const char *nameStr = env -> GetStringUTFChars(name_, NULL);
+        LuaValue *value = context -> getGlobal(nameStr);
+        retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, value);
+        value -> release();
+        env -> ReleaseStringUTFChars(name_, nameStr);
+    }
+
+    return retObj;
+}
+
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_catchException
         (JNIEnv *env, jclass type, jobject jcontext, jboolean enabled)
 {

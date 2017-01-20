@@ -7,7 +7,6 @@
 
 #include "LuaObject.h"
 #include "LuaDefined.h"
-#include "LuaContext.h"
 
 namespace cn {
     namespace vimfung {

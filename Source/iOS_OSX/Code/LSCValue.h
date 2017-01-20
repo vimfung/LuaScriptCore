@@ -12,6 +12,7 @@
 @class LSCContext;
 @class LSCFunction;
 @class LSCPointer;
+@class LSCTuple;
 
 /**
  *  Lua的值封装
@@ -121,6 +122,14 @@
 + (instancetype)functionValue:(LSCFunction *)functionValue;
 
 /**
+ 创建一个元祖值对象
+
+ @param tupleValue 元组对象
+ @return 值对象
+ */
++ (instancetype)tupleValue:(LSCTuple *)tupleValue;
+
+/**
  *  转换为对象
  *
  *  @return 对象
@@ -197,5 +206,12 @@
  @return 方法对象
  */
 - (LSCFunction *)toFunction;
+
+/**
+ 转换为元组
+
+ @return 元组
+ */
+- (LSCTuple *)toTuple;
 
 @end

@@ -5,10 +5,20 @@
 #ifndef ANDROID_LUAJAVACONVERTER_H
 #define ANDROID_LUAJAVACONVERTER_H
 
-#include "LuaContext.h"
 #include <jni.h>
 
 using namespace cn::vimfung::luascriptcore;
+
+namespace cn {
+    namespace vimfung {
+        namespace luascriptcore {
+
+            class LuaContext;
+            class LuaValue;
+
+        }
+    }
+}
 
 /**
  * Java转换器

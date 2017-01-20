@@ -3,6 +3,7 @@
 //
 
 #include <stdint.h>
+#include <LuaTuple.h>
 #include "LuaJavaConverter.h"
 #include "LuaJavaType.h"
 #include "LuaJavaObjectDescriptor.h"
@@ -10,6 +11,9 @@
 #include "LuaJavaObjectInstanceDescriptor.h"
 #include "LuaObjectManager.h"
 #include "LuaFunction.h"
+#include "LuaContext.h"
+#include "LuaValue.h"
+#include "LuaPointer.h"
 
 LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject context)
 {
@@ -77,6 +81,53 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
 
         value = new LuaValue((const char *)bytes, (size_t)len);
     }
+    else if (env -> IsInstanceOf(object, LuaJavaType::arrayListClass(env)) == JNI_TRUE)
+    {
+        //ArrayList
+        static jclass jArrayListClass = LuaJavaType::arrayListClass(env);
+        static jmethodID getMethodId = env -> GetMethodID(jArrayListClass, "get", "(I)Ljava/lang/Object;");
+        static jmethodID sizeMethodId = env -> GetMethodID(jArrayListClass, "size", "()I");
+
+        LuaValueList list;
+        jint len = env -> CallIntMethod(object, sizeMethodId);
+        for (int i = 0; i < len; ++i)
+        {
+            jobject item = env -> CallObjectMethod(object, getMethodId, i);
+            LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
+        }
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::hashMapClass(env)) == JNI_TRUE)
+    {
+        //HashMap
+        static jclass jHashMapClass = LuaJavaType::hashMapClass(env);
+        static jmethodID getMethodId = env -> GetMethodID(jHashMapClass, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+        static jmethodID sizeMethodId = env -> GetMethodID(jHashMapClass, "size", "()I");
+        static jmethodID keySetMethodId = env -> GetMethodID(jHashMapClass, "keySet", "()Ljava/util/Set;");
+
+        static jclass jSetClass = (jclass)env -> NewGlobalRef(env -> FindClass("java/util/Set"));
+        static jmethodID toArrayMethodId = env -> GetMethodID(jSetClass, "toArray", "()[Ljava/lang/Object;");
+
+        LuaValueMap map;
+        jint len = env -> CallIntMethod(object, sizeMethodId);
+
+        jobject keySet= env -> CallObjectMethod(object, keySetMethodId);
+        jobjectArray keys = (jobjectArray)env -> CallObjectMethod(keySet, toArrayMethodId);
+
+        for (int i = 0; i < len; ++i)
+        {
+            jobject key = env -> GetObjectArrayElement(keys, i);
+            jobject item = env -> CallObjectMethod(object, getMethodId, key);
+
+            const char *keyStr = env -> GetStringUTFChars((jstring)key, NULL);
+            LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
+            map[keyStr] = valueItem;
+            env -> ReleaseStringUTFChars((jstring)key, keyStr);
+        }
+
+        value = new LuaValue(map);
+    }
     else if (env -> IsInstanceOf(object, LuaJavaType::luaValueClass(env)) == JNI_TRUE)
     {
         //LuaValue类型
@@ -115,6 +166,27 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
             value = new LuaValue();
         }
 
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::tupleClass(env)) == JNI_TRUE)
+    {
+        //LuaTuple类型
+        jmethodID countMethodId = env -> GetMethodID(LuaJavaType::tupleClass(env), "count", "()I");
+        jmethodID returnValueMethodId = env -> GetMethodID(LuaJavaType::tupleClass(env), "getReturnValueByIndex", "(I)Ljava/lang/Object;");
+        jint count = env -> CallIntMethod(object, countMethodId);
+
+        LuaTuple *tuple = new LuaTuple();
+        for (int i = 0; i < count; ++i)
+        {
+            jobject returnValue = env -> CallObjectMethod(object, returnValueMethodId, i);
+            LuaValue *value = LuaJavaConverter::convertToLuaValueByJObject(env, context, returnValue);
+            if (value != NULL)
+            {
+                tuple -> addReturnValue(value);
+                value -> release();
+            }
+        }
+
+        value = new LuaValue(tuple);
     }
     else if (env -> IsSameObject(object, NULL) != JNI_TRUE)
     {
@@ -167,6 +239,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
     static jmethodID toPointerId = env -> GetMethodID(jLuaValueClass, "toPointer", "()Lcn/vimfung/luascriptcore/LuaPointer;");
     static jmethodID toFunctionId = env -> GetMethodID(jLuaValueClass, "toFunction", "()Lcn/vimfung/luascriptcore/LuaFunction;");
     static jmethodID toObjectId = env -> GetMethodID(jLuaValueClass, "toObject", "()Ljava/lang/Object;");
+    static jmethodID toTupleId = env -> GetMethodID(jLuaValueClass, "toTuple", "()Lcn/vimfung/luascriptcore/LuaTuple;");
 
     jobject itemType = env -> CallObjectMethod(value, typeMethodId);
     jint valueType = env -> CallIntMethod(itemType, typeValueMethodId);
@@ -292,6 +365,31 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             {
                 retValue = new LuaValue();
             }
+
+            break;
+        }
+        case LuaValueTypeTuple:
+        {
+            //元组
+            jobject jTuple = env -> CallObjectMethod(value, toTupleId);
+
+            jmethodID countMethodId = env -> GetMethodID(LuaJavaType::tupleClass(env), "count", "()I");
+            jmethodID returnValueMethodId = env -> GetMethodID(LuaJavaType::tupleClass(env), "getReturnValueByIndex", "(I)Ljava/lang/Object;");
+            jint count = env -> CallIntMethod(jTuple, countMethodId);
+
+            LuaTuple *tuple = new LuaTuple();
+            for (int i = 0; i < count; ++i)
+            {
+                jobject returnValue = env -> CallObjectMethod(jTuple, returnValueMethodId, i);
+                LuaValue *item = LuaJavaConverter::convertToLuaValueByJObject(env, context, returnValue);
+                if (value != NULL)
+                {
+                    tuple -> addReturnValue(item);
+                    item -> release();
+                }
+            }
+
+            retValue = new LuaValue(tuple);
 
             break;
         }
@@ -446,6 +544,30 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                 }
                 break;
             }
+            case LuaValueTypeTuple:
+            {
+                //元组
+                LuaTuple *tuple = luaValue -> toTuple();
+                if (tuple != NULL)
+                {
+                    jmethodID initMethodId = env -> GetMethodID(LuaJavaType::tupleClass(env), "<init>", "()V");
+                    jmethodID addReturnValueMethodId = env -> GetMethodID(LuaJavaType::tupleClass(env), "addReturnValue", "(Ljava/lang/Object;)V");
+
+                    retObj = env -> NewObject(LuaJavaType::tupleClass(env), initMethodId);
+
+                    //填充数据
+                    for (int i = 0; i < tuple->count(); ++i)
+                    {
+                        LuaValue *retValue = tuple -> getResturValueByIndex(i);
+                        jobject jRetValue = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, retValue);
+                        if (jRetValue != NULL)
+                        {
+                            env -> CallVoidMethod(retObj, addReturnValueMethodId, jRetValue);
+                        }
+                    }
+                }
+                break;
+            }
             case LuaValueTypeObject:
             {
                 LuaObjectDescriptor *objDesc = luaValue -> toObject();
@@ -522,6 +644,12 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContex
             {
                 static jmethodID functionInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILcn/vimfung/luascriptcore/LuaFunction;)V");
                 initMethodId = functionInitMethodId;
+                break;
+            }
+            case LuaValueTypeTuple:
+            {
+                static jmethodID tupleInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILcn/vimfung/luascriptcore/LuaTuple;)V");
+                initMethodId = tupleInitMethodId;
                 break;
             }
             case LuaValueTypeObject:

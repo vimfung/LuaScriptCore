@@ -6,7 +6,6 @@
 #define SAMPLE_LUAOBJECT_H
 
 #include <string>
-#include "LuaNativeClass.hpp"
 
 namespace cn
 {

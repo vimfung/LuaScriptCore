@@ -7,6 +7,7 @@
 #include "LuaFunction.h"
 #include "LuaContext.h"
 #include "LuaValue.h"
+#include "LuaTuple.h"
 
 /**
  * 方法种子，主要参与方法索引的生成，每次创建一个Function，该值就会自增。
@@ -129,9 +130,14 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaFunction::i
         lua_getfield(state, -1, FunctionsTableName.c_str());
         if (lua_istable(state, -1))
         {
+            //记录栈顶位置，用于计算返回值数量
+            int top = lua_gettop(state);
+
             lua_getfield(state, -1, _index.c_str());
             if (lua_isfunction(state, -1))
             {
+                int returnCount = 0;
+
                 //初始化传递参数
                 for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
                 {
@@ -139,24 +145,49 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaFunction::i
                     item->push(_context);
                 }
 
-                if (lua_pcall(state, (int)arguments -> size(), 1, 0) == 0)
+                if (lua_pcall(state, (int)arguments -> size(), LUA_MULTRET, 0) == 0)
                 {
                     //调用成功
-                    retValue = _context -> getValueByIndex(-1);
+                    returnCount = lua_gettop(state) - top;
+                    if (returnCount > 1)
+                    {
+                        LuaTuple *tuple = new LuaTuple();
+                        for (int i = 1; i <= returnCount; i++)
+                        {
+                            LuaValue *value = _context -> getValueByIndex(top + i);
+                            tuple -> addReturnValue(value);
+                            value -> release();
+                        }
+
+                        retValue = LuaValue::TupleValue(tuple);
+
+                        tuple -> release();
+                    }
+                    else if (returnCount == 1)
+                    {
+                        retValue = _context -> getValueByIndex(-1);
+                    }
                 }
                 else
                 {
                     //调用失败
+                    returnCount = 1;
+
                     LuaValue *value = _context -> getValueByIndex(-1);
                     std::string errMessage = value -> toString();
                     _context -> raiseException(errMessage);
 
                     value -> release();
                 }
-            }
 
-            //弹出返回值
-            lua_pop(state, 1);
+                //弹出返回值
+                lua_pop(state, returnCount);
+            }
+            else
+            {
+                //弹出function
+                lua_pop(state, 1);
+            }
 
         }
 

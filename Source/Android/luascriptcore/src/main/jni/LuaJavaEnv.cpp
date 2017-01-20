@@ -8,11 +8,13 @@
 #include <string>
 #include "LuaJavaEnv.h"
 #include "LuaObjectManager.h"
+#include "LuaObjectDescriptor.h"
 #include "LuaJavaType.h"
 #include "LuaJavaConverter.h"
 #include "LuaJavaModule.h"
-#include "LuaDefine.h"
 #include "LuaJavaObjectClass.h"
+#include "LuaValue.h"
+#include "LuaContext.h"
 
 /**
  * Java虚拟机对象

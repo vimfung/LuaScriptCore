@@ -185,6 +185,26 @@ public class LuaContext extends LuaBaseObject
     }
 
     /**
+     * 设置全局变量
+     * @param name  名称
+     * @param value 值
+     */
+    public void setGlobal(String name, LuaValue value)
+    {
+        LuaNativeUtil.setGlobal(_nativeId, name, value);
+    }
+
+    /**
+     * 获取全局变量
+     * @param name 名称
+     * @return 值
+     */
+    public LuaValue getGlobal(String name)
+    {
+        return LuaNativeUtil.getGlobal(_nativeId, name);
+    }
+
+    /**
      * 解析Lua脚本
      * @param script  脚本
      * @return 执行后返回的值
@@ -268,12 +288,9 @@ public class LuaContext extends LuaBaseObject
             Method regMethod = moduleClass.getMethod("_register", LuaContext.class, moduleClass.getClass());
             regMethod.invoke(moduleClass, this, moduleClass);
         }
-        catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        catch (Exception e)
+        {
+//            e.printStackTrace();
         }
     }
 

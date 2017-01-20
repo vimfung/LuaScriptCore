@@ -11,6 +11,7 @@
 #import "LSCModule.h"
 #import "LSCFunction.h"
 #import "LSCPointer.h"
+#import "LSCTuple.h"
 
 //面向对象模块
 #import "LSCObjectClass.h"
