@@ -88,12 +88,12 @@ static NSString *const FunctionsTableName = @"_tmpFuncs_";
     }
 }
 
-- (id)invokeWithArguments:(NSArray<LSCValue *> *)arguments
+- (LSCValue *)invokeWithArguments:(NSArray<LSCValue *> *)arguments
 {
     __weak LSCFunction *theFunc = self;
     lua_State *state = self.context.state;
     
-    id retValue = nil;
+    LSCValue *retValue = nil;
     
     lua_getglobal(state, "_G");
     if (lua_istable(state, -1))
@@ -126,7 +126,7 @@ static NSString *const FunctionsTableName = @"_tmpFuncs_";
                             LSCValue *value = [LSCValue valueWithContext:self.context atIndex:top + i];
                             [tuple addReturnValue:[value toObject]];
                         }
-                        retValue = tuple;
+                        retValue = [LSCValue tupleValue:tuple];
                     }
                     else if (returnCount == 1)
                     {
