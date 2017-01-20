@@ -51,18 +51,18 @@
  *
  *  @param string 脚本字符串
  *
- *  @return 返回值，如果有返回值数量为1个时，返回类型为LSCValue, 如果返回值数量>1时，则返回值类型为LSCTuple
+ *  @return 返回值
  */
-- (id)evalScriptFromString:(NSString *)string;
+- (LSCValue *)evalScriptFromString:(NSString *)string;
 
 /**
  *  解析脚本
  *
  *  @param path 脚本路径
  *
- *  @return 返回值，如果有返回值数量为1个时，返回类型为LSCValue, 如果返回值数量>1时，则返回值类型为LSCTuple
+ *  @return 返回值
  */
-- (id)evalScriptFromFile:(NSString *)path;
+- (LSCValue *)evalScriptFromFile:(NSString *)path;
 
 /**
  *  调用方法
@@ -70,9 +70,9 @@
  *  @param methodName 方法名称
  *  @param arguments  参数
  *
- *  @return 返回值，如果有返回值数量为1个时，返回类型为LSCValue, 如果返回值数量>1时，则返回值类型为LSCTuple
+ *  @return 返回值
  */
-- (id)callMethodWithName:(NSString *)methodName arguments:(NSArray<LSCValue *> *)arguments;
+- (LSCValue *)callMethodWithName:(NSString *)methodName arguments:(NSArray<LSCValue *> *)arguments;
 
 /**
  *  注册方法

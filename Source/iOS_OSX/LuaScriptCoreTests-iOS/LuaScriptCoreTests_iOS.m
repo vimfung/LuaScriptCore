@@ -34,7 +34,7 @@
 
 - (void)testEvalScript
 {
-    id value = [self.context evalScriptFromString:@"return 4 * 256; "];
+    LSCValue *value = [self.context evalScriptFromString:@"return 4 * 256; "];
     XCTAssertNotNil(value, "value is nil");
     NSLog(@"retValue = %@", value);
     
@@ -48,7 +48,7 @@
     NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
     NSString *path = [bundle pathForResource:@"Test" ofType:@"lua"];
     XCTAssertNotNil(path, "path is nil");
-    id value = [self.context evalScriptFromFile:path];
+    LSCValue *value = [self.context evalScriptFromFile:path];
     XCTAssertNotNil(value, "value is nil");
     NSLog(@"retValue = %@", value);
 }
@@ -78,7 +78,7 @@
     
     NSInteger v1 = 30;
     NSInteger v2 = 55;
-    id resValue = [self.context callMethodWithName:@"add" arguments:@[[LSCValue integerValue:v1], [LSCValue integerValue:v2]]];
+    LSCValue *resValue = [self.context callMethodWithName:@"add" arguments:@[[LSCValue integerValue:v1], [LSCValue integerValue:v2]]];
     XCTAssertNotNil(resValue, "result value is nil");
     NSLog(@"resValue = %@", resValue);
     
@@ -173,7 +173,7 @@
     [self.context registerMethodWithName:@"test" block:^LSCValue *(NSArray<LSCValue *> *arguments) {
        
         LSCFunction *func = [arguments[0] toFunction];
-        id retValue = [func invokeWithArguments:nil];
+        LSCValue *retValue = [func invokeWithArguments:nil];
         NSLog(@"retValue = %@", retValue);
         
         return nil;
