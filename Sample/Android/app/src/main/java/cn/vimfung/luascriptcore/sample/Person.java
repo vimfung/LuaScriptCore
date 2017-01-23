@@ -33,4 +33,9 @@ public class Person extends LuaObjectClass
 
         return tuple;
     }
+
+    public static void log (String msg)
+    {
+        Log.v("lsc===", msg);
+    }
 }

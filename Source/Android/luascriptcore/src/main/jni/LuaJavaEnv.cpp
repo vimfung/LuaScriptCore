@@ -304,3 +304,21 @@ cn::vimfung::luascriptcore::LuaExceptionHandler LuaJavaEnv::getExceptionhandler(
 {
     return _luaExceptionHandler;
 }
+
+std::string LuaJavaEnv::getJavaClassName(JNIEnv *env, jclass cls)
+{
+    // Get the class object's class descriptor
+    jclass clsClazz = env->GetObjectClass(cls);
+
+    // Find the getSimpleName() method in the class object
+    jmethodID methodId = env->GetMethodID(clsClazz, "getSimpleName", "()Ljava/lang/String;");
+    jstring className = (jstring) env->CallObjectMethod(cls, methodId);
+
+    std::string name;
+
+    const char *nameCStr = env -> GetStringUTFChars(className, NULL);
+    name = nameCStr;
+    env -> ReleaseStringUTFChars(className, nameCStr);
+
+    return name;
+}

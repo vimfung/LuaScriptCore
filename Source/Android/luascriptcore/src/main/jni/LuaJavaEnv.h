@@ -141,6 +141,16 @@ public:
      * @return Lua异常处理器
      */
     static LuaExceptionHandler getExceptionhandler();
+
+    /**
+     * 获取Java类型的名称
+     *
+     * @param env JNI环境
+     * @param cls 类型
+     *
+     * @return 类型名称
+     */
+    static std::string getJavaClassName(JNIEnv *env, jclass cls);
 };
 
 
