@@ -118,6 +118,7 @@ public class LuaContext extends LuaBaseObject
                         }
 
                         readAssetFileContent(fileName, dataStream);
+                        //直接覆盖缓存路径中的文件，保证以assets中的内容为最新。
                         writeToFile(file, dataStream);
                         dataStream.close();
 
