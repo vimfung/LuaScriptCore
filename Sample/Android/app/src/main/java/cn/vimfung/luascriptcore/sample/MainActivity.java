@@ -152,9 +152,10 @@ public class MainActivity extends AppCompatActivity {
                     _hasRegClass = true;
                     _luaContext.registerModule(Person.class);
                     _luaContext.registerModule(Chinese.class);
+                    _luaContext.registerModule(Console.class);
                 }
 
-                _luaContext.evalScript("local person = Chinese.create(); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
+                _luaContext.evalScript("Person.log(111);Console.log(22222);local person = Chinese.create(); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
                 }
             });
         }
