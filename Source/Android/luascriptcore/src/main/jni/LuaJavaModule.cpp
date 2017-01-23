@@ -27,11 +27,10 @@ static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodN
     LuaJavaModule *jmodule = (LuaJavaModule *)module;
     if (jmodule != NULL)
     {
-        static jclass moduleClass = jmodule -> getModuleClass(env);
-        static jmethodID invokeMethodID = env -> GetStaticMethodID(LuaJavaType::moduleClass(env), "_methodInvoke", "(Ljava/lang/Class;Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
-
         static jclass luaValueClass = LuaJavaType::luaValueClass(env);
 
+        jclass moduleClass = jmodule -> getModuleClass(env);
+        jmethodID invokeMethodID = env -> GetStaticMethodID(LuaJavaType::moduleClass(env), "_methodInvoke", "(Ljava/lang/Class;Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
         jstring jMethodName = env -> NewStringUTF(methodName.c_str());
 
         //参数
