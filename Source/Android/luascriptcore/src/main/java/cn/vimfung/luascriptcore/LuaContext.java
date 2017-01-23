@@ -211,6 +211,10 @@ public class LuaContext extends LuaBaseObject
      */
     public LuaValue evalScript (String script)
     {
+        //拷贝资源包中的所有lua文件到临时目录中
+        //fixed : lua字符串包含对资源包中文件的引用
+        setupLuaFolder();
+
         return LuaNativeUtil.evalScript(_nativeId, script);
     }
 
@@ -221,6 +225,10 @@ public class LuaContext extends LuaBaseObject
      */
     public LuaValue evalScriptFromFile (String filePath)
     {
+        //拷贝资源包中的所有lua文件到临时目录中
+        //fixed : 其他路径下的lua文件包含对资源包中文件的引用
+        setupLuaFolder();
+
         LuaValue retValue = null;
 
         String AssetsPathPrefix = "/android_asset";
@@ -231,8 +239,6 @@ public class LuaContext extends LuaBaseObject
                 filePath = filePath.substring(AssetsPathPrefix.length() + 1);
             }
 
-            //拷贝资源包中的所有lua文件到临时目录中
-            setupLuaFolder();
             //转换路径为Lua文件目录路径
             filePath = String.format("%s/lua/%s",  getCacheDir(), filePath);
         }
