@@ -103,6 +103,9 @@ void cn::vimfung::luascriptcore::LuaContext::raiseException (std::string message
 
 cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::getValueByIndex(int index)
 {
+    //fiexed: 转换负数索引为正数索引，修复由于索引负数导致崩溃问题
+    index = lua_absindex(_state, index);
+
     LuaValue *value = NULL;
     switch (lua_type(_state, index)) {
         case LUA_TNIL:
