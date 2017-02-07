@@ -14,7 +14,7 @@ cn::vimfung::luascriptcore::modules::oo::LuaObjectInstanceDescriptor::LuaObjectI
 cn::vimfung::luascriptcore::modules::oo::LuaObjectInstanceDescriptor::LuaObjectInstanceDescriptor(const void *instance, LuaObjectClass *objectClass)
     : LuaObjectDescriptor(instance), _objectClass(objectClass)
 {
-
+    
 }
 
 cn::vimfung::luascriptcore::modules::oo::LuaObjectInstanceDescriptor::~LuaObjectInstanceDescriptor()

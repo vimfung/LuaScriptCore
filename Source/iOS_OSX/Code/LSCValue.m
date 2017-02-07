@@ -391,6 +391,9 @@
 {
     lua_State *state = context.state;
     LSCValue *value = nil;
+
+    //fixed:转换为正数，修复负数传入时出现崩溃问题
+    index = lua_absindex(state, (int)index);
     
     switch (lua_type(state, (int)index))
     {
