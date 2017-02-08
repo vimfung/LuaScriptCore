@@ -287,7 +287,11 @@ static int objectDestroyHandler (lua_State *state)
             lua_pushvalue(state, 1);
             lua_pcall(state, 1, 0, 0);
         }
-        lua_pop(state, 2);
+        else
+        {
+            lua_pop(state, 1);
+        }
+        lua_pop(state, 1);
         
         //释放内存
         CFBridgingRelease(ref -> value);
@@ -502,7 +506,6 @@ static int instanceOfHandler (lua_State *state)
 {
     lua_State *state = context.state;
 
-    
     BOOL hasExists = NO;
     if (self._refId)
     {
@@ -534,7 +537,20 @@ static int instanceOfHandler (lua_State *state)
     
     if (!hasExists)
     {
+        //不存在lua实例需要进行创建
         [LSCObjectClass _createLuaInstanceWithState:state instance:self];
+        
+        //调用默认init方法
+        lua_getfield(state, -1, "init");
+        if (lua_isfunction(state, -1))
+        {
+            lua_pushvalue(state, -2);
+            lua_pcall(state, 1, 0, 0);
+        }
+        else
+        {
+            lua_pop(state, 1);
+        }
     }
 
 }
