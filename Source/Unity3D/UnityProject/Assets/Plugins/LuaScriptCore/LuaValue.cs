@@ -2,6 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Runtime.InteropServices;
+using UnityEngine;
+using cn.vimfung.luascriptcore.modules.oo;
 
 namespace cn.vimfung.luascriptcore
 {
@@ -110,60 +113,80 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="value">对象</param>
 		public LuaValue (object value)
 		{
-			if (value is int
-				|| value is uint
-				|| value is Int16
-				|| value is UInt16
-				|| value is Int64
-				|| value is UInt64)
+			if (value != null)
 			{
-				_value = value;
-				_type = LuaValueType.Integer;
-			}
-			else if (value is double 
-				|| value is float)
-			{
-				_value = value;
-				_type = LuaValueType.Number;
-			}
-			else if (value is bool)
-			{
-				_value = value;
-				_type = LuaValueType.Boolean;
-			}
-			else if (value is byte[])
-			{
-				_value = value;
-				_type = LuaValueType.Data;
-			}
-			else if (value is string)
-			{
-				_value = value;
-				_type = LuaValueType.String;
-			}
-			else if (value is Array)
-			{
-				List<LuaValue> arr = new List<LuaValue> ();
-				_value = arr;
-				_type = LuaValueType.Array;
-
-				//转换数据
-				foreach (object item in (value as Array)) 
+				
+				if (value is int
+				    || value is uint
+				    || value is Int16
+				    || value is UInt16
+				    || value is Int64
+				    || value is UInt64)
 				{
-					LuaValue itemValue = new LuaValue (item);
-					arr.Add (itemValue);
+					_value = value;
+					_type = LuaValueType.Integer;
 				}
-			}
-			else if (value is IDictionary)
-			{
-				Dictionary<string, LuaValue> dict = new Dictionary<string, LuaValue> ();
-				_value = dict;
-				_type = LuaValueType.Map;
-
-				foreach (DictionaryEntry de in (value as IDictionary))
+				else if (value is double
+				         || value is float)
 				{
-					LuaValue itemValue = new LuaValue (de.Value);
-					dict.Add (Convert.ToString(de.Key), itemValue);
+					_value = value;
+					_type = LuaValueType.Number;
+				}
+				else if (value is bool)
+				{
+					_value = value;
+					_type = LuaValueType.Boolean;
+				}
+				else if (value is byte[])
+				{
+					_value = value;
+					_type = LuaValueType.Data;
+				}
+				else if (value is string)
+				{
+					_value = value;
+					_type = LuaValueType.String;
+				}
+				else if (value is Array)
+				{
+					List<LuaValue> arr = new List<LuaValue> ();
+					_value = arr;
+					_type = LuaValueType.Array;
+
+					//转换数据
+					foreach (object item in (value as Array))
+					{
+						LuaValue itemValue = new LuaValue (item);
+						arr.Add (itemValue);
+					}
+				}
+				else if (value is IDictionary)
+				{
+					Dictionary<string, LuaValue> dict = new Dictionary<string, LuaValue> ();
+					_value = dict;
+					_type = LuaValueType.Map;
+
+					foreach (DictionaryEntry de in (value as IDictionary))
+					{
+						LuaValue itemValue = new LuaValue (de.Value);
+						dict.Add (Convert.ToString (de.Key), itemValue);
+					}
+				}
+				else
+				{
+					if (value is LuaObjectDescriptor)
+					{
+						_value = value;
+					}
+					else if (value is ILuaObject)
+					{
+						_value = (value as ILuaObject).getDescriptor ();
+					}
+					else
+					{
+						_value = new LuaObjectDescriptor (value);
+					}
+					_type = LuaValueType.Object;
 				}
 			}
 			else
@@ -283,7 +306,7 @@ namespace cn.vimfung.luascriptcore
 				}
 			case LuaValueType.Object:
 				{
-//					toObject() -> serialization(NULL, encoder);
+					encoder.writeObject (_value);
 					break;
 				}
 			case LuaValueType.Boolean:
@@ -345,6 +368,11 @@ namespace cn.vimfung.luascriptcore
 			case LuaValueType.Map:
 				_value = readHashtable (decoder);
 				break;
+			case LuaValueType.Object:
+				{
+					_value = decoder.readObject ();
+					break;
+				}
 			}
 		}
 
@@ -429,6 +457,11 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>对象.</returns>
 		public object toObject()
 		{
+			if (_value is LuaObjectDescriptor)
+			{
+				return (_value as LuaObjectDescriptor).obj;
+			}
+
 			return _value;
 		}
 	}

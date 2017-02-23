@@ -10,6 +10,7 @@
 #include "LuaContext.h"
 #include "LuaValue.h"
 #include "LuaTuple.h"
+#include "lunity.h"
 
 /**
  * 实例种子，参与实例索引的生成，每次创建实例，该值会自增.
@@ -30,17 +31,20 @@ static std::string InstanceRefsTableName = "_instanceRefs_";
  */
 static int objectDestroyHandler (lua_State *state)
 {
+    using namespace cn::vimfung::luascriptcore;
     using namespace cn::vimfung::luascriptcore::modules::oo;
-
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-
-    if (objectClass -> getObjectDestroyHandler() != NULL)
-    {
-        objectClass -> getObjectDestroyHandler() (objectClass);
-    }
 
     if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
     {
+        LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
+
+        LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+
+        if (objectClass -> getObjectDestroyHandler() != NULL)
+        {
+            objectClass -> getObjectDestroyHandler() (ref);
+        }
+
         //调用实例对象的destroy方法
         lua_pushvalue(state, 1);
 
@@ -70,47 +74,57 @@ static int objectDestroyHandler (lua_State *state)
  */
 static int objectToStringHandler (lua_State *state)
 {
+    using namespace cn::vimfung::luascriptcore;
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
     std::string desc;
 
-    int type = lua_type(state, 1);
-
-    //由于加入了实例的super对象，因此需要根据不同类型进行不同输出。since ver 1.3
-    switch (type)
+    if (lua_gettop(state) > 0)
     {
-        case LUA_TUSERDATA:
-        {
-            LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-            if (objectClass -> getObjectDescriptionHandler() != NULL)
-            {
-                desc = objectClass -> getObjectDescriptionHandler()(objectClass);
-            }
+        int type = lua_type(state, 1);
 
-            if (desc.empty())
+        //由于加入了实例的super对象，因此需要根据不同类型进行不同输出。since ver 1.3
+        switch (type)
+        {
+            case LUA_TUSERDATA:
             {
-                char strbuf[256] = {0};
-                int size = sprintf(strbuf, "[%s object]", objectClass -> getName().c_str());
-                strbuf[size] = '\0';
+                LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
 
-                lua_pushstring(state, strbuf);
+                LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+                if (objectClass -> getObjectDescriptionHandler() != NULL)
+                {
+                    desc = objectClass -> getObjectDescriptionHandler()(ref);
+                }
+
+                if (desc.empty())
+                {
+                    char strbuf[256] = {0};
+                    int size = sprintf(strbuf, "[%s object]", objectClass -> getName().c_str());
+                    strbuf[size] = '\0';
+
+                    lua_pushstring(state, strbuf);
+                }
+                else
+                {
+                    lua_pushstring(state, desc.c_str());
+                }
+                break;
             }
-            else
+            case LUA_TTABLE:
             {
-                lua_pushstring(state, desc.c_str());
+                lua_pushstring(state, "<SuperClass Type>");
+                break;
             }
-            break;
+            default:
+            {
+                lua_pushstring(state, "<Unknown Type>");
+                break;
+            }
         }
-        case LUA_TTABLE:
-        {
-            lua_pushstring(state, "<SuperClass Type>");
-            break;
-        }
-        default:
-        {
-            lua_pushstring(state, "<Unknown Type>");
-            break;
-        }
+    }
+    else
+    {
+        lua_pushstring(state, "<Unknown Type>");
     }
 
     return 1;
@@ -696,22 +710,29 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
         lua_pop(state, 1);
 
         //设置Setter方法
-        lua_pushlightuserdata(state, this);
-        lua_pushstring(state, fieldName.c_str());
-        lua_pushcclosure(state, instanceSetterRouteHandler, 2);
+        if (setterHandler != NULL)
+        {
+            lua_pushlightuserdata(state, this);
+            lua_pushstring(state, fieldName.c_str());
+            lua_pushcclosure(state, instanceSetterRouteHandler, 2);
 
-        lua_setfield(state, -2, setterMethodName.c_str());
+            lua_setfield(state, -2, setterMethodName.c_str());
 
-        _instanceSetterMap[fieldName] = setterHandler;
+            _instanceSetterMap[fieldName] = setterHandler;
+        }
 
         //注册Getter方法
-        lua_pushlightuserdata(state, this);
-        lua_pushstring(state, fieldName.c_str());
-        lua_pushcclosure(state, instanceGetterRouteHandler, 2);
-
-        lua_setfield(state, -2, fieldName.c_str());
-
-        _instanceGetterMap[fieldName] = getterHandler;
+        if (getterHandler != NULL)
+        {
+            lua_pushlightuserdata(state, this);
+            lua_pushstring(state, fieldName.c_str());
+            lua_pushcclosure(state, instanceGetterRouteHandler, 2);
+            
+            lua_setfield(state, -2, fieldName.c_str());
+            
+            _instanceGetterMap[fieldName] = getterHandler;
+        }
+        
     }
 
     _isInternalCall = false;
@@ -902,6 +923,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInst
     lua_State *state = getContext() -> getLuaState();
 
     bool hasExists = false;
+    unityDebug("-------- lua object id = %s", objectDescriptor -> getReferenceId().c_str());
     if (!objectDescriptor -> getReferenceId().empty())
     {
         //先查找_instanceRefs_中是否存在实例
@@ -915,6 +937,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInst
                 if (lua_isuserdata(state, -1))
                 {
                     //存在实例
+                    unityDebug("-------- has exists");
                     lua_insert(state, -3);
                     hasExists = true;
                 }

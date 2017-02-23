@@ -47,6 +47,7 @@ namespace cn.vimfung.luascriptcore
 		/// </summary>
 		static LuaContext()
 		{
+			UNIEnv.setup ();
 			_contexts = new Dictionary<int, WeakReference> ();
 		}
 
@@ -110,7 +111,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="script">Lua脚本</param>
 		public LuaValue evalScript(string script)
 		{
-			IntPtr resultPtr;
+			IntPtr resultPtr = IntPtr.Zero;
 			int size = NativeUtils.evalScript (_nativeObjectId, script, out resultPtr);
 			return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
 		}
@@ -212,8 +213,9 @@ namespace cn.vimfung.luascriptcore
 		/// </summary>
 		/// <typeparam name="T">模块类型</typeparam>
 		public void registerModule<T>()
+			where T : LuaModule
 		{
-			LuaModule.register<T> (this);
+			LuaModule.register(this, typeof(T));
 		}
 
 		/// <summary>

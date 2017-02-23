@@ -13,6 +13,9 @@ namespace cn
     {
         namespace luascriptcore
         {
+            class LuaObjectDecoder;
+            class LuaObjectEncoder;
+            
             namespace modules
             {
                 namespace oo
@@ -44,11 +47,26 @@ namespace cn
                          *
                          */
                         LuaObjectInstanceDescriptor(const void *instance, LuaObjectClass *objectClass);
+                        
+                        /**
+                         * 初始化, 在反序列化对象时会触发该方法
+                         *
+                         * @param decoder 解码器
+                         */
+                        LuaObjectInstanceDescriptor (LuaObjectDecoder *decoder);
 
                         /**
                         * 描述器对象析构方法
                         */
                         virtual ~LuaObjectInstanceDescriptor();
+                        
+                        /**
+                         序列化对象
+                         
+                         @param className 类型名称
+                         @param encoder 编码器
+                         */
+                        virtual void serialization (std::string className, LuaObjectEncoder *encoder);
 
                     public:
 
@@ -67,6 +85,13 @@ namespace cn
                          * @return true 是， false 不是
                          */
                         virtual bool instanceOf (LuaObjectClass *objectClass);
+                        
+                        /**
+                         * 入栈数据
+                         *
+                         * @param context 上下文对象
+                         */
+                        virtual void push(LuaContext *context);
                     };
                 }
             }

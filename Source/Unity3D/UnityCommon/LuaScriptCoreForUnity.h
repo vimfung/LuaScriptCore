@@ -19,25 +19,26 @@
 
 #endif
 
+#include "LuaUnityDefined.h"
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
     
     /**
-     Lua方法处理器
+     绑定设置原生对象标识方法
+
+     @param handler 处理器
      */
-    typedef void* (*LuaMethodHandlerPtr)(int, const char *, const void *, int);
+    LuaScriptCoreApi extern void bindSetNativeObjectIdHandler(LuaSetNativeObjectIdHandlerPtr handler);
+    
     
     /**
-     Lua模块方法处理器
+     绑定根据实例获取类型名称方法
+
+     @param handler 处理器
      */
-    typedef void* (*LuaModuleMethodHandlerPtr) (int, const char *, const void *, int);
-    
-    /**
-     Lua异常处理器
-     */
-    typedef void (*LuaExceptionHandlerPtr) (const void *);
+    LuaScriptCoreApi extern void bindGetClassNameByInstanceHandler (LuaGetClassNameByInstanceHandlerPtr handler);
     
     /**
      创建Lua上下文对象
@@ -136,6 +137,41 @@ extern "C" {
      @return true 表示已注册，false 表示尚未注册。
      */
     LuaScriptCoreApi extern bool isModuleRegisted(int nativeContextId, const char *moduleName);
+    
+    
+    /**
+     注册类型
+
+     @param nativeContextId 本地上下文对象ID
+     @param className 类名称
+     @param superClassName 父类名称
+     @param exportsSetterNames 导出Setter名称列表
+     @param exportsGetterNames 导出Getter名称列表
+     @param exportsInstanceMethodNames 导出实例方法名称列表
+     @param exportsClassMethodNames 导出类方法名称列表
+     @param instanceCreateHandler 实例创建处理回调
+     @param instanceDestroyHandler 实例销毁处理回调
+     @param instanceDescriptionHandler 类型描述处理器回调
+     @param instanceFieldGetterRouteHandler 实例字段获取器路由处理回调
+     @param instanceFieldSetterRouteHandler 实例字段设置器路由回调
+     @param instanceMethodRouteHandler 实例方法路由处理回调
+     @param classMethodRouteHandler 类方法路由处理回调
+     @return 类的本地标识
+     */
+    LuaScriptCoreApi extern int registerClass(int nativeContextId,
+                                              const char *className,
+                                              const char *superClassName,
+                                              const void *exportsSetterNames,
+                                              const void *exportsGetterNames,
+                                              const void *exportsInstanceMethodNames,
+                                              const void *exportsClassMethodNames,
+                                              LuaInstanceCreateHandlerPtr instanceCreateHandler,
+                                              LuaInstanceDestoryHandlerPtr instanceDestroyHandler,
+                                              LuaInstanceDescriptionHandlerPtr instanceDescriptionHandler,
+                                              LuaInstanceFieldGetterHandlerPtr instanceFieldGetterRouteHandler,
+                                              LuaInstanceFieldSetterHandlerPtr instanceFieldSetterRouteHandler,
+                                              LuaInstanceMethodHandlerPtr instanceMethodRouteHandler,
+                                              LuaModuleMethodHandlerPtr classMethodRouteHandler);
     
 #if defined (__cplusplus)
 }

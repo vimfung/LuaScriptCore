@@ -4,10 +4,15 @@
 
 #include <stdint.h>
 #include "LuaObjectDescriptor.h"
+#include "LuaObjectEncoder.hpp"
+#include "LuaObjectDecoder.hpp"
 #include "LuaContext.h"
+#include "LuaNativeClass.hpp"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
+
+DECLARE_NATIVE_CLASS(LuaObjectDescriptor);
 
 /**
  对象引用回收处理
@@ -37,6 +42,15 @@ LuaObjectDescriptor::LuaObjectDescriptor()
 LuaObjectDescriptor::LuaObjectDescriptor(const void *object)
 {
     setObject(object);
+}
+
+LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
+{
+    void *objRef = NULL;
+    objRef = (void *)decoder -> readInt64();
+    setObject(objRef);
+    
+    setReferenceId(decoder -> readString());
 }
 
 LuaObjectDescriptor::~LuaObjectDescriptor()
@@ -96,4 +110,7 @@ void LuaObjectDescriptor::serialization (std::string className, LuaObjectEncoder
     }
     
     LuaObject::serialization(className, encoder);
+    
+    encoder -> writeInt64((long long)_object);
+    encoder -> writeString(_refId);
 }

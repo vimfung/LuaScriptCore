@@ -2,6 +2,8 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using UnityEngine;
+using System.Reflection;
 
 namespace cn.vimfung.luascriptcore
 {
@@ -42,10 +44,10 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>整型值</returns>
 		public Int32 readInt32()
 		{
-			Int32 value = (_buffer [_offset] << 24) 
-				| (_buffer [_offset + 1] << 16) 
-				| (_buffer [_offset + 2] << 8) 
-				| _buffer [_offset + 3];
+			Int32 value = (Convert.ToInt32(_buffer [_offset]) << 24) 
+				| (Convert.ToInt32(_buffer [_offset + 1]) << 16) 
+				| (Convert.ToInt32(_buffer [_offset + 2]) << 8) 
+				| Convert.ToInt32(_buffer [_offset + 3]);
 			_offset += 4;
 
 			return value;
@@ -57,14 +59,14 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>整型值</returns>
 		public Int64 readInt64()
 		{
-			Int64 value = (_buffer [_offset] << 56) 
-				| (_buffer [_offset + 1] << 48) 
-				| (_buffer [_offset + 2] << 40) 
-				| (_buffer [_offset + 3] << 32)
-				| (_buffer [_offset + 4] << 24) 
-				| (_buffer [_offset + 5] << 16) 
-				| (_buffer [_offset + 6] << 8) 
-				| _buffer [_offset + 7];
+			Int64 value = (Convert.ToInt64(_buffer [_offset]) << 56) 
+				| (Convert.ToInt64(_buffer [_offset + 1]) << 48) 
+				| (Convert.ToInt64(_buffer [_offset + 2]) << 40) 
+				| (Convert.ToInt64(_buffer [_offset + 3]) << 32)
+				| (Convert.ToInt64(_buffer [_offset + 4]) << 24) 
+				| (Convert.ToInt64(_buffer [_offset + 5]) << 16) 
+				| (Convert.ToInt64(_buffer [_offset + 6]) << 8) 
+				| Convert.ToInt64(_buffer [_offset + 7]);
 			_offset += 8;
 
 			return value;
@@ -130,21 +132,29 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>对象</returns>
 		public object readObject()
 		{
-			if (readByte () == 'L')
+			if (_buffer [_offset] == 'L')
 			{
+				_offset++;
 				string className = readString ();
-				if (readByte () == ';') 
+				if (readByte () == ';')
 				{
 					//反射对象
 					Type t = Type.GetType (className);
-					if (t != null) 
+					if (t != null)
 					{
 						object[] parameters = new object[1];
 						parameters [0] = this;
 
-						return Activator.CreateInstance (t, parameters);
+						ConstructorInfo ci = t.GetConstructor (new Type[] { typeof(LuaObjectDecoder) });
+						return ci.Invoke (parameters);
+//						return Activator.CreateInstance (t, parameters);
 					}
 				}
+			}
+			else
+			{
+				IntPtr ptr = new IntPtr (readInt64 ());
+				return Marshal.GetObjectForIUnknown (ptr);
 			}
 
 			return null;

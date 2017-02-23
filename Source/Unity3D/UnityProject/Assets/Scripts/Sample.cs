@@ -3,6 +3,8 @@ using System.Collections;
 using cn.vimfung.luascriptcore;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
+using cn.vimfung.luascriptcore.modules.oo;
+using System.CodeDom;
 
 public class Sample : MonoBehaviour {
 
@@ -15,6 +17,11 @@ public class Sample : MonoBehaviour {
 	/// 是否注册模块
 	/// </summary>
 	private bool _isRegModule = false;
+
+	/// <summary>
+	/// 是否注册类型
+	/// </summary>
+	private bool _isRegClass = false;
 
 	public void Start()
 	{
@@ -76,6 +83,20 @@ public class Sample : MonoBehaviour {
 			LuaContext.currentContext.registerModule<LogModule> ();
 		}
 
-		LuaContext.currentContext.evalScript ("LogModule.writeLog('Hello World!'); local a = LogModule.test({1,2,3,4,5}); print(a);");
+		LuaContext.currentContext.evalScript ("LogModule.writeLog('Hello World!'); local a = LogModule.test({1,2,3,4}); print(a);");
+	}
+
+	/// <summary>
+	/// 注册类型按钮点击
+	/// </summary>
+	public void registerClassButtonClickedHandler()
+	{
+		if (!_isRegClass)
+		{
+			_isRegClass = true;
+			LuaContext.currentContext.registerModule<Person> ();
+		}
+
+		LuaContext.currentContext.evalScript ("local p = Person.createPerson(); print(p); p:setName('xxxx'); p:speak(); print(Person.printPerson(p));");
 	}
 }

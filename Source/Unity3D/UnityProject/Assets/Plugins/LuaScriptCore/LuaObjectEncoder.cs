@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace cn.vimfung.luascriptcore
 {
@@ -104,9 +105,17 @@ namespace cn.vimfung.luascriptcore
 		/// 写入一个对象类型
 		/// </summary>
 		/// <param name="value">对象</param>
-		public void writeObject(LuaBaseObject value)
+		public void writeObject(object value)
 		{
-			value.serialization (this);
+			if (value is LuaBaseObject)
+			{
+				(value as LuaBaseObject).serialization (this);
+			}
+			else
+			{
+				IntPtr ptr = Marshal.GetIUnknownForObject (value);
+				writeInt64 (ptr.ToInt64 ());
+			}
 		}
 
 		/// <summary>
