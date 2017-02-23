@@ -32,16 +32,16 @@ namespace cn
                      *
                      * @param instance 类实例
                      */
-                    typedef void (*LuaClassObjectDestroyHandler) (LuaObjectClass *instance);
+                    typedef void (*LuaClassObjectDestroyHandler) (LuaUserdataRef instance);
 
                     /**
                      * 类对象实例获取描述处理器
                      *
-                     * @param objectClass 类实例
+                     * @param instance 类实例
                      *
                      * @return 对象描述
                      */
-                    typedef std::string (*LuaClassObjectGetDescriptionHandler) (LuaObjectClass *objectClass);
+                    typedef std::string (*LuaClassObjectGetDescriptionHandler) (LuaUserdataRef instance);
 
                     /**
                      * 子类化事件处理器

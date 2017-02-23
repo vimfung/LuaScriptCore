@@ -36,6 +36,11 @@ static void* testHandler(const char *methodName, const void *params, int size)
     return retBuf;
 }
 
+void* testModuleMethodHandler (int moduleId, const char *name, const void *args, int size)
+{
+    return NULL;
+}
+
 - (void)setUp {
     [super setUp];
     // Put setup code here. This method is called before the invocation of each test method in the class.
@@ -99,6 +104,20 @@ static void* testHandler(const char *methodName, const void *params, int size)
 //    evalScript(navId, "print(test(1024, 2));", (const void **)&retBytes);
 //    free(retBytes);
 }
+
+- (void)testRegModule
+{
+    int navId = createLuaContext();
+    
+    cn::vimfung::luascriptcore::LuaObjectEncoder *encoder = new cn::vimfung::luascriptcore::LuaObjectEncoder();
+    encoder -> writeInt32(1);
+    encoder -> writeString("test");
+    
+    registerModule(navId, "LogModule", encoder -> getBuffer(), testModuleMethodHandler);
+    evalScript(navId, "LogModule.test({1,2,3,4,5});", NULL);
+}
+
+
 
 
 @end

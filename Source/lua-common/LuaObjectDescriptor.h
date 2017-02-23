@@ -13,6 +13,7 @@ namespace cn {
         namespace luascriptcore {
 
             class LuaContext;
+            class LuaObjectDecoder;
 
             /**
              * Lua对象描述器
@@ -53,6 +54,13 @@ namespace cn {
                  * @param object 对象指针
                  */
                 LuaObjectDescriptor(const void *object);
+                
+                /**
+                 * 初始化, 在反序列化对象时会触发该方法
+                 *
+                 * @param decoder 解码器
+                 */
+                LuaObjectDescriptor (LuaObjectDecoder *decoder);
 
                 /**
                  * 释放对象描述器

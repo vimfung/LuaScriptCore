@@ -11,7 +11,7 @@ namespace cn.vimfung.luascriptcore
 	/// <summary>
 	/// Lua模块，在模块下定义的类方法可以导出到lua中进行使用。
 	/// </summary>
-	public class LuaModule : object
+	public class LuaModule : LuaBaseObject
 	{
 		/// <summary>
 		/// 导出模块方法集合
@@ -24,10 +24,65 @@ namespace cn.vimfung.luascriptcore
 		private static LuaModuleMethodHandleDelegate _moduleMethodHandleDelegate;
 
 		/// <summary>
-		/// 获取模块版本
+		/// 获取指定类型版本号
 		/// </summary>
-		/// <value>版本号.</value>
-		public static string version<T> ()
+		/// <returns>版本号</returns>
+		/// <param name="t">T.</param>
+		protected static string version(Type t)
+		{
+			string ver = null;
+			MethodInfo mi = t.GetMethod ("_version", BindingFlags.NonPublic | BindingFlags.Static);
+			if (mi != null) 
+			{
+				ver = mi.Invoke (null, null).ToString();
+			}
+
+			return ver != null ? ver : "";
+		}
+
+		/// <summary>
+		/// 获取模块名称
+		/// </summary>
+		/// <returns>模块名称</returns>
+		/// <param name="t">类型</param>
+		public static string moduleName(Type t)
+		{
+			String name = null;
+			MethodInfo mi = t.GetMethod ("_moduleName", BindingFlags.NonPublic | BindingFlags.Static);
+			if (mi != null) 
+			{
+				object nameObj = mi.Invoke (null, null);
+				if (nameObj != null) 
+				{
+					name = nameObj.ToString();
+				}
+			}
+
+			return name != null ? name : t.Name;
+		}
+
+		/// <summary>
+		/// 注册模块
+		/// </summary>
+		internal static void register (LuaContext context, Type t)
+		{
+			string moduleName = LuaModule.moduleName(t);
+			if (context.isModuleRegisted(moduleName))
+			{
+				return;
+			}
+
+			MethodInfo m = t.GetMethod ("_register", BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+			if (m != null)
+			{
+				m.Invoke (null, new object[]{ context, moduleName, t });
+			}
+		}
+
+		/// <summary>
+		/// 获取版本号
+		/// </summary>
+		protected static string _version ()
 		{
 			return "";
 		}
@@ -35,29 +90,25 @@ namespace cn.vimfung.luascriptcore
 		/// <summary>
 		/// 获取模块名称
 		/// </summary>
-		/// <value>模块名称.</value>
-		public static string moduleName<T> ()
+		/// <returns>模块名称.</returns>
+		protected static string _moduleName ()
 		{
-			Type t = typeof(T);
-			return t.Name;
+			return null;
 		}
-
+			
 		/// <summary>
 		/// 注册模块
 		/// </summary>
-		internal static void register<T> (LuaContext context)
+		/// <param name="context">Lua上下文.</param>
+		/// <param name="moduleName">模块名称.</param>
+		/// <param name="t">类型.</param>
+		protected static void _register (LuaContext context, string moduleName, Type t)
 		{
-			string moduleName = LuaModule.moduleName<T>();
-			if (context.isModuleRegisted(moduleName))
-			{
-				return;
-			}
-
 			//初始化模块导出信息
 			Dictionary<string, MethodInfo> exportMethods = new Dictionary<string, MethodInfo> ();
 			List<string> exportMethodNames = new List<string> ();
 
-			MethodInfo[] methods = typeof(T).GetMethods();
+			MethodInfo[] methods = t.GetMethods();
 			foreach (MethodInfo m in methods) 
 			{
 				if (m.IsStatic && m.IsPublic)
@@ -68,29 +119,37 @@ namespace cn.vimfung.luascriptcore
 				}
 			}
 
-			LuaObjectEncoder encoder = new LuaObjectEncoder ();
-			encoder.writeInt32 (exportMethodNames.Count);
-			foreach (string name in exportMethodNames) 
+			IntPtr exportMethodNamesPtr = IntPtr.Zero;
+			if (exportMethodNames.Count > 0)
 			{
-				encoder.writeString (name);
-			}
+				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				encoder.writeInt32 (exportMethodNames.Count);
+				foreach (string name in exportMethodNames) 
+				{
+					encoder.writeString (name);
+				}
 
-			byte[] bytes = encoder.bytes;
-			IntPtr exportMethodNamesPtr;
-			exportMethodNamesPtr = Marshal.AllocHGlobal (bytes.Length);
-			Marshal.Copy (bytes, 0, exportMethodNamesPtr, bytes.Length);
+				byte[] bytes = encoder.bytes;
+				exportMethodNamesPtr = Marshal.AllocHGlobal (bytes.Length);
+				Marshal.Copy (bytes, 0, exportMethodNamesPtr, bytes.Length);
+			}
 
 			if (_moduleMethodHandleDelegate == null) 
 			{
 				_moduleMethodHandleDelegate = new LuaModuleMethodHandleDelegate(luaModuleMethodRoute);
 			}
 			IntPtr fp = Marshal.GetFunctionPointerForDelegate(_moduleMethodHandleDelegate);
-		
+
 			//注册模块
 			int moduleId = NativeUtils.registerModule (context.objectId, moduleName, exportMethodNamesPtr, fp);
 
 			//关联注册模块的注册方法
 			_exportsModuleMethods.Add (moduleId, exportMethods);
+
+			if (exportMethodNamesPtr != IntPtr.Zero)
+			{
+				Marshal.FreeHGlobal (exportMethodNamesPtr);
+			}
 		}
 
 		/// <summary>
@@ -138,7 +197,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="m">方法信息</param>
 		/// <param name="arguments">参数列表数据</param>
 		/// <param name="size">参数列表数据长度</param>
-		private static ArrayList parseMethodParameters(MethodInfo m, IntPtr arguments, int size)
+		protected static ArrayList parseMethodParameters(MethodInfo m, IntPtr arguments, int size)
 		{
 			List<LuaValue> argumentsList = null;
 			if (arguments != IntPtr.Zero) 
@@ -168,266 +227,7 @@ namespace cn.vimfung.luascriptcore
 						break;
 					}
 
-					object value = null;
-					if (p.ParameterType == typeof(Int32)
-						|| p.ParameterType == typeof(Int64)
-						|| p.ParameterType == typeof(Int16)
-						|| p.ParameterType == typeof(UInt16)
-						|| p.ParameterType == typeof(UInt32)
-						|| p.ParameterType == typeof(UInt64)) 
-					{
-						value = argumentsList [i].toInteger ();
-					} 
-					else if (p.ParameterType == typeof(double)
-						|| p.ParameterType == typeof(float)) 
-					{
-						value = argumentsList [i].toNumber ();
-					} 
-					else if (p.ParameterType == typeof(bool))
-					{
-						value = argumentsList [i].toBoolean ();
-					}
-					else if (p.ParameterType == typeof(string)) 
-					{
-						value = argumentsList [i].toString ();
-					}
-					else if (p.ParameterType.IsArray) 
-					{
-						//数组
-						if (p.ParameterType == typeof(byte[])) 
-						{
-							//二进制数组
-							value = argumentsList[i].toData();
-						}
-						else if (p.ParameterType == typeof(Int32[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<Int32> intArr = new List<Int32> ();
-							foreach (LuaValue item in arr)
-							{
-								intArr.Add (item.toInteger ());
-							}
-							value = intArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(Int64[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<Int64> intArr = new List<Int64> ();
-							foreach (LuaValue item in arr)
-							{
-								intArr.Add (item.toInteger ());
-							}
-							value = intArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(Int16[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<Int16> intArr = new List<Int16> ();
-							foreach (LuaValue item in arr)
-							{
-								intArr.Add (Convert.ToInt16(item.toInteger ()));
-							}
-							value = intArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(UInt32[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<UInt32> intArr = new List<UInt32> ();
-							foreach (LuaValue item in arr)
-							{
-								intArr.Add (Convert.ToUInt32(item.toInteger ()));
-							}
-							value = intArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(UInt64[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<UInt64> intArr = new List<UInt64> ();
-							foreach (LuaValue item in arr)
-							{
-								intArr.Add (Convert.ToUInt64(item.toInteger ()));
-							}
-							value = intArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(UInt16[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<UInt16> intArr = new List<UInt16> ();
-							foreach (LuaValue item in arr)
-							{
-								intArr.Add (Convert.ToUInt16(item.toInteger ()));
-							}
-							value = intArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(bool[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<bool> boolArr = new List<bool> ();
-							foreach (LuaValue item in arr)
-							{
-								boolArr.Add (Convert.ToBoolean(item.toInteger ()));
-							}
-							value = boolArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(double[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<double> doubleArr = new List<double> ();
-							foreach (LuaValue item in arr)
-							{
-								doubleArr.Add (item.toNumber());
-							}
-							value = doubleArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(float[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<float> floatArr = new List<float> ();
-							foreach (LuaValue item in arr)
-							{
-								floatArr.Add ((float)item.toNumber());
-							}
-							value = floatArr.ToArray ();
-						}
-						else if (p.ParameterType == typeof(string[]))
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							List<string> floatArr = new List<string> ();
-							foreach (LuaValue item in arr)
-							{
-								floatArr.Add (item.toString());
-							}
-							value = floatArr.ToArray ();
-						}
-						else
-						{
-							List<LuaValue> arr = argumentsList[i].toArray();
-							ArrayList objArr = new ArrayList ();
-							foreach (LuaValue item in arr)
-							{
-								objArr.Add (item.toObject());
-							}
-							value = objArr.ToArray ();
-						}
-					}
-					else if (p.ParameterType == typeof(Hashtable)) 
-					{
-						//字典
-						Dictionary<string, LuaValue> map = argumentsList[i].toMap();
-						if (p.ParameterType == typeof(Dictionary<string, int>)) 
-						{
-							Dictionary<string, int> dict = new Dictionary<string, int> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, kv.Value.toInteger ());
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, int>)) 
-						{
-							Dictionary<string, int> dict = new Dictionary<string, int> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, kv.Value.toInteger ());
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, uint>)) 
-						{
-							Dictionary<string, uint> dict = new Dictionary<string, uint> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, Convert.ToUInt32(kv.Value.toInteger ()));
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, Int16>)) 
-						{
-							Dictionary<string, Int16> dict = new Dictionary<string, Int16> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, Convert.ToInt16(kv.Value.toInteger ()));
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, UInt16>)) 
-						{
-							Dictionary<string, UInt16> dict = new Dictionary<string, UInt16> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, Convert.ToUInt16(kv.Value.toInteger ()));
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, Int64>)) 
-						{
-							Dictionary<string, Int64> dict = new Dictionary<string, Int64> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, Convert.ToInt64(kv.Value.toInteger ()));
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, UInt64>)) 
-						{
-							Dictionary<string, UInt64> dict = new Dictionary<string, UInt64> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, Convert.ToUInt64(kv.Value.toInteger ()));
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, bool>)) 
-						{
-							Dictionary<string, bool> dict = new Dictionary<string, bool> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, kv.Value.toBoolean ());
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, double>)) 
-						{
-							Dictionary<string, double> dict = new Dictionary<string, double> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, kv.Value.toNumber());
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, float>)) 
-						{
-							Dictionary<string, float> dict = new Dictionary<string, float> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, (float)kv.Value.toNumber());
-							}
-							value = dict;
-						}
-						else if (p.ParameterType == typeof(Dictionary<string, string>)) 
-						{
-							Dictionary<string, string> dict = new Dictionary<string, string> ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, kv.Value.toString());
-							}
-							value = dict;
-						}
-						else
-						{
-							Hashtable dict = new Hashtable ();
-							foreach (KeyValuePair<string, LuaValue> kv in map) 
-							{
-								dict.Add (kv.Key, kv.Value.toObject());
-							}
-							value = dict;
-						}
-					}
-					else
-					{
-						value = argumentsList [i].toObject ();
-					}
-
+					object value = getNativeValueForLuaValue(p.ParameterType, argumentsList[i]);
 					argsArr.Add (value);
 
 					i++;
@@ -435,6 +235,308 @@ namespace cn.vimfung.luascriptcore
 			}
 
 			return argsArr;
+		}
+
+		protected static object getNativeValueForLuaValue(Type t, LuaValue luaValue)
+		{
+			object value = null;
+			if (t == typeof(Int32)
+				|| t == typeof(Int64)
+				|| t == typeof(Int16)
+				|| t == typeof(UInt16)
+				|| t == typeof(UInt32)
+				|| t == typeof(UInt64)) 
+			{
+				value = luaValue.toInteger();
+			} 
+			else if (t == typeof(double)
+				|| t == typeof(float)) 
+			{
+				value = luaValue.toNumber();
+			} 
+			else if (t == typeof(bool))
+			{
+				value = luaValue.toBoolean();
+			}
+			else if (t == typeof(string)) 
+			{
+				value = luaValue.toString();
+			}
+			else if (t.IsArray) 
+			{
+				//数组
+				if (t == typeof(byte[])) 
+				{
+					//二进制数组
+					value = luaValue.toData();
+				}
+				else if (t == typeof(Int32[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<Int32> intArr = new List<Int32> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (item.toInteger ());
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(Int64[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<Int64> intArr = new List<Int64> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (item.toInteger ());
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(Int16[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<Int16> intArr = new List<Int16> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (Convert.ToInt16 (item.toInteger ()));
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(UInt32[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<UInt32> intArr = new List<UInt32> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (Convert.ToUInt32 (item.toInteger ()));
+						}
+						value = intArr.ToArray ();
+					}
+
+				}
+				else if (t == typeof(UInt64[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<UInt64> intArr = new List<UInt64> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (Convert.ToUInt64 (item.toInteger ()));
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(UInt16[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<UInt16> intArr = new List<UInt16> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (Convert.ToUInt16 (item.toInteger ()));
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(bool[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null)
+					{
+						List<bool> boolArr = new List<bool> ();
+						foreach (LuaValue item in arr) 
+						{
+							boolArr.Add (Convert.ToBoolean (item.toInteger ()));
+						}
+						value = boolArr.ToArray ();
+					}
+				}
+				else if (t == typeof(double[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null)
+					{
+						List<double> doubleArr = new List<double> ();
+						foreach (LuaValue item in arr) 
+						{
+							doubleArr.Add (item.toNumber ());
+						}
+						value = doubleArr.ToArray ();
+					}
+				}
+				else if (t == typeof(float[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<float> floatArr = new List<float> ();
+						foreach (LuaValue item in arr) 
+						{
+							floatArr.Add ((float)item.toNumber ());
+						}
+						value = floatArr.ToArray ();
+					}
+				}
+				else if (t == typeof(string[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<string> floatArr = new List<string> ();
+						foreach (LuaValue item in arr) 
+						{
+							floatArr.Add (item.toString ());
+						}
+						value = floatArr.ToArray ();
+					}
+				}
+				else
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null)
+					{
+						ArrayList objArr = new ArrayList ();
+						foreach (LuaValue item in arr) 
+						{
+							objArr.Add (item.toObject ());
+						}
+						value = objArr.ToArray ();
+					}
+				}
+			}
+			else if (t == typeof(Hashtable)) 
+			{
+				//字典
+				Dictionary<string, LuaValue> map = luaValue.toMap();
+				if (map != null) 
+				{
+					if (t == typeof(Dictionary<string, int>))
+					{
+						Dictionary<string, int> dict = new Dictionary<string, int> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, kv.Value.toInteger ());
+						}
+						value = dict;
+					} 
+					else if (t == typeof(Dictionary<string, int>))
+					{
+						Dictionary<string, int> dict = new Dictionary<string, int> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, kv.Value.toInteger ());
+						}
+						value = dict;
+					} 
+					else if (t == typeof(Dictionary<string, uint>))
+					{
+						Dictionary<string, uint> dict = new Dictionary<string, uint> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, Convert.ToUInt32 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, Int16>))
+					{
+						Dictionary<string, Int16> dict = new Dictionary<string, Int16> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, Convert.ToInt16 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, UInt16>))
+					{
+						Dictionary<string, UInt16> dict = new Dictionary<string, UInt16> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, Convert.ToUInt16 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, Int64>))
+					{
+						Dictionary<string, Int64> dict = new Dictionary<string, Int64> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, Convert.ToInt64 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, UInt64>))
+					{
+						Dictionary<string, UInt64> dict = new Dictionary<string, UInt64> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, Convert.ToUInt64 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					} 
+					else if (t == typeof(Dictionary<string, bool>))
+					{
+						Dictionary<string, bool> dict = new Dictionary<string, bool> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, kv.Value.toBoolean ());
+						}
+						value = dict;
+					} 
+					else if (t == typeof(Dictionary<string, double>)) 
+					{
+						Dictionary<string, double> dict = new Dictionary<string, double> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, kv.Value.toNumber ());
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, float>)) 
+					{
+						Dictionary<string, float> dict = new Dictionary<string, float> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, (float)kv.Value.toNumber ());
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, string>))
+					{
+						Dictionary<string, string> dict = new Dictionary<string, string> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, kv.Value.toString ());
+						}
+						value = dict;
+					}
+					else 
+					{
+						Hashtable dict = new Hashtable ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, kv.Value.toObject ());
+						}
+						value = dict;
+					}
+				}
+			}
+			else
+			{
+				value = luaValue.toObject();
+			}
+
+			return value;
 		}
 	}
 }

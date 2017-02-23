@@ -12,6 +12,30 @@ namespace cn.vimfung.luascriptcore
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public delegate IntPtr LuaModuleMethodHandleDelegate (int nativeModuleId, string methodName, IntPtr arguments, int size);
 
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate void LuaSetNativeObjectIdHandleDelegate(IntPtr obj, int nativeObjectId, string luaObjectId);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate string LuaGetClassNameByInstanceDelegate(IntPtr obj);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaInstanceCreateHandleDelegate(int nativeClassId);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate void LuaInstanceDestroyHandleDelegate(IntPtr instancePtr);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate string LuaInstanceDescriptionHandleDelegate(IntPtr instancePtr);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaInstanceMethodHandleDelegate (int classId, IntPtr instance, string methodName, IntPtr argumentsBuffer, int bufferSize);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaInstanceFieldGetterHandleDelegate (int classId, IntPtr instance, string fieldName);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate void LuaInstanceFieldSetterHandleDelegate (int classId, IntPtr instance, string fieldName, IntPtr valueBuffer, int bufferSize);
+
 	public class NativeUtils  
 	{
 #if UNITY_EDITOR
@@ -48,6 +72,20 @@ namespace cn.vimfung.luascriptcore
 
 
 #if UNITY_EDITOR_OSX || UNITY_STANDALONE_OSX
+
+		/// <summary>
+		/// 绑定设置原生对象ID处理器
+		/// </summary>
+		/// <param name="handler">处理器对象</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void bindSetNativeObjectIdHandler(IntPtr handler);
+
+		/// <summary>
+		/// 绑定根据实例获取类型名称处理器
+		/// </summary>
+		/// <param name="handler">处理器对象</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void bindGetClassNameByInstanceHandler (IntPtr handler);
 
         /// <summary>
         /// 创建Lua上下文对象
@@ -139,6 +177,41 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="moduleName">模块名称</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
 		internal extern static bool isModuleRegisted (int nativeContextId, string moduleName);
+
+		/// <summary>
+		/// 注册类型
+		/// </summary>
+		/// <returns>类标识</returns>
+		/// <param name="nativeContextId">原生上下文标识</param>
+		/// <param name="className">类名</param>
+		/// <param name="superClassName">父类名称</param>
+		/// <param name="exportsSetterNames">导出Setter名称列表.</param>
+		/// <param name="exportsGetterNames">导出Getter名称列表.</param>
+		/// <param name="exportsInstanceMethodNames">导出实例方法名称列表</param>
+		/// <param name="exportsClassMethodNames">导出类方法名称列表</param>
+		/// <param name="instanceCreateHandler">实例创建处理器</param>
+		/// <param name="instanceDestroyHandler">实例销毁处理器</param>
+		/// <param name="instanceDescriptionHandler">实例描述处理器</param>
+		/// <param name="fieldGetterHandler">字段获取器.</param>
+		/// <param name="fieldSetterHandler">字段设置器.</param>
+		/// <param name="instanceMethodRouteHandler">实例方法处理器.</param>
+		/// <param name="classMethodRouteHandler">类方法处理器.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static int registerClass (
+			int nativeContextId, 
+			string className, 
+			string superClassName, 
+			IntPtr exportsSetterNames, 
+			IntPtr exportsGetterNames,
+			IntPtr exportsInstanceMethodNames,
+			IntPtr exportsClassMethodNames, 
+			IntPtr instanceCreateHandler,
+			IntPtr instanceDestroyHandler,
+			IntPtr instanceDescriptionHandler,
+			IntPtr fieldGetterHandler,
+			IntPtr fieldSetterHandler,
+			IntPtr instanceMethodRouteHandler, 
+			IntPtr classMethodRouteHandler);
 
 		/// <summary>
 		/// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。

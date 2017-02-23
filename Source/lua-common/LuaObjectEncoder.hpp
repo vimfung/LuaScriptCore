@@ -20,6 +20,8 @@ namespace cn
         namespace luascriptcore
         {
             
+            class LuaContext;
+            
             /**
              对象编码器
              */
@@ -37,6 +39,11 @@ namespace cn
                  */
                 int _bufLength;
                 
+                /**
+                 上下文对象
+                 */
+                LuaContext *_context;
+                
             private:
                 
                 /**
@@ -50,13 +57,25 @@ namespace cn
                 
                 /**
                  创建对象编码器
+                 
+                 @param context 上下文对象
                  */
-                LuaObjectEncoder ();
+                LuaObjectEncoder (LuaContext *context);
                 
                 /**
                  析构对象编码器
                  */
                 virtual ~LuaObjectEncoder();
+                
+            public:
+                
+                
+                /**
+                 获取上下文对象
+
+                 @return 上下文对象
+                 */
+                LuaContext* getContext();
                 
             public:
                 
@@ -146,11 +165,12 @@ namespace cn
                 /**
                  编码对象
 
+                 @param context 上下文对象
                  @param object 对象
                  @param bytes  输出的对象编码数据
                  @return 返回编码后的数据长度
                  */
-                static int encodeObject(LuaObject *object, const void** bytes);
+                static int encodeObject(LuaContext *context, LuaObject *object, const void** bytes);
             };
         }
     }

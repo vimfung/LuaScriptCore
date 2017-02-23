@@ -1,0 +1,68 @@
+//
+//  LuaUnityEnv.hpp
+//  LuaScriptCore
+//
+//  Created by 冯鸿杰 on 17/1/23.
+//  Copyright © 2017年 冯鸿杰. All rights reserved.
+//
+
+#ifndef LuaUnityEnv_hpp
+#define LuaUnityEnv_hpp
+
+#include <stdio.h>
+#include "LuaUnityDefined.h"
+
+/**
+ Unity环境
+ */
+class LuaUnityEnv
+{
+private:
+    LuaSetNativeObjectIdHandlerPtr _setNativeObjectIdHandler;
+    LuaGetClassNameByInstanceHandlerPtr _getClassNameByInstanceHandler;
+    LuaUnityEnv();
+    
+public:
+    
+    /**
+     绑定设置原生对象标识处理器
+
+     @param handler 处理器
+     */
+    void bindSetNativeObjectIdHandler (LuaSetNativeObjectIdHandlerPtr handler);
+    
+    /**
+     绑定根据实例获取类型名称处理器
+
+     @param handler 处理器
+     */
+    void bindGetClassNameByInstanceHandler (LuaGetClassNameByInstanceHandlerPtr handler);
+    
+public:
+    
+    /**
+     获取共享实例对象
+     
+     @return Unity环境
+     */
+    static LuaUnityEnv* sharedInstance();
+    
+    /**
+     设置原生对象ID
+
+     @param instance 实例对象
+     @param nativeObjectId 原生对象标识
+     @param luaObjectId Lua对象标识
+     */
+    void setNativeObjectId(const void *instance, int nativeObjectId, std::string luaObjectId);
+    
+    /**
+     获取实例的类型名称
+
+     @param instance 实例
+     @return 类型名称
+     */
+    std::string getClassNameByInstance(const void *instance);
+};
+
+#endif /* LuaUnityEnv_hpp */

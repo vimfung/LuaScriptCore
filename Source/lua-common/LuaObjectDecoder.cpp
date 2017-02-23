@@ -9,13 +9,14 @@
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectSerializationTypes.h"
 #include "LuaNativeClass.hpp"
+#include "LuaObjectDescriptor.h"
+#include "LuaContext.h"
 #include <memory.h>
-#include "lunity.h"
 
 using namespace cn::vimfung::luascriptcore;
 
-LuaObjectDecoder::LuaObjectDecoder(const void *buf)
-    :_buf(buf), _offset(0)
+LuaObjectDecoder::LuaObjectDecoder(LuaContext *context, const void *buf)
+    :_buf(buf), _offset(0), _context(context)
 {
     
 }
@@ -24,6 +25,11 @@ LuaObjectDecoder::~LuaObjectDecoder()
 {
     _buf = NULL;
     _offset = 0;
+}
+
+LuaContext* LuaObjectDecoder::getContext()
+{
+    return _context;
 }
 
 char LuaObjectDecoder::readByte()
@@ -103,8 +109,9 @@ void LuaObjectDecoder::readBytes(void **bytes, int *length)
 
 LuaObject* LuaObjectDecoder::readObject()
 {
-    if (readByte () == 'L')
+    if (((char *)_buf) [_offset] == 'L')
     {
+        _offset ++;
         
         std::string className = readString ();
         
@@ -116,6 +123,15 @@ LuaObject* LuaObjectDecoder::readObject()
                 return (LuaObject *)nativeClass -> createInstance(this);
             }
         }
+    }
+    else
+    {
+        //其他原生类型使用ObjectDescriptor装载
+        void **objRef = NULL;
+        objRef = (void **)readInt64();
+        
+        LuaObjectDescriptor *objDesc = new LuaObjectDescriptor(*objRef);
+        return objDesc;
     }
     
     return NULL;
