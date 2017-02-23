@@ -50,7 +50,7 @@ public:
      *
      * @param context 上下文对象
      */
-    void push(LuaContext *context);
+//    void push(LuaContext *context);
 
     /**
      * 判断实例是否为指定类型

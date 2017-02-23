@@ -8,13 +8,14 @@
 
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectSerializationTypes.h"
+#include "LuaContext.h"
 #include <stdlib.h>
 #include <memory.h>
 
 using namespace cn::vimfung::luascriptcore;
 
-LuaObjectEncoder::LuaObjectEncoder ()
-    :_buf(NULL), _bufLength(0)
+LuaObjectEncoder::LuaObjectEncoder (LuaContext *context)
+    :_buf(NULL), _bufLength(0), _context(context)
 {
     
 }
@@ -26,6 +27,11 @@ LuaObjectEncoder::~LuaObjectEncoder()
         free(_buf);
         _buf = NULL;
     }
+}
+
+LuaContext* LuaObjectEncoder::getContext()
+{
+    return _context;
 }
 
 void LuaObjectEncoder::reallocBuffer(int size)
@@ -131,9 +137,9 @@ int LuaObjectEncoder::getBufferLength()
     return _bufLength;
 }
 
-int LuaObjectEncoder::encodeObject(LuaObject *object, const void** bytes)
+int LuaObjectEncoder::encodeObject(LuaContext *context, LuaObject *object, const void** bytes)
 {
-    LuaObjectEncoder *encoder = new LuaObjectEncoder();
+    LuaObjectEncoder *encoder = new LuaObjectEncoder(context);
     encoder -> writeObject(object);
     *bytes = (void *)encoder -> cloneBuffer();
     

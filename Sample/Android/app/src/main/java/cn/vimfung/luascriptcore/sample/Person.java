@@ -2,6 +2,9 @@ package cn.vimfung.luascriptcore.sample;
 
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaTuple;

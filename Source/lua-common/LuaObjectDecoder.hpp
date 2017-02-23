@@ -18,6 +18,8 @@ namespace cn
     {
         namespace luascriptcore
         {
+            class LuaContext;
+            
             /**
              对象解码器
              */
@@ -26,18 +28,29 @@ namespace cn
             private:
                 const void *_buf;
                 int _offset;
-                
+                LuaContext *_context;
             public:
                 
                 /**
                  创建对象解码器
+                 
+                 @param context 上下文对象
                  */
-                LuaObjectDecoder(const void *buf);
+                LuaObjectDecoder(LuaContext *context, const void *buf);
                 
                 /**
                  销毁对象解码器
                  */
                 virtual ~LuaObjectDecoder();
+                
+            public:
+                
+                /**
+                 获取上下文对象
+
+                 @return 上下文对象
+                 */
+                LuaContext* getContext();
                 
             public:
                 

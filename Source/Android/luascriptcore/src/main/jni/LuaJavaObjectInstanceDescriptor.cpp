@@ -23,16 +23,16 @@ LuaJavaObjectInstanceDescriptor::~LuaJavaObjectInstanceDescriptor()
     LuaJavaEnv::resetEnv(env);
 }
 
-void LuaJavaObjectInstanceDescriptor::push(cn::vimfung::luascriptcore::LuaContext *context)
-{
-    JNIEnv *env = LuaJavaEnv::getEnv();
-
-    jobject obj = (jobject)getObject();
-    LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, obj, context);
-    objectClass -> push(this);
-
-    LuaJavaEnv::resetEnv(env);
-}
+//void LuaJavaObjectInstanceDescriptor::push(cn::vimfung::luascriptcore::LuaContext *context)
+//{
+//    JNIEnv *env = LuaJavaEnv::getEnv();
+//
+//    jobject obj = (jobject)getObject();
+//    LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, obj, context);
+//    objectClass -> push(this);
+//
+//    LuaJavaEnv::resetEnv(env);
+//}
 
 bool LuaJavaObjectInstanceDescriptor::instanceOf (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass)
 {

@@ -51,31 +51,24 @@ static void _luaClassObjectCreated (cn::vimfung::luascriptcore::modules::oo::Lua
     LuaJavaEnv::resetEnv(env);
 }
 
-static void _luaClassObjectDestroy (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass)
+static void _luaClassObjectDestroy (cn::vimfung::luascriptcore::LuaUserdataRef instance)
 {
     using namespace cn::vimfung::luascriptcore;
 
-    lua_State *state = objectClass -> getContext() -> getLuaState();
+    JNIEnv *env = LuaJavaEnv::getEnv();
 
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
-    {
-        JNIEnv *env = LuaJavaEnv::getEnv();
+    LuaObjectDescriptor *objDesc = (LuaObjectDescriptor *)instance -> value;
+    jobject jInstance = (jobject)objDesc -> getObject();
 
-        //表示有实例对象传入
-        LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
-        LuaObjectDescriptor *objDesc = (LuaObjectDescriptor *)ref -> value;
-        jobject instance = (jobject)objDesc -> getObject();
+    LuaJavaEnv::removeAssociateInstance(env, jInstance);
 
-        LuaJavaEnv::removeAssociateInstance(env, instance);
+    //移除对象引用
+    objDesc -> release();
 
-        //移除对象引用
-        objDesc -> release();
-
-        LuaJavaEnv::resetEnv(env);
-    }
+    LuaJavaEnv::resetEnv(env);
 }
 
-static std::string _luaClassObjectDescription (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass)
+static std::string _luaClassObjectDescription (cn::vimfung::luascriptcore::LuaUserdataRef instance)
 {
     using namespace cn::vimfung::luascriptcore;
 
@@ -83,22 +76,16 @@ static std::string _luaClassObjectDescription (cn::vimfung::luascriptcore::modul
 
     JNIEnv *env = LuaJavaEnv::getEnv();
 
-    lua_State *state = objectClass -> getContext() -> getLuaState();
+    //表示有实例对象传入
+    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
 
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
-    {
-        //表示有实例对象传入
-        LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
-        jobject instance = (jobject)((LuaObjectDescriptor *)ref -> value) -> getObject();
+    jclass cls = env -> GetObjectClass(jInstance);
+    jmethodID toStringMethodId = env -> GetMethodID(cls, "toString", "()Ljava/lang/String;");
 
-        jclass cls = env -> GetObjectClass(instance);
-        jmethodID toStringMethodId = env -> GetMethodID(cls, "toString", "()Ljava/lang/String;");
-
-        jstring desc = (jstring)env -> CallObjectMethod(instance, toStringMethodId);
-        const char *descCStr = env -> GetStringUTFChars(desc, NULL);
-        str = descCStr;
-        env -> ReleaseStringUTFChars(desc, descCStr);
-    }
+    jstring desc = (jstring)env -> CallObjectMethod(jInstance, toStringMethodId);
+    const char *descCStr = env -> GetStringUTFChars(desc, NULL);
+    str = descCStr;
+    env -> ReleaseStringUTFChars(desc, descCStr);
 
     LuaJavaEnv::resetEnv(env);
 
