@@ -5,6 +5,7 @@ namespace cn.vimfung.luascriptcore
 	public class LuaBaseObject
 	{
 		protected int _nativeObjectId;
+		protected string _luaObjectId;
 
 		/// <summary>
 		/// 初始化LuaBaseObject
@@ -35,11 +36,31 @@ namespace cn.vimfung.luascriptcore
 		/// 获取本地对象标识
 		/// </summary>
 		/// <value>本地对象标识</value>
-		public int objectId
+		internal int objectId
 		{
 			get 
 			{
 				return _nativeObjectId;
+			}
+			set 
+			{
+				_nativeObjectId = value;
+			}
+		}
+
+		/// <summary>
+		/// 获取或设置Lua对象标识
+		/// </summary>
+		/// <value>Lua对象标识.</value>
+		internal string luaObjectId
+		{
+			get
+			{
+				return _luaObjectId;
+			}
+			set
+			{
+				_luaObjectId = value;
 			}
 		}
 
