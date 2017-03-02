@@ -18,6 +18,7 @@
 #include "LuaObjectInstanceDescriptor.h"
 #include "LuaUnityModule.hpp"
 #include "LuaUnityEnv.hpp"
+#include "LuaFunction.h"
 
 #if defined (__cplusplus)
 extern "C" {
@@ -383,9 +384,10 @@ extern "C" {
     int createLuaContext()
     {
         //设置映射类型
-        LuaObject::setMappingClassType(typeid(LuaValue).name(), "cn.vimfung.luascriptcore.LuaValue");
-        LuaObject::setMappingClassType(typeid(LuaObjectDescriptor).name(), "cn.vimfung.luascriptcore.LuaObjectDescriptor");
-        LuaObject::setMappingClassType(typeid(LuaObjectInstanceDescriptor).name(), "cn.vimfung.luascriptcore.modules.oo.LuaObjectInstanceDescriptor");
+        LuaObjectEncoder::setMappingClassType(typeid(LuaValue).name(), "cn.vimfung.luascriptcore.LuaValue");
+        LuaObjectEncoder::setMappingClassType(typeid(LuaObjectDescriptor).name(), "cn.vimfung.luascriptcore.LuaObjectDescriptor");
+        LuaObjectEncoder::setMappingClassType(typeid(LuaObjectInstanceDescriptor).name(), "cn.vimfung.luascriptcore.modules.oo.LuaObjectInstanceDescriptor");
+        LuaObjectEncoder::setMappingClassType(typeid(LuaFunction).name(), "cn.vimfung.luascriptcore.LuaFunction");
         
         LuaContext *context = new LuaContext();
         LuaObjectManager::SharedInstance() -> putObject(context);
@@ -451,7 +453,9 @@ extern "C" {
         {
             LuaValue *value = context -> evalScript(script);
             
+            LuaObjectManager::SharedInstance() -> putObject(value);
             int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
+            
             value -> release();
             
             return bufSize;
@@ -475,7 +479,10 @@ extern "C" {
         if (context != NULL)
         {
             LuaValue *value = context -> evalScriptFromFile(filePath);
+            
+            LuaObjectManager::SharedInstance() -> putObject(value);
             int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
+            
             value -> release();
             
             return bufSize;
@@ -521,7 +528,9 @@ extern "C" {
             
             LuaValue *value = context -> callMethod(methodName, &args);
             
+            LuaObjectManager::SharedInstance() -> putObject(value);
             int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
+            
             value -> release();
             
             //释放参数内存
@@ -530,6 +539,66 @@ extern "C" {
                 LuaValue *value = *it;
                 value -> release();
             }
+            
+            return bufSize;
+        }
+        
+        return 0;
+    }
+    
+    /**
+     调用Lua方法
+     
+     @param nativeContextId 本地上下文对象ID
+     @param function 方法
+     @param params 参数列表
+     @param result 返回值（输出参数）
+     
+     @return 返回值的缓冲区大小
+     */
+    int invokeLuaFunction(int nativeContextId, const void* function, const void *params, const void **result)
+    {
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL && function != NULL)
+        {
+            LuaObjectDecoder *decoder = new LuaObjectDecoder(context, function);
+            LuaFunction *func = dynamic_cast<LuaFunction *>(decoder -> readObject());
+            decoder -> release();
+            
+            LuaArgumentList args;
+            
+            if (params != NULL)
+            {
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, params);
+                int size = decoder -> readInt32();
+                
+                for (int i = 0; i < size; i++)
+                {
+                    LuaValue *value = dynamic_cast<LuaValue *>(decoder -> readObject());
+                    if (value != NULL)
+                    {
+                        args.push_back(value);
+                    }
+                }
+                decoder -> release();
+            }
+            
+            LuaValue *value = func -> invoke(&args);
+            
+            LuaObjectManager::SharedInstance() -> putObject(value);
+            int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
+            
+            value -> release();
+            
+            //释放参数内存
+            for (LuaArgumentList::iterator it = args.begin(); it != args.end(); ++it)
+            {
+                LuaValue *value = *it;
+                value -> release();
+            }
+            
+            //释放方法
+            func -> release();
             
             return bufSize;
         }

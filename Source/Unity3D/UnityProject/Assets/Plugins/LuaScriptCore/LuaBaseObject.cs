@@ -1,11 +1,12 @@
 ﻿using System.Collections;
+using UnityEngine;
 
 namespace cn.vimfung.luascriptcore
 {
-	public class LuaBaseObject
+	public class LuaBaseObject : object
 	{
-		protected int _nativeObjectId;
-		protected string _luaObjectId;
+		protected int _nativeObjectId = 0;
+		protected string _luaObjectId = null;
 
 		/// <summary>
 		/// 初始化LuaBaseObject
@@ -21,7 +22,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="decoder">对象解码器</param>
 		public LuaBaseObject (LuaObjectDecoder decoder)
 		{
-
+			_nativeObjectId = decoder.readInt32 ();
 		}
 
 		/// <summary>
@@ -70,9 +71,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="encoder">对象编码器.</param>
 		public virtual void serialization(LuaObjectEncoder encoder)
 		{
-			encoder.writeByte ((byte)'L');
-			encoder.writeString (this.GetType().Name);
-			encoder.writeByte ((byte)';');
+			encoder.writeInt32 (_nativeObjectId);
 		}
 	}
 }

@@ -136,12 +136,18 @@ namespace cn
                 ~LuaValue();
                 
                 /**
+                 获取类型名称
+
+                 @return 类型名称
+                 */
+                virtual std::string typeName();
+                
+                /**
                  序列化对象
                  
-                 @param className 类型名称
                  @param encoder 编码器
                  */
-                virtual void serialization (std::string className, LuaObjectEncoder *encoder);
+                virtual void serialization (LuaObjectEncoder *encoder);
                 
             public:
 

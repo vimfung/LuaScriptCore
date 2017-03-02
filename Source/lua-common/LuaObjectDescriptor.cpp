@@ -45,6 +45,7 @@ LuaObjectDescriptor::LuaObjectDescriptor(const void *object)
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
+    : LuaObject(decoder)
 {
     void *objRef = NULL;
     objRef = (void *)decoder -> readInt64();
@@ -56,6 +57,12 @@ LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
 LuaObjectDescriptor::~LuaObjectDescriptor()
 {
     _object = NULL;
+}
+
+std::string LuaObjectDescriptor::typeName()
+{
+    static std::string name = typeid(LuaObjectDescriptor).name();
+    return name;
 }
 
 void LuaObjectDescriptor::setObject(const void *object)
@@ -102,14 +109,9 @@ void LuaObjectDescriptor::push(LuaContext *context)
     lua_setmetatable(state, -2);
 }
 
-void LuaObjectDescriptor::serialization (std::string className, LuaObjectEncoder *encoder)
+void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
 {
-    if (className.empty())
-    {
-        className = typeid(LuaObjectDescriptor).name();
-    }
-    
-    LuaObject::serialization(className, encoder);
+    LuaObject::serialization(encoder);
     
     encoder -> writeInt64((long long)_object);
     encoder -> writeString(_refId);

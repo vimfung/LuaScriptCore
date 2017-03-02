@@ -31,17 +31,18 @@ LuaPointer::~LuaPointer()
     _value = NULL;
 }
 
+std::string LuaPointer::typeName()
+{
+    static std::string name = typeid(LuaPointer).name();
+    return name;
+}
+
 const LuaUserdataRef LuaPointer::getValue()
 {
     return _value;
 }
 
-void LuaPointer::serialization (std::string className, LuaObjectEncoder *encoder)
+void LuaPointer::serialization (LuaObjectEncoder *encoder)
 {
-    if (className.empty())
-    {
-        className = typeid(LuaPointer).name();
-    }
-    
-    LuaObject::serialization(className, encoder);
+    LuaObject::serialization(encoder);
 }

@@ -52,6 +52,21 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
+		/// 获取上下文对象
+		/// </summary>
+		/// <returns>上下文对象</returns>
+		/// <param name="nativeId">对象标识.</param>
+		internal static LuaContext getContext(int nativeId)
+		{
+			if (_contexts.ContainsKey (nativeId))
+			{
+				WeakReference wr = _contexts [nativeId];
+				return wr.Target as LuaContext;
+			}
+			return null;
+		}
+
+		/// <summary>
 		/// 创建LuaContext
 		/// </summary>
 		public LuaContext()
@@ -169,23 +184,29 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="arguments">调用参数列表</param>
 		public LuaValue callMethod(string methodName, List<LuaValue> arguments)
 		{
-			IntPtr argsPtr;
-			IntPtr resultPtr;
+			IntPtr argsPtr = IntPtr.Zero;
+			IntPtr resultPtr = IntPtr.Zero;
 
-			LuaObjectEncoder encoder = new LuaObjectEncoder ();
-			encoder.writeInt32 (arguments.Count);
-			foreach (LuaValue value in arguments)
+			if (arguments != null)
 			{
-				encoder.writeObject (value);
-			}
+				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				encoder.writeInt32 (arguments.Count);
+				foreach (LuaValue value in arguments)
+				{
+					encoder.writeObject (value);
+				}
 
-			byte[] bytes = encoder.bytes;
-			argsPtr = Marshal.AllocHGlobal (bytes.Length);
-			Marshal.Copy (bytes, 0, argsPtr, bytes.Length);
+				byte[] bytes = encoder.bytes;
+				argsPtr = Marshal.AllocHGlobal (bytes.Length);
+				Marshal.Copy (bytes, 0, argsPtr, bytes.Length);
+			}
 
 			int size = NativeUtils.callMethod (_nativeObjectId, methodName, argsPtr, out resultPtr);
 
-			Marshal.FreeHGlobal (argsPtr);
+			if (argsPtr != IntPtr.Zero)
+			{
+				Marshal.FreeHGlobal (argsPtr);
+			}
 
 			return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
 		}

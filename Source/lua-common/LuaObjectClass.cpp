@@ -10,7 +10,6 @@
 #include "LuaContext.h"
 #include "LuaValue.h"
 #include "LuaTuple.h"
-#include "lunity.h"
 
 /**
  * 实例种子，参与实例索引的生成，每次创建实例，该值会自增.
@@ -923,7 +922,6 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInst
     lua_State *state = getContext() -> getLuaState();
 
     bool hasExists = false;
-    unityDebug("-------- lua object id = %s", objectDescriptor -> getReferenceId().c_str());
     if (!objectDescriptor -> getReferenceId().empty())
     {
         //先查找_instanceRefs_中是否存在实例
@@ -937,7 +935,6 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInst
                 if (lua_isuserdata(state, -1))
                 {
                     //存在实例
-                    unityDebug("-------- has exists");
                     lua_insert(state, -3);
                     hasExists = true;
                 }
