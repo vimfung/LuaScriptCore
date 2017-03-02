@@ -14,6 +14,8 @@ namespace cn {
 
             class LuaContext;
             class LuaValue;
+            class LuaObjectDecoder;
+            class LuaObjectEncoder;
 
             /**
              * 方法对象, 表示了一个对应在Lua中的function，在lua中传入一个function到本地方法，将会自动转换为此类型的实例对象。
@@ -33,7 +35,12 @@ namespace cn {
                 LuaContext *_context;
 
             public:
-
+                
+                /**
+                 * 初始化方法对象
+                 */
+                LuaFunction ();
+                
                 /**
                  * 初始化方法对象
                  *
@@ -46,6 +53,27 @@ namespace cn {
                  * 销毁方法对象
                  */
                 ~LuaFunction();
+                
+                /**
+                 * 初始化, 在反序列化对象时会触发该方法
+                 *
+                 * @param decoder 解码器
+                 */
+                LuaFunction (LuaObjectDecoder *decoder);
+                
+                /**
+                 获取类型名称
+                 
+                 @return 类型名称
+                 */
+                virtual std::string typeName();
+                
+                /**
+                 序列化对象
+                 
+                 @param encoder 编码器
+                 */
+                virtual void serialization (LuaObjectEncoder *encoder);
 
             public:
 

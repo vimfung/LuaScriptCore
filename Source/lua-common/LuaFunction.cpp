@@ -8,6 +8,14 @@
 #include "LuaContext.h"
 #include "LuaValue.h"
 #include "LuaTuple.h"
+#include "LuaNativeClass.hpp"
+#include "LuaObjectEncoder.hpp"
+#include "LuaObjectDecoder.hpp"
+#include "LuaObjectManager.h"
+
+using namespace cn::vimfung::luascriptcore;
+
+DECLARE_NATIVE_CLASS(LuaFunction);
 
 /**
  * 方法种子，主要参与方法索引的生成，每次创建一个Function，该值就会自增。
@@ -18,6 +26,11 @@ static int FunctionSeed = 0;
  * 方法表名称
  */
 static std::string FunctionsTableName = "_tmpFuncs_";
+
+LuaFunction::LuaFunction ()
+{
+    
+}
 
 cn::vimfung::luascriptcore::LuaFunction::LuaFunction(LuaContext *context, int index)
 {
@@ -89,6 +102,28 @@ cn::vimfung::luascriptcore::LuaFunction::~LuaFunction()
         }
         lua_pop(state, 1);
     }
+}
+
+std::string LuaFunction::typeName()
+{
+    static std::string name = typeid(LuaFunction).name();
+    return name;
+}
+
+LuaFunction::LuaFunction (LuaObjectDecoder *decoder)
+    :LuaObject(decoder)
+{
+    int contextId = decoder -> readInt32();
+    _context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(contextId));
+    _index = decoder -> readString();
+}
+
+void LuaFunction::serialization (LuaObjectEncoder *encoder)
+{
+    LuaObject::serialization(encoder);
+    
+    encoder -> writeInt32(_context -> objectId());
+    encoder -> writeString(_index);
 }
 
 void cn::vimfung::luascriptcore::LuaFunction::push(LuaContext *context)
@@ -170,6 +205,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaFunction::i
                 }
                 else
                 {
+                    
                     //调用失败
                     returnCount = 1;
 

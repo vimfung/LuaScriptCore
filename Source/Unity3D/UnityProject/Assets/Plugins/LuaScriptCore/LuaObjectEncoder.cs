@@ -109,6 +109,10 @@ namespace cn.vimfung.luascriptcore
 		{
 			if (value is LuaBaseObject)
 			{
+				this.writeByte ((byte)'L');
+				this.writeString (value.GetType().Name);
+				this.writeByte ((byte)';');
+
 				(value as LuaBaseObject).serialization (this);
 			}
 			else

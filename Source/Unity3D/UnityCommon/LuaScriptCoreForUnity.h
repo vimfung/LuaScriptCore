@@ -105,6 +105,18 @@ extern "C" {
      */
 	LuaScriptCoreApi extern int callMethod(int nativeContextId, const char* methodName, const void *params, const void **result);
     
+    /**
+     调用Lua方法
+     
+     @param nativeContextId 本地上下文对象ID
+     @param function 方法
+     @param params 参数列表
+     @param result 返回值（输出参数）
+     
+     @return 返回值的缓冲区大小
+     */
+    LuaScriptCoreApi extern int invokeLuaFunction(int nativeContextId, const void* function, const void *params, const void **result);
+    
     
     /**
      注册Lua方法
