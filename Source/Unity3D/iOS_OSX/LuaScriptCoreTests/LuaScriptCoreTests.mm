@@ -12,6 +12,8 @@
 #import "LuaObjectEncoder.hpp"
 #import "LuaObjectDecoder.hpp"
 
+using namespace cn::vimfung::luascriptcore;
+
 @interface LuaScriptCoreTests : XCTestCase
 
 @end
@@ -20,20 +22,21 @@
 
 static void* testHandler(const char *methodName, const void *params, int size)
 {
-    using namespace cn::vimfung::luascriptcore;
-    
-    LuaValue *value = LuaValue::IntegerValue(0);
-    
-    LuaObjectEncoder *encoder = new LuaObjectEncoder();
-    encoder -> writeObject(value);
-    
-    void *retBuf = (void *)encoder -> cloneBuffer();
-    
-    encoder -> release();
-    
-    value -> release();
-    
-    return retBuf;
+//    using namespace cn::vimfung::luascriptcore;
+//    
+//    LuaValue *value = LuaValue::IntegerValue(0);
+//    
+//    LuaObjectEncoder *encoder = new LuaObjectEncoder();
+//    encoder -> writeObject(value);
+//    
+//    void *retBuf = (void *)encoder -> cloneBuffer();
+//    
+//    encoder -> release();
+//    
+//    value -> release();
+//    
+//    return retBuf;
+    return NULL;
 }
 
 void* testModuleMethodHandler (int moduleId, const char *name, const void *args, int size)
@@ -82,12 +85,12 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
 //    
 //    free(result);
     
-    LuaValue *value = LuaValue::IntegerValue(-24);
-    LuaObjectEncoder *encoder = new LuaObjectEncoder();
-    value -> serialization("LuaValue", encoder);
-    
-    LuaObjectDecoder *decoder = new LuaObjectDecoder(encoder -> getBuffer());
-    decoder -> readObject();
+//    LuaValue *value = LuaValue::IntegerValue(-24);
+//    LuaObjectEncoder *encoder = new LuaObjectEncoder();
+//    value -> serialization("LuaValue", encoder);
+//    
+//    LuaObjectDecoder *decoder = new LuaObjectDecoder(encoder -> getBuffer());
+//    decoder -> readObject();
 
     
 //    static bool isReg = false;
@@ -105,19 +108,27 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
 //    free(retBytes);
 }
 
+
+
 - (void)testRegModule
 {
-    int navId = createLuaContext();
-    
-    cn::vimfung::luascriptcore::LuaObjectEncoder *encoder = new cn::vimfung::luascriptcore::LuaObjectEncoder();
-    encoder -> writeInt32(1);
-    encoder -> writeString("test");
-    
-    registerModule(navId, "LogModule", encoder -> getBuffer(), testModuleMethodHandler);
-    evalScript(navId, "LogModule.test({1,2,3,4,5});", NULL);
+//    int navId = createLuaContext();
+//    
+//    cn::vimfung::luascriptcore::LuaObjectEncoder *encoder = new cn::vimfung::luascriptcore::LuaObjectEncoder();
+//    encoder -> writeInt32(1);
+//    encoder -> writeString("test");
+//    
+//    registerModule(navId, "LogModule", encoder -> getBuffer(), testModuleMethodHandler);
+//    evalScript(navId, "LogModule.test({1,2,3,4,5});", NULL);
 }
 
-
+- (void)testTypeIdFeature
+{
+    LuaValue *luaValue = new LuaValue();
+    LuaObject *obj = luaValue;
+    NSLog(@"%s", luaValue -> typeName().c_str());
+    NSLog(@"%s", obj -> typeName().c_str());
+}
 
 
 @end

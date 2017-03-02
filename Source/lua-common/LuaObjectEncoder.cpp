@@ -14,6 +14,9 @@
 
 using namespace cn::vimfung::luascriptcore;
 
+typedef std::map<std::string, std::string> MappingClassesMap;
+static MappingClassesMap _mappingClassesMap;
+
 LuaObjectEncoder::LuaObjectEncoder (LuaContext *context)
     :_buf(NULL), _bufLength(0), _context(context)
 {
@@ -117,7 +120,23 @@ void LuaObjectEncoder::writeString(const std::string &value)
 
 void LuaObjectEncoder::writeObject(LuaObject *object)
 {
-    object -> serialization("", this);
+    std::string typeName = object -> typeName();
+    
+    MappingClassesMap::iterator it = _mappingClassesMap.find(typeName);
+    if (it != _mappingClassesMap.end())
+    {
+        this -> writeByte('L');
+        this -> writeString(it -> second);
+        this -> writeByte(';');
+    }
+    else
+    {
+        this -> writeByte('L');
+        this -> writeString(typeName);
+        this -> writeByte(';');
+    }
+    
+    object -> serialization(this);
 }
 
 const void* LuaObjectEncoder::getBuffer()
@@ -135,6 +154,11 @@ const void* LuaObjectEncoder::cloneBuffer()
 int LuaObjectEncoder::getBufferLength()
 {
     return _bufLength;
+}
+
+void LuaObjectEncoder::setMappingClassType(std::string className, std::string mappingClassName)
+{
+    _mappingClassesMap[className] = mappingClassName;
 }
 
 int LuaObjectEncoder::encodeObject(LuaContext *context, LuaObject *object, const void** bytes)

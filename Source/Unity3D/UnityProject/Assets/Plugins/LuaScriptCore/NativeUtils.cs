@@ -152,6 +152,17 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void registerMethod (int nativeContextId, string methodName, IntPtr methodHandler);
 
 		/// <summary>
+		/// 调用Lua方法
+		/// </summary>
+		/// <returns>返回值的缓冲区大小</returns>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识.</param>
+		/// <param name="function">方法.</param>
+		/// <param name="arguments">参数列表.</param>
+		/// <param name="resultBuffer">返回值缓冲区.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, out IntPtr resultBuffer);  
+
+		/// <summary>
 		/// 释放本地对象
 		/// </summary>
 		/// <param name="objectId">本地对象标识.</param>

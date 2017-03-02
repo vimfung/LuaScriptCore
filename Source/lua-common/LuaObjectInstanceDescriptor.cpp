@@ -39,6 +39,12 @@ LuaObjectInstanceDescriptor::~LuaObjectInstanceDescriptor()
     _objectClass = NULL;
 }
 
+std::string LuaObjectInstanceDescriptor::typeName()
+{
+    static std::string name = typeid(LuaObjectInstanceDescriptor).name();
+    return name;
+}
+
 LuaObjectClass* LuaObjectInstanceDescriptor::getObjectClass()
 {
     return  _objectClass;
@@ -49,14 +55,9 @@ bool LuaObjectInstanceDescriptor::instanceOf (LuaObjectClass *objectClass)
     return this -> getObjectClass() -> subclassOf(objectClass);
 }
 
-void LuaObjectInstanceDescriptor::serialization (std::string className, LuaObjectEncoder *encoder)
+void LuaObjectInstanceDescriptor::serialization (LuaObjectEncoder *encoder)
 {
-    if (className.empty())
-    {
-        className = typeid(LuaObjectInstanceDescriptor).name();
-    }
-    
-    LuaObjectDescriptor::serialization(className, encoder);
+    LuaObjectDescriptor::serialization(encoder);
     
     //写入类型名称
     encoder -> writeString(this -> getObjectClass() -> getName());

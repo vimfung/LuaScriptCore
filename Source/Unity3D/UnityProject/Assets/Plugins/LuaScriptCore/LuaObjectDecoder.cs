@@ -147,7 +147,6 @@ namespace cn.vimfung.luascriptcore
 
 						ConstructorInfo ci = t.GetConstructor (new Type[] { typeof(LuaObjectDecoder) });
 						return ci.Invoke (parameters);
-//						return Activator.CreateInstance (t, parameters);
 					}
 				}
 			}
