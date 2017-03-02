@@ -70,6 +70,10 @@ public class Sample : MonoBehaviour {
 		LuaContext.currentContext.evalScriptFromFile("todo.lua");
 		LuaValue retValue = LuaContext.currentContext.callMethod ("add", new List<LuaValue> (){ new LuaValue (1000.0), new LuaValue (24.0)});
 		Debug.Log (string.Format ("result = {0}", retValue.toNumber ()));
+
+		LuaValue funcValue = LuaContext.currentContext.callMethod ("getFunc", null);
+		retValue = funcValue.toFunction ().invoke (new List<LuaValue> (){ new LuaValue (1000.0), new LuaValue (24.0)});
+		Debug.Log (string.Format ("result = {0}", retValue.toNumber ()));
 	}
 
 	/// <summary>
@@ -96,7 +100,6 @@ public class Sample : MonoBehaviour {
 			_isRegClass = true;
 			LuaContext.currentContext.registerModule<Person> ();
 		}
-
 		LuaContext.currentContext.evalScript ("local p = Person.createPerson(); print(p); p:setName('xxxx'); p:speak(); print(Person.printPerson(p));");
 	}
 }

@@ -115,6 +115,7 @@ LuaValue::LuaValue (LuaTuple *value)
 }
 
 LuaValue::LuaValue(LuaObjectDecoder *decoder)
+    : LuaObject(decoder)
 {
 	_value = NULL;
 	_intValue = 0;
@@ -171,11 +172,11 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
         }
         case LuaValueTypeTuple:
         {
-            long count = decoder -> readInt64();
+            long long count = decoder -> readInt64();
             LuaTuple *tuple = new LuaTuple();
             for (int i = 0; i < count; ++i)
             {
-                LuaValue *item = (LuaValue *)decoder -> readObject();
+                LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
                 if (item != NULL)
                 {
                     tuple->addReturnValue(item);
@@ -183,6 +184,11 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
             }
 
             _value = tuple;
+            break;
+        }
+        case LuaValueTypeFunction:
+        {
+            _value = dynamic_cast<LuaFunction *>(decoder -> readObject());
             break;
         }
         case LuaValueTypeObject:
@@ -305,6 +311,12 @@ LuaValue* LuaValue::ObjectValue(LuaObjectDescriptor *value)
 LuaValueType LuaValue::getType()
 {
     return _type;
+}
+
+std::string LuaValue::typeName()
+{
+    static std::string name = typeid(LuaValue).name();
+    return name;
 }
 
 void LuaValue::push(LuaContext *context)
@@ -517,14 +529,9 @@ LuaObjectDescriptor* LuaValue::toObject()
     return NULL;
 }
 
-void LuaValue::serialization (std::string className, LuaObjectEncoder *encoder)
+void LuaValue::serialization (LuaObjectEncoder *encoder)
 {
-    if (className.empty())
-    {
-        className = typeid(LuaValue).name();
-    }
-    
-    LuaObject::serialization(className, encoder);
+    LuaObject::serialization(encoder);
     
     encoder -> writeInt16(getType());
     
@@ -597,6 +604,11 @@ void LuaValue::serialization (std::string className, LuaObjectEncoder *encoder)
         case LuaValueTypeBoolean:
         {
             encoder -> writeByte(toBoolean());
+            break;
+        }
+        case LuaValueTypeFunction:
+        {
+            encoder -> writeObject(toFunction());
             break;
         }
         case LuaValueTypePtr:

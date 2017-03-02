@@ -5,15 +5,15 @@
 #include "LuaObject.h"
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectDecoder.hpp"
+#include "LuaObjectManager.h"
 #include <map>
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
 
-typedef std::map<std::string, std::string> MappingClassesMap;
+
 
 static int _objSeqId = 0;
-static MappingClassesMap _mappingClassesMap;
 
 LuaObject::LuaObject()
 {
@@ -27,8 +27,13 @@ LuaObject::LuaObject (LuaObjectDecoder *decoder)
 {
     _retainCount = 1;
     
-    _objSeqId ++;
-    _objectId = _objSeqId;
+    _objectId = decoder -> readInt32();
+    if (_objectId == 0)
+    {
+        //分配对象标识
+        _objSeqId ++;
+        _objectId = _objSeqId;
+    }
 }
 
 LuaObject::~LuaObject()
@@ -55,29 +60,13 @@ void LuaObject::release()
     }
 }
 
-void LuaObject::setMappingClassType(std::string className, std::string mappingClassName)
+std::string LuaObject::typeName()
 {
-    _mappingClassesMap[className] = mappingClassName;
+    static std::string name = typeid(LuaObject).name();
+    return name;
 }
 
-void LuaObject::serialization (std::string className, LuaObjectEncoder *encoder)
+void LuaObject::serialization (LuaObjectEncoder *encoder)
 {
-    if (className.empty())
-    {
-        className = typeid(LuaObject).name();
-    }
-    
-    MappingClassesMap::iterator it = _mappingClassesMap.find(className);
-    if (it != _mappingClassesMap.end())
-    {
-        encoder -> writeByte('L');
-        encoder -> writeString(it -> second);
-        encoder -> writeByte(';');
-    }
-    else
-    {
-        encoder -> writeByte('L');
-        encoder -> writeString(className);
-        encoder -> writeByte(';');
-    }
+    encoder -> writeInt32(_objectId);
 }

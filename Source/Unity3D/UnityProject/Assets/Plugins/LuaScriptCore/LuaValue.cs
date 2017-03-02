@@ -108,6 +108,16 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
+		/// 初始化一个方法值
+		/// </summary>
+		/// <param name="value">Lua方法.</param>
+		public LuaValue (LuaFunction value)
+		{
+			_value = value;
+			_type = LuaValueType.Function;
+		}
+
+		/// <summary>
 		/// 初始化一个对象值
 		/// </summary>
 		/// <param name="value">对象</param>
@@ -171,6 +181,11 @@ namespace cn.vimfung.luascriptcore
 						LuaValue itemValue = new LuaValue (de.Value);
 						dict.Add (Convert.ToString (de.Key), itemValue);
 					}
+				}
+				else if (value is LuaFunction)
+				{
+					_value = value;
+					_type = LuaValueType.Function;
 				}
 				else
 				{
@@ -314,6 +329,11 @@ namespace cn.vimfung.luascriptcore
 					encoder.writeByte (Convert.ToByte(toBoolean ()));
 					break;
 				}
+			case LuaValueType.Function:
+				{
+					encoder.writeObject (_value);
+					break;
+				}
 			case LuaValueType.Ptr:
 				{
 //					toPointer() -> serialization(NULL, encoder);
@@ -341,6 +361,7 @@ namespace cn.vimfung.luascriptcore
 		/// </summary>
 		/// <param name="decoder">对象解码器</param>
 		public LuaValue (LuaObjectDecoder decoder)
+			: base(decoder)
 		{
 			_type = (LuaValueType)decoder.readInt16 ();
 			_value = null;
@@ -368,11 +389,12 @@ namespace cn.vimfung.luascriptcore
 			case LuaValueType.Map:
 				_value = readHashtable (decoder);
 				break;
+			case LuaValueType.Function:
+				_value = decoder.readObject () as LuaFunction;
+				break;
 			case LuaValueType.Object:
-				{
-					_value = decoder.readObject ();
-					break;
-				}
+				_value = decoder.readObject ();
+				break;
 			}
 		}
 
@@ -449,6 +471,15 @@ namespace cn.vimfung.luascriptcore
 		public Dictionary<string, LuaValue> toMap()
 		{
 			return _value as Dictionary<string, LuaValue>;
+		}
+
+		/// <summary>
+		/// 转换为Lua方法
+		/// </summary>
+		/// <returns>Lua方法.</returns>
+		public LuaFunction toFunction()
+		{
+			return _value as LuaFunction;
 		}
 
 		/// <summary>
