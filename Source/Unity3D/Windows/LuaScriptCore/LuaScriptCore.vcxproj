@@ -92,8 +92,10 @@
     <ClCompile Include="..\..\..\lua-common\LuaObjectDecoder.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectDescriptor.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectEncoder.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectManager.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaPointer.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaTuple.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaValue.cpp" />
     <ClCompile Include="..\..\..\lua-core\src\lapi.c" />
     <ClCompile Include="..\..\..\lua-core\src\lauxlib.c" />
@@ -130,6 +132,9 @@
     <ClCompile Include="..\..\..\lua-core\src\lvm.c" />
     <ClCompile Include="..\..\..\lua-core\src\lzio.c" />
     <ClCompile Include="..\..\UnityCommon\LuaScriptCoreForUnity.cpp" />
+    <ClCompile Include="..\..\UnityCommon\LuaUnityEnv.cpp" />
+    <ClCompile Include="..\..\UnityCommon\LuaUnityModule.cpp" />
+    <ClCompile Include="..\..\UnityCommon\LuaUnityObjectClass.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -144,9 +149,11 @@
     <ClInclude Include="..\..\..\lua-common\LuaObjectDecoder.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectDescriptor.h" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectEncoder.hpp" />
+    <ClInclude Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.h" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectManager.h" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectSerializationTypes.h" />
     <ClInclude Include="..\..\..\lua-common\LuaPointer.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaTuple.h" />
     <ClInclude Include="..\..\..\lua-common\LuaValue.h" />
     <ClInclude Include="..\..\..\lua-core\src\lapi.h" />
     <ClInclude Include="..\..\..\lua-core\src\lauxlib.h" />
@@ -176,6 +183,10 @@
     <ClInclude Include="..\..\..\lua-core\src\lvm.h" />
     <ClInclude Include="..\..\..\lua-core\src\lzio.h" />
     <ClInclude Include="..\..\UnityCommon\LuaScriptCoreForUnity.h" />
+    <ClInclude Include="..\..\UnityCommon\LuaUnityDefined.h" />
+    <ClInclude Include="..\..\UnityCommon\LuaUnityEnv.hpp" />
+    <ClInclude Include="..\..\UnityCommon\LuaUnityModule.hpp" />
+    <ClInclude Include="..\..\UnityCommon\LuaUnityObjectClass.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

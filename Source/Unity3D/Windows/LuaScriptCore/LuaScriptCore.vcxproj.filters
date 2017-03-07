@@ -180,6 +180,21 @@
     <ClCompile Include="..\..\UnityCommon\LuaScriptCoreForUnity.cpp">
       <Filter>Source Files\UnityCommon</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityEnv.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityModule.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityObjectClass.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaTuple.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lua-core\src\lapi.h">
@@ -310,6 +325,24 @@
     </ClInclude>
     <ClInclude Include="..\..\UnityCommon\LuaScriptCoreForUnity.h">
       <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityDefined.h">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityEnv.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityModule.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityObjectClass.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaTuple.h">
+      <Filter>Header Files\lua-common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
