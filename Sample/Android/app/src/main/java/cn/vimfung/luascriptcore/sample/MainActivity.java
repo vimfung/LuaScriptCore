@@ -117,6 +117,10 @@ public class MainActivity extends AppCompatActivity {
                     LuaValue retValue = _luaContext.callMethod("add", new LuaValue[]{new LuaValue(100), new LuaValue(924)});
                     Log.v("luaScriptCore",String.format("%d", retValue.toInteger()));
 
+                    LuaValue funcValue = _luaContext.callMethod("getFunc", null);
+                    retValue = funcValue.toFunction().invoke(new LuaValue[]{new LuaValue(100), new LuaValue(924)});
+                    Log.v("luaScriptCore",String.format("%d", retValue.toInteger()));
+
                 }
             });
         }
