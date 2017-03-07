@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 using cn.vimfung.luascriptcore.modules.oo;
 using System.CodeDom;
+using System;
 
 public class Sample : MonoBehaviour {
 
@@ -55,6 +56,16 @@ public class Sample : MonoBehaviour {
 				return new LuaValue(info);
 			});
 
+			LuaContext.currentContext.registerMethod ("testReturnTuple", (arguments) =>
+			{
+				LuaTuple tuple = new LuaTuple();
+				tuple.addRetrunValue("Hello");
+				tuple.addRetrunValue(2017);
+				tuple.addRetrunValue("World");
+
+				return new LuaValue(tuple);
+			});
+
 			_isRegMethod = true;
 		}
 
@@ -74,6 +85,12 @@ public class Sample : MonoBehaviour {
 		LuaValue funcValue = LuaContext.currentContext.callMethod ("getFunc", null);
 		retValue = funcValue.toFunction ().invoke (new List<LuaValue> (){ new LuaValue (1000.0), new LuaValue (24.0)});
 		Debug.Log (string.Format ("result = {0}", retValue.toNumber ()));
+
+		LuaPointer ptr = new LuaPointer (funcValue.toFunction ());
+		LuaContext.currentContext.callMethod ("printPointer", new List<LuaValue> (){ new LuaValue(ptr) });
+
+		retValue = LuaContext.currentContext.callMethod ("testTuple", null);
+		Debug.Log (string.Format ("result = {0}", retValue.toTuple ()));
 	}
 
 	/// <summary>
@@ -95,6 +112,7 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void registerClassButtonClickedHandler()
 	{
+
 		if (!_isRegClass)
 		{
 			_isRegClass = true;

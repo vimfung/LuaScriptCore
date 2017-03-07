@@ -207,8 +207,13 @@ namespace cn.vimfung.luascriptcore
 			{
 				Marshal.FreeHGlobal (argsPtr);
 			}
+				
+			if (size > 0)
+			{
+				return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
+			}
 
-			return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
+			return new LuaValue();
 		}
 
 		/// <summary>
@@ -406,7 +411,22 @@ namespace cn.vimfung.luascriptcore
 		private AndroidJavaObject getLuaCacheDir()
 		{
 			AndroidJavaObject currentActivity = getCurrentActivity ();
-			AndroidJavaObject cacheDir = currentActivity.Call<AndroidJavaObject> ("getExternalCacheDir", new object[0]);
+			AndroidJavaClass EnvironmentClass = new AndroidJavaClass ("android.os.Environment");
+
+			int perm = currentActivity.Call<int> ("checkCallingOrSelfPermission", new object[] { "android.permission.WRITE_EXTERNAL_STORAGE" });
+
+			AndroidJavaObject cacheDir = null;
+
+			if ("mounted" == EnvironmentClass.CallStatic<string> ("getExternalStorageState", new object[0]) && perm == 0)
+			{
+				cacheDir = currentActivity.Call<AndroidJavaObject> ("getExternalCacheDir", new object[0]);
+			}
+
+			if (cacheDir == null)
+			{
+				cacheDir = currentActivity.Call<AndroidJavaObject> ("getCacheDir", new object[0]);
+			}
+
 			return new AndroidJavaObject ("java.io.File", string.Format ("{0}/lua", cacheDir.Call<string>("toString", new object[0])));
 		}
 

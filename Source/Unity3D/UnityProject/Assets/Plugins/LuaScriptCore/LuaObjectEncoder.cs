@@ -107,18 +107,21 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="value">对象</param>
 		public void writeObject(object value)
 		{
-			if (value is LuaBaseObject)
+			if (value != null)
 			{
-				this.writeByte ((byte)'L');
-				this.writeString (value.GetType().Name);
-				this.writeByte ((byte)';');
+				if (value is LuaBaseObject)
+				{
+					this.writeByte ((byte)'L');
+					this.writeString (value.GetType ().Name);
+					this.writeByte ((byte)';');
 
-				(value as LuaBaseObject).serialization (this);
-			}
-			else
-			{
-				IntPtr ptr = Marshal.GetIUnknownForObject (value);
-				writeInt64 (ptr.ToInt64 ());
+					(value as LuaBaseObject).serialization (this);
+				}
+				else
+				{
+					LuaObjectReference objRef = new LuaObjectReference (value);
+					writeInt64 (objRef.referenceId);
+				}
 			}
 		}
 

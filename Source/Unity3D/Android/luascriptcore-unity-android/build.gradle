@@ -5,7 +5,7 @@ android {
     buildToolsVersion "24.0.1"
 
     defaultConfig {
-        minSdkVersion 15
+        minSdkVersion 13
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -18,11 +18,32 @@ android {
             ldLibs "log"
         }
 
+        externalNativeBuild {
+            ndkBuild {
+
+                arguments "APP_STL=stlport_static",
+                        "NDK_DEBUG=1",
+                        "APP_PLATFORM=android-13",
+                        "NDK_TOOLCHAIN_VERSION=4.9"
+                cppFlags "-frtti",
+                        "-fexceptions",
+                        "-std=gnu++11",
+                        "-Wno-format-contains-nul",
+                        "-g",
+                        "-Wno-deprecated-declarations",
+                        "-fpermissive"
+
+            }
+        }
+
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            jniDebuggable true
         }
     }
 
@@ -30,9 +51,17 @@ android {
 
         main{
 
-            jni.srcDirs = ["../../../lua-common", "../../../lua-core/src", "../../UnityCommon"];
+            jni.srcDirs = ["src/main/jni", "../../../lua-common", "../../../lua-core/src", "../../UnityCommon"];
 
         }
+    }
+
+    externalNativeBuild {
+
+        ndkBuild {
+            path "src/main/jni/Android.mk"
+        }
+
     }
 }
 

@@ -8,6 +8,7 @@
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectEncoder.hpp"
 #include "LuaContext.h"
+#include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
 using namespace cn::vimfung::luascriptcore::modules::oo;

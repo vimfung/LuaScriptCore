@@ -18,12 +18,12 @@ static void luaInstanceCreateHandler (LuaObjectClass *objectClass)
     LuaInstanceCreateHandlerPtr methodHandler = unityObjectClass -> getInstanceCreateHandler();
     if (methodHandler != NULL)
     {
-        void *instance = methodHandler (unityObjectClass -> objectId());
-        LuaObjectInstanceDescriptor *objDesc = new LuaObjectInstanceDescriptor(instance, unityObjectClass);
+        long long instance = methodHandler (unityObjectClass -> objectId());
+        LuaObjectInstanceDescriptor *objDesc = new LuaObjectInstanceDescriptor((void *)instance, unityObjectClass);
         
         //创建Lua实例
         unityObjectClass -> createLuaInstance(objDesc);
-        
+
         objDesc -> release();
     }
 }
@@ -36,7 +36,7 @@ static void luaInstanceDestoryHandler (cn::vimfung::luascriptcore::LuaUserdataRe
     LuaInstanceDestoryHandlerPtr methodHandler = unityObjectClass -> getInstanceDestroyHandler();
     if (methodHandler != NULL)
     {
-        methodHandler (objDesc -> getObject());
+        methodHandler ((long long)objDesc -> getObject());
     }
 }
 
@@ -50,7 +50,7 @@ static std::string luaInstanceDescriptHandler (cn::vimfung::luascriptcore::LuaUs
     LuaInstanceDescriptionHandlerPtr methodHandler = unityObjectClass -> getInstanceDescriptionHandler();
     if (methodHandler != NULL)
     {
-        desc = methodHandler (objDesc -> getObject());
+        desc = methodHandler ((long long)objDesc -> getObject());
     }
     
     return desc;

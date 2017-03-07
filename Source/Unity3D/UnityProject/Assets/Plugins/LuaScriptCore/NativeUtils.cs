@@ -13,28 +13,28 @@ namespace cn.vimfung.luascriptcore
 	public delegate IntPtr LuaModuleMethodHandleDelegate (int nativeModuleId, string methodName, IntPtr arguments, int size);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate void LuaSetNativeObjectIdHandleDelegate(IntPtr obj, int nativeObjectId, string luaObjectId);
+	public delegate void LuaSetNativeObjectIdHandleDelegate(Int64 obj, int nativeObjectId, string luaObjectId);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public delegate string LuaGetClassNameByInstanceDelegate(IntPtr obj);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaInstanceCreateHandleDelegate(int nativeClassId);
+	public delegate Int64 LuaInstanceCreateHandleDelegate(int nativeClassId);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate void LuaInstanceDestroyHandleDelegate(IntPtr instancePtr);
+	public delegate void LuaInstanceDestroyHandleDelegate(Int64 instancePtr);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate string LuaInstanceDescriptionHandleDelegate(IntPtr instancePtr);
+	public delegate string LuaInstanceDescriptionHandleDelegate(Int64 instancePtr);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaInstanceMethodHandleDelegate (int classId, IntPtr instance, string methodName, IntPtr argumentsBuffer, int bufferSize);
+	public delegate IntPtr LuaInstanceMethodHandleDelegate (int classId, Int64 instance, string methodName, IntPtr argumentsBuffer, int bufferSize);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaInstanceFieldGetterHandleDelegate (int classId, IntPtr instance, string fieldName);
+	public delegate IntPtr LuaInstanceFieldGetterHandleDelegate (int classId, Int64 instance, string fieldName);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate void LuaInstanceFieldSetterHandleDelegate (int classId, IntPtr instance, string fieldName, IntPtr valueBuffer, int bufferSize);
+	public delegate void LuaInstanceFieldSetterHandleDelegate (int classId, Int64 instance, string fieldName, IntPtr valueBuffer, int bufferSize);
 
 	public class NativeUtils  
 	{
@@ -313,6 +313,20 @@ namespace cn.vimfung.luascriptcore
 
 #elif UNITY_IPHONE
 
+		/// <summary>
+		/// 绑定设置原生对象ID处理器
+		/// </summary>
+		/// <param name="handler">处理器对象</param>
+		[DllImport("__Internal")]
+		internal extern static void bindSetNativeObjectIdHandler(IntPtr handler);
+
+		/// <summary>
+		/// 绑定根据实例获取类型名称处理器
+		/// </summary>
+		/// <param name="handler">处理器对象</param>
+		[DllImport("__Internal")]
+		internal extern static void bindGetClassNameByInstanceHandler (IntPtr handler);
+
         /// <summary>
         /// 创建Lua上下文对象
         /// </summary>
@@ -378,6 +392,17 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void registerMethod (int nativeContextId, string methodName, IntPtr methodHandler);
 
 		/// <summary>
+		/// 调用Lua方法
+		/// </summary>
+		/// <returns>返回值的缓冲区大小</returns>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识.</param>
+		/// <param name="function">方法.</param>
+		/// <param name="arguments">参数列表.</param>
+		/// <param name="resultBuffer">返回值缓冲区.</param>
+		[DllImport("__Internal")]
+		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, out IntPtr resultBuffer);
+
+		/// <summary>
 		/// 释放本地对象
 		/// </summary>
 		/// <param name="objectId">本地对象标识.</param>
@@ -404,7 +429,56 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("__Internal")]
 		internal extern static bool isModuleRegisted (int nativeContextId, string moduleName);
 
+		/// <summary>
+		/// 注册类型
+		/// </summary>
+		/// <returns>类标识</returns>
+		/// <param name="nativeContextId">原生上下文标识</param>
+		/// <param name="className">类名</param>
+		/// <param name="superClassName">父类名称</param>
+		/// <param name="exportsSetterNames">导出Setter名称列表.</param>
+		/// <param name="exportsGetterNames">导出Getter名称列表.</param>
+		/// <param name="exportsInstanceMethodNames">导出实例方法名称列表</param>
+		/// <param name="exportsClassMethodNames">导出类方法名称列表</param>
+		/// <param name="instanceCreateHandler">实例创建处理器</param>
+		/// <param name="instanceDestroyHandler">实例销毁处理器</param>
+		/// <param name="instanceDescriptionHandler">实例描述处理器</param>
+		/// <param name="fieldGetterHandler">字段获取器.</param>
+		/// <param name="fieldSetterHandler">字段设置器.</param>
+		/// <param name="instanceMethodRouteHandler">实例方法处理器.</param>
+		/// <param name="classMethodRouteHandler">类方法处理器.</param>
+		[DllImport("__Internal")]
+		internal extern static int registerClass (
+			int nativeContextId, 
+			string className, 
+			string superClassName, 
+			IntPtr exportsSetterNames, 
+			IntPtr exportsGetterNames,
+			IntPtr exportsInstanceMethodNames,
+			IntPtr exportsClassMethodNames, 
+			IntPtr instanceCreateHandler,
+			IntPtr instanceDestroyHandler,
+			IntPtr instanceDescriptionHandler,
+			IntPtr fieldGetterHandler,
+			IntPtr fieldSetterHandler,
+			IntPtr instanceMethodRouteHandler, 
+			IntPtr classMethodRouteHandler);
+
 #elif UNITY_ANDROID
+
+		/// <summary>
+		/// 绑定设置原生对象ID处理器
+		/// </summary>
+		/// <param name="handler">处理器对象</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static void bindSetNativeObjectIdHandler(IntPtr handler);
+
+		/// <summary>
+		/// 绑定根据实例获取类型名称处理器
+		/// </summary>
+		/// <param name="handler">处理器对象</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static void bindGetClassNameByInstanceHandler (IntPtr handler);
 
 		/// <summary>
 		/// 创建Lua上下文对象
@@ -471,6 +545,17 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void registerMethod (int nativeContextId, string methodName, IntPtr methodHandler);
 
 		/// <summary>
+		/// 调用Lua方法
+		/// </summary>
+		/// <returns>返回值的缓冲区大小</returns>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识.</param>
+		/// <param name="function">方法.</param>
+		/// <param name="arguments">参数列表.</param>
+		/// <param name="resultBuffer">返回值缓冲区.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, out IntPtr resultBuffer);
+
+		/// <summary>
 		/// 释放本地对象
 		/// </summary>
 		/// <param name="objectId">本地对象标识.</param>
@@ -497,6 +582,40 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("LuaScriptCore-Unity-Android")]
 		internal extern static bool isModuleRegisted (int nativeContextId, string moduleName);
 
+		/// <summary>
+		/// 注册类型
+		/// </summary>
+		/// <returns>类标识</returns>
+		/// <param name="nativeContextId">原生上下文标识</param>
+		/// <param name="className">类名</param>
+		/// <param name="superClassName">父类名称</param>
+		/// <param name="exportsSetterNames">导出Setter名称列表.</param>
+		/// <param name="exportsGetterNames">导出Getter名称列表.</param>
+		/// <param name="exportsInstanceMethodNames">导出实例方法名称列表</param>
+		/// <param name="exportsClassMethodNames">导出类方法名称列表</param>
+		/// <param name="instanceCreateHandler">实例创建处理器</param>
+		/// <param name="instanceDestroyHandler">实例销毁处理器</param>
+		/// <param name="instanceDescriptionHandler">实例描述处理器</param>
+		/// <param name="fieldGetterHandler">字段获取器.</param>
+		/// <param name="fieldSetterHandler">字段设置器.</param>
+		/// <param name="instanceMethodRouteHandler">实例方法处理器.</param>
+		/// <param name="classMethodRouteHandler">类方法处理器.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static int registerClass (
+			int nativeContextId, 
+			string className, 
+			string superClassName, 
+			IntPtr exportsSetterNames, 
+			IntPtr exportsGetterNames,
+			IntPtr exportsInstanceMethodNames,
+			IntPtr exportsClassMethodNames, 
+			IntPtr instanceCreateHandler,
+			IntPtr instanceDestroyHandler,
+			IntPtr instanceDescriptionHandler,
+			IntPtr fieldGetterHandler,
+			IntPtr fieldSetterHandler,
+			IntPtr instanceMethodRouteHandler, 
+			IntPtr classMethodRouteHandler);
 #endif
 	}
 }
