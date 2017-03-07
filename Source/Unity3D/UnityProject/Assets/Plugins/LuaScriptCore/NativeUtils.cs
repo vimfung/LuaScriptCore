@@ -234,6 +234,21 @@ namespace cn.vimfung.luascriptcore
 #elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
 
         /// <summary>
+		/// 绑定设置原生对象ID处理器
+		/// </summary>
+		/// <param name="handler">处理器对象</param>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static void bindSetNativeObjectIdHandler(IntPtr handler);
+
+        /// <summary>
+        /// 绑定根据实例获取类型名称处理器
+        /// </summary>
+        /// <param name="handler">处理器对象</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static void bindGetClassNameByInstanceHandler(IntPtr handler);
+
+
+        /// <summary>
         /// 创建Lua上下文对象
         /// </summary>
         /// <returns>Lua上下文对象的本地标识</returns>
@@ -297,18 +312,84 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static void registerMethod (int nativeContextId, string methodName, IntPtr methodHandler);
 
-		/// <summary>
-		/// 释放本地对象
+        /// <summary>
+		/// 调用Lua方法
 		/// </summary>
-		/// <param name="objectId">本地对象标识.</param>
+		/// <returns>返回值的缓冲区大小</returns>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识.</param>
+		/// <param name="function">方法.</param>
+		/// <param name="arguments">参数列表.</param>
+		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static int invokeLuaFunction(int nativeContextId, IntPtr function, IntPtr arguments, out IntPtr resultBuffer);
+
+        /// <summary>
+        /// 释放本地对象
+        /// </summary>
+        /// <param name="objectId">本地对象标识.</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static void releaseObject(int objectId);
 
-		/// <summary>
-		/// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。
+        /// <summary>
+		/// 注册模块
 		/// </summary>
-		/// <param name="fp">方法回调</param>
+		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
+		/// <param name="moduleName">模块名称</param>
+		/// <param name="exportsMethodNames">导出方法名称列表.</param>
+		/// <param name="methodRouteHandler">方法路由处理器，所有的方法都会由此方法来回调</param>
+		/// <returns>模块的本地标识</returns>
 		[DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static int registerModule(int nativeContextId, string moduleName, IntPtr exportsMethodNames, IntPtr methodRouteHandler);
+
+        /// <summary>
+        /// 判断模块是否注册
+        /// </summary>
+        /// <returns>true表示注册，false表示尚未注册</returns>
+        /// <param name="nativeContextId">Lua上下文对象的本地标识</param>
+        /// <param name="moduleName">模块名称</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static bool isModuleRegisted(int nativeContextId, string moduleName);
+
+        /// <summary>
+        /// 注册类型
+        /// </summary>
+        /// <returns>类标识</returns>
+        /// <param name="nativeContextId">原生上下文标识</param>
+        /// <param name="className">类名</param>
+        /// <param name="superClassName">父类名称</param>
+        /// <param name="exportsSetterNames">导出Setter名称列表.</param>
+        /// <param name="exportsGetterNames">导出Getter名称列表.</param>
+        /// <param name="exportsInstanceMethodNames">导出实例方法名称列表</param>
+        /// <param name="exportsClassMethodNames">导出类方法名称列表</param>
+        /// <param name="instanceCreateHandler">实例创建处理器</param>
+        /// <param name="instanceDestroyHandler">实例销毁处理器</param>
+        /// <param name="instanceDescriptionHandler">实例描述处理器</param>
+        /// <param name="fieldGetterHandler">字段获取器.</param>
+        /// <param name="fieldSetterHandler">字段设置器.</param>
+        /// <param name="instanceMethodRouteHandler">实例方法处理器.</param>
+        /// <param name="classMethodRouteHandler">类方法处理器.</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static int registerClass(
+            int nativeContextId,
+            string className,
+            string superClassName,
+            IntPtr exportsSetterNames,
+            IntPtr exportsGetterNames,
+            IntPtr exportsInstanceMethodNames,
+            IntPtr exportsClassMethodNames,
+            IntPtr instanceCreateHandler,
+            IntPtr instanceDestroyHandler,
+            IntPtr instanceDescriptionHandler,
+            IntPtr fieldGetterHandler,
+            IntPtr fieldSetterHandler,
+            IntPtr instanceMethodRouteHandler,
+            IntPtr classMethodRouteHandler);
+
+        /// <summary>
+        /// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。
+        /// </summary>
+        /// <param name="fp">方法回调</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
 		private extern static void setUnityDebugLog (IntPtr fp);
 
 #elif UNITY_IPHONE
