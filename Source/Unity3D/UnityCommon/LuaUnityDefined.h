@@ -19,7 +19,7 @@ extern "C" {
     /**
      设置本地对象ID处理器
      */
-    typedef void (*LuaSetNativeObjectIdHandlerPtr) (const void *object, int nativeObjectId, const char * luaObjectId);
+    typedef void (*LuaSetNativeObjectIdHandlerPtr) (long long object, int nativeObjectId, const char * luaObjectId);
     
     /**
      根据实例获取类型名称
@@ -41,32 +41,32 @@ extern "C" {
     /**
      Lua实例创建处理器
      */
-    typedef void* (*LuaInstanceCreateHandlerPtr) (int moduleId);
+    typedef long long (*LuaInstanceCreateHandlerPtr) (int moduleId);
 
     /**
      Lua实例销毁处理器
      */
-    typedef void (*LuaInstanceDestoryHandlerPtr) (const void *instance);
+    typedef void (*LuaInstanceDestoryHandlerPtr) (long long instance);
     
     /**
      Lua实例描述处理器
      */
-    typedef char* (*LuaInstanceDescriptionHandlerPtr) (const void *instance);
+    typedef char* (*LuaInstanceDescriptionHandlerPtr) (long long instance);
     
     /**
      Lua实例方法处理器
      */
-    typedef void* (*LuaInstanceMethodHandlerPtr) (int classId, const void *instance, const char *methodName, const void *argumentsBuffer, int bufferSize);
+    typedef void* (*LuaInstanceMethodHandlerPtr) (int classId,  long long instance, const char *methodName, const void *argumentsBuffer, int bufferSize);
 
     /**
      Lua实例字段获取器
      */
-    typedef void* (*LuaInstanceFieldGetterHandlerPtr) (int classId, const void *instance, const char *fieldName);
+    typedef void* (*LuaInstanceFieldGetterHandlerPtr) (int classId, long long instance, const char *fieldName);
 
     /**
      Lua实例字段设置处理器
      */
-    typedef void* (*LuaInstanceFieldSetterHandlerPtr) (int classId, const void *instance, const char *fieldName, const void *valueBuffer, int bufferSize);
+    typedef void* (*LuaInstanceFieldSetterHandlerPtr) (int classId, long long instance, const char *fieldName, const void *valueBuffer, int bufferSize);
 
     /**
      Lua异常处理器

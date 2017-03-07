@@ -13,3 +13,12 @@ function getFunc()
 	end
 
 end
+
+function printPointer(p)
+	print(p);
+end
+
+function testTuple()
+	-- body
+	return "Hello", 2017, "World"
+end

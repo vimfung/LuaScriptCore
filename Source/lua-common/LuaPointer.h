@@ -11,6 +11,9 @@
 namespace cn {
     namespace vimfung {
         namespace luascriptcore {
+            
+            class LuaObjectDecoder;
+            class LuaObjectEncoder;
 
             /**
              * Lua的指针对象
@@ -22,9 +25,17 @@ namespace cn {
                 bool _needFree;
 
             public:
+                LuaPointer ();
                 LuaPointer (LuaUserdataRef userdata);
                 LuaPointer (const void *value);
                 ~LuaPointer();
+                
+                /**
+                 * 初始化, 在反序列化对象时会触发该方法
+                 *
+                 * @param decoder 解码器
+                 */
+                LuaPointer (LuaObjectDecoder *decoder);
                 
                 /**
                  获取类型名称

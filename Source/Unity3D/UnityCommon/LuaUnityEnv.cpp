@@ -39,7 +39,7 @@ void LuaUnityEnv::setNativeObjectId(const void *instance, int nativeObjectId, st
 {
     if (_setNativeObjectIdHandler != NULL)
     {
-        _setNativeObjectIdHandler (instance, nativeObjectId, luaObjectId.c_str());
+        _setNativeObjectIdHandler ((long long)instance, nativeObjectId, luaObjectId.c_str());
     }
 }
 
