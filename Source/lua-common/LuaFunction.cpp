@@ -12,6 +12,7 @@
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectManager.h"
+#include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -28,11 +29,13 @@ static int FunctionSeed = 0;
 static std::string FunctionsTableName = "_tmpFuncs_";
 
 LuaFunction::LuaFunction ()
+    : LuaObject()
 {
     
 }
 
 cn::vimfung::luascriptcore::LuaFunction::LuaFunction(LuaContext *context, int index)
+    : LuaObject()
 {
     _context = context;
 
@@ -152,8 +155,7 @@ void cn::vimfung::luascriptcore::LuaFunction::push(LuaContext *context)
     lua_remove(state, -2);
 }
 
-cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaFunction::invoke(
-        LuaArgumentList *arguments)
+cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaFunction::invoke(LuaArgumentList *arguments)
 {
     lua_State *state = _context -> getLuaState();
 

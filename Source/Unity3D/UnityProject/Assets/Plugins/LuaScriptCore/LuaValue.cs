@@ -20,7 +20,8 @@ namespace cn.vimfung.luascriptcore
 		Object = 7,
 		Integer = 8,
 		Data = 9,
-		Function = 10
+		Function = 10,
+		Tuple = 11
 	};
 
 	public class LuaValue : LuaBaseObject
@@ -118,6 +119,26 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
+		/// 初始化一个指针值
+		/// </summary>
+		/// <param name="value">Lua指针.</param>
+		public LuaValue (LuaPointer value)
+		{
+			_value = value;
+			_type = LuaValueType.Ptr;
+		}
+
+		/// <summary>
+		/// 初始化一个元组值
+		/// </summary>
+		/// <param name="value">元组.</param>
+		public LuaValue (LuaTuple value)
+		{
+			_value = value;
+			_type = LuaValueType.Tuple;
+		}
+
+		/// <summary>
 		/// 初始化一个对象值
 		/// </summary>
 		/// <param name="value">对象</param>
@@ -186,6 +207,16 @@ namespace cn.vimfung.luascriptcore
 				{
 					_value = value;
 					_type = LuaValueType.Function;
+				}
+				else if (value is LuaPointer)
+				{
+					_value = value;
+					_type = LuaValueType.Ptr;
+				}
+				else if (value is LuaTuple)
+				{
+					_value = value;
+					_type = LuaValueType.Tuple;
 				}
 				else
 				{
@@ -303,7 +334,7 @@ namespace cn.vimfung.luascriptcore
 					encoder.writeInt32 (list.Count);
 					foreach (LuaValue value in list) 
 					{
-						value.serialization (encoder);
+						encoder.writeObject (value);
 					}
 					break;
 				}
@@ -331,12 +362,17 @@ namespace cn.vimfung.luascriptcore
 				}
 			case LuaValueType.Function:
 				{
-					encoder.writeObject (_value);
+					encoder.writeObject (toFunction());
 					break;
 				}
 			case LuaValueType.Ptr:
 				{
-//					toPointer() -> serialization(NULL, encoder);
+					encoder.writeObject (toPointer());
+					break;
+				}
+			case LuaValueType.Tuple:
+				{
+					encoder.writeObject (toTuple());
 					break;
 				}
 			default:
@@ -391,6 +427,12 @@ namespace cn.vimfung.luascriptcore
 				break;
 			case LuaValueType.Function:
 				_value = decoder.readObject () as LuaFunction;
+				break;
+			case LuaValueType.Ptr:
+				_value = decoder.readObject () as LuaPointer;
+				break;
+			case LuaValueType.Tuple:
+				_value = decoder.readObject () as LuaTuple;
 				break;
 			case LuaValueType.Object:
 				_value = decoder.readObject ();
@@ -480,6 +522,24 @@ namespace cn.vimfung.luascriptcore
 		public LuaFunction toFunction()
 		{
 			return _value as LuaFunction;
+		}
+
+		/// <summary>
+		/// 转换为Lua指针
+		/// </summary>
+		/// <returns>Lua指针.</returns>
+		public LuaPointer toPointer()
+		{
+			return _value as LuaPointer;
+		}
+
+		/// <summary>
+		/// 转换为元组
+		/// </summary>
+		/// <returns>元组.</returns>
+		public LuaTuple toTuple()
+		{
+			return _value as LuaTuple;
 		}
 
 		/// <summary>

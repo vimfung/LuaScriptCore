@@ -43,13 +43,17 @@ public class UNIEnv : object
 	/// <param name="instance">实例对象</param>
 	/// <param name="nativeObjectId">原生对象标识</param>
 	[MonoPInvokeCallback (typeof (LuaSetNativeObjectIdHandleDelegate))]
-	private static void setNativeObjectId (IntPtr instance, int nativeObjectId, string luaObjectId)
+	private static void setNativeObjectId (Int64 instance, int nativeObjectId, string luaObjectId)
 	{
-		if (instance != IntPtr.Zero)
+		if (instance != 0)
 		{
-			LuaBaseObject luaObj = Marshal.GetObjectForIUnknown (instance) as LuaBaseObject;
-			luaObj.objectId = nativeObjectId;
-			luaObj.luaObjectId = luaObjectId;
+			LuaObjectReference objRef = LuaObjectReference.findObject (instance);
+			LuaBaseObject luaObj = objRef.target as LuaBaseObject;
+			if (luaObj != null)
+			{
+				luaObj.objectId = nativeObjectId;
+				luaObj.luaObjectId = luaObjectId;
+			}
 		}	
 	}
 

@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
+using System.Collections.Generic;
+using System;
 
 namespace cn.vimfung.luascriptcore
 {
@@ -32,6 +34,8 @@ namespace cn.vimfung.luascriptcore
 		{
 			NativeUtils.releaseObject(_nativeObjectId);
 		}
+
+
 
 		/// <summary>
 		/// 获取本地对象标识

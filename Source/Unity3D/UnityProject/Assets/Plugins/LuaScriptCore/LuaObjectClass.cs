@@ -16,7 +16,7 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		/// <summary>
 		/// 实例对象集合
 		/// </summary>
-		private static List<LuaObjectClass> _instances = new List<LuaObjectClass>();
+		private static List<LuaObjectReference> _instances = new List<LuaObjectReference>();
 
 		/// <summary>
 		/// 导出类型
@@ -302,15 +302,15 @@ namespace cn.vimfung.luascriptcore.modules.oo
 			}
 		}
 
-		/// <summary>
-		/// 序列化对象
-		/// </summary>
-		/// <param name="encoder">对象编码器.</param>
-		public override void serialization (LuaObjectEncoder encoder)
-		{
-			IntPtr ptr = Marshal.GetIUnknownForObject (this);
-			encoder.writeInt64 (ptr.ToInt64 ());
-		}
+//		/// <summary>
+//		/// 序列化对象
+//		/// </summary>
+//		/// <param name="encoder">对象编码器.</param>
+//		public override void serialization (LuaObjectEncoder encoder)
+//		{
+//			IntPtr ptr = Marshal.GetIUnknownForObject (this);
+//			encoder.writeInt64 (ptr.ToInt64 ());
+//		}
 
 		/// <summary>
 		/// 获取对象描述器，用于如何转换成Lua对象
@@ -327,9 +327,9 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		/// <param name="nativeClassId">原生类型标识.</param>
 		/// <param name="instanceId">实例标识</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceCreateHandleDelegate))]
-		private static IntPtr _createInstance(int nativeClassId)
+		private static Int64 _createInstance(int nativeClassId)
 		{
-			IntPtr instancePtr = IntPtr.Zero;
+			Int64 refId = 0;
 			Type t = _exportsClass [nativeClassId];
 			if (t != null) 
 			{
@@ -340,14 +340,16 @@ namespace cn.vimfung.luascriptcore.modules.oo
 					LuaObjectClass instance = ci.Invoke (null) as LuaObjectClass;
 					if (instance != null)
 					{
-						instancePtr = Marshal.GetIUnknownForObject (instance);
+						LuaObjectReference objRef = new LuaObjectReference (instance);
 						//添加引用避免被GC进行回收
-						_instances.Add(instance);
+						_instances.Add(objRef);
+
+						refId = objRef.referenceId;
 					}
 				}
 			}
 
-			return instancePtr;
+			return refId;
 		}
 
 		/// <summary>
@@ -356,14 +358,14 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		/// <param name="nativeClassId">原生类型标识</param>
 		/// <param name="instanceId">实例标识</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceDestroyHandleDelegate))]
-		private static void _destroyInstance(IntPtr instancePtr)
+		private static void _destroyInstance(Int64 instancePtr)
 		{
-			if (instancePtr != IntPtr.Zero)
+			if (instancePtr != 0)
 			{
-				LuaObjectClass instance = Marshal.GetObjectForIUnknown (instancePtr) as LuaObjectClass;
-				if (instance != null)
+				LuaObjectReference instanceRef = LuaObjectReference.findObject (instancePtr);
+				if (instanceRef != null)
 				{
-					_instances.Remove (instance);
+					_instances.Remove (instanceRef);
 				}
 			}
 		}
@@ -374,14 +376,14 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		/// <returns>描述信息.</returns>
 		/// <param name="nativeClassId">类型标识.</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceDescriptionHandleDelegate))]
-		private static string _instanceDescription (IntPtr instancePtr)
+		private static string _instanceDescription (Int64 instancePtr)
 		{
-			if (instancePtr != IntPtr.Zero)
+			if (instancePtr != 0)
 			{
-				LuaObjectClass instance = Marshal.GetObjectForIUnknown (instancePtr) as LuaObjectClass;
-				if (instance != null)
+				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
+				if (objRef != null)
 				{
-					return instance.ToString ();
+					return objRef.target.ToString ();
 				}
 			}
 
@@ -396,14 +398,15 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		/// <param name="instance">实例.</param>
 		/// <param name="fieldName">字段名称.</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceFieldGetterHandleDelegate))]
-		private static IntPtr _fieldGetter (int classId, IntPtr instancePtr, string fieldName)
+		private static IntPtr _fieldGetter (int classId, Int64 instancePtr, string fieldName)
 		{
 			IntPtr retValuePtr = IntPtr.Zero;
-			if (instancePtr != IntPtr.Zero 
+			if (instancePtr != 0 
 				&& _exportsFields.ContainsKey(classId) 
 				&& _exportsFields[classId].ContainsKey(fieldName))
 			{
-				LuaObjectClass instance = Marshal.GetObjectForIUnknown (instancePtr) as LuaObjectClass;
+				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
+				LuaObjectClass instance = objRef.target as LuaObjectClass;
 				PropertyInfo propertyInfo = _exportsFields[classId][fieldName];
 				if (instance != null && propertyInfo != null && propertyInfo.CanRead)
 				{
@@ -430,13 +433,14 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		/// <param name="valueBuffer">值数据</param>
 		/// <param name="bufferSize">数据大小</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceFieldSetterHandleDelegate))]
-		private static void _fieldSetter (int classId, IntPtr instancePtr, string fieldName, IntPtr valueBuffer, int bufferSize)
+		private static void _fieldSetter (int classId, Int64 instancePtr, string fieldName, IntPtr valueBuffer, int bufferSize)
 		{
-			if (instancePtr != IntPtr.Zero
+			if (instancePtr != 0
 				&& _exportsFields.ContainsKey(classId) 
 				&& _exportsFields[classId].ContainsKey(fieldName))
 			{
-				LuaObjectClass instance = Marshal.GetObjectForIUnknown (instancePtr) as LuaObjectClass;
+				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
+				LuaObjectClass instance = objRef.target as LuaObjectClass;
 				PropertyInfo propertyInfo = _exportsFields[classId][fieldName];
 				if (instance != null && propertyInfo != null && propertyInfo.CanWrite)
 				{
@@ -458,13 +462,14 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		/// <param name="argumentsBuffer">参数数据</param>
 		/// <param name="bufferSize">数据大小.</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceMethodHandleDelegate))]
-		private static IntPtr _instanceMethodHandler (int classId, IntPtr instancePtr, string methodName, IntPtr argumentsBuffer, int bufferSize)
+		private static IntPtr _instanceMethodHandler (int classId, Int64 instancePtr, string methodName, IntPtr argumentsBuffer, int bufferSize)
 		{
-			if (instancePtr != IntPtr.Zero
+			if (instancePtr != 0
 				&& _exportsInstanceMethods.ContainsKey(classId)
 				&& _exportsInstanceMethods[classId].ContainsKey(methodName))
 			{
-				LuaObjectClass instance = Marshal.GetObjectForIUnknown (instancePtr) as LuaObjectClass;
+				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
+				LuaObjectClass instance = objRef.target as LuaObjectClass;
 				MethodInfo m = _exportsInstanceMethods[classId][methodName];
 				if (instance != null && m != null)
 				{

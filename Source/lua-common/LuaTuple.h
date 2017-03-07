@@ -13,6 +13,8 @@ namespace cn {
         namespace luascriptcore {
 
             class LuaContext;
+            class LuaObjectDecoder;
+            class LuaObjectEncoder;
 
             /**
              * 元组
@@ -23,8 +25,36 @@ namespace cn {
                 LuaValueList _returnValues;
 
             public:
+                /**
+                 初始化
+                 */
                 LuaTuple ();
+                
+                /**
+                 * 初始化, 在反序列化对象时会触发该方法
+                 *
+                 * @param decoder 解码器
+                 */
+                LuaTuple (LuaObjectDecoder *decoder);
+                
+                /**
+                 销毁对象
+                 */
                 ~LuaTuple();
+                
+                /**
+                 获取类型名称
+                 
+                 @return 类型名称
+                 */
+                virtual std::string typeName();
+                
+                /**
+                 序列化对象
+                 
+                 @param encoder 编码器
+                 */
+                virtual void serialization (LuaObjectEncoder *encoder);
 
             public:
                 /**
@@ -46,7 +76,7 @@ namespace cn {
                  *
                  * @return 返回值
                  */
-                LuaValue *getResturValueByIndex(int index);
+                LuaValue *getReturnValueByIndex(int index);
 
             public:
 

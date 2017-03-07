@@ -6,8 +6,19 @@
 #include <stdlib.h>
 #include <typeinfo>
 #include "LuaPointer.h"
+#include "LuaObjectDecoder.hpp"
+#include "LuaObjectEncoder.hpp"
+#include "LuaNativeClass.hpp"
 
 using namespace cn::vimfung::luascriptcore;
+
+DECLARE_NATIVE_CLASS(LuaPointer);
+
+LuaPointer::LuaPointer ()
+{
+    _needFree = false;
+    _value = NULL;
+}
 
 LuaPointer::LuaPointer(LuaUserdataRef userdata)
 {
@@ -31,6 +42,17 @@ LuaPointer::~LuaPointer()
     _value = NULL;
 }
 
+LuaPointer::LuaPointer (LuaObjectDecoder *decoder)
+    : LuaObject(decoder)
+{
+    void *objRef = NULL;
+    objRef = (void *)decoder -> readInt64();
+    
+    _needFree = true;
+    _value = (LuaUserdataRef)malloc(sizeof(LuaUserdataRef));
+    _value -> value = (void *)objRef;
+}
+
 std::string LuaPointer::typeName()
 {
     static std::string name = typeid(LuaPointer).name();
@@ -45,4 +67,5 @@ const LuaUserdataRef LuaPointer::getValue()
 void LuaPointer::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
+    encoder -> writeInt64((long long)_value -> value);
 }

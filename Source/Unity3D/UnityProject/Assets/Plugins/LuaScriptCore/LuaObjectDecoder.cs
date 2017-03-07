@@ -19,10 +19,13 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="size">缓冲区大小</param>
 		public LuaObjectDecoder(IntPtr objectPtr, int size)
 		{
-			_offset = 0;
-			_buffer = new byte[size];
-			Marshal.Copy (objectPtr, _buffer, 0, size);
-			Marshal.FreeHGlobal (objectPtr);
+			if (size > 0)
+			{
+				_offset = 0;
+				_buffer = new byte[size];
+				Marshal.Copy (objectPtr, _buffer, 0, size);
+				Marshal.FreeHGlobal (objectPtr);
+			}
 		}
 
 		/// <summary>
@@ -152,8 +155,8 @@ namespace cn.vimfung.luascriptcore
 			}
 			else
 			{
-				IntPtr ptr = new IntPtr (readInt64 ());
-				return Marshal.GetObjectForIUnknown (ptr);
+				Int64 refId = readInt64 ();
+				return LuaObjectReference.findObject (refId);
 			}
 
 			return null;
@@ -167,8 +170,13 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="size">缓冲区大小</param>
 		public static object DecodeObject(IntPtr objectPtr, int size)
 		{
-			LuaObjectDecoder decoder = new LuaObjectDecoder (objectPtr, size);
-			return decoder.readObject ();
+			if (size > 0)
+			{
+				LuaObjectDecoder decoder = new LuaObjectDecoder (objectPtr, size);
+				return decoder.readObject ();
+			}
+
+			return null;
 		}
 	}
 }

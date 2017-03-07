@@ -8,6 +8,7 @@
 #include "LuaPointer.h"
 #include "LuaFunction.h"
 #include "LuaTuple.h"
+#include "lunity.h"
 #include <map>
 #include <list>
 #include <iostream>
