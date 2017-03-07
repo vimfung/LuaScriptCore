@@ -11,10 +11,13 @@
 #import "LuaValue.h"
 #import "LuaObjectEncoder.hpp"
 #import "LuaObjectDecoder.hpp"
+#import "LuaTuple.h"
 
 using namespace cn::vimfung::luascriptcore;
 
 @interface LuaScriptCoreTests : XCTestCase
+
+@property (nonatomic) int contextId;
 
 @end
 
@@ -44,13 +47,16 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
     return NULL;
 }
 
-- (void)setUp {
+- (void)setUp
+{
     [super setUp];
-    // Put setup code here. This method is called before the invocation of each test method in the class.
+    
+    self.contextId = createLuaContext();
 }
 
-- (void)tearDown {
-    // Put teardown code here. This method is called after the invocation of each test method in the class.
+- (void)tearDown
+{
+    releaseObject(self.contextId);
     [super tearDown];
 }
 
@@ -58,7 +64,7 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
 {
     using namespace cn::vimfung::luascriptcore;
     
-    int navId = createLuaContext();
+    
 //
 //    void *result = NULL;
 ////    evalScript(navId, "print('Hello World!');", (const void **)&result);
@@ -130,5 +136,46 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
     NSLog(@"%s", obj -> typeName().c_str());
 }
 
+- (void)testTuple
+{
+    NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests class]];
+    NSString *path = [bundle pathForResource:@"main" ofType:@"lua"];
+    evalScriptFromFile(self.contextId, path.UTF8String, NULL);
+    
+    void *result = NULL;
+    int size = callMethod(self.contextId, "testTuple", NULL, (const void **)&result);
+    char chr = *((char *)result+87);
+    NSLog(@"size = %d, buf[88] = %d", size, chr);
+    
+    free(result);
+}
+
+- (void)testTuple2
+{
+    LuaContext *context = (LuaContext *)LuaObject::findObject(self.contextId);
+    
+    Byte bytes[82] = {76,0,0,0,8,76,117,97,86,97,108,117,101,59,0,0,0,0,0,11,76,0,0,0,8,75,117,97,84,117,112,108,101,59,0,0,0,0,0,0,0,3,0,0,0,0,0,3,0,0,0,5,72,101,108,108,111,0,0,0,0,0,8,0,0,7,225,0,0,0,0,0,3,0,0,0,5,87,111,114,108,100};
+    
+    
+    
+//    LuaObjectEncoder::setMappingClassType(typeid(LuaValue).name(), "LuaValue");
+//    LuaObjectEncoder::setMappingClassType(typeid(LuaTuple).name(), "LuaTuple");
+//    
+//    LuaTuple *tuple = new LuaTuple();
+//    tuple -> addReturnValue(LuaValue::StringValue("Hello"));
+//    tuple -> addReturnValue(LuaValue::NumberValue(2017));
+//    tuple -> addReturnValue(LuaValue::StringValue("World"));
+//    
+//    LuaValue *value = LuaValue::TupleValue(tuple);
+//    
+//    LuaObjectEncoder *encoder = new LuaObjectEncoder(context);
+//    encoder -> writeObject(value);
+//    
+    LuaObjectDecoder *decoder = new LuaObjectDecoder(context, bytes);
+    LuaValue *value = dynamic_cast<LuaValue *>(decoder -> readObject());
+    decoder -> release();
+    
+    NSLog(@"------- len = %d", value -> getType());
+}
 
 @end

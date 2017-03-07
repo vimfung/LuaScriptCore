@@ -78,7 +78,12 @@ namespace cn.vimfung.luascriptcore
 				Marshal.FreeHGlobal (funcPtr);
 			}
 
-			return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
+			if (size > 0)
+			{
+				return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
+			}
+
+			return new LuaValue ();
 		}
 	}
 }

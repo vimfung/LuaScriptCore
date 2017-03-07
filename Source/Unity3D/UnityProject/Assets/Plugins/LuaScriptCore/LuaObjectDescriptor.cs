@@ -10,7 +10,7 @@ namespace cn.vimfung.luascriptcore
 	/// </summary>
 	public class LuaObjectDescriptor : LuaBaseObject
 	{
-		private object _obj;
+		private LuaObjectReference _objRef;
 
 		/// <summary>
 		/// 获取对象
@@ -20,7 +20,7 @@ namespace cn.vimfung.luascriptcore
 		{
 			get
 			{
-				return _obj;
+				return _objRef.target;
 			}
 		}
 
@@ -30,7 +30,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="obj">对象</param>
 		public LuaObjectDescriptor(object obj)
 		{
-			_obj = obj;
+			_objRef = new LuaObjectReference(obj);
 			if (obj is LuaBaseObject)
 			{
 				_luaObjectId = (obj as LuaBaseObject).luaObjectId;
@@ -44,8 +44,8 @@ namespace cn.vimfung.luascriptcore
 		public LuaObjectDescriptor (LuaObjectDecoder decoder)
 			: base(decoder)
 		{
-			IntPtr ptr = new IntPtr (decoder.readInt64 ());
-			_obj = Marshal.GetObjectForIUnknown (ptr);
+			Int64 objRefId = decoder.readInt64 ();
+			_objRef = LuaObjectReference.findObject (objRefId);
 
 			_luaObjectId = decoder.readString ();
 		}
@@ -58,8 +58,7 @@ namespace cn.vimfung.luascriptcore
 		{
 			base.serialization (encoder);
 
-			IntPtr ptr = Marshal.GetIUnknownForObject (obj);
-			encoder.writeInt64 (ptr.ToInt64 ());
+			encoder.writeInt64 (_objRef.referenceId);
 			encoder.writeString (luaObjectId != null ? luaObjectId : "");
 		}
 	}

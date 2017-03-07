@@ -33,6 +33,15 @@ namespace cn
                 void retain ();
                 void release ();
                 
+                
+                /**
+                 查找对象
+
+                 @param objectId 对象标识
+                 @return 对象
+                 */
+                static LuaObject* findObject(int objectId);
+                
             public:
                 
                 /**

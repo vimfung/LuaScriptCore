@@ -19,6 +19,8 @@
 #include "LuaUnityModule.hpp"
 #include "LuaUnityEnv.hpp"
 #include "LuaFunction.h"
+#include "LuaPointer.h"
+#include "LuaTuple.h"
 
 #if defined (__cplusplus)
 extern "C" {
@@ -228,7 +230,7 @@ extern "C" {
             //paramsBuffer的内容由C#端进行释放
             const void *paramsBuffer = encoder -> cloneBuffer();
             void *returnBuffer = methodPtr(objectClass -> objectId(),
-                                           objDesc -> getObject(),
+                                           (long long) objDesc -> getObject(),
                                            methodName.c_str(),
                                            paramsBuffer,
                                            encoder -> getBufferLength());
@@ -273,7 +275,7 @@ extern "C" {
         if (methodHandler != NULL)
         {
             LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance -> value;
-            void *returnBuffer = methodHandler (unityObjectClass -> objectId(), objDesc -> getObject(), fieldName.c_str());
+            void *returnBuffer = methodHandler (unityObjectClass -> objectId(), (long long) objDesc -> getObject(), fieldName.c_str());
             
             LuaValue *retValue = NULL;
             if (returnBuffer != NULL)
@@ -331,7 +333,7 @@ extern "C" {
             
             LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance -> value;
             methodHandler (unityObjectClass -> objectId(),
-                           objDesc -> getObject(),
+                           (long long) objDesc -> getObject(),
                            fieldName.c_str(),
                            valueBuf,
                            encoder -> getBufferLength());
@@ -388,6 +390,8 @@ extern "C" {
         LuaObjectEncoder::setMappingClassType(typeid(LuaObjectDescriptor).name(), "cn.vimfung.luascriptcore.LuaObjectDescriptor");
         LuaObjectEncoder::setMappingClassType(typeid(LuaObjectInstanceDescriptor).name(), "cn.vimfung.luascriptcore.modules.oo.LuaObjectInstanceDescriptor");
         LuaObjectEncoder::setMappingClassType(typeid(LuaFunction).name(), "cn.vimfung.luascriptcore.LuaFunction");
+        LuaObjectEncoder::setMappingClassType(typeid(LuaPointer).name(), "cn.vimfung.luascriptcore.LuaPointer");
+        LuaObjectEncoder::setMappingClassType(typeid(LuaTuple).name(), "cn.vimfung.luascriptcore.LuaTuple");
         
         LuaContext *context = new LuaContext();
         LuaObjectManager::SharedInstance() -> putObject(context);
@@ -526,12 +530,12 @@ extern "C" {
 
             }
             
-            LuaValue *value = context -> callMethod(methodName, &args);
+            LuaValue *retValue = context -> callMethod(methodName, &args);
             
-            LuaObjectManager::SharedInstance() -> putObject(value);
-            int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
+            LuaObjectManager::SharedInstance() -> putObject(retValue);
+            int bufSize = LuaObjectEncoder::encodeObject(context, retValue, result);
             
-            value -> release();
+            retValue -> release();
             
             //释放参数内存
             for (LuaArgumentList::iterator it = args.begin(); it != args.end(); ++it)
@@ -583,12 +587,12 @@ extern "C" {
                 decoder -> release();
             }
             
-            LuaValue *value = func -> invoke(&args);
+            LuaValue *retValue = func -> invoke(&args);
             
-            LuaObjectManager::SharedInstance() -> putObject(value);
-            int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
+            LuaObjectManager::SharedInstance() -> putObject(retValue);
+            int bufSize = LuaObjectEncoder::encodeObject(context, retValue, result);
             
-            value -> release();
+            retValue -> release();
             
             //释放参数内存
             for (LuaArgumentList::iterator it = args.begin(); it != args.end(); ++it)

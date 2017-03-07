@@ -163,12 +163,17 @@ void LuaObjectEncoder::setMappingClassType(std::string className, std::string ma
 
 int LuaObjectEncoder::encodeObject(LuaContext *context, LuaObject *object, const void** bytes)
 {
-    LuaObjectEncoder *encoder = new LuaObjectEncoder(context);
-    encoder -> writeObject(object);
-    *bytes = (void *)encoder -> cloneBuffer();
+    if (bytes != NULL)
+    {
+        LuaObjectEncoder *encoder = new LuaObjectEncoder(context);
+        encoder -> writeObject(object);
+        *bytes = (void *)encoder -> cloneBuffer();
+        
+        int bufferLen = encoder -> getBufferLength();
+        encoder -> release();
+        
+        return bufferLen;
+    }
     
-    int bufferLen = encoder -> getBufferLength();
-    encoder -> release();
-    
-    return bufferLen;
+    return 0;
 }

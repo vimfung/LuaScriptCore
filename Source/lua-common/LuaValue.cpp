@@ -11,7 +11,6 @@
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectDescriptor.h"
-#include "lunity.h"
 #include "LuaFunction.h"
 #include "LuaTuple.h"
 #include "LuaNativeClass.hpp"
@@ -172,23 +171,17 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
         }
         case LuaValueTypeTuple:
         {
-            long long count = decoder -> readInt64();
-            LuaTuple *tuple = new LuaTuple();
-            for (int i = 0; i < count; ++i)
-            {
-                LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
-                if (item != NULL)
-                {
-                    tuple->addReturnValue(item);
-                }
-            }
-
-            _value = tuple;
+            _value = dynamic_cast<LuaTuple *>(decoder -> readObject());
             break;
         }
         case LuaValueTypeFunction:
         {
             _value = dynamic_cast<LuaFunction *>(decoder -> readObject());
+            break;
+        }
+        case LuaValueTypePtr:
+        {
+            _value = dynamic_cast<LuaPointer *>(decoder -> readObject());
             break;
         }
         case LuaValueTypeObject:
@@ -239,7 +232,8 @@ LuaValue::~LuaValue()
 
         if (_type != LuaValueTypePtr
             && _type != LuaValueTypeObject
-            && _type != LuaValueTypeFunction)
+            && _type != LuaValueTypeFunction
+            && _type != LuaValueTypeTuple)
         {
             delete (char *)_value;
         }
@@ -587,13 +581,7 @@ void LuaValue::serialization (LuaObjectEncoder *encoder)
         }
         case LuaValueTypeTuple:
         {
-            LuaTuple *tuple = toTuple();
-            encoder -> writeInt64(tuple -> count());
-            for (int i = 0; i < tuple->count(); ++i)
-            {
-                LuaValue *value = tuple -> getResturValueByIndex(i);
-                encoder -> writeObject(value);
-            }
+            encoder -> writeObject(toTuple());
             break;
         }
         case LuaValueTypeObject:

@@ -123,12 +123,17 @@ LuaObject* LuaObjectDecoder::readObject()
             {
                 //取出对象标识，并从对象管理器中查找是否存在此对象。
                 int objectId = readInt32();
-                LuaObject *obj = LuaObjectManager::SharedInstance() -> getObject(objectId);
+                LuaObject *obj = LuaObject::findObject(objectId);
                 if (obj == NULL)
                 {
                     //恢复读取对象标识的游标
                     _offset -= 4;
                     obj = (LuaObject *)nativeClass -> createInstance(this);
+                }
+                else
+                {
+                    //增加一次引用
+                    obj -> retain();
                 }
                 
                 return obj;
