@@ -15,3 +15,14 @@ function makeList()
 
     return list;
 end
+
+function getFunc()
+
+    return function (a, b)
+
+        print("------", a, b);
+        return a * b;
+
+    end
+
+end

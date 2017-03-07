@@ -558,7 +558,7 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                     //填充数据
                     for (int i = 0; i < tuple->count(); ++i)
                     {
-                        LuaValue *retValue = tuple -> getResturValueByIndex(i);
+                        LuaValue *retValue = tuple -> getReturnValueByIndex(i);
                         jobject jRetValue = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, retValue);
                         if (jRetValue != NULL)
                         {
