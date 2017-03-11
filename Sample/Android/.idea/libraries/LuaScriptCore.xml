@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="LuaScriptCore">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/app/src/main/libs/LuaScriptCore.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
