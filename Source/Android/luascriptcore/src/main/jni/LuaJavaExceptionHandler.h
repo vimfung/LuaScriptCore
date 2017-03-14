@@ -17,6 +17,7 @@ private:
 
 public:
     LuaJavaExceptionHandler(JNIEnv *env, jobject jcontext);
+    virtual ~LuaJavaExceptionHandler();
 };
 
 

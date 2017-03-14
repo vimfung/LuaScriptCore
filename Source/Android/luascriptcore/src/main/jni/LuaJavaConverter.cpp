@@ -564,6 +564,7 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                         {
                             env -> CallVoidMethod(retObj, addReturnValueMethodId, jRetValue);
                         }
+                        env -> DeleteLocalRef(jRetValue);
                     }
                 }
                 break;
@@ -670,7 +671,9 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContex
         }
         else
         {
-            retObj = env -> NewObject(jLuaValue, initMethodId, objectId, LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, luaValue));
+            jobject jObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, luaValue);
+            retObj = env -> NewObject(jLuaValue, initMethodId, objectId, jObj);
+            env -> DeleteLocalRef(jObj);
         }
     }
 
