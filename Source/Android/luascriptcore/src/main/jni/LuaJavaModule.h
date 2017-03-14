@@ -31,6 +31,11 @@ public:
             jclass moduleClass,
             jobjectArray methods);
 
+    /**
+     * 析构Java模块
+     */
+    virtual ~LuaJavaModule();
+
 public:
 
     /**

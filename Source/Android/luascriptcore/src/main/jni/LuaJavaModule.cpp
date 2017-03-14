@@ -41,11 +41,15 @@ static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodN
             LuaValue *argument = *it;
             jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, jmodule -> getContext(), argument);
             env -> SetObjectArrayElement(argumentArr, index, jArgument);
+            env -> DeleteLocalRef(jArgument);
             index++;
         }
 
         jobject result = env -> CallStaticObjectMethod(moduleClass, invokeMethodID, moduleClass, jMethodName, argumentArr);
         retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, jmodule -> getContext(), result);
+
+        env -> DeleteLocalRef(jMethodName);
+        env -> DeleteLocalRef(argumentArr);
     }
 
     LuaJavaEnv::resetEnv(env);
@@ -65,6 +69,16 @@ LuaJavaModule::LuaJavaModule(
 {
     _moduleClass = (jclass)env -> NewWeakGlobalRef(moduleClass);
     _methods = methods;
+}
+
+LuaJavaModule::~LuaJavaModule()
+{
+    JNIEnv *env = LuaJavaEnv::getEnv();
+
+    env -> DeleteLocalRef(_moduleClass);
+
+    LuaJavaEnv::resetEnv(env);
+
 }
 
 jclass LuaJavaModule::getModuleClass(JNIEnv *env)
