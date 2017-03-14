@@ -79,6 +79,7 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
                 LuaValue *argument = *it;
                 jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, argument);
                 env -> SetObjectArrayElement(argumentArr, index, jArgument);
+                env -> DeleteLocalRef(jArgument);
                 index++;
             }
 
@@ -91,6 +92,9 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
             {
                 retValue = new LuaValue();
             }
+
+            env -> DeleteLocalRef(argumentArr);
+            env -> DeleteLocalRef(jMethodName);
         }
     }
 
@@ -116,6 +120,7 @@ static void _luaExceptionHandler (LuaContext *context, std::string message)
             jstring messageStr = env -> NewStringUTF(message.c_str());
             jmethodID onExceptMethodId = env -> GetMethodID(env -> GetObjectClass(exceptHandler), "onException", "(Ljava/lang/String;)V");
             env -> CallVoidMethod(exceptHandler, onExceptMethodId, messageStr);
+            env -> DeleteLocalRef(messageStr);
         }
     }
 

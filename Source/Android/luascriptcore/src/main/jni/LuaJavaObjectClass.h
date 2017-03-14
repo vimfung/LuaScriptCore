@@ -59,6 +59,12 @@ public:
                        jobjectArray fields,
                        jobjectArray instanceMethods,
                        jobjectArray classMethods);
+
+    /**
+     * 析构Java类型
+     */
+    virtual ~LuaJavaObjectClass();
+
 public:
 
     /**

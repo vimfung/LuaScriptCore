@@ -123,11 +123,15 @@ static LuaValue* _luaClassMethodHandler(LuaModule *module, std::string methodNam
             LuaValue *argument = *it;
             jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, jmodule -> getContext(), argument);
             env -> SetObjectArrayElement(argumentArr, index, jArgument);
+            env -> DeleteLocalRef(jArgument);
             index++;
         }
 
         jobject result = env -> CallStaticObjectMethod(moduleClass, invokeMethodID, moduleClass, jMethodName, argumentArr);
         retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, jmodule -> getContext(), result);
+
+        env -> DeleteLocalRef(jMethodName);
+        env -> DeleteLocalRef(argumentArr);
     }
 
     LuaJavaEnv::resetEnv(env);
@@ -174,11 +178,15 @@ static LuaValue* _luaInstanceMethodHandler (cn::vimfung::luascriptcore::LuaUserd
         LuaValue *argument = *it;
         jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, objectClass -> getContext(), argument);
         env -> SetObjectArrayElement(argumentArr, index, jArgument);
+        env -> DeleteLocalRef(jArgument);
         index++;
     }
 
     jobject result = env -> CallObjectMethod(jInstance, invokeMethodID, jMethodName, argumentArr);
     retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, objectClass -> getContext(), result);
+
+    env -> DeleteLocalRef(jMethodName);
+    env -> DeleteLocalRef(argumentArr);
 
     LuaJavaEnv::resetEnv(env);
 
@@ -219,6 +227,8 @@ static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::LuaUserdata
         retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, objectClass -> getContext(), retObj);
     }
 
+    env -> DeleteLocalRef(fieldNameStr);
+
     LuaJavaEnv::resetEnv(env);
 
     if (retValue == NULL)
@@ -248,7 +258,12 @@ static void _luaClassSetterHandler (cn::vimfung::luascriptcore::LuaUserdataRef i
     jmethodID setFieldId = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_setField", "(Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
 
     jstring fieldNameStr = env -> NewStringUTF(fieldName.c_str());
-    env -> CallVoidMethod(jInstance, setFieldId, fieldNameStr, LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, objectClass -> getContext(), value));
+
+    jobject jValue = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, objectClass -> getContext(), value);
+    env -> CallVoidMethod(jInstance, setFieldId, fieldNameStr, jValue);
+    env -> DeleteLocalRef(jValue);
+
+    env -> DeleteLocalRef(fieldNameStr);
 
     LuaJavaEnv::resetEnv(env);
 }
@@ -290,6 +305,15 @@ LuaJavaObjectClass::LuaJavaObjectClass(JNIEnv *env,
     this -> onObjectDestroy(_luaClassObjectDestroy);
     this -> onObjectGetDescription(_luaClassObjectDescription);
     this -> onSubClass(_luaSubclassHandler);
+}
+
+LuaJavaObjectClass::~LuaJavaObjectClass()
+{
+    JNIEnv *env = LuaJavaEnv::getEnv();
+
+    env -> DeleteWeakGlobalRef(_moduleClass);
+
+    LuaJavaEnv::resetEnv(env);
 }
 
 jclass LuaJavaObjectClass::getModuleClass(JNIEnv *env)
