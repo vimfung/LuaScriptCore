@@ -107,6 +107,7 @@ static std::string _luaClassObjectDescription (cn::vimfung::luascriptcore::LuaUs
 static LuaValue* _luaClassMethodHandler(LuaModule *module, std::string methodName, LuaArgumentList arguments)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
+
     LuaValue *retValue = NULL;
 
     LuaJavaObjectClass *jmodule = (LuaJavaObjectClass *)module;
@@ -256,6 +257,7 @@ static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::LuaUserdata
 static void _luaClassSetterHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance, cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string fieldName, LuaValue *value)
 {
     using namespace cn::vimfung::luascriptcore;
+
     JNIEnv *env = LuaJavaEnv::getEnv();
 
     //转换为Java的实例对象

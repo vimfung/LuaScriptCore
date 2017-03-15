@@ -21,11 +21,22 @@ public class LogModule extends LuaModule
         Log.v("luascriptcore", message);
     }
 
-    public static LuaTuple test(String a, String b) {
+    public static LuaTuple test(String a, String b)
+    {
         LuaTuple tuple = new LuaTuple();
         tuple.addReturnValue(a);
         tuple.addReturnValue(b);
 
         return tuple;
+    }
+
+    public static void testObj(Object obj)
+    {
+        Log.v("lsc", obj.toString());
+    }
+
+    public static Object createObj ()
+    {
+        return new Object();
     }
 }
