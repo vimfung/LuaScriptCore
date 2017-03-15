@@ -35,7 +35,6 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         std::string valueStr = cstr;
         value = new LuaValue(valueStr);
         env -> ReleaseStringUTFChars(str, cstr);
-        env -> DeleteLocalRef(str);
     }
     else if (env -> IsInstanceOf(object, LuaJavaType::integerClass(env)) == JNI_TRUE)
     {
@@ -128,8 +127,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
             map[keyStr] = valueItem;
             env -> ReleaseStringUTFChars((jstring)key, keyStr);
 
-            env -> DeleteLocalRef(key);
             env -> DeleteLocalRef(item);
+            env -> DeleteLocalRef(key);
         }
 
         value = new LuaValue(map);
@@ -341,8 +340,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                 map[keyStr] = valueItem;
                 env -> ReleaseStringUTFChars((jstring)key, keyStr);
 
-                env -> DeleteLocalRef(key);
                 env -> DeleteLocalRef(item);
+                env -> DeleteLocalRef(key);
             }
 
             retValue = LuaValue::DictonaryValue(map);

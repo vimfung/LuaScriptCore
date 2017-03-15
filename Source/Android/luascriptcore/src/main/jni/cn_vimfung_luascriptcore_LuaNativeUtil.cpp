@@ -144,6 +144,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_evalScript
         retObj = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, value);
         value -> release();
         env -> ReleaseStringUTFChars(path, scriptPath);
+
     }
 
     return retObj;
