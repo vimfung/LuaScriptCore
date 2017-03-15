@@ -88,6 +88,8 @@ static std::string _luaClassObjectDescription (cn::vimfung::luascriptcore::LuaUs
     env -> ReleaseStringUTFChars(desc, descCStr);
     env -> DeleteLocalRef(desc);
 
+    env -> DeleteLocalRef(cls);
+
     LuaJavaEnv::resetEnv(env);
 
     return str;

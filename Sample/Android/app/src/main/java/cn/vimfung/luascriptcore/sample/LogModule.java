@@ -21,8 +21,7 @@ public class LogModule extends LuaModule
         Log.v("luascriptcore", message);
     }
 
-    public static LuaTuple test(String a, String b)
-    {
+    public static LuaTuple test(String a, String b) {
         LuaTuple tuple = new LuaTuple();
         tuple.addReturnValue(a);
         tuple.addReturnValue(b);
