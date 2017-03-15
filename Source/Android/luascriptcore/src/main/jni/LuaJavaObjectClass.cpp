@@ -86,6 +86,7 @@ static std::string _luaClassObjectDescription (cn::vimfung::luascriptcore::LuaUs
     const char *descCStr = env -> GetStringUTFChars(desc, NULL);
     str = descCStr;
     env -> ReleaseStringUTFChars(desc, descCStr);
+    env -> DeleteLocalRef(desc);
 
     LuaJavaEnv::resetEnv(env);
 
@@ -129,6 +130,7 @@ static LuaValue* _luaClassMethodHandler(LuaModule *module, std::string methodNam
 
         jobject result = env -> CallStaticObjectMethod(moduleClass, invokeMethodID, moduleClass, jMethodName, argumentArr);
         retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, jmodule -> getContext(), result);
+        env -> DeleteLocalRef(result);
 
         env -> DeleteLocalRef(jMethodName);
         env -> DeleteLocalRef(argumentArr);
@@ -184,6 +186,7 @@ static LuaValue* _luaInstanceMethodHandler (cn::vimfung::luascriptcore::LuaUserd
 
     jobject result = env -> CallObjectMethod(jInstance, invokeMethodID, jMethodName, argumentArr);
     retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, objectClass -> getContext(), result);
+    env -> DeleteLocalRef(result);
 
     env -> DeleteLocalRef(jMethodName);
     env -> DeleteLocalRef(argumentArr);
@@ -225,6 +228,7 @@ static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::LuaUserdata
     if (retObj != NULL)
     {
         retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, objectClass -> getContext(), retObj);
+        env -> DeleteLocalRef(retObj);
     }
 
     env -> DeleteLocalRef(fieldNameStr);
@@ -351,6 +355,9 @@ void LuaJavaObjectClass::onRegister(const std::string &name,
             const char *fieldNameCStr = env -> GetStringUTFChars(fieldName, NULL);
             this -> registerInstanceField(fieldNameCStr, _luaClassGetterHandler, _luaClassSetterHandler);
             env -> ReleaseStringUTFChars(fieldName, fieldNameCStr);
+
+            env -> DeleteLocalRef(fieldName);
+            env -> DeleteLocalRef(field);
         }
     }
 
@@ -366,6 +373,9 @@ void LuaJavaObjectClass::onRegister(const std::string &name,
             const char *methodNameCStr = env -> GetStringUTFChars(methodName, NULL);
             this -> registerInstanceMethod(methodNameCStr, _luaInstanceMethodHandler);
             env -> ReleaseStringUTFChars(methodName, methodNameCStr);
+
+            env -> DeleteLocalRef(methodName);
+            env -> DeleteLocalRef(method);
         }
     }
 
@@ -381,6 +391,9 @@ void LuaJavaObjectClass::onRegister(const std::string &name,
             const char *methodNameCStr = env -> GetStringUTFChars(methodName, NULL);
             this -> registerMethod(methodNameCStr, _luaClassMethodHandler);
             env -> ReleaseStringUTFChars(methodName, methodNameCStr);
+
+            env -> DeleteLocalRef(methodName);
+            env -> DeleteLocalRef(method);
         }
     }
 
