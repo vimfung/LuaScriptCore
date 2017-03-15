@@ -35,6 +35,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         std::string valueStr = cstr;
         value = new LuaValue(valueStr);
         env -> ReleaseStringUTFChars(str, cstr);
+        env -> DeleteLocalRef(str);
     }
     else if (env -> IsInstanceOf(object, LuaJavaType::integerClass(env)) == JNI_TRUE)
     {
@@ -77,6 +78,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         {
             jobject byteItem = env -> GetObjectArrayElement(byteArr, i);
             bytes[i] = env -> CallByteMethod(byteItem, byteValueMethodId);
+            env -> DeleteLocalRef(byteItem);
         }
 
         value = new LuaValue((const char *)bytes, (size_t)len);
@@ -94,6 +96,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         {
             jobject item = env -> CallObjectMethod(object, getMethodId, i);
             LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
+            env -> DeleteLocalRef(item);
         }
 
         value = new LuaValue(list);
@@ -124,9 +127,15 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
             LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
             map[keyStr] = valueItem;
             env -> ReleaseStringUTFChars((jstring)key, keyStr);
+
+            env -> DeleteLocalRef(key);
+            env -> DeleteLocalRef(item);
         }
 
         value = new LuaValue(map);
+
+        env -> DeleteLocalRef(keys);
+        env -> DeleteLocalRef(keySet);
     }
     else if (env -> IsInstanceOf(object, LuaJavaType::luaValueClass(env)) == JNI_TRUE)
     {
@@ -184,6 +193,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
                 tuple -> addReturnValue(value);
                 value -> release();
             }
+            env -> DeleteLocalRef(returnValue);
         }
 
         value = new LuaValue(tuple);
@@ -243,6 +253,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
 
     jobject itemType = env -> CallObjectMethod(value, typeMethodId);
     jint valueType = env -> CallIntMethod(itemType, typeValueMethodId);
+    env -> DeleteLocalRef(itemType);
 
     LuaValue *retValue = NULL;
     switch (valueType)
@@ -265,6 +276,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             const char *charStr = env -> GetStringUTFChars(strValue, NULL);
             retValue = LuaValue::StringValue(charStr);
             env -> ReleaseStringUTFChars(strValue, charStr);
+            env -> DeleteLocalRef(strValue);
             break;
         }
         case LuaValueTypeData:
@@ -276,6 +288,9 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             env -> GetByteArrayRegion(byteArr, 0, len, buffer);
 
             retValue = LuaValue::DataValue((const char *)buffer, (size_t)len);
+
+            env -> DeleteLocalRef(byteArr);
+
             break;
         }
         case LuaValueTypeArray:
@@ -291,9 +306,12 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             {
                 jobject item = env -> CallObjectMethod(arrayList, getMethodId, i);
                 LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
+                env -> DeleteLocalRef(item);
             }
 
             retValue = LuaValue::ArrayValue(list);
+
+            env -> DeleteLocalRef(arrayList);
             break;
         }
         case LuaValueTypeMap:
@@ -322,9 +340,16 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                 LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
                 map[keyStr] = valueItem;
                 env -> ReleaseStringUTFChars((jstring)key, keyStr);
+
+                env -> DeleteLocalRef(key);
+                env -> DeleteLocalRef(item);
             }
 
             retValue = LuaValue::DictonaryValue(map);
+
+            env -> DeleteLocalRef(keys);
+            env -> DeleteLocalRef(keySet);
+            env -> DeleteLocalRef(hashMap);
 
             break;
         }
@@ -346,6 +371,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                 retValue = new LuaValue();
             }
 
+            env -> DeleteLocalRef(jPointer);
+
             break;
         }
         case LuaValueTypeFunction:
@@ -365,6 +392,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             {
                 retValue = new LuaValue();
             }
+
+            env -> DeleteLocalRef(jFunction);
 
             break;
         }
@@ -387,9 +416,13 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                     tuple -> addReturnValue(item);
                     item -> release();
                 }
+
+                env -> DeleteLocalRef(returnValue);
             }
 
             retValue = new LuaValue(tuple);
+
+            env -> DeleteLocalRef(jTuple);
 
             break;
         }
@@ -423,6 +456,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                 {
                     objDesc->release();
                 }
+
+                env -> DeleteLocalRef(obj);
             }
             break;
         }
@@ -511,7 +546,8 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                         jobject itemObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, item);
                         if (keyStr != NULL && itemObj != NULL)
                         {
-                            env -> CallObjectMethod(retObj, putMethodId, keyStr, itemObj);
+                            jobject retObj = env -> CallObjectMethod(retObj, putMethodId, keyStr, itemObj);
+                            env -> DeleteLocalRef(retObj);
                         }
 
                         env -> DeleteLocalRef(keyStr);

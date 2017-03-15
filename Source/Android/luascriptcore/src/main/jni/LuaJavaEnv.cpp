@@ -15,6 +15,7 @@
 #include "LuaJavaObjectClass.h"
 #include "LuaValue.h"
 #include "LuaContext.h"
+#include "LuaDefine.h"
 
 /**
  * Java虚拟机对象
@@ -87,6 +88,7 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
             if (result != NULL)
             {
                 retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, result);
+                env -> DeleteLocalRef(result);
             }
             else
             {
@@ -121,6 +123,8 @@ static void _luaExceptionHandler (LuaContext *context, std::string message)
             jmethodID onExceptMethodId = env -> GetMethodID(env -> GetObjectClass(exceptHandler), "onException", "(Ljava/lang/String;)V");
             env -> CallVoidMethod(exceptHandler, onExceptMethodId, messageStr);
             env -> DeleteLocalRef(messageStr);
+
+            env -> DeleteLocalRef(exceptHandler);
         }
     }
 
@@ -292,6 +296,7 @@ std::string LuaJavaEnv::getJavaClassNameByInstance(JNIEnv *env, jobject instance
             const char *classNameCStr = env -> GetStringUTFChars(jclassName, NULL);
             className = classNameCStr;
             env -> ReleaseStringUTFChars(jclassName, classNameCStr);
+            env -> DeleteLocalRef(jclassName);
         }
     }
 
@@ -324,6 +329,7 @@ std::string LuaJavaEnv::getJavaClassName(JNIEnv *env, jclass cls)
     const char *nameCStr = env -> GetStringUTFChars(className, NULL);
     name = nameCStr;
     env -> ReleaseStringUTFChars(className, nameCStr);
+    env -> DeleteLocalRef(className);
 
     return name;
 }
