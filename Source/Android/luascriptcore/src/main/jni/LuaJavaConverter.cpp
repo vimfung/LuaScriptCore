@@ -612,7 +612,7 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                         || dynamic_cast<LuaJavaObjectInstanceDescriptor *>(objDesc) != NULL)
                 {
                     //如果为LuaJavaObjectDescriptor则转换为jobject类型
-                    retObj = (jobject)objDesc -> getObject();
+                    retObj = env -> NewLocalRef((jobject)objDesc -> getObject());
                 }
                 break;
             }
