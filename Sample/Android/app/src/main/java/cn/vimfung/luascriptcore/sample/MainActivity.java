@@ -159,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
                     _luaContext.registerModule(Console.class);
                 }
 
-                _luaContext.evalScript("Person.log(111);Console.log(22222);local person = Chinese.create(); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
+                _luaContext.evalScript("Person.log(111);Console.log(22222);local person = Chinese.create(); print(person); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
                 }
             });
         }
