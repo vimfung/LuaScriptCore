@@ -47,6 +47,7 @@ static LuaValue* _luaModuleMethodHandler (LuaModule *module, std::string methodN
 
         jobject result = env -> CallStaticObjectMethod(moduleClass, invokeMethodID, moduleClass, jMethodName, argumentArr);
         retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, jmodule -> getContext(), result);
+        env -> DeleteLocalRef(result);
 
         env -> DeleteLocalRef(jMethodName);
         env -> DeleteLocalRef(argumentArr);
@@ -111,6 +112,9 @@ void LuaJavaModule::onRegister(const std::string &name, cn::vimfung::luascriptco
         const char *methodNameCStr = env -> GetStringUTFChars(methodName, NULL);
         this -> registerMethod(methodNameCStr, _luaModuleMethodHandler);
         env -> ReleaseStringUTFChars(methodName, methodNameCStr);
+
+        env -> DeleteLocalRef(methodName);
+        env -> DeleteLocalRef(method);
     }
 
     LuaJavaEnv::resetEnv(env);

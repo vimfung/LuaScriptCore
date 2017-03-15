@@ -159,14 +159,17 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_callMethod
     {
         LuaArgumentList argumentList;
 
-        if (arguments != NULL) {
+        if (arguments != NULL)
+        {
             jsize length = env->GetArrayLength(arguments);
-            for (int i = 0; i < length; ++i) {
+            for (int i = 0; i < length; ++i)
+            {
                 jobject item = env->GetObjectArrayElement(arguments, i);
                 LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, item);
                 if (value != NULL) {
                     argumentList.push_back(value);
                 }
+                env -> DeleteLocalRef(item);
             }
         }
 
@@ -299,14 +302,18 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunc
         {
             LuaArgumentList argumentList;
 
-            if (arguments != NULL) {
+            if (arguments != NULL)
+            {
                 jsize length = env->GetArrayLength(arguments);
-                for (int i = 0; i < length; ++i) {
+                for (int i = 0; i < length; ++i)
+                {
                     jobject item = env->GetObjectArrayElement(arguments, i);
                     LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, item);
-                    if (value != NULL) {
+                    if (value != NULL)
+                    {
                         argumentList.push_back(value);
                     }
+                    env -> DeleteLocalRef(item);
                 }
             }
 
