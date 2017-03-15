@@ -148,23 +148,24 @@ JNIEnv* LuaJavaEnv::getEnv()
         if(status < 0)
         {
             status = _javaVM -> AttachCurrentThread(&_env, NULL);
-            if(status < 0)
+            if(status >= 0)
             {
-                return NULL;
+                _envRetainCount ++;
+                _attatedThread = true;
             }
-            _attatedThread = true;
+        }
+        else
+        {
+            _envRetainCount ++;
         }
     }
-
-    //增加引用次数
-    _envRetainCount++;
 
     return _env;
 }
 
 void LuaJavaEnv::resetEnv(JNIEnv *env)
 {
-    if (_envRetainCount > 0)
+    if (env && _envRetainCount > 0)
     {
         _envRetainCount --;
 
