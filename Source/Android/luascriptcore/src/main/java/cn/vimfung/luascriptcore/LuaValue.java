@@ -512,7 +512,7 @@ public class LuaValue extends LuaBaseObject
             return _valueContainer.toString();
         }
 
-        return null;
+        return "";
     }
 
     /**
