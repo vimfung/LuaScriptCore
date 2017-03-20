@@ -193,6 +193,11 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ge
                         dictValue[key->toString()] = item;
                         break;
                     default:
+                        if (!isArray)
+                        {
+                            //如果并非是数组而且key也不是指定类型，则对item进行释放，避免造成内存泄露
+                            item -> release();
+                        }
                         break;
                 }
 
