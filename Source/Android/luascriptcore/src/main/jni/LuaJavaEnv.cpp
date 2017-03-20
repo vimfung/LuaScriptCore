@@ -272,7 +272,7 @@ void LuaJavaEnv::releaseObject(JNIEnv *env, jint objectId)
     std::map<jint, jobject>::iterator it =  _javaObjectMap.find(objectId);
     if (it != _javaObjectMap.end())
     {
-        //为LuaContext对象,解除对象引用
+        //为LuaContext对象作处理,解除对象引用
         env -> DeleteWeakGlobalRef(it -> second);
         _javaObjectMap.erase(it);
     }

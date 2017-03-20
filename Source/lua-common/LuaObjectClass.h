@@ -127,6 +127,13 @@ namespace cn
                          */
                         LuaInstanceGetterMap _instanceGetterMap;
 
+                        /**
+                         * 获取元类类名
+                         *
+                         * @param className 类名
+                         */
+                        std::string _getMetaClassName(std::string className);
+
                     protected:
 
                         /**
