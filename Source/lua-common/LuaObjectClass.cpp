@@ -172,37 +172,6 @@ static int objectCreateHandler (lua_State *state)
 }
 
 /**
- * 更新类字段时触发
- *
- * @param state lua状态机
- *
- * @return 参数数量
- */
-static int objectNewIndexHandler (lua_State *state)
-{
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
-    //限于当前无法判断所定义的方法是使用.或:定义，因此对添加的属性或者方法统一添加到类表和实例元表中。
-    lua_pushvalue(state, 2);
-    lua_pushvalue(state, 3);
-    lua_rawset(state, 1);
-
-    //查找实例元表进行添加
-    lua_getfield(state, 1, "_nativeClass");
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_topointer(state, -1);
-    luaL_getmetatable(state, objectClass -> getName().c_str());
-    if (lua_istable(state, -1))
-    {
-        lua_pushvalue(state, 2);
-        lua_pushvalue(state, 3);
-        lua_rawset(state, -3);
-    }
-    lua_pop(state, 1);
-
-    return 0;
-}
-
-/**
  实例对象更新索引处理
 
  @param state 状态机
@@ -557,11 +526,6 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
         lua_pushvalue(state, -1);
         lua_setfield(state, -2, "__index");
 
-        //关联更新索引处理
-        lua_pushlightuserdata(state, context);
-        lua_pushcclosure(state, objectNewIndexHandler, 1);
-        lua_setfield(state, -2, "__newindex");
-
         //创建方法
         lua_pushlightuserdata(state, context);
         lua_pushlightuserdata(state, this);
@@ -594,21 +558,10 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
                 lua_setfield(state, -2, "super");
             }
         }
-        else
-        {
-            //为根类，则创建一个table作为元表
-            lua_newtable(state);
-
-            //关联更新索引处理
-            lua_pushlightuserdata(state, context);
-            lua_pushcclosure(state, objectNewIndexHandler, 1);
-            lua_setfield(state, -2, "__newindex");
-
-            lua_setmetatable(state, -2);
-        }
 
         //创建类实例元表
-        luaL_newmetatable(state, name.c_str());
+        std::string metaName = _getMetaClassName(name);
+        luaL_newmetatable(state, metaName.c_str());
 
         lua_pushlightuserdata(state, this);
         lua_setfield(state, -2, "_nativeClass");
@@ -624,10 +577,17 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
         lua_pushcclosure(state, objectToStringHandler, 1);
         lua_setfield(state, -2, "__tostring");
 
+        //给类元表绑定该实例元表
+        lua_getglobal(state, name.c_str());
+        lua_pushvalue(state, -2);
+        lua_setfield(state, -2, "prototype");
+        lua_pop(state, 1);
+
         if (_superClass != NULL)
         {
             //获取父级元表
-            luaL_getmetatable(state, _superClass -> getName().c_str());
+            std::string superClassMetaName = _getMetaClassName(_superClass -> getName());
+            luaL_getmetatable(state, superClassMetaName.c_str());
             if (lua_istable(state, -1))
             {
                 //设置父类访问属性 since ver 1.3
@@ -689,7 +649,8 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
     std::string setterMethodName = "set" + upperStr + fieldNameStr;
 
     lua_State *state = getContext() -> getLuaState();
-    luaL_getmetatable(state, getName().c_str());
+    std::string metaClassName = _getMetaClassName(getName());
+    luaL_getmetatable(state, metaClassName.c_str());
     if (lua_istable(state, -1))
     {
         lua_getfield(state, -1, setterMethodName.c_str());
@@ -776,7 +737,8 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceMe
 {
     _isInternalCall = true;
     lua_State *state = getContext() -> getLuaState();
-    luaL_getmetatable(state, getName().c_str());
+    std::string metaClassName = _getMetaClassName(getName());
+    luaL_getmetatable(state, metaClassName.c_str());
     if (lua_istable(state, -1))
     {
         lua_getfield(state, -1, methodName.c_str());
@@ -873,7 +835,8 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(
     lua_pushvalue(state, -1);
     lua_setmetatable(state, -3);
 
-    luaL_getmetatable(state, getName().c_str());
+    std::string metaClassName = _getMetaClassName(getName());
+    luaL_getmetatable(state, metaClassName.c_str());
     if (lua_istable(state, -1))
     {
         lua_setmetatable(state, -2);
@@ -966,4 +929,9 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInst
             lua_pop(state, 1);
         }
     }
+}
+
+std::string cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::_getMetaClassName(std::string className)
+{
+    return "_" + className + "_META_";
 }

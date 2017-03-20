@@ -517,11 +517,11 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                     {
                         LuaValue *item = *i;
                         jobject itemObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, item);
+                        env -> CallBooleanMethod(retObj, addMethodId, itemObj);
                         if (itemObj != NULL)
                         {
-                            env->CallBooleanMethod(retObj, addMethodId, itemObj);
+                            env -> DeleteLocalRef(itemObj);
                         }
-                        env -> DeleteLocalRef(itemObj);
                     }
                 }
                 break;
@@ -545,8 +545,8 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                         jobject itemObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, item);
                         if (keyStr != NULL && itemObj != NULL)
                         {
-                            jobject retObj = env -> CallObjectMethod(retObj, putMethodId, keyStr, itemObj);
-                            env -> DeleteLocalRef(retObj);
+                            jobject tmpObj = env -> CallObjectMethod(retObj, putMethodId, keyStr, itemObj);
+                            env -> DeleteLocalRef(tmpObj);
                         }
 
                         env -> DeleteLocalRef(keyStr);
@@ -698,16 +698,16 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContex
                 break;
         }
 
-        int objectId = LuaObjectManager::SharedInstance() -> putObject(luaValue);
+//        int objectId = LuaObjectManager::SharedInstance() -> putObject(luaValue);
 
         if (luaValue -> getType() == LuaValueTypeNil)
         {
-            retObj = env -> NewObject(jLuaValue, initMethodId, objectId);
+            retObj = env -> NewObject(jLuaValue, initMethodId, luaValue -> objectId());
         }
         else
         {
             jobject jObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, luaValue);
-            retObj = env -> NewObject(jLuaValue, initMethodId, objectId, jObj);
+            retObj = env -> NewObject(jLuaValue, initMethodId, luaValue -> objectId(), jObj);
             env -> DeleteLocalRef(jObj);
         }
     }
