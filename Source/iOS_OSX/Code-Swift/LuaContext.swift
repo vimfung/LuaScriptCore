@@ -40,6 +40,25 @@ public class LuaContext: NSObject
         }
     }
     
+    /// 设置全局变量
+    ///
+    /// - Parameters:
+    ///   - name: 变量名称
+    ///   - value: 变量值
+    public func setGlobal (name : String, value : LuaValue) -> Void
+    {
+        _rawContext.setGlobalWith(value.rawValue, forName: name);
+    }
+    
+    /// 获取全局变量
+    ///
+    /// - Parameter name: 变量名称
+    /// - Returns: 变量值
+    public func getGlobal (name : String) -> LuaValue
+    {
+        let value : LSCValue =  _rawContext.getGlobalForName(name);
+        return LuaValue(rawValue: value);
+    }
     
     /// 解析脚本
     ///

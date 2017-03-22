@@ -15,3 +15,4 @@
 
 //面向对象模块
 #import "LSCObjectClass.h"
+#import "LSCClassImport.h"

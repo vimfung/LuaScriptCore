@@ -21,6 +21,14 @@
 + (LSCValue *)valueWithContext:(LSCContext *)context atIndex:(NSInteger)index;
 
 /**
+ 入栈对象
+
+ @param object 对象
+ @param context 上下文对象
+ */
++ (void)pushObject:(id)object context:(LSCContext *)context;
+
+/**
  *  入栈数据
  *
  *  @param context 上下文对象
