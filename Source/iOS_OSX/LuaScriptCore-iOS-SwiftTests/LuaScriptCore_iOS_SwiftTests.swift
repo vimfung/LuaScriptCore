@@ -11,9 +11,13 @@ import XCTest
 
 class LuaScriptCore_iOS_SwiftTests: XCTestCase {
     
-    override func setUp() {
+    private var _context : LuaContext?;
+    
+    override func setUp()
+    {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
+        _context = LuaContext();
     }
     
     override func tearDown() {
@@ -21,16 +25,19 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testGetSetGlobal()
+    {
+        _context?.setGlobal(name: "abc", value: LuaValue(stringValue: "Hello World"));
+        let value : LuaValue = (_context?.getGlobal(name: "abc"))!;
+        NSLog("value = %@", value.stringValue);
     }
     
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    func testClassImport()
+    {
+        LSCClassImport.setInculdesClasses([Person.classForCoder()]);
+        _context?.registerModule(moduleClass: LSCClassImport.classForCoder());
+        
+        _ = _context?.evalScript(script: "local Person = ClassImport('LuaScriptCore_iOS_SwiftTests.Person'); local p = Person.createPerson(); p:setName('vim'); p:speak('Hello World!');");
     }
     
 }

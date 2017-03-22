@@ -335,36 +335,36 @@ static int objectToStringHandler (lua_State *state)
     return 1;
 }
 
-/**
- *  对象更新索引处理
- *
- *  @param state 状态机
- *
- *  @return 参数数量
- */
-static int objectNewIndexHandler (lua_State *state)
-{
-    //限于当前无法判断所定义的方法是使用.或:定义，因此对添加的属性或者方法统一添加到类表和实例元表中。
-    lua_pushvalue(state, 2);
-    lua_pushvalue(state, 3);
-    lua_rawset(state, 1);
-    
-    //查找实例元表进行添加
-    lua_getfield(state, 1, "_nativeClass");
-    Class moduleClass = (__bridge Class)lua_topointer(state, -1);
-    
-    NSString *metaClsName = [LSCObjectClass _metaClassNameWithClass:[moduleClass moduleName]];
-    luaL_getmetatable(state, metaClsName.UTF8String);
-    if (lua_istable(state, -1))
-    {
-        lua_pushvalue(state, 2);
-        lua_pushvalue(state, 3);
-        lua_rawset(state, -3);
-    }
-    lua_pop(state, 1);
-    
-    return 0;
-}
+///**
+// *  对象更新索引处理
+// *
+// *  @param state 状态机
+// *
+// *  @return 参数数量
+// */
+//static int objectNewIndexHandler (lua_State *state)
+//{
+//    //限于当前无法判断所定义的方法是使用.或:定义，因此对添加的属性或者方法统一添加到类表和实例元表中。
+//    lua_pushvalue(state, 2);
+//    lua_pushvalue(state, 3);
+//    lua_rawset(state, 1);
+//    
+//    //查找实例元表进行添加
+//    lua_getfield(state, 1, "_nativeClass");
+//    Class moduleClass = (__bridge Class)lua_topointer(state, -1);
+//    
+//    NSString *metaClsName = [LSCObjectClass _metaClassNameWithClass:[moduleClass moduleName]];
+//    luaL_getmetatable(state, metaClsName.UTF8String);
+//    if (lua_istable(state, -1))
+//    {
+//        lua_pushvalue(state, 2);
+//        lua_pushvalue(state, 3);
+//        lua_rawset(state, -3);
+//    }
+//    lua_pop(state, 1);
+//    
+//    return 0;
+//}
 
 /**
  实例对象更新索引处理
@@ -701,10 +701,10 @@ static int instanceOfHandler (lua_State *state)
     lua_pushvalue(state, -1);
     lua_setfield(state, -2, "__index");
     
-    //关联更新索引处理
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushcclosure(state, objectNewIndexHandler, 1);
-    lua_setfield(state, -2, "__newindex");
+//    //关联更新索引处理
+//    lua_pushlightuserdata(state, (__bridge void *)context);
+//    lua_pushcclosure(state, objectNewIndexHandler, 1);
+//    lua_setfield(state, -2, "__newindex");
     
     //写入模块标识
     lua_pushstring(state, NativeModuleType.UTF8String);
@@ -712,7 +712,7 @@ static int instanceOfHandler (lua_State *state)
     
     /**
      fixed : 由于OC中类方法存在继承关系，因此，直接导出某个类定义的类方法无法满足这种继承关系。
-     例如：moduleName方法在Object中定义，但是当其子类调用时由于只能取到当前导出方法的类型，无法取到调用方法的类型，因此导致逻辑处理的异常。
+     例如：moduleName方法在Object中定义，但是当其子类调用时由于只能取到当前导出方法的类型(Object)，无法取到调用方法的类型(即Object的子类)，因此导致逻辑处理的异常。
      所以，该处改为导出其继承的所有类方法来满足该功能需要。
     **/
     //导出声明的类方法
@@ -720,10 +720,6 @@ static int instanceOfHandler (lua_State *state)
                           module:cls
                          context:context
                filterMethodNames:@[@"moduleName", @"version"]];
-//    [self _exportModuleMethod:cls
-//                       module:cls
-//                      context:context
-//            filterMethodNames:nil];
     
     //添加创建对象方法
     lua_pushlightuserdata(state, (__bridge void *)context);
@@ -758,19 +754,19 @@ static int instanceOfHandler (lua_State *state)
             lua_setmetatable(state, -2);
         }
     }
-    else
-    {
-        //为根类，则创建一个table作为元表
-        lua_newtable(state);
-        
-        //关联更新索引处理
-        lua_pushlightuserdata(state, (__bridge void *)context);
-        lua_pushlightuserdata(state, (__bridge void *)cls);
-        lua_pushcclosure(state, objectNewIndexHandler, 2);
-        lua_setfield(state, -2, "__newindex");
-        
-        lua_setmetatable(state, -2);
-    }
+//    else
+//    {
+//        //为根类，则创建一个table作为元表
+//        lua_newtable(state);
+//        
+//        //关联更新索引处理
+//        lua_pushlightuserdata(state, (__bridge void *)context);
+//        lua_pushlightuserdata(state, (__bridge void *)cls);
+//        lua_pushcclosure(state, objectNewIndexHandler, 2);
+//        lua_setfield(state, -2, "__newindex");
+//        
+//        lua_setmetatable(state, -2);
+//    }
     
     lua_setglobal(state, [moduleName UTF8String]);
     
@@ -792,6 +788,12 @@ static int instanceOfHandler (lua_State *state)
     
     lua_pushcfunction(state, objectToStringHandler);
     lua_setfield(state, -2, "__tostring");
+    
+    //给类元表绑定该实例元表
+    lua_getglobal(state, [moduleName UTF8String]);
+    lua_pushvalue(state, -2);
+    lua_setfield(state, -2, "prototype");
+    lua_pop(state, 1);
     
     //注册实例方法
     NSMutableArray *filterMethodList = [NSMutableArray arrayWithObjects:
