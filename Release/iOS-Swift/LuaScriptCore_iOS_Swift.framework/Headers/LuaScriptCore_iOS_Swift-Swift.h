@@ -147,6 +147,23 @@ SWIFT_CLASS("_TtC23LuaScriptCore_iOS_Swift10LuaContext")
 */
 - (void)onExceptionWithHandler:(void (^ _Nonnull)(NSString * _Nullable))handler;
 /**
+  设置全局变量
+  \param name 变量名称
+
+  \param value 变量值
+
+*/
+- (void)setGlobalWithName:(NSString * _Nonnull)name value:(LuaValue * _Nonnull)value;
+/**
+  获取全局变量
+  \param name 变量名称
+
+
+  returns:
+  变量值
+*/
+- (LuaValue * _Nonnull)getGlobalWithName:(NSString * _Nonnull)name;
+/**
   解析脚本
   \param script 脚本字符串
 

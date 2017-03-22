@@ -185,24 +185,7 @@
             }
             else
             {
-                //先为实例对象在lua中创建内存
-                LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
-                //创建本地实例对象，赋予lua的内存块
-                ref -> value = (void *)CFBridgingRetain(self.valueContainer);
-                
-                //设置userdata的元表
-                luaL_getmetatable(state, "_ObjectReference_");
-                if (lua_isnil(state, -1))
-                {
-                    lua_pop(state, 1);
-                    
-                    //尚未注册_ObjectReference,开始注册对象
-                    luaL_newmetatable(state, "_ObjectReference_");
-                    
-                    lua_pushcfunction(state, objectReferenceGCHandler);
-                    lua_setfield(state, -2, "__gc");
-                }
-                lua_setmetatable(state, -2);
+                [LSCValue pushObject:self.valueContainer context:context];
             }
             
             break;
@@ -517,6 +500,30 @@
     }
     
     return value;
+}
+
++ (void)pushObject:(id)object context:(LSCContext *)context
+{
+    lua_State *state = context.state;
+    
+    //先为实例对象在lua中创建内存
+    LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+    //创建本地实例对象，赋予lua的内存块
+    ref -> value = (void *)CFBridgingRetain(object);
+    
+    //设置userdata的元表
+    luaL_getmetatable(state, "_ObjectReference_");
+    if (lua_isnil(state, -1))
+    {
+        lua_pop(state, 1);
+        
+        //尚未注册_ObjectReference,开始注册对象
+        luaL_newmetatable(state, "_ObjectReference_");
+        
+        lua_pushcfunction(state, objectReferenceGCHandler);
+        lua_setfield(state, -2, "__gc");
+    }
+    lua_setmetatable(state, -2);
 }
 
 /**
