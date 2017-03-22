@@ -39,7 +39,6 @@
         //设置搜索路径
         NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
         [self addSearchPath:resourcePath];
-        
     }
     
     return self;

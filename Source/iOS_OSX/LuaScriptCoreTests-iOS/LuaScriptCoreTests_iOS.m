@@ -10,6 +10,7 @@
 #import "LuaScriptCore.h"
 #import "TestModule.h"
 #import "Person.h"
+#import "NativePerson.h"
 #import "LSCTuple.h"
 
 @interface LuaScriptCoreTests_iOS : XCTestCase
@@ -86,7 +87,6 @@
     XCTAssertNotNil(resValue, "result value is nil");
     NSLog(@"resValue = %@", resValue);
     
-    
 }
 
 - (void)testRegisterModule
@@ -105,7 +105,7 @@
 - (void)testCreateObjectWithParams
 {
     [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"function Person:init(value) print(value); end local p = Person.create(); print(p);"];
+    [self.context evalScriptFromString:@"function Person.prototype:init(value) print(value); end local p = Person.create('xxx'); print(p);"];
 }
 
 - (void)testClassModuleName
@@ -129,7 +129,7 @@
 - (void)testClassMethodInherited
 {
     [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"Person.subclass('Chinese'); function Person:init () print ('Person init') end function Chinese:init () self.super.init(self); print ('Chinese init'); end local c = Chinese.create();"];
+    [self.context evalScriptFromString:@"Person.subclass('Chinese'); function Person.prototype:init () print ('Person init') end function Chinese.prototype:init () self.super.init(self); print ('Chinese init'); end local c = Chinese.create();"];
 }
 
 - (void)testSetGlobalVar
@@ -181,6 +181,14 @@
     }];
     
     [self.context evalScriptFromString:@"test(function() return 1,'Hello World',3; end); test(function() return 'xxxx'; end); test(function() end);"];
+}
+
+- (void)testObjProxy
+{
+    [LSCClassImport setInculdesClasses:@[[NativePerson class]]];
+    [self.context registerModuleWithClass:[LSCClassImport class]];
+    
+    [self.context evalScriptFromString:@"local Person = ClassImport('NativePerson'); print(Person); local p = Person.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
 }
 
 - (void)tearDown
