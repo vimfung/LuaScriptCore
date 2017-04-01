@@ -120,6 +120,51 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
+		/// 设置全局变量
+		/// </summary>
+		/// <param name="name">变量名称.</param>
+		/// <param name="value">变量值.</param>
+		public void setGlobal(string name, LuaValue value)
+		{
+			IntPtr valuePtr = IntPtr.Zero;
+			if (value != null)
+			{
+				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				encoder.writeObject (value);
+
+				byte[] bytes = encoder.bytes;
+				valuePtr = Marshal.AllocHGlobal (bytes.Length);
+				Marshal.Copy (bytes, 0, valuePtr, bytes.Length);
+			}
+				
+			NativeUtils.setGlobal (_nativeObjectId, name, valuePtr);
+
+			if (valuePtr != IntPtr.Zero)
+			{
+				Marshal.FreeHGlobal (valuePtr);
+			}
+		}
+
+		/// <summary>
+		/// 获取全局变量
+		/// </summary>
+		/// <returns>变量值.</returns>
+		/// <param name="name">变量名称.</param>
+		public LuaValue getGlobal(string name)
+		{
+			IntPtr valuePtr = IntPtr.Zero;
+			int size = NativeUtils.getGlobal (_nativeObjectId, name, out valuePtr);
+
+			if (valuePtr != IntPtr.Zero && size > 0)
+			{
+				LuaObjectDecoder decoder = new LuaObjectDecoder (valuePtr, size);
+				return decoder.readObject () as LuaValue;
+			}
+
+			return new LuaValue();
+		}
+
+		/// <summary>
 		/// 解析Lua脚本
 		/// </summary>
 		/// <returns>返回值</returns>

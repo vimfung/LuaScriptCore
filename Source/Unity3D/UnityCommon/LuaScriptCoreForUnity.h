@@ -71,6 +71,25 @@ extern "C" {
 	LuaScriptCoreApi extern void setExceptionHandler (int nativeContextId, LuaExceptionHandlerPtr handler);
     
     /**
+     设置全局变量
+
+     @param nativeContextId 本地上下文对象ID
+     @param name 变量名称
+     @param value 变量值
+     */
+    LuaScriptCoreApi extern void setGlobal(int nativeContextId, const char *name, const void *value);
+    
+    /**
+     获取全局变量
+
+     @param nativeContextId 本地上下文对象ID
+     @param name 变量名称
+     @param result 变量值缓存
+     @return 变量值缓存长度
+     */
+    LuaScriptCoreApi extern int getGlobal(int nativeContextId, const char *name, const void **result);
+    
+    /**
      解析Lua脚本
      
      @param nativeContextId 本地上下文对象ID

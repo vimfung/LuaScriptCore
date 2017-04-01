@@ -112,6 +112,25 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void setExceptionHandler (int contextId, IntPtr handlerRef);
 
 		/// <summary>
+		/// 设置全局变量
+		/// </summary>
+		/// <param name="contextId">Lua上下文对象的本地标识.</param>
+		/// <param name="name">变量名称.</param>
+		/// <param name="value">变量值.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void setGlobal (int contextId, string name, IntPtr value);
+
+		/// <summary>
+		/// 获取全局变量
+		/// </summary>
+		/// <returns>全局变量值缓存长度.</returns>
+		/// <param name="contextId">Lua上下文对象的本地标识.</param>
+		/// <param name="name">变量名称.</param>
+		/// <param name="resultBuffer">返回值缓存.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static int getGlobal (int contextId, string name, out IntPtr resultBuffer);
+
+		/// <summary>
 		/// 解析Lua脚本
 		/// </summary>
 		/// <returns>返回值的缓冲区大小</returns>
@@ -408,6 +427,25 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("__Internal")]
 		internal extern static void bindGetClassNameByInstanceHandler (IntPtr handler);
 
+		/// <summary>
+		/// 设置全局变量
+		/// </summary>
+		/// <param name="contextId">Lua上下文对象的本地标识.</param>
+		/// <param name="name">变量名称.</param>
+		/// <param name="value">变量值.</param>
+		[DllImport("__Internal")]
+		internal extern static void setGlobal (int contextId, string name, IntPtr value);
+
+		/// <summary>
+		/// 获取全局变量
+		/// </summary>
+		/// <returns>全局变量值缓存长度.</returns>
+		/// <param name="contextId">Lua上下文对象的本地标识.</param>
+		/// <param name="name">变量名称.</param>
+		/// <param name="resultBuffer">返回值缓存.</param>
+		[DllImport("__Internal")]
+		internal extern static int getGlobal (int contextId, string name, out IntPtr resultBuffer);
+
         /// <summary>
         /// 创建Lua上下文对象
         /// </summary>
@@ -560,6 +598,25 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="handler">处理器对象</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
 		internal extern static void bindGetClassNameByInstanceHandler (IntPtr handler);
+
+		/// <summary>
+		/// 设置全局变量
+		/// </summary>
+		/// <param name="contextId">Lua上下文对象的本地标识.</param>
+		/// <param name="name">变量名称.</param>
+		/// <param name="value">变量值.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static void setGlobal (int contextId, string name, IntPtr value);
+
+		/// <summary>
+		/// 获取全局变量
+		/// </summary>
+		/// <returns>全局变量值缓存长度.</returns>
+		/// <param name="contextId">Lua上下文对象的本地标识.</param>
+		/// <param name="name">变量名称.</param>
+		/// <param name="resultBuffer">返回值缓存.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static int getGlobal (int contextId, string name, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 创建Lua上下文对象

@@ -6,6 +6,7 @@
 #define ANDROID_LUAOBJECTDESC_H
 
 #include "LuaObject.h"
+#include "LuaContext.h"
 #include <string>
 
 namespace cn {
@@ -14,6 +15,11 @@ namespace cn {
 
             class LuaContext;
             class LuaObjectDecoder;
+
+            /**
+             * 对象入栈数据过滤器
+             */
+            typedef bool (*LuaObjectDescriptorPushFilter) (LuaContext *context, LuaObjectDescriptor *objectDescriptor);
 
             /**
              * Lua对象描述器
@@ -40,6 +46,15 @@ namespace cn {
                  * @param object 对象引用
                  */
                 void setObject(const void *object);
+
+            public:
+
+                /**
+                 * 添加对象入栈过滤器
+                 *
+                 * @param filter 过滤器
+                 */
+                static void addPushFilter(LuaObjectDescriptorPushFilter filter);
 
             public:
 
