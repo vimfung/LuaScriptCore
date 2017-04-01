@@ -112,12 +112,21 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void registerClassButtonClickedHandler()
 	{
-
 		if (!_isRegClass)
 		{
 			_isRegClass = true;
 			LuaContext.currentContext.registerModule<Person> ();
 		}
-		LuaContext.currentContext.evalScript ("local p = Person.createPerson(); print(p); p:setName('xxxx'); p:speak(); print(Person.printPerson(p));");
+		LuaContext.currentContext.evalScript ("function Person.prototype:init() print('Person create'); end; local p = Person.createPerson(); print(p); p:setName('xxxx'); p:speak(); print(Person.printPerson(p));");
+	}
+
+	/// <summary>
+	/// 全局变量操作按钮点击
+	/// </summary>
+	public void globalValueButtonClickedHandler ()
+	{
+		LuaContext.currentContext.setGlobal ("testVar", new LuaValue ("abc"));
+		LuaValue retValue = LuaContext.currentContext.getGlobal ("testVar");
+		Debug.Log (string.Format ("retValue = {0}", retValue.toString()));
 	}
 }

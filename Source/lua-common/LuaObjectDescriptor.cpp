@@ -15,6 +15,11 @@ using namespace cn::vimfung::luascriptcore;
 DECLARE_NATIVE_CLASS(LuaObjectDescriptor);
 
 /**
+ * 过滤列表
+ */
+static std::list<LuaObjectDescriptorPushFilter> _pushFilters;
+
+/**
  对象引用回收处理
 
  @param state Lua状态机
@@ -59,6 +64,11 @@ LuaObjectDescriptor::~LuaObjectDescriptor()
     _object = NULL;
 }
 
+void LuaObjectDescriptor::addPushFilter(LuaObjectDescriptorPushFilter filter)
+{
+    _pushFilters.push_back(filter);
+}
+
 std::string LuaObjectDescriptor::typeName()
 {
     static std::string name = typeid(LuaObjectDescriptor).name();
@@ -87,6 +97,17 @@ std::string LuaObjectDescriptor::getReferenceId()
 
 void LuaObjectDescriptor::push(LuaContext *context)
 {
+    //先判断是否有过滤器进行过滤
+    for (std::list<LuaObjectDescriptorPushFilter>::iterator it = _pushFilters.begin(); it != _pushFilters.end() ; ++it)
+    {
+        LuaObjectDescriptorPushFilter filter = *it;
+        if (filter != NULL && filter(context, this))
+        {
+            //返回，不往下执行
+            return;
+        }
+    }
+
     lua_State *state = context -> getLuaState();
 
     //创建userdata

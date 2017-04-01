@@ -147,10 +147,11 @@ public:
      *
      * @param env JNI环境
      * @param cls 类型
+     * @param simpleName 是否返回简单的类名，true 表示返回类名不带包名，false 表示带包名
      *
      * @return 类型名称
      */
-    static std::string getJavaClassName(JNIEnv *env, jclass cls);
+    static std::string getJavaClassName(JNIEnv *env, jclass cls, bool simpleName);
 };
 
 

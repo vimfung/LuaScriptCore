@@ -403,7 +403,7 @@ static int instanceSetterRouteHandler (lua_State *state)
 
         cn::vimfung::luascriptcore::LuaValue *value = NULL;
         int top = lua_gettop(state);
-        if (top > 0)
+        if (top > 1)
         {
             value = context -> getValueByIndex(2);
         }
@@ -643,7 +643,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
     //与iOS中的属性getter和setter方法保持一致, getter直接是属性名称,setter则需要将属性首字母大写并在前面加上set
     _isInternalCall = true;
     char upperCStr[2] = {0};
-    upperCStr[0] = toupper(fieldName[0]);
+    upperCStr[0] = (char)toupper(fieldName[0]);
     std::string upperStr = upperCStr;
     std::string fieldNameStr = fieldName.c_str() + 1;
     std::string setterMethodName = "set" + upperStr + fieldNameStr;
