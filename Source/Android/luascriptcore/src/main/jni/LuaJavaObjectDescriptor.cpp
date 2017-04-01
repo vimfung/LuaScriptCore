@@ -23,27 +23,3 @@ LuaJavaObjectDescriptor::~LuaJavaObjectDescriptor()
     env -> DeleteGlobalRef((jobject)getObject());
     LuaJavaEnv::resetEnv(env);
 }
-
-//void LuaJavaObjectDescriptor::push(LuaContext *context)
-//{
-//    bool process = false;
-//
-//    JNIEnv *env = LuaJavaEnv::getEnv();
-//
-//    jobject obj = (jobject)getObject();
-//    if (env -> IsInstanceOf(obj, LuaJavaType::luaObjectClass(env)))
-//    {
-//        LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, obj, context);
-//        objectClass -> push(this);
-//        process = true;
-//    }
-//
-//    LuaJavaEnv::resetEnv(env);
-//
-//    if (!process)
-//    {
-//        //调用父类方法
-//        LuaObjectDescriptor::push(context);
-//    }
-//
-//}

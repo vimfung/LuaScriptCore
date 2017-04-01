@@ -2,6 +2,8 @@ package cn.vimfung.luascriptcore;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Set;
 
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
@@ -147,5 +149,19 @@ public class LuaNativeUtil
             LuaContext context,
             LuaFunction func,
             LuaValue[] arguments);
+
+    /**
+     * 注册类型导入模块
+     * @param context 上下文对象
+     * @param moduleName 模块名称
+     */
+    public static native void registerClassImport(LuaContext context, String moduleName);
+
+    /**
+     * 设置导出的类型集合，必须在registerClassImport方法后调用
+     * @param classes 类型集合
+     */
+    public static native void setInculdesClasses(LuaContext context, List<Class> classes);
+
 
 }

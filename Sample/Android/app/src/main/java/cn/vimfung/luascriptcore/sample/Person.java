@@ -28,6 +28,16 @@ public class Person extends LuaObjectClass
         Log.v("luascriptcore", String.format("%s walk", name));
     }
 
+    public static void printPersonName(Person p)
+    {
+        Log.v("lsc", p.name);
+    }
+
+    public static Person createPerson()
+    {
+        return new Person();
+    }
+
     public static LuaTuple test(String a, String b)
     {
         LuaTuple tuple = new LuaTuple();

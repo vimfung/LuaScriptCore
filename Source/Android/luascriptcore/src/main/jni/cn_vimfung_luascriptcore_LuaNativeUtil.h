@@ -120,6 +120,22 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerC
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunction
   (JNIEnv *, jclass, jobject, jobject, jobjectArray);
 
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    setInculdesClasses
+ * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Lcn/vimfung/luascriptcore/LuaFunction;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;
+ */
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_setInculdesClasses
+        (JNIEnv *, jclass, jobject, jobject);
+
+/*
+ * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
+ * Method:    registerClassImport
+ * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Lcn/vimfung/luascriptcore/LuaFunction;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;
+ */
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClassImport
+        (JNIEnv *, jclass, jobject, jstring);
+
 #ifdef __cplusplus
 }
 #endif

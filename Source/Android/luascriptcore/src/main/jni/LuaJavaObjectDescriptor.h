@@ -29,15 +29,6 @@ public:
      * 描述器对象析构方法
      */
     virtual ~LuaJavaObjectDescriptor();
-
-public:
-
-    /**
-     * 入栈数据
-     *
-     * @param context 上下文对象
-     */
-//    void push(LuaContext *context);
 };
 
 

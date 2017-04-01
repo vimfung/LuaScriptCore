@@ -102,14 +102,17 @@ static NSString *const ProxyTableName = @"_import_classes_";
             lua_pop(state, 1);
             
             //导出代理类型
-            void **clsUserData = lua_newuserdata(state, sizeof(Class));
-            *clsUserData = (__bridge void *)(cls);
+            LSCUserdataRef userdataRef = lua_newuserdata(state, sizeof(LSCUserdataRef));
+            userdataRef -> value = (void *)CFBridgingRetain(cls);
 
             //建立代理类元表
             lua_newtable(state);
             
             lua_pushvalue(state, -1);
             lua_setfield(state, -2, "__index");
+            
+            lua_pushcfunction(state, objectDestroyHandler);
+            lua_setfield(state, -2, "__gc");
             
             //添加创建对象方法
             lua_pushlightuserdata(state, (__bridge void *)context);

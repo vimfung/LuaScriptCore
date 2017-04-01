@@ -210,7 +210,14 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
             {
                 //为LuaObjectClass
                 LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, object, context);
-                objDesc = new LuaJavaObjectInstanceDescriptor(env, object, objectClass);
+                if (objectClass != NULL)
+                {
+                    objDesc = new LuaJavaObjectInstanceDescriptor(env, object, objectClass);
+                }
+                else
+                {
+                    objDesc = new LuaJavaObjectDescriptor(env, object);
+                }
             }
             else
             {
@@ -439,7 +446,14 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                     {
                         //为LuaObjectClass
                         LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, obj, context);
-                        objDesc = new LuaJavaObjectInstanceDescriptor(env, obj, objectClass);
+                        if (objectClass != NULL)
+                        {
+                            objDesc = new LuaJavaObjectInstanceDescriptor(env, obj, objectClass);
+                        }
+                        else
+                        {
+                            objDesc = new LuaJavaObjectDescriptor(env, obj);
+                        }
                     }
                     else
                     {
