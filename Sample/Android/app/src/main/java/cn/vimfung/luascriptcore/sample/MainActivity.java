@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import cn.vimfung.luascriptcore.LuaContext;
@@ -26,6 +27,7 @@ import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
 import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
+import cn.vimfung.luascriptcore.modules.oo.LuaClassImport;
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
 
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean _hasRegMethod;
     private boolean _hasRegModule;
     private boolean _hasRegClass;
+    private boolean _useClassProxy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,8 +141,8 @@ public class MainActivity extends AppCompatActivity {
                         _luaContext.registerModule(LogModule.class);
                     }
 
-//                    _luaContext.evalScript("LogModule.writeLog('Hello Lua Module!');");
-                    _luaContext.evalScript("LogModule.testObj(LogModule.createObj());");
+                    _luaContext.evalScript("LogModule.writeLog('Hello Lua Module!');");
+//                    _luaContext.evalScript("LogModule.testObj(LogModule.createObj());");
                 }
             });
         }
@@ -161,6 +164,29 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 _luaContext.evalScript("Person.subclass('Chinese'); print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
+                }
+            });
+        }
+
+        Button importNativeClssBtn = (Button) findViewById(R.id.classProxyButton);
+        if (importNativeClssBtn != null)
+        {
+            importNativeClssBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if (!_useClassProxy)
+                    {
+                        _useClassProxy = true;
+                        _luaContext.registerModule(LuaClassImport.class);
+
+                        //设置允许导出的类型
+                        ArrayList<Class> exportsClasses = new ArrayList<Class>();
+                        exportsClasses.add(Person.class);
+                        LuaClassImport.setInculdesClasses(_luaContext, exportsClasses);
+                    }
+
+                    _luaContext.evalScript("local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person'); print(Person);local p = Person.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
                 }
             });
         }

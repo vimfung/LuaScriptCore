@@ -495,6 +495,39 @@ extern "C" {
         return 0;
     }
     
+    void setGlobal(int nativeContextId, const char *name, const void *value)
+    {
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL)
+        {
+            LuaObjectDecoder *decoder = new LuaObjectDecoder(context, value);
+            
+            LuaValue *value =  (LuaValue *)decoder -> readObject();
+            context -> setGlobal(name, value);
+            value -> release();
+            
+            decoder -> release();
+        }
+    }
+    
+    int getGlobal(int nativeContextId, const char *name, const void **result)
+    {
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL)
+        {
+            LuaValue *value = context -> getGlobal(name);
+            
+            LuaObjectManager::SharedInstance() -> putObject(value);
+            int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
+            
+            value -> release();
+            
+            return bufSize;
+        }
+        
+        return 0;
+    }
+    
     
     /**
      调用方法

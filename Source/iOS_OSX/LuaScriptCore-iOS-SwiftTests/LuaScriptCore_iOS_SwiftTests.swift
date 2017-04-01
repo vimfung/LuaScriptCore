@@ -34,8 +34,8 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
     
     func testClassImport()
     {
-        LSCClassImport.setInculdesClasses([Person.classForCoder()]);
-        _context?.registerModule(moduleClass: LSCClassImport.classForCoder());
+        LSCClassImport.setInculdesClasses([Person.self]);
+        _context?.registerModule(moduleClass: LSCClassImport.self);
         
         _ = _context?.evalScript(script: "local Person = ClassImport('LuaScriptCore_iOS_SwiftTests.Person'); local p = Person.createPerson(); p:setName('vim'); p:speak('Hello World!');");
     }

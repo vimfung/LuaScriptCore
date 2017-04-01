@@ -18,6 +18,8 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/LuaJavaObjectDescriptor.cpp \
 	$(LOCAL_PATH)/LuaJavaObjectInstanceDescriptor.cpp \
 	$(LOCAL_PATH)/LuaJavaType.cpp \
+	$(LOCAL_PATH)/LuaJavaClassImport.cpp \
+	$(LOCAL_PATH)/LuaJavaExportClassProxy.cpp \
 	$(LOCAL_PATH)/../../../../../lua-core/src/lapi.c \
 	$(LOCAL_PATH)/../../../../../lua-core/src/lauxlib.c \
 	$(LOCAL_PATH)/../../../../../lua-core/src/lbaselib.c \
@@ -68,6 +70,9 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaPointer.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaValue.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaTuple.cpp \
+	$(LOCAL_PATH)/../../../../../lua-common/LuaClassImport.cpp \
+	$(LOCAL_PATH)/../../../../../lua-common/LuaExportClassProxy.cpp \
+	$(LOCAL_PATH)/../../../../../lua-common/StringUtils.cpp
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../lua-core/src
