@@ -72,7 +72,80 @@ extern "C" {
      Lua异常处理器
      */
     typedef void (*LuaExceptionHandlerPtr) (const void *);
-        
+    
+    /**
+     允许类型导出处理器
+     */
+    typedef bool (*LuaAllowExportsClassHandlerPtr) (int contextId, const char *className);
+    
+    /**
+     获取所有导出类方法
+     */
+    typedef void* (*LuaAllExportClassMethodHandlerPtr) (int contextId, const char *className);
+    
+    /**
+     获取所有导出实例方法
+     */
+    typedef void* (*LuaAllExportInstanceMethodHandlerPtr) (int contextId, const char *className);
+    
+    /**
+     获取所有导出字段Getter方法
+     */
+    typedef void* (*LuaAllExportFieldGetterHandlerPtr) (int contextId, const char *className);
+    
+    /**
+     获取所有导出字段Setter方法
+     */
+    typedef void* (*LuaAllExportFieldSetterHandlerPtr) (int contextId, const char *className);
+    
+    /**
+     创建原生对象实例
+     */
+    typedef long long (*LuaCreateNativeObjectHandlerPtr) (int contextId, const char *className);
+    
+    /**
+     * 类方法调用处理器
+     */
+    typedef void* (*LuaNativeClassMethodInvokeHandlerPtr) (
+        int contextId,
+        const char *className,
+        const char *methodName,
+        const void *argumentsBuffer,
+        int bufferSize);
+    
+    /**
+     * 实例方法调用处理器
+     */
+    typedef void* (*LuaNativeInstanceMethodInvokeHandlerPtr) (
+        int contextId,
+        const char *className,
+        long long instance,
+        const char *methodName,
+        const void *argumentsBuffer,
+        int bufferSize);
+    
+    /**
+     Lua实例字段获取器
+     */
+    typedef void* (*LuaNativeFieldGetterHandlerPtr) (
+        int contextId,
+        const char *className,
+        long long instance,
+        const char *fieldName);
+    
+    /**
+     Lua实例字段设置处理器
+     */
+    typedef void (*LuaNativeFieldSetterHandlerPtr) (
+        int contextId,
+        const char *className,
+        long long instance,
+        const char *fieldName,
+        const void *valueBuffer,
+        int bufferSize);
+    
+    
+    
     typedef std::map<std::string, LuaMethodHandlerPtr> LuaMethodPtrMap;
     typedef std::map<int, LuaExceptionHandlerPtr> LuaContextExceptionPtrMap;
     typedef std::map<int, LuaMethodPtrMap> LuaContextMethodPtrMap;

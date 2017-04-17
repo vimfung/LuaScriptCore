@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using cn.vimfung.luascriptcore.modules.oo;
 using System.CodeDom;
 using System;
+using System.Reflection;
 
 public class Sample : MonoBehaviour {
 
@@ -128,5 +129,16 @@ public class Sample : MonoBehaviour {
 		LuaContext.currentContext.setGlobal ("testVar", new LuaValue ("abc"));
 		LuaValue retValue = LuaContext.currentContext.getGlobal ("testVar");
 		Debug.Log (string.Format ("retValue = {0}", retValue.toString()));
+	}
+
+	/// <summary>
+	/// 导入类型按钮点击事件
+	/// </summary>
+	public void importClassButtonClickedHandler ()
+	{
+		LuaContext.currentContext.registerModule<LuaClassImport> ();
+		LuaClassImport.setIncludesClasses (LuaContext.currentContext, new List<Type> (){ typeof(Person) });
+
+		LuaContext.currentContext.evalScript ("local Person = ClassImport('Person'); print(Person); local p = Person.create(); print(p); p:setName('xxxx'); print(Person.printPerson); p = Person.printPerson(p); print(p); print(p:name());");
 	}
 }

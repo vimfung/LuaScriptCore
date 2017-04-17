@@ -185,8 +185,8 @@
 
 - (void)testObjProxy
 {
-    [LSCClassImport setInculdesClasses:@[[NativePerson class]]];
     [self.context registerModuleWithClass:[LSCClassImport class]];
+    [LSCClassImport setInculdesClasses:@[[NativePerson class]] withContext:_context];
     
     [self.context evalScriptFromString:@"local Person = ClassImport('NativePerson'); print(Person); local p = Person.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
 }

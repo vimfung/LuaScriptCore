@@ -21,6 +21,7 @@
 #include "LuaFunction.h"
 #include "LuaPointer.h"
 #include "LuaTuple.h"
+#include "LuaUnityClassImport.hpp"
 
 #if defined (__cplusplus)
 extern "C" {
@@ -857,6 +858,43 @@ extern "C" {
         }
         
         return objectClass != NULL ? objectClass -> objectId() : -1;
+    }
+    
+    void registerClassImport(int nativeContextId,
+                             const char *className,
+                             LuaAllowExportsClassHandlerPtr allowExportsClassHandler,
+                             LuaAllExportClassMethodHandlerPtr allExportClassMethods,
+                             LuaAllExportInstanceMethodHandlerPtr allExportInstanceMethods,
+                             LuaAllExportFieldGetterHandlerPtr allExportGetterFields,
+                             LuaAllExportFieldSetterHandlerPtr allExportSetterFields,
+                             LuaCreateNativeObjectHandlerPtr instanceCreateHandler,
+                             LuaNativeClassMethodInvokeHandlerPtr classMethodInvokeHandler,
+                             LuaNativeInstanceMethodInvokeHandlerPtr instanceMethodInvokeHandler,
+                             LuaNativeFieldGetterHandlerPtr fieldGetterHandler,
+                             LuaNativeFieldSetterHandlerPtr fieldSetterHandler)
+    {
+        using namespace cn::vimfung::luascriptcore::modules::oo;
+        
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL)
+        {
+            LuaUnityClassImport *classImport = new LuaUnityClassImport();
+            
+            classImport -> setAllowExportsClassHandler(allowExportsClassHandler);
+            classImport -> setAllExportClassMethodHandler(allExportClassMethods);
+            classImport -> setAllExportInstanceMethodHandler(allExportInstanceMethods);
+            classImport -> setAllExportInstanceFieldGetterHandler(allExportGetterFields);
+            classImport -> setAllExportInstanceFieldSetterHandler(allExportSetterFields);
+            classImport -> setCreateObjectHandler(instanceCreateHandler);
+            classImport -> setClassMethodInvokeHandler(classMethodInvokeHandler);
+            classImport -> setInstanceMethodInvokeHandler(instanceMethodInvokeHandler);
+            classImport -> setFieldGetterHandler(fieldGetterHandler);
+            classImport -> setFieldSetterHandler(fieldSetterHandler);
+            
+            context -> registerModule(className, classImport);
+            
+            classImport -> release();
+        }
     }
     
 #if defined (__cplusplus)

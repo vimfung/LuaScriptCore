@@ -1,8 +1,9 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11201" systemVersion="15G1004" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
         <deployment identifier="macosx"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11201"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12118"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--Application-->
@@ -654,7 +655,7 @@
                     <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" oneShot="NO" releasedWhenClosed="NO" showsToolbarButton="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-                        <rect key="contentRect" x="196" y="240" width="480" height="270"/>
+                        <rect key="contentRect" x="196" y="240" width="480" height="320"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
                     </window>
                     <connections>
@@ -663,7 +664,7 @@
                 </windowController>
                 <customObject id="Oky-zY-oP4" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="75" y="250"/>
+            <point key="canvasLocation" x="75" y="235"/>
         </scene>
         <!--View Controller-->
         <scene sceneID="hIz-AP-VOD">
@@ -726,9 +727,20 @@
                                     <action selector="registerClassClickedHandler:" target="XfG-lQ-9wD" id="eci-MC-nOd"/>
                                 </connections>
                             </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="PdR-JO-wM5">
+                                <rect key="frame" x="164" y="7" width="152" height="32"/>
+                                <buttonCell key="cell" type="push" title="Import Native Class" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="f3W-gI-nlv">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="importNativeClassClickedHandler:" target="XfG-lQ-9wD" id="Teo-ck-Cdg"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <constraints>
                             <constraint firstItem="iiF-Mx-EeN" firstAttribute="width" secondItem="zsk-bF-SUz" secondAttribute="width" id="BBF-Ce-fAH"/>
+                            <constraint firstItem="PdR-JO-wM5" firstAttribute="top" secondItem="fJJ-eH-EC4" secondAttribute="bottom" constant="20" id="Dw6-SC-XRn"/>
                             <constraint firstItem="iiF-Mx-EeN" firstAttribute="centerX" secondItem="zsk-bF-SUz" secondAttribute="centerX" id="GGR-EY-LBH"/>
                             <constraint firstItem="kNb-Zq-JfP" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="30" id="KcO-ae-3k4"/>
                             <constraint firstItem="fJJ-eH-EC4" firstAttribute="width" secondItem="974-f6-pX3" secondAttribute="width" id="OB5-Hx-vEL"/>
@@ -737,8 +749,10 @@
                             <constraint firstItem="kNb-Zq-JfP" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" id="Ww3-Ua-3RU"/>
                             <constraint firstItem="zsk-bF-SUz" firstAttribute="width" secondItem="kNb-Zq-JfP" secondAttribute="width" id="XCL-44-QgX"/>
                             <constraint firstItem="974-f6-pX3" firstAttribute="width" secondItem="iiF-Mx-EeN" secondAttribute="width" id="Zc8-VO-ufu"/>
+                            <constraint firstItem="PdR-JO-wM5" firstAttribute="centerX" secondItem="fJJ-eH-EC4" secondAttribute="centerX" id="aWA-B8-obu"/>
                             <constraint firstItem="974-f6-pX3" firstAttribute="centerX" secondItem="iiF-Mx-EeN" secondAttribute="centerX" id="ctU-fA-636"/>
                             <constraint firstItem="zsk-bF-SUz" firstAttribute="centerX" secondItem="kNb-Zq-JfP" secondAttribute="centerX" id="cvD-CS-Or9"/>
+                            <constraint firstItem="PdR-JO-wM5" firstAttribute="width" secondItem="fJJ-eH-EC4" secondAttribute="width" id="fbk-bz-hUJ"/>
                             <constraint firstItem="974-f6-pX3" firstAttribute="top" secondItem="iiF-Mx-EeN" secondAttribute="bottom" constant="20" id="whF-fF-hJh"/>
                             <constraint firstItem="zsk-bF-SUz" firstAttribute="top" secondItem="kNb-Zq-JfP" secondAttribute="bottom" constant="20" id="wpz-H3-fkx"/>
                             <constraint firstItem="fJJ-eH-EC4" firstAttribute="centerX" secondItem="974-f6-pX3" secondAttribute="centerX" id="xtb-kJ-Ing"/>

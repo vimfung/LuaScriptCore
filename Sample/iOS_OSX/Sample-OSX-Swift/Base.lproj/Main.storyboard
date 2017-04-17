@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="11542" systemVersion="15G1004" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="11542"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12118"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -738,6 +738,16 @@
                                     <action selector="regClassButtonClickedHandler:" target="XfG-lQ-9wD" id="VrQ-Cl-QDa"/>
                                 </connections>
                             </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FuS-aD-jCq">
+                                <rect key="frame" x="164" y="7" width="152" height="32"/>
+                                <buttonCell key="cell" type="push" title="Import Native Class" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="vjM-NX-6YZ">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                    <connections>
+                                        <action selector="importNativeClassButtonClickedHandler:" target="XfG-lQ-9wD" id="PW3-9k-xFx"/>
+                                    </connections>
+                                </buttonCell>
+                            </button>
                         </subviews>
                         <constraints>
                             <constraint firstItem="s2M-yy-keE" firstAttribute="centerX" secondItem="OD2-uk-GlR" secondAttribute="centerX" id="4h8-TK-8v3"/>
@@ -745,7 +755,10 @@
                             <constraint firstItem="OD2-uk-GlR" firstAttribute="top" secondItem="5sW-1B-Uce" secondAttribute="bottom" constant="20" id="Ppu-3f-fzs"/>
                             <constraint firstItem="s2M-yy-keE" firstAttribute="top" secondItem="OD2-uk-GlR" secondAttribute="bottom" constant="20" id="R2J-7E-leZ"/>
                             <constraint firstItem="tc1-xt-xIf" firstAttribute="width" secondItem="9JG-0j-LAz" secondAttribute="width" id="UHu-iu-v17"/>
+                            <constraint firstItem="FuS-aD-jCq" firstAttribute="centerX" secondItem="s2M-yy-keE" secondAttribute="centerX" id="Wwr-MW-uUq"/>
+                            <constraint firstItem="FuS-aD-jCq" firstAttribute="width" secondItem="s2M-yy-keE" secondAttribute="width" id="bBM-IB-ji9"/>
                             <constraint firstItem="5sW-1B-Uce" firstAttribute="width" secondItem="tc1-xt-xIf" secondAttribute="width" id="bMd-xm-lCq"/>
+                            <constraint firstItem="FuS-aD-jCq" firstAttribute="top" secondItem="s2M-yy-keE" secondAttribute="bottom" constant="20" id="cPb-ls-I1U"/>
                             <constraint firstItem="5sW-1B-Uce" firstAttribute="top" secondItem="tc1-xt-xIf" secondAttribute="bottom" constant="20" id="cXB-II-ISS"/>
                             <constraint firstItem="s2M-yy-keE" firstAttribute="width" secondItem="OD2-uk-GlR" secondAttribute="width" id="drP-oF-qL7"/>
                             <constraint firstItem="5sW-1B-Uce" firstAttribute="centerX" secondItem="tc1-xt-xIf" secondAttribute="centerX" id="hiV-M4-2sH"/>
