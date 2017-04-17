@@ -350,6 +350,13 @@ static int objectCreateHandler (lua_State *state)
  */
 static int exportsClass(const std::string &name, LuaContext *context, LuaClassImport *classImport)
 {
+    LuaCheckObjectSubclassHandler checkObjectSubclassHandler = classImport -> getCheckObjectSubclassHandler();
+    if (checkObjectSubclassHandler != NULL && checkObjectSubclassHandler(context, classImport, name))
+    {
+        //如果类型为LuaObjectClass的子类，则由checkObjectSubclassHandler进行导入处理。
+        return 1;
+    }
+
     LuaAllowExportsClassHandler allowExportsHandler = classImport -> getAllowExportsClassHandler();
     LuaExportClassHandler exportClassHandler = classImport -> getExportClassHandler();
     if (allowExportsHandler == NULL || exportClassHandler == NULL)
@@ -646,6 +653,11 @@ bool LuaClassImport::setLuaMetatable(LuaContext *context, const std::string &cla
     return false;
 }
 
+void LuaClassImport::onCheckObjectSubclass(LuaCheckObjectSubclassHandler handler)
+{
+    _checkObjectSubclassHandler = handler;
+}
+
 void LuaClassImport::onAllowExportsClass(LuaAllowExportsClassHandler handler)
 {
     _allowExcportsClassHandler = handler;
@@ -704,6 +716,11 @@ LuaInstanceFieldSetterInvokeHandler LuaClassImport::getInstanceFieldSetterInvoke
 LuaCreateInstanceHandler LuaClassImport::getCreateInstanceHandler()
 {
     return _createInstanceHandler;
+}
+
+LuaCheckObjectSubclassHandler LuaClassImport::getCheckObjectSubclassHandler()
+{
+    return _checkObjectSubclassHandler;
 }
 
 LuaAllowExportsClassHandler LuaClassImport::getAllowExportsClassHandler()

@@ -49,13 +49,58 @@ static bool _javaObjectPushFilter(LuaContext *context, LuaObjectDescriptor *obje
 }
 
 /**
+ * 检测对象是否为LuaObjectClass的子类
+ *
+ * @param context 上下文对象
+ * @param classImport 类导入器
+ * @param className 类名
+ *
+ * @return
+ */
+static bool _checkObjectSubclassFunc (LuaContext *context, LuaClassImport *classImport, const std::string &className)
+{
+    bool isSubclass = false;
+
+    JNIEnv *env = LuaJavaEnv::getEnv();
+
+    //将className由.描述缓存/描述
+    std::string clsName = StringUtils::replace(className, ".", "/");
+    jclass cls = env -> FindClass(clsName.c_str());
+    jclass objectClass = LuaJavaType::luaBaseObjectClass(env);
+
+    if (env -> IsAssignableFrom(cls, objectClass))
+    {
+        isSubclass = true;
+
+        jobject jcontext = LuaJavaEnv::getJavaLuaContext(env, context);
+        jmethodID regModuleMethodId = env -> GetMethodID(LuaJavaType::contextClass(env), "registerModule", "(Ljava/lang/Class;)V");
+        env -> CallVoidMethod(jcontext, regModuleMethodId, cls);
+
+        jclass moduleCls = LuaJavaType::moduleClass(env);
+        jmethodID moduleNameMethodId = env -> GetStaticMethodID(moduleCls, "_getModuleName", "(Ljava/lang/Class;)Ljava/lang/String;");
+        jstring moduleName = (jstring)env -> CallStaticObjectMethod(moduleCls, moduleNameMethodId, cls);
+        const char *moduleNameCStr = env -> GetStringUTFChars(moduleName, NULL);
+
+        lua_getglobal(context -> getLuaState(), moduleNameCStr);
+
+        env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
+        env -> DeleteLocalRef(moduleName);
+    }
+
+    env -> DeleteLocalRef(cls);
+    LuaJavaEnv::resetEnv(env);
+
+    return isSubclass;
+}
+
+/**
  * 是否允许导出该类型
  *
  * @param className 类型名称
  *
  * @return true 允许导出，false 不允许导出
  */
-static bool _allowExportsClassHandler (const std::string &className)
+static bool _allowExportsClassHandlerFunc (LuaContext *context, LuaClassImport *classImport, const std::string &className)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
@@ -88,7 +133,7 @@ static bool _allowExportsClassHandler (const std::string &className)
  *
  * @return 导出类型代理
  */
-static LuaExportClassProxy* _exportClassHandler (const std::string &className)
+static LuaExportClassProxy* _exportClassHandlerFunc (LuaContext *context, LuaClassImport *classImport, const std::string &className)
 {
     return new LuaJavaExportClassProxy(className);
 }
@@ -100,7 +145,7 @@ static LuaExportClassProxy* _exportClassHandler (const std::string &className)
  *
  * @return 实例对象描述
  */
-static LuaObjectDescriptor* _createInstanceHandler (LuaObjectDescriptor *classDescriptor)
+static LuaObjectDescriptor* _createInstanceHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor)
 {
     LuaJavaObjectDescriptor *objectDescriptor = NULL;
 
@@ -129,7 +174,7 @@ static LuaObjectDescriptor* _createInstanceHandler (LuaObjectDescriptor *classDe
  *
  * @return 返回值
  */
-static LuaValue* _classMethodInvokeHandler (LuaContext *context, LuaObjectDescriptor *classDescriptor, std::string methodName, LuaArgumentList arguments)
+static LuaValue* _classMethodInvokeHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor, std::string methodName, LuaArgumentList arguments)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
     LuaValue *retValue = NULL;
@@ -183,7 +228,7 @@ static LuaValue* _classMethodInvokeHandler (LuaContext *context, LuaObjectDescri
  *
  * @return 返回值
  */
-static LuaValue* _instanceMethodInvokeHandler (LuaContext *context, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string methodName, LuaArgumentList args)
+static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string methodName, LuaArgumentList args)
 {
     LuaValue *retValue = NULL;
 
@@ -239,7 +284,7 @@ static LuaValue* _instanceMethodInvokeHandler (LuaContext *context, LuaObjectDes
  *
  * @return 字段值
  */
-static LuaValue* _instanceFieldGetterInvokeHandler (LuaContext *context, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string fieldName)
+static LuaValue* _instanceFieldGetterInvokeHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string fieldName)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
     LuaValue *retValue = NULL;
@@ -282,7 +327,7 @@ static LuaValue* _instanceFieldGetterInvokeHandler (LuaContext *context, LuaObje
  * @param fieldName 字段名字
  * @param value 字段值
  */
-static void _instanceFieldSetterInvokeHandler (LuaContext *context, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string fieldName, LuaValue *value)
+static void _instanceFieldSetterInvokeHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string fieldName, LuaValue *value)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
@@ -309,13 +354,14 @@ static void _instanceFieldSetterInvokeHandler (LuaContext *context, LuaObjectDes
 LuaJavaClassImport::LuaJavaClassImport()
     : LuaClassImport ()
 {
-    onAllowExportsClass(_allowExportsClassHandler);
-    onExportsClass(_exportClassHandler);
-    onCreateInstance(_createInstanceHandler);
-    onClassMethodInvoke(_classMethodInvokeHandler);
-    onInstanceMethodInvoke(_instanceMethodInvokeHandler);
-    onInstanceFieldGetterInvoke(_instanceFieldGetterInvokeHandler);
-    onInstanceFieldSetterInvoke(_instanceFieldSetterInvokeHandler);
+    onCheckObjectSubclass(_checkObjectSubclassFunc);
+    onAllowExportsClass(_allowExportsClassHandlerFunc);
+    onExportsClass(_exportClassHandlerFunc);
+    onCreateInstance(_createInstanceHandlerFunc);
+    onClassMethodInvoke(_classMethodInvokeHandlerFunc);
+    onInstanceMethodInvoke(_instanceMethodInvokeHandlerFunc);
+    onInstanceFieldGetterInvoke(_instanceFieldGetterInvokeHandlerFunc);
+    onInstanceFieldSetterInvoke(_instanceFieldSetterInvokeHandlerFunc);
 }
 
 void LuaJavaClassImport::onRegister(const std::string &name,

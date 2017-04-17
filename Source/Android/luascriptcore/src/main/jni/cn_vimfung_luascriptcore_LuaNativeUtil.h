@@ -126,7 +126,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunc
  * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Lcn/vimfung/luascriptcore/LuaFunction;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;
  */
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_setInculdesClasses
-        (JNIEnv *, jclass, jobject, jobject);
+        (JNIEnv *, jclass, jobject, jstring, jobject);
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil

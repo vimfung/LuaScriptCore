@@ -129,7 +129,7 @@ public class LuaClassImport extends LuaModule
      */
     public static void setInculdesClasses(LuaContext context, List<Class> classes)
     {
-        LuaNativeUtil.setInculdesClasses(context, classes);
+        LuaNativeUtil.setInculdesClasses(context, LuaClassImport.moduleName(), classes);
     }
 
     /**
