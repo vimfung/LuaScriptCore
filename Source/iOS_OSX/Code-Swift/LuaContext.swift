@@ -12,6 +12,15 @@ public class LuaContext: NSObject
     private var _rawContext:LSCContext;
     
     
+    /// 获取原始上下文对象
+    ///
+    /// - Returns: 原始上下文对象
+    internal func getRawContext() -> LSCContext
+    {
+        return _rawContext;
+    }
+    
+    
     /// 初始化LuaContext
     public override init()
     {

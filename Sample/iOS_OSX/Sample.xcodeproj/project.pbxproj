@@ -7,14 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7C177B9A1DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C177B991DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework */; };
 		7C177C121DEFEE73008C9DF1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */; };
 		7C177C141DEFEE73008C9DF1 /* ViewController1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C177C131DEFEE73008C9DF1 /* ViewController1.swift */; };
 		7C177C161DEFEE73008C9DF1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C177C151DEFEE73008C9DF1 /* Assets.xcassets */; };
 		7C177C191DEFEE73008C9DF1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C177C171DEFEE73008C9DF1 /* Main.storyboard */; };
 		7C1E5A4C1E0113EC00C3C2E2 /* LogModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE6251A1D93B3C8007533D7 /* LogModule.m */; };
 		7C1E5A4D1E0113EC00C3C2E2 /* LSCTPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE625291D93B435007533D7 /* LSCTPerson.m */; };
-		7C1E5A591E01142900C3C2E2 /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C1E5A581E01142900C3C2E2 /* libLuaScriptCore.a */; };
 		7C210E041DCB5FD3000838F9 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
 		7C210E051DCB5FD3000838F9 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
 		7C21ED051DEFBE9A00507DA2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED041DEFBE9A00507DA2 /* AppDelegate.swift */; };
@@ -39,10 +37,18 @@
 		7C6B12811D6AFD1400489D9E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6B12781D6AFD1400489D9E /* Main.storyboard */; };
 		7C6B12831D6AFD1400489D9E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B127B1D6AFD1400489D9E /* main.m */; };
 		7C6B12841D6AFD1400489D9E /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B127D1D6AFD1400489D9E /* ViewController.m */; };
+		7C7874961EA4AF4900FED498 /* LuaScriptCore_OSX_Swift.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7CA46E551DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		7C7874981EA4B03400FED498 /* LuaScriptCore_iOS_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C78748D1EA4AE7900FED498 /* LuaScriptCore_iOS_Swift.framework */; };
+		7C7874991EA4B03400FED498 /* LuaScriptCore_iOS_Swift.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7C78748D1EA4AE7900FED498 /* LuaScriptCore_iOS_Swift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		7C78749D1EA4BE0E00FED498 /* LSCTNativeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C78749C1EA4BE0E00FED498 /* LSCTNativeData.swift */; };
 		7C96366F1DC9BF8F00E423CF /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7C96366E1DC9BF8F00E423CF /* libLuaScriptCore.a */; };
 		7CA46E561DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7CA46E551DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework */; };
 		7CA46E5A1DEFFE3C0014253A /* LogModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA46E591DEFFE3C0014253A /* LogModule.swift */; };
 		7CA46E5C1DEFFE820014253A /* LSCTPerson.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */; };
+		7CCA26381EA4559F007F20A9 /* libLuaScriptCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7CCA26371EA4559F007F20A9 /* libLuaScriptCore.a */; };
+		7CCA263B1EA45634007F20A9 /* LSCTNativeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */; };
+		7CCA263C1EA45634007F20A9 /* LSCTNativeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */; };
+		7CCA263E1EA4754E007F20A9 /* LSCTNativeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */; };
 		7CE625121D93B3AA007533D7 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
 		7CE625131D93B3AA007533D7 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
 		7CE625141D93B3AA007533D7 /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625101D93B3AA007533D7 /* main.lua */; };
@@ -58,12 +64,24 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		7C21ED321DEFBEDD00507DA2 /* Embed Frameworks */ = {
+		7C7874971EA4AF4900FED498 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				7C7874961EA4AF4900FED498 /* LuaScriptCore_OSX_Swift.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7C78749A1EA4B03500FED498 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				7C7874991EA4B03400FED498 /* LuaScriptCore_iOS_Swift.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,22 +89,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		7C177B991DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = LuaScriptCore_iOS_Swift.framework; sourceTree = "<group>"; };
 		7C177C0F1DEFEE73008C9DF1 /* Sample-OSX-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-OSX-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7C177C131DEFEE73008C9DF1 /* ViewController1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ViewController1.swift; path = "Sample-OSX-Swift/ViewController1.swift"; sourceTree = SOURCE_ROOT; };
 		7C177C151DEFEE73008C9DF1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C177C181DEFEE73008C9DF1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C177C1A1DEFEE73008C9DF1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7C1E5A501E01142900C3C2E2 /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCContext.h; sourceTree = "<group>"; };
-		7C1E5A511E01142900C3C2E2 /* LSCFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction.h; sourceTree = "<group>"; };
-		7C1E5A521E01142900C3C2E2 /* LSCModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCModule.h; sourceTree = "<group>"; };
-		7C1E5A531E01142900C3C2E2 /* LSCObjectClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectClass.h; sourceTree = "<group>"; };
-		7C1E5A541E01142900C3C2E2 /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCPointer.h; sourceTree = "<group>"; };
-		7C1E5A551E01142900C3C2E2 /* LSCTypeDefinied.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTypeDefinied.h; sourceTree = "<group>"; };
-		7C1E5A561E01142900C3C2E2 /* LSCValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCValue.h; sourceTree = "<group>"; };
-		7C1E5A571E01142900C3C2E2 /* LuaScriptCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaScriptCore.h; sourceTree = "<group>"; };
-		7C1E5A581E01142900C3C2E2 /* libLuaScriptCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLuaScriptCore.a; sourceTree = "<group>"; };
 		7C210E031DCB5FD3000838F9 /* test.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.lua; sourceTree = "<group>"; };
 		7C21ED021DEFBE9A00507DA2 /* Sample-iOS-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-iOS-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C21ED041DEFBE9A00507DA2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -115,6 +123,8 @@
 		7C6B127B1D6AFD1400489D9E /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		7C6B127C1D6AFD1400489D9E /* ViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		7C6B127D1D6AFD1400489D9E /* ViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		7C78748D1EA4AE7900FED498 /* LuaScriptCore_iOS_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = LuaScriptCore_iOS_Swift.framework; sourceTree = "<group>"; };
+		7C78749C1EA4BE0E00FED498 /* LSCTNativeData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTNativeData.swift; sourceTree = "<group>"; };
 		7C8C2DE01D38C345009345EB /* Sample-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C9636661DC9BF8F00E423CF /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCContext.h; sourceTree = "<group>"; };
 		7C9636671DC9BF8F00E423CF /* LSCFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction.h; sourceTree = "<group>"; };
@@ -128,6 +138,20 @@
 		7CA46E551DEFF6CB0014253A /* LuaScriptCore_OSX_Swift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = LuaScriptCore_OSX_Swift.framework; sourceTree = "<group>"; };
 		7CA46E591DEFFE3C0014253A /* LogModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogModule.swift; sourceTree = "<group>"; };
 		7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTPerson.swift; sourceTree = "<group>"; };
+		7CCA262D1EA4559F007F20A9 /* LSCClassImport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCClassImport.h; sourceTree = "<group>"; };
+		7CCA262E1EA4559F007F20A9 /* LSCContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCContext.h; sourceTree = "<group>"; };
+		7CCA262F1EA4559F007F20A9 /* LSCFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCFunction.h; sourceTree = "<group>"; };
+		7CCA26301EA4559F007F20A9 /* LSCModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCModule.h; sourceTree = "<group>"; };
+		7CCA26311EA4559F007F20A9 /* LSCObjectClass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCObjectClass.h; sourceTree = "<group>"; };
+		7CCA26321EA4559F007F20A9 /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCPointer.h; sourceTree = "<group>"; };
+		7CCA26331EA4559F007F20A9 /* LSCTuple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTuple.h; sourceTree = "<group>"; };
+		7CCA26341EA4559F007F20A9 /* LSCTypeDefinied.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTypeDefinied.h; sourceTree = "<group>"; };
+		7CCA26351EA4559F007F20A9 /* LSCValue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCValue.h; sourceTree = "<group>"; };
+		7CCA26361EA4559F007F20A9 /* LuaScriptCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaScriptCore.h; sourceTree = "<group>"; };
+		7CCA26371EA4559F007F20A9 /* libLuaScriptCore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libLuaScriptCore.a; sourceTree = "<group>"; };
+		7CCA26391EA45634007F20A9 /* LSCTNativeData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTNativeData.h; sourceTree = "<group>"; };
+		7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCTNativeData.m; sourceTree = "<group>"; };
+		7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTNativeData.swift; sourceTree = "<group>"; };
 		7CE6250F1D93B3AA007533D7 /* dkjson.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dkjson.lua; sourceTree = "<group>"; };
 		7CE625101D93B3AA007533D7 /* main.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.lua; sourceTree = "<group>"; };
 		7CE625111D93B3AA007533D7 /* todo.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = todo.lua; sourceTree = "<group>"; };
@@ -150,7 +174,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C177B9A1DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework in Frameworks */,
+				7C7874981EA4B03400FED498 /* LuaScriptCore_iOS_Swift.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,7 +190,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C1E5A591E01142900C3C2E2 /* libLuaScriptCore.a in Frameworks */,
+				7CCA26381EA4559F007F20A9 /* libLuaScriptCore.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,7 +200,7 @@
 		7C177B981DEFDC6E008C9DF1 /* LuaScriptCore */ = {
 			isa = PBXGroup;
 			children = (
-				7C177B991DEFDC6E008C9DF1 /* LuaScriptCore_iOS_Swift.framework */,
+				7C78748D1EA4AE7900FED498 /* LuaScriptCore_iOS_Swift.framework */,
 			);
 			name = LuaScriptCore;
 			path = "../../../Release/iOS-Swift";
@@ -193,33 +217,9 @@
 				7C177C1A1DEFEE73008C9DF1 /* Info.plist */,
 				7CA46E591DEFFE3C0014253A /* LogModule.swift */,
 				7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */,
+				7C78749C1EA4BE0E00FED498 /* LSCTNativeData.swift */,
 			);
 			path = "Sample-OSX-Swift";
-			sourceTree = "<group>";
-		};
-		7C1E5A4E1E01142900C3C2E2 /* LuaScriptCore */ = {
-			isa = PBXGroup;
-			children = (
-				7C1E5A4F1E01142900C3C2E2 /* include */,
-				7C1E5A581E01142900C3C2E2 /* libLuaScriptCore.a */,
-			);
-			name = LuaScriptCore;
-			path = ../../../Release/iOS;
-			sourceTree = "<group>";
-		};
-		7C1E5A4F1E01142900C3C2E2 /* include */ = {
-			isa = PBXGroup;
-			children = (
-				7C1E5A501E01142900C3C2E2 /* LSCContext.h */,
-				7C1E5A511E01142900C3C2E2 /* LSCFunction.h */,
-				7C1E5A521E01142900C3C2E2 /* LSCModule.h */,
-				7C1E5A531E01142900C3C2E2 /* LSCObjectClass.h */,
-				7C1E5A541E01142900C3C2E2 /* LSCPointer.h */,
-				7C1E5A551E01142900C3C2E2 /* LSCTypeDefinied.h */,
-				7C1E5A561E01142900C3C2E2 /* LSCValue.h */,
-				7C1E5A571E01142900C3C2E2 /* LuaScriptCore.h */,
-			);
-			path = include;
 			sourceTree = "<group>";
 		};
 		7C21ED031DEFBE9A00507DA2 /* Sample-iOS-Swift */ = {
@@ -230,6 +230,7 @@
 				7C21ED061DEFBE9A00507DA2 /* ViewController.swift */,
 				7C21ED371DEFCEFA00507DA2 /* LogModule.swift */,
 				7C21ED3C1DEFD41200507DA2 /* LSCTPerson.swift */,
+				7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */,
 				7C21ED081DEFBE9A00507DA2 /* Main.storyboard */,
 				7C21ED0B1DEFBE9A00507DA2 /* Assets.xcassets */,
 				7C21ED0D1DEFBE9A00507DA2 /* LaunchScreen.storyboard */,
@@ -265,7 +266,7 @@
 		7C6B12721D6AFD1400489D9E /* Sample-iOS */ = {
 			isa = PBXGroup;
 			children = (
-				7C1E5A4E1E01142900C3C2E2 /* LuaScriptCore */,
+				7CCA262B1EA4559F007F20A9 /* LuaScriptCore */,
 				7C6B12731D6AFD1400489D9E /* AppDelegate.h */,
 				7C6B12741D6AFD1400489D9E /* AppDelegate.m */,
 				7C6B12751D6AFD1400489D9E /* Assets.xcassets */,
@@ -337,6 +338,33 @@
 			path = "../../../Release/OSX-Swift";
 			sourceTree = "<group>";
 		};
+		7CCA262B1EA4559F007F20A9 /* LuaScriptCore */ = {
+			isa = PBXGroup;
+			children = (
+				7CCA262C1EA4559F007F20A9 /* include */,
+				7CCA26371EA4559F007F20A9 /* libLuaScriptCore.a */,
+			);
+			name = LuaScriptCore;
+			path = ../../../Release/iOS;
+			sourceTree = "<group>";
+		};
+		7CCA262C1EA4559F007F20A9 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				7CCA262D1EA4559F007F20A9 /* LSCClassImport.h */,
+				7CCA262E1EA4559F007F20A9 /* LSCContext.h */,
+				7CCA262F1EA4559F007F20A9 /* LSCFunction.h */,
+				7CCA26301EA4559F007F20A9 /* LSCModule.h */,
+				7CCA26311EA4559F007F20A9 /* LSCObjectClass.h */,
+				7CCA26321EA4559F007F20A9 /* LSCPointer.h */,
+				7CCA26331EA4559F007F20A9 /* LSCTuple.h */,
+				7CCA26341EA4559F007F20A9 /* LSCTypeDefinied.h */,
+				7CCA26351EA4559F007F20A9 /* LSCValue.h */,
+				7CCA26361EA4559F007F20A9 /* LuaScriptCore.h */,
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
 		7CE6250E1D93B3AA007533D7 /* LuaScript */ = {
 			isa = PBXGroup;
 			children = (
@@ -355,6 +383,8 @@
 				7CE6251A1D93B3C8007533D7 /* LogModule.m */,
 				7CE625281D93B435007533D7 /* LSCTPerson.h */,
 				7CE625291D93B435007533D7 /* LSCTPerson.m */,
+				7CCA26391EA45634007F20A9 /* LSCTNativeData.h */,
+				7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -369,6 +399,7 @@
 				7C177C0B1DEFEE73008C9DF1 /* Sources */,
 				7C177C0C1DEFEE73008C9DF1 /* Frameworks */,
 				7C177C0D1DEFEE73008C9DF1 /* Resources */,
+				7C7874971EA4AF4900FED498 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -386,7 +417,7 @@
 				7C21ECFE1DEFBE9A00507DA2 /* Sources */,
 				7C21ECFF1DEFBE9A00507DA2 /* Frameworks */,
 				7C21ED001DEFBE9A00507DA2 /* Resources */,
-				7C21ED321DEFBEDD00507DA2 /* Embed Frameworks */,
+				7C78749A1EA4B03500FED498 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -438,7 +469,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0810;
-				LastUpgradeCheck = 0730;
+				LastUpgradeCheck = 0830;
 				ORGANIZATIONNAME = vimfung;
 				TargetAttributes = {
 					7C177C0E1DEFEE73008C9DF1 = {
@@ -545,6 +576,7 @@
 				7C177C141DEFEE73008C9DF1 /* ViewController1.swift in Sources */,
 				7C177C121DEFEE73008C9DF1 /* AppDelegate.swift in Sources */,
 				7CA46E5A1DEFFE3C0014253A /* LogModule.swift in Sources */,
+				7C78749D1EA4BE0E00FED498 /* LSCTNativeData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -556,6 +588,7 @@
 				7C21ED071DEFBE9A00507DA2 /* ViewController.swift in Sources */,
 				7C21ED051DEFBE9A00507DA2 /* AppDelegate.swift in Sources */,
 				7C21ED381DEFCEFA00507DA2 /* LogModule.swift in Sources */,
+				7CCA263E1EA4754E007F20A9 /* LSCTNativeData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -563,6 +596,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7CCA263C1EA45634007F20A9 /* LSCTNativeData.m in Sources */,
 				7C5A61871D6AE2A3007D4308 /* ViewController.m in Sources */,
 				7C5A61841D6AE2A3007D4308 /* main.m in Sources */,
 				7CE6251C1D93B3C8007533D7 /* LogModule.m in Sources */,
@@ -575,6 +609,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7CCA263B1EA45634007F20A9 /* LSCTNativeData.m in Sources */,
 				7C1E5A4C1E0113EC00C3C2E2 /* LogModule.m in Sources */,
 				7C1E5A4D1E0113EC00C3C2E2 /* LSCTPerson.m in Sources */,
 				7C6B12841D6AFD1400489D9E /* ViewController.m in Sources */,
@@ -683,18 +718,19 @@
 		7C21ED111DEFBE9A00507DA2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/../../Release/iOS-Swift";
 				INFOPLIST_FILE = "Sample-iOS-Swift/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "cn.vimfung.Sample-iOS-Swift";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -704,17 +740,18 @@
 		7C21ED121DEFBE9A00507DA2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/../../Release/iOS-Swift";
 				INFOPLIST_FILE = "Sample-iOS-Swift/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "cn.vimfung.Sample-iOS-Swift";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -767,8 +804,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -811,8 +850,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -831,6 +872,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

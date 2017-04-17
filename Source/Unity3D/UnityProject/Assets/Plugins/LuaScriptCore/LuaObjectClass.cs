@@ -302,16 +302,6 @@ namespace cn.vimfung.luascriptcore.modules.oo
 			}
 		}
 
-//		/// <summary>
-//		/// 序列化对象
-//		/// </summary>
-//		/// <param name="encoder">对象编码器.</param>
-//		public override void serialization (LuaObjectEncoder encoder)
-//		{
-//			IntPtr ptr = Marshal.GetIUnknownForObject (this);
-//			encoder.writeInt64 (ptr.ToInt64 ());
-//		}
-
 		/// <summary>
 		/// 获取对象描述器，用于如何转换成Lua对象
 		/// </summary>

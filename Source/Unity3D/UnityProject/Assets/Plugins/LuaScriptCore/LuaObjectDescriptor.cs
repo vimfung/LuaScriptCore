@@ -60,6 +60,11 @@ namespace cn.vimfung.luascriptcore
 
 			encoder.writeInt64 (_objRef.referenceId);
 			encoder.writeString (luaObjectId != null ? luaObjectId : "");
+
+			//写入自定义数据
+			encoder.writeInt32(1);
+			encoder.writeString ("NativeClass");
+			encoder.writeString (this.obj.GetType().FullName);
 		}
 	}
 }

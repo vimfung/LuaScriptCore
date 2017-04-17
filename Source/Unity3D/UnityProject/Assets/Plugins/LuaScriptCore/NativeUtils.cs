@@ -36,6 +36,66 @@ namespace cn.vimfung.luascriptcore
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public delegate void LuaInstanceFieldSetterHandleDelegate (int classId, Int64 instance, string fieldName, IntPtr valueBuffer, int bufferSize);
 
+	/// <summary>
+	/// 是否允许导出类型
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate bool LuaAllowExportClassDelegate(int nativeContextId, string className);
+
+	/// <summary>
+	/// 获取所有导出的类方法
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaAllExportClassMethodsDelegte(int nativeContextId, string className);
+
+	/// <summary>
+	/// 获取所有导出的实例方法
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaAllExportInstanceMethodsDelegte(int nativeContextId, string className);
+
+	/// <summary>
+	/// 获取所有导出的实例字段Getter方法
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaAllExportInstanceFieldGettersDelegate(int nativeContextId, string className);
+
+	/// <summary>
+	/// 获取所有导出的实例字段Setter方法
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaAllExportInstanceFieldSettersDelegate(int nativeContextId, string className);
+
+	/// <summary>
+	/// 创建原生对象
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate Int64 LuaCreateNativeObjectDelegate(int nativeContextId, string className);
+
+	/// <summary>
+	/// 原生对象类方法调用
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaNativeClassMethodHandleDelegate (int contextId, string className, string methodName, IntPtr arguments, int size);
+
+	/// <summary>
+	/// 原生对象实例方法调用
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaNativeInstanceMethodHandleDelegate(int contextId, string className, Int64 instance, string methodName, IntPtr argumentsBuffer, int bufferSize);
+
+	/// <summary>
+	/// 原生对象实例字段Getter调用
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate IntPtr LuaNativeInstanceFieldGetterHandleDelegate(int contextId, string className, Int64 instance, string fieldName);
+
+	/// <summary>
+	/// 原生对象实例字段Setter调用
+	/// </summary>
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate void LuaNativeInstanceFieldSetterHandleDelegate(int contextId, string className, Int64 instance, string fieldName, IntPtr argumentsBuffer, int bufferSize);
+
 	public class NativeUtils  
 	{
 #if UNITY_EDITOR
@@ -242,6 +302,45 @@ namespace cn.vimfung.luascriptcore
 			IntPtr fieldSetterHandler,
 			IntPtr instanceMethodRouteHandler, 
 			IntPtr classMethodRouteHandler);
+
+		/// <summary>
+		/// 注册ClassImport
+		/// </summary>
+		/// <param name="nativeContextId">上下文对象标识.</param>
+		/// <param name="className">类名.</param>
+		/// <param name="allowExportsClassHandler">是否允许导出类型处理器.</param>
+		/// <param name="exportsClassHandler">导出类型处理器.</param>
+		/// <param name="allExportClassMethods">获取所有导出的类方法处理器.</param>
+		/// <param name="allExportInstanceMethods">获取所有导出的实例方法处理器</param>
+		/// <param name="allExportGetterFields">获取所有导出的获取权限字段处理器.</param>
+		/// <param name="allExportSetterFields">获取所有导出的设置权限字段处理器</param>
+		/// <param name="instanceCreateHandler">创建实例处理器.</param>
+		/// <param name="classMethodInvokeHandler">类方法调用处理器.</param>
+		/// <param name="instanceMethodInvokeHandler">实例方法调用处理器.</param>
+		/// <param name="fieldGetterHandler">获取字段处理器.</param>
+		/// <param name="fieldSetterHandler">获取字段处理器.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void registerClassImport (
+			int nativeContextId,
+			string className,
+			IntPtr allowExportsClassHandler,
+			IntPtr allExportClassMethods,
+			IntPtr allExportInstanceMethods,
+			IntPtr allExportGetterFields,
+			IntPtr allExportSetterFields,
+			IntPtr instanceCreateHandler,
+			IntPtr classMethodInvokeHandler,
+			IntPtr instanceMethodInvokeHandler,
+			IntPtr fieldGetterHandler,
+			IntPtr fieldSetterHandler);
+
+		/// <summary>
+		/// 设置导出的类型列表
+		/// </summary>
+		/// <param name="nativeContextId">上下文对象标识.</param>
+		/// <param name="classes">类型列表.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void setIncludesClasses (int nativeContextId, IntPtr classes);
 
 		/// <summary>
 		/// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。

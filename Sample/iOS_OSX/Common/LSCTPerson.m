@@ -28,4 +28,10 @@
     NSLog(@"%@ walk", self.name);
 }
 
++ (LSCTPerson *)printPerson:(LSCTPerson *)p
+{
+    NSLog(@"Person name = %@", p.name);
+    return p;
+}
+
 @end
