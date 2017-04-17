@@ -44,7 +44,7 @@ public:
     /**
      * 设置导出类型列表
      */
-    static void setExportClassList(const std::list<jclass> &exportClassList);
+    void setExportClassList(const std::list<jclass> &exportClassList);
 };
 
 

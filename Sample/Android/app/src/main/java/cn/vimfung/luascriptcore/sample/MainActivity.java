@@ -183,10 +183,11 @@ public class MainActivity extends AppCompatActivity {
                         //设置允许导出的类型
                         ArrayList<Class> exportsClasses = new ArrayList<Class>();
                         exportsClasses.add(Person.class);
+                        exportsClasses.add(NativeData.class);
                         LuaClassImport.setInculdesClasses(_luaContext, exportsClasses);
                     }
 
-                    _luaContext.evalScript("local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person'); print(Person);local p = Person.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
+                    _luaContext.evalScript("local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person'); local Data = ClassImport('cn.vimfung.luascriptcore.sample.NativeData'); print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
                 }
             });
         }
