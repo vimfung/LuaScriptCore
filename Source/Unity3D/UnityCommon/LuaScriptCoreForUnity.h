@@ -204,6 +204,34 @@ extern "C" {
                                               LuaInstanceMethodHandlerPtr instanceMethodRouteHandler,
                                               LuaModuleMethodHandlerPtr classMethodRouteHandler);
     
+    /**
+     注册导出类型
+
+     @param nativeContextId 上下文标识
+     @param className 类名
+     @param allowExportsClassHandler 是否允许导出类型处理器
+     @param allExportClassMethods 导出所有类方法
+     @param allExportInstanceMethods 导出所有实例方法
+     @param allExportGetterFields 导出所有字段的Getter
+     @param allExportSetterFields 导出所有字段的Setter
+     @param instanceCreateHandler 实例对象实例方法
+     @param classMethodInvokeHandler 类方法调用处理
+     @param instanceMethodInvokeHandler 实例方法调用
+     @param fieldGetterHandler 字段获取器
+     @param fieldSetterHandler 字段设置器
+     */
+    LuaScriptCoreApi extern void registerClassImport(int nativeContextId,
+                                                    const char *className,
+                                                    LuaAllowExportsClassHandlerPtr allowExportsClassHandler,
+                                                    LuaAllExportClassMethodHandlerPtr allExportClassMethods,
+                                                    LuaAllExportInstanceMethodHandlerPtr allExportInstanceMethods,
+                                                    LuaAllExportFieldGetterHandlerPtr allExportGetterFields,
+                                                    LuaAllExportFieldSetterHandlerPtr allExportSetterFields,
+                                                    LuaCreateNativeObjectHandlerPtr instanceCreateHandler,
+                                                    LuaNativeClassMethodInvokeHandlerPtr classMethodInvokeHandler,
+                                                    LuaNativeInstanceMethodInvokeHandlerPtr instanceMethodInvokeHandler,
+                                                    LuaNativeFieldGetterHandlerPtr fieldGetterHandler,
+                                                    LuaNativeFieldSetterHandlerPtr fieldSetterHandler);
 #if defined (__cplusplus)
 }
 #endif

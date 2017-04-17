@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="11542" systemVersion="15G1004" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11524"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12086"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -81,6 +81,16 @@
                                     <action selector="regClassButtonClickedHandler:" destination="BYZ-38-t0r" eventType="touchUpInside" id="Tkb-fS-E50"/>
                                 </connections>
                             </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lHJ-CM-HAn">
+                                <rect key="frame" x="26" y="456" width="323" height="50"/>
+                                <color key="backgroundColor" red="0.30196078430000001" green="0.33333333329999998" blue="0.38823529410000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <state key="normal" title="Import Native Class">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="0.80000000000000004" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <connections>
+                                    <action selector="importNativeClassButtonClickedHandler:" destination="BYZ-38-t0r" eventType="touchUpInside" id="52L-g3-nEZ"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="0.16078431372549018" green="0.19607843137254902" blue="0.25490196078431371" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -96,14 +106,18 @@
                             <constraint firstItem="n76-qA-Isg" firstAttribute="width" secondItem="taY-7s-o3i" secondAttribute="width" id="Qzx-Kg-F5C"/>
                             <constraint firstItem="Iti-Ty-ZLY" firstAttribute="height" secondItem="5VX-MU-qGx" secondAttribute="height" id="R31-VX-bim"/>
                             <constraint firstItem="taY-7s-o3i" firstAttribute="width" secondItem="Iti-Ty-ZLY" secondAttribute="width" id="RLt-ps-m6I"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="lHJ-CM-HAn" secondAttribute="trailing" constant="10" id="Vaw-UM-I1y"/>
                             <constraint firstItem="5VX-MU-qGx" firstAttribute="top" secondItem="vFR-l6-jpz" secondAttribute="bottom" constant="20" id="XAe-KW-Hs5"/>
                             <constraint firstItem="vFR-l6-jpz" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="10" id="Y5u-I6-aOn"/>
                             <constraint firstItem="taY-7s-o3i" firstAttribute="centerX" secondItem="Iti-Ty-ZLY" secondAttribute="centerX" id="Z9a-1y-IdY"/>
+                            <constraint firstItem="lHJ-CM-HAn" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" constant="10" id="cj1-vA-fhw"/>
                             <constraint firstItem="taY-7s-o3i" firstAttribute="height" secondItem="Iti-Ty-ZLY" secondAttribute="height" id="f9Y-ri-bVW"/>
+                            <constraint firstItem="lHJ-CM-HAn" firstAttribute="height" secondItem="n76-qA-Isg" secondAttribute="height" id="fVW-QR-LGH"/>
                             <constraint firstItem="CZv-MD-Psn" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="40" id="fww-Pb-AhJ"/>
                             <constraint firstItem="vFR-l6-jpz" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="gDV-zT-G8Y"/>
                             <constraint firstAttribute="trailingMargin" secondItem="vFR-l6-jpz" secondAttribute="trailing" constant="10" id="hAd-Gl-s4h"/>
                             <constraint firstItem="Iti-Ty-ZLY" firstAttribute="width" secondItem="5VX-MU-qGx" secondAttribute="width" id="iQD-0W-TBX"/>
+                            <constraint firstItem="lHJ-CM-HAn" firstAttribute="top" secondItem="n76-qA-Isg" secondAttribute="bottom" constant="20" id="uz5-xM-ymd"/>
                             <constraint firstItem="5VX-MU-qGx" firstAttribute="height" secondItem="vFR-l6-jpz" secondAttribute="height" id="vLe-3R-J2O"/>
                             <constraint firstItem="n76-qA-Isg" firstAttribute="top" secondItem="taY-7s-o3i" secondAttribute="bottom" constant="20" id="y6R-9N-zQ6"/>
                             <constraint firstItem="5VX-MU-qGx" firstAttribute="centerX" secondItem="vFR-l6-jpz" secondAttribute="centerX" id="z6O-Lr-1k0"/>

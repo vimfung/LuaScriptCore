@@ -66,5 +66,14 @@ void LuaObjectInstanceDescriptor::serialization (LuaObjectEncoder *encoder)
 
 void LuaObjectInstanceDescriptor::push(LuaContext *context)
 {
-    this -> getObjectClass() -> push(this);
+    if (this -> getObjectClass() != NULL)
+    {
+        this -> getObjectClass() -> push(this);
+    }
+    else
+    {
+        //如果无法找到对象类型，则使用父类push方法
+        LuaObjectDescriptor::push(context);
+    }
+    
 }

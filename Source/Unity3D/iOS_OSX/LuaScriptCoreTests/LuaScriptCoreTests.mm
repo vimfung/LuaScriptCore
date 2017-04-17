@@ -178,4 +178,20 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
     NSLog(@"------- len = %d", value -> getType());
 }
 
+- (void)testReturnValue
+{
+    LuaContext *context = (LuaContext *)LuaObject::findObject(self.contextId);
+    
+    Byte bytes[77] = {76,0,0,0,8,76,117,97,86,97,108,117,101,59,0,0,0,0,0,7,76,0,0,0,27,76,117,97,79,98,106,101,99,116,73,110,115,116,97,110,99,101,68,101,115,99,114,105,112,116,111,114,59,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,6,80,101,114,115};
+    
+    LuaObjectDecoder *decoder = new LuaObjectDecoder(context, bytes);
+    LuaValue *value = dynamic_cast<LuaValue *>(decoder -> readObject());
+    decoder -> release();
+    
+    NSLog(@"------- len = %d", value -> getType());
+    
+    value -> push(context);
+    value -> release();
+}
+
 @end

@@ -8,6 +8,7 @@
 #include "LuaObject.h"
 #include "LuaContext.h"
 #include <string>
+#include <map>
 
 namespace cn {
     namespace vimfung {
@@ -15,6 +16,11 @@ namespace cn {
 
             class LuaContext;
             class LuaObjectDecoder;
+            
+            /**
+             * 用户数据
+             */
+            typedef std::map<std::string, std::string> LuaObjectDescriptorUserData;
 
             /**
              * 对象入栈数据过滤器
@@ -37,6 +43,11 @@ namespace cn {
                  * 引用标识，每个实例对象在创建lua实例时都会向_G表的_instanceRefs_表写入一个引用，方便查找对应的引用对象，而改表对应引用的key就是该属性的值。
                  */
                 std::string _refId;
+                
+                /**
+                 * 用户自定义数据
+                 */
+                LuaObjectDescriptorUserData _userdata;
 
             protected:
 
@@ -95,6 +106,23 @@ namespace cn {
                  @param encoder 编码器
                  */
                 virtual void serialization (LuaObjectEncoder *encoder);
+                
+                
+                /**
+                 设置用户数据
+
+                 @param key 键名称
+                 @param value 键值
+                 */
+                void setUserdata(std::string key, std::string value);
+                
+                /**
+                 获取用户数据
+
+                 @param key 键名称
+                 @return 键值
+                 */
+                std::string getUserdata(std::string key);
 
             public:
 

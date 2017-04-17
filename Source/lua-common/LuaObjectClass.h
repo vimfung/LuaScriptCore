@@ -285,7 +285,7 @@ namespace cn
                          * @param methodName 方法名称
                          * @param handler 方法处理器
                          */
-                        void registerMethod(std::string methodName, LuaModuleMethodHandler handler);
+                        virtual void registerMethod(std::string methodName, LuaModuleMethodHandler handler);
 
                         /**
                          * 注册实例属性

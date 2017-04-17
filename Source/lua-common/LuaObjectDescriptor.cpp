@@ -57,6 +57,16 @@ LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
     setObject(objRef);
     
     setReferenceId(decoder -> readString());
+    
+    //读取用户数据
+    int size = decoder -> readInt32();
+    for (int i = 0; i < size; i++)
+    {
+        std::string key = decoder -> readString();
+        std::string value = decoder -> readString();
+        
+        _userdata[key] = value;
+    }
 }
 
 LuaObjectDescriptor::~LuaObjectDescriptor()
@@ -83,6 +93,24 @@ void LuaObjectDescriptor::setObject(const void *object)
 const void* LuaObjectDescriptor::getObject()
 {
     return _object;
+}
+
+void LuaObjectDescriptor::setUserdata(std::string key, std::string value)
+{
+    _userdata[key] = value;
+}
+
+std::string LuaObjectDescriptor::getUserdata(std::string key)
+{
+    std::string retValue;
+    
+    LuaObjectDescriptorUserData::iterator it = _userdata.find(key);
+    if (it != _userdata.end())
+    {
+        retValue = _userdata[key];
+    }
+    
+    return retValue;
 }
 
 void LuaObjectDescriptor::setReferenceId(const std::string &refId)
@@ -136,4 +164,11 @@ void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
     
     encoder -> writeInt64((long long)_object);
     encoder -> writeString(_refId);
+    
+    encoder -> writeInt32((int)_userdata.size());
+    for (LuaObjectDescriptorUserData::iterator it = _userdata.begin(); it != _userdata.end(); ++it)
+    {
+        encoder -> writeString(it -> first);
+        encoder -> writeString(it -> second);
+    }
 }

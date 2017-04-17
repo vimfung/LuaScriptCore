@@ -15,6 +15,7 @@ class ViewController1: NSViewController {
     var _hasRegMethod : Bool = false;
     var _hasRegModule : Bool = false;
     var _hasRegClass : Bool = false;
+    var _hasImportClass : Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -99,6 +100,21 @@ class ViewController1: NSViewController {
         }
         
         _ = _context.evalScript(filePath: "test.lua");
+    }
+    
+    /// 导入原生类型按钮点击
+    ///
+    /// - Parameter sender: 事件对象
+    @IBAction func importNativeClassButtonClickedHandler(_ sender: Any)
+    {
+        if !_hasRegModule
+        {
+            _hasImportClass = true;
+            _context.registerModule(moduleClass: LuaClassImport.self);
+            LuaClassImport.setInculdesClasses(classes: [LSCTNativeData.self], context: _context);
+        }
+        
+        _ = _context.evalScript(script: "local Data = ClassImport('Sample_OSX_Swift.LSCTNativeData'); print(Data); local d = Data.create(); print(d); d:setDataId('xxxx'); print(d:dataId()); d:setData('xxx','testKey'); print(d:getData('testKey'));");
     }
 }
 
