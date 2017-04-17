@@ -337,23 +337,35 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunc
     return retObj;
 }
 
-JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_setInculdesClasses(JNIEnv *env, jclass type, jobject context, jobject classes)
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_setInculdesClasses(JNIEnv *env, jclass type, jobject jcontext, jstring moduleName, jobject classes)
 {
-    jclass listClass = env -> GetObjectClass(classes);
-    jmethodID sizeMethod = env -> GetMethodID(listClass, "size", "()I");
-    jmethodID getMethod = env -> GetMethodID(listClass, "get", "(I)Ljava/lang/Object;");
-
-    std::list<jclass> exportClassList;
-    int listSize = env -> CallIntMethod(classes, sizeMethod);
-    for (int i = 0; i < listSize; ++i)
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
     {
-        jclass cls = (jclass)env -> CallObjectMethod(classes, getMethod, i);
-        exportClassList.push_back((jclass)env -> NewGlobalRef(cls));
-        env -> DeleteLocalRef(cls);
-    }
-    LuaJavaClassImport::setExportClassList(exportClassList);
+        const char* moduleNameCStr = env -> GetStringUTFChars(moduleName, NULL);
+        LuaJavaClassImport *classImport = (LuaJavaClassImport *)context -> getModule(moduleNameCStr);
+        env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
 
-    env -> DeleteLocalRef(listClass);
+        if (classImport)
+        {
+            jclass listClass = env -> GetObjectClass(classes);
+            jmethodID sizeMethod = env -> GetMethodID(listClass, "size", "()I");
+            jmethodID getMethod = env -> GetMethodID(listClass, "get", "(I)Ljava/lang/Object;");
+
+            std::list<jclass> exportClassList;
+            int listSize = env -> CallIntMethod(classes, sizeMethod);
+            for (int i = 0; i < listSize; ++i)
+            {
+                jclass cls = (jclass)env -> CallObjectMethod(classes, getMethod, i);
+                exportClassList.push_back((jclass)env -> NewGlobalRef(cls));
+                env -> DeleteLocalRef(cls);
+            }
+
+            classImport -> setExportClassList(exportClassList);
+
+            env -> DeleteLocalRef(listClass);
+        }
+    }
 }
 
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClassImport(JNIEnv *env, jclass type, jobject jcontext, jstring moduleName)

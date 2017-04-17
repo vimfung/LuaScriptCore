@@ -28,6 +28,14 @@ namespace cn
                     class LuaClassImport;
 
                     /**
+                     * 检测是否为LuaObjectClass的子类，如果是则进行注册。
+                     */
+                    typedef bool (*LuaCheckObjectSubclassHandler) (
+                            LuaContext *context,
+                            LuaClassImport *classImport,
+                            const std::string &className);
+
+                    /**
                      * 是否允许导出类型处理器
                      */
                     typedef bool (*LuaAllowExportsClassHandler) (
@@ -103,6 +111,11 @@ namespace cn
                          * 上下文对象
                          */
                         LuaContext *_context = NULL;
+
+                        /**
+                         * 检测是否为对象子类处理器
+                         */
+                        LuaCheckObjectSubclassHandler _checkObjectSubclassHandler = NULL;
                         
                         /**
                          * 允许导出类型处理器
@@ -161,6 +174,13 @@ namespace cn
                          * @return true 设置成功， false 设置失败
                          */
                         static bool setLuaMetatable(LuaContext *context, const std::string &className, LuaObjectDescriptor *objectDescriptor);
+
+                        /**
+                         * 当检测导入类是否为LuaObjectClass子类是触发
+                         *
+                         * @param handler 处理器
+                         */
+                        void onCheckObjectSubclass(LuaCheckObjectSubclassHandler handler);
 
                         /**
                          * 当导出类型时触发，用于判断是否允许导出该类型
@@ -247,6 +267,13 @@ namespace cn
                          @return 处理器
                          */
                         LuaCreateInstanceHandler getCreateInstanceHandler();
+
+                        /**
+                         * 获取检测对象子类处理器
+                         *
+                         * @return 处理器
+                         */
+                        LuaCheckObjectSubclassHandler getCheckObjectSubclassHandler();
                         
                         /**
                          获取是否允许导出类型处理器

@@ -26,7 +26,7 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:24.1.0'
-        compile 'com.github.vimfung.luascriptcore:luascriptcore:1.3.0'
+//    compile 'com.github.vimfung.luascriptcore:luascriptcore:1.3.0'
     //    compile files('src/main/libs/LuaScriptCore.jar')
-//    compile project(':luascriptcore')
+    compile project(':luascriptcore')
 }

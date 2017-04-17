@@ -161,7 +161,7 @@ public class LuaNativeUtil
      * 设置导出的类型集合，必须在registerClassImport方法后调用
      * @param classes 类型集合
      */
-    public static native void setInculdesClasses(LuaContext context, List<Class> classes);
+    public static native void setInculdesClasses(LuaContext context, String moduleName, List<Class> classes);
 
 
 }
