@@ -3,13 +3,14 @@
 //
 
 #include <ctype.h>
-#include <LuaDefine.h>
 #include "LuaClassImport.h"
 #include "LuaExportClassProxy.h"
 #include "LuaObjectDescriptor.h"
 #include "LuaContext.h"
 #include "LuaDefined.h"
 #include "LuaTuple.h"
+
+#include "lunity.h"
 
 using namespace cn::vimfung::luascriptcore;
 using namespace cn::vimfung::luascriptcore::modules::oo;
@@ -20,41 +21,6 @@ using namespace cn::vimfung::luascriptcore::modules::oo;
 static std::string ProxyTableName = "_import_classes_";
 
 /**
- * 允许导出类型处理器
- */
-static LuaAllowExportsClassHandler _allowExcportsClassHandler = NULL;
-
-/**
- * 导出类型处理器
- */
-static LuaExportClassHandler _exportClassHandler = NULL;
-
-/**
- * 创建实例处理器
- */
-static LuaCreateInstanceHandler _createInstanceHandler = NULL;
-
-/**
- * 类方法调用处理器
- */
-static LuaClassMethodInvokeHandler _classMethodInvokeHandler = NULL;
-
-/**
- * 实例方法调用处理器
- */
-static LuaInstanceMethodInvokeHandler _instanceMethodInvokeHandler = NULL;
-
-/**
- * 实例字段获取器调用处理器
- */
-static LuaInstanceFieldGetterInvokeHandler _instanceFieldGetterInvokeHandler = NULL;
-
-/**
- * 实例字段设置器调用处理器
- */
-static LuaInstanceFieldSetterInvokeHandler _instanceFieldSetterInvokeHandler = NULL;
-
-/**
  * 方法路由处理
  */
 static int classMethodRouteHandler(lua_State *state)
@@ -62,10 +28,12 @@ static int classMethodRouteHandler(lua_State *state)
     int returnCount = 0;
 
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
-    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(2));
-    const char *methodName = lua_tostring(state, lua_upvalueindex(3));
+    LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
+    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(3));
+    std::string methodName = lua_tostring(state, lua_upvalueindex(4));
 
-    if (_classMethodInvokeHandler != NULL)
+    LuaClassMethodInvokeHandler handler = classImport -> getClassMethodInvokeHandler();
+    if (handler != NULL)
     {
         int top = lua_gettop(state);
         LuaArgumentList args;
@@ -75,7 +43,7 @@ static int classMethodRouteHandler(lua_State *state)
             args.push_back(value);
         }
 
-        LuaValue *retValue = _classMethodInvokeHandler (context, clsDesc, methodName, args);
+        LuaValue *retValue = handler (context, classImport, clsDesc, methodName, args);
         if (retValue != NULL)
         {
             if (retValue -> getType() == LuaValueTypeTuple)
@@ -120,8 +88,9 @@ static int instanceMethodRouteHandler(lua_State *state)
     int returnCount = 0;
 
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
-    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(2));
-    std::string methodName = lua_tostring(state, lua_upvalueindex(3));
+    LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
+    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(3));
+    std::string methodName = lua_tostring(state, lua_upvalueindex(4));
 
     if (lua_type(state, 1) != LUA_TUSERDATA)
     {
@@ -135,8 +104,9 @@ static int instanceMethodRouteHandler(lua_State *state)
     }
 
     LuaUserdataRef instance = (LuaUserdataRef)lua_touserdata(state, 1);
-
-    if (_instanceMethodInvokeHandler != NULL)
+    LuaInstanceMethodInvokeHandler handler = classImport -> getInstanceMethodInvokeHandler();
+    
+    if (handler != NULL)
     {
         int top = lua_gettop(state);
         LuaArgumentList args;
@@ -146,7 +116,7 @@ static int instanceMethodRouteHandler(lua_State *state)
             args.push_back(value);
         }
 
-        LuaValue *retValue = _instanceMethodInvokeHandler (context, clsDesc, instance, methodName, args);
+        LuaValue *retValue = handler (context, classImport, clsDesc, instance, methodName, args);
 
         if (retValue != NULL)
         {
@@ -191,8 +161,9 @@ static int instanceGetterRouteHandler (lua_State *state)
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
-    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(2));
-    std::string fieldName = lua_tostring(state, lua_upvalueindex(3));
+    LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
+    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(3));
+    std::string fieldName = lua_tostring(state, lua_upvalueindex(4));
 
     if (lua_type(state, 1) != LUA_TUSERDATA)
     {
@@ -206,9 +177,10 @@ static int instanceGetterRouteHandler (lua_State *state)
     }
 
     LuaUserdataRef instance = (LuaUserdataRef)lua_touserdata(state, 1);
-    if (_instanceFieldGetterInvokeHandler != NULL)
+    LuaInstanceFieldGetterInvokeHandler handler = classImport -> getInstanceFieldGetterInvokeHandler();
+    if (handler != NULL)
     {
-        LuaValue *retValue = _instanceFieldGetterInvokeHandler (context, clsDesc, instance, fieldName);
+        LuaValue *retValue = handler (context, classImport, clsDesc, instance, fieldName);
         if (retValue != NULL)
         {
             retValue -> push(context);
@@ -239,8 +211,9 @@ static int instanceSetterRouteHandler (lua_State *state)
     using namespace cn::vimfung::luascriptcore::modules::oo;
 
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
-    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(2));
-    std::string fieldName = lua_tostring(state, lua_upvalueindex(3));
+    LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
+    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(3));
+    std::string fieldName = lua_tostring(state, lua_upvalueindex(4));
 
     if (lua_type(state, 1) != LUA_TUSERDATA)
     {
@@ -254,7 +227,8 @@ static int instanceSetterRouteHandler (lua_State *state)
     }
 
     LuaUserdataRef instance = (LuaUserdataRef)lua_touserdata(state, 1);
-    if (_instanceFieldSetterInvokeHandler != NULL)
+    LuaInstanceFieldSetterInvokeHandler handler = classImport -> getInstanceFieldSetterInvokeHandler();
+    if (handler != NULL)
     {
         LuaValue *value = NULL;
         int top = lua_gettop(state);
@@ -267,7 +241,7 @@ static int instanceSetterRouteHandler (lua_State *state)
             value = LuaValue::NilValue();
         }
 
-        _instanceFieldSetterInvokeHandler (context, clsDesc, instance, fieldName, value);
+        handler (context, classImport, clsDesc, instance, fieldName, value);
 
         //释放参数内存
         value -> release();
@@ -310,14 +284,18 @@ static int objectDestroyHandler (lua_State *state)
  */
 static int objectCreateHandler (lua_State *state)
 {
-    if (_createInstanceHandler == NULL)
+    LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
+    LuaCreateInstanceHandler createInstanceHandler = classImport -> getCreateInstanceHandler();
+    if (createInstanceHandler == NULL)
     {
         return 0;
     }
 
-    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_topointer(state, lua_upvalueindex(2));
-    std::string clsName = lua_tostring(state, lua_upvalueindex(3));
-    LuaObjectDescriptor *instanceDesc = _createInstanceHandler(clsDesc);
+    LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
+    LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_topointer(state, lua_upvalueindex(3));
+    
+    std::string clsName = lua_tostring(state, lua_upvalueindex(4));
+    LuaObjectDescriptor *instanceDesc = createInstanceHandler(context, classImport, clsDesc);
 
     if (instanceDesc == NULL)
     {
@@ -366,19 +344,22 @@ static int objectCreateHandler (lua_State *state)
  *
  * @param name 类型名称
  * @param context 上下文对象
+ * @param classImport 类型导入
  *
  * @return 返回值数量
  */
-static int exportsClass(const std::string &name, LuaContext *context)
+static int exportsClass(const std::string &name, LuaContext *context, LuaClassImport *classImport)
 {
-    if (_allowExcportsClassHandler == NULL || _exportClassHandler == NULL)
+    LuaAllowExportsClassHandler allowExportsHandler = classImport -> getAllowExportsClassHandler();
+    LuaExportClassHandler exportClassHandler = classImport -> getExportClassHandler();
+    if (allowExportsHandler == NULL || exportClassHandler == NULL)
     {
         return 0;
     }
 
-    if (_allowExcportsClassHandler(name))
+    if (allowExportsHandler(context, classImport, name))
     {
-        LuaExportClassProxy *classProxy = _exportClassHandler(name);
+        LuaExportClassProxy *classProxy = exportClassHandler(context, classImport, name);
         if (classProxy == NULL)
         {
             //无导出类型
@@ -428,9 +409,10 @@ static int exportsClass(const std::string &name, LuaContext *context)
 
                 //添加创建对象方法
                 lua_pushlightuserdata(state, (void *)context);
+                lua_pushlightuserdata(state, classImport);
                 lua_pushlightuserdata(state, (void *)clsDesc);
                 lua_pushstring(state, name.c_str());
-                lua_pushcclosure(state, objectCreateHandler, 3);
+                lua_pushcclosure(state, objectCreateHandler, 4);
                 lua_setfield(state, -2, "create");
 
                 //导出类方法
@@ -445,9 +427,10 @@ static int exportsClass(const std::string &name, LuaContext *context)
                         lua_pop(state, 1);
 
                         lua_pushlightuserdata(state, context);
+                        lua_pushlightuserdata(state, classImport);
                         lua_pushlightuserdata(state, clsDesc);
                         lua_pushstring(state, methodName.c_str());
-                        lua_pushcclosure(state, classMethodRouteHandler, 3);
+                        lua_pushcclosure(state, classMethodRouteHandler, 4);
 
                         lua_setfield(state, -2, methodName.c_str());
                     }
@@ -481,9 +464,10 @@ static int exportsClass(const std::string &name, LuaContext *context)
                         lua_pop(state, 1);
 
                         lua_pushlightuserdata(state, context);
+                        lua_pushlightuserdata(state, classImport);
                         lua_pushlightuserdata(state, clsDesc);
                         lua_pushstring(state, methodName.c_str());
-                        lua_pushcclosure(state, instanceMethodRouteHandler, 3);
+                        lua_pushcclosure(state, instanceMethodRouteHandler, 4);
 
                         lua_setfield(state, -2, methodName.c_str());
                     }
@@ -498,7 +482,6 @@ static int exportsClass(const std::string &name, LuaContext *context)
                 for (LuaExportNameList::iterator it = getterfieldNameList.begin(); it != getterfieldNameList.end() ; ++it)
                 {
                     std::string fieldName = *it;
-                    LOGI("fieldName = %s", fieldName.c_str());
                     lua_getfield(state, -1, fieldName.c_str());
                     if (lua_isnil(state, -1))
                     {
@@ -506,9 +489,10 @@ static int exportsClass(const std::string &name, LuaContext *context)
                         lua_pop(state, 1);
 
                         lua_pushlightuserdata(state, context);
+                        lua_pushlightuserdata(state, classImport);
                         lua_pushlightuserdata(state, clsDesc);
                         lua_pushstring(state, fieldName.c_str());
-                        lua_pushcclosure(state, instanceGetterRouteHandler, 3);
+                        lua_pushcclosure(state, instanceGetterRouteHandler, 4);
 
                         lua_setfield(state, -2, fieldName.c_str());
                     }
@@ -537,9 +521,10 @@ static int exportsClass(const std::string &name, LuaContext *context)
                         lua_pop(state, 1);
 
                         lua_pushlightuserdata(state, context);
+                        lua_pushlightuserdata(state, classImport);
                         lua_pushlightuserdata(state, clsDesc);
                         lua_pushstring(state, fieldName.c_str());
-                        lua_pushcclosure(state, instanceSetterRouteHandler, 3);
+                        lua_pushcclosure(state, instanceSetterRouteHandler, 4);
 
                         lua_setfield(state, -2, setterMethodName.c_str());
                     }
@@ -587,6 +572,7 @@ static int exportsClass(const std::string &name, LuaContext *context)
 static int setupProxyHandler (lua_State *state)
 {
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
+    LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
 
     int top = lua_gettop(state);
     if (top > 0)
@@ -595,7 +581,7 @@ static int setupProxyHandler (lua_State *state)
         if (clsName -> getType() == LuaValueTypeString)
         {
             //导出类型
-            return exportsClass(clsName -> toString(), context);
+            return exportsClass(clsName -> toString(), context, classImport);
         }
     }
 
@@ -605,12 +591,15 @@ static int setupProxyHandler (lua_State *state)
 void LuaClassImport::onRegister(const std::string &name,
                                 LuaContext *context)
 {
+    _context = context;
+    
     //注册一个ObjectProxy的全局方法，用于导出原生类型
     lua_State *state = context -> getLuaState();
 
     //关联更新索引处理
     lua_pushlightuserdata(state, context);
-    lua_pushcclosure(state, setupProxyHandler, 1);
+    lua_pushlightuserdata(state, this);
+    lua_pushcclosure(state, setupProxyHandler, 2);
     lua_setglobal(state, "ClassImport");
 }
 
@@ -690,4 +679,39 @@ void LuaClassImport::onInstanceFieldGetterInvoke(LuaInstanceFieldGetterInvokeHan
 void LuaClassImport::onInstanceFieldSetterInvoke(LuaInstanceFieldSetterInvokeHandler handler)
 {
     _instanceFieldSetterInvokeHandler = handler;
+}
+
+LuaClassMethodInvokeHandler LuaClassImport::getClassMethodInvokeHandler()
+{
+    return _classMethodInvokeHandler;
+}
+
+LuaInstanceMethodInvokeHandler LuaClassImport::getInstanceMethodInvokeHandler()
+{
+    return _instanceMethodInvokeHandler;
+}
+
+LuaInstanceFieldGetterInvokeHandler LuaClassImport::getInstanceFieldGetterInvokeHandler()
+{
+    return _instanceFieldGetterInvokeHandler;
+}
+
+LuaInstanceFieldSetterInvokeHandler LuaClassImport::getInstanceFieldSetterInvokeHandler()
+{
+    return _instanceFieldSetterInvokeHandler;
+}
+
+LuaCreateInstanceHandler LuaClassImport::getCreateInstanceHandler()
+{
+    return _createInstanceHandler;
+}
+
+LuaAllowExportsClassHandler LuaClassImport::getAllowExportsClassHandler()
+{
+    return _allowExcportsClassHandler;
+}
+
+LuaExportClassHandler LuaClassImport::getExportClassHandler()
+{
+    return _exportClassHandler;
 }

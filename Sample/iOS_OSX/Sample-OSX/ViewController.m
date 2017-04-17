@@ -10,6 +10,7 @@
 #import "ViewController.h"
 #import "LogModule.h"
 #import "LSCTPerson.h"
+#import "LSCTNativeData.h"
 
 @interface ViewController ()
 
@@ -32,6 +33,11 @@
  *  是否注册类
  */
 @property (nonatomic) BOOL hasRegClass;
+
+/**
+ 是否导入类
+ */
+@property (nonatomic) BOOL hasImportClass;
 
 @end
 
@@ -151,6 +157,23 @@
     
     [self.context evalScriptFromFile:[[NSBundle mainBundle] pathForResource:@"test"
                                                                      ofType:@"lua"]];
+}
+
+/**
+ 导入原生类型按钮点击事件
+ 
+ @param sender 事件对象
+ */
+- (IBAction)importNativeClassClickedHandler:(id)sender
+{
+    if (!self.hasImportClass)
+    {
+        self.hasImportClass = YES;
+        [self.context registerModuleWithClass:[LSCClassImport class]];
+        [LSCClassImport setInculdesClasses:@[LSCTPerson.class, LSCTNativeData.class] withContext:self.context];
+    }
+    
+    [self.context evalScriptFromString:@"local Data = ClassImport('LSCTNativeData'); print(Data); local d = Data.create(); print(d); d:setDataId('xxxx'); print(d:dataId()); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
 }
 
 @end

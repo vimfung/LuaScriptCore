@@ -13,12 +13,14 @@
 #import "LSCPointer.h"
 #import "LSCTuple.h"
 #import "LSCLuaObjectPushProtocol.h"
+#import "LSCObjectClass.h"
 #import <objc/runtime.h>
 
 /**
  包含类型列表
  */
-static NSArray *_includesClasses = nil;
+static NSMutableDictionary *_includesClasses = nil;
+//static NSArray *_includesClasses = nil;
 
 /**
  实例引用表名称
@@ -48,9 +50,22 @@ static NSString *const ProxyTableName = @"_import_classes_";
     lua_setglobal(state, "ClassImport");
 }
 
-+ (void)setInculdesClasses:(NSArray<Class> *)classes
++ (void)setInculdesClasses:(NSArray<Class> *)classes withContext:(LSCContext *)context
 {
-    _includesClasses = classes;
+    if (!_includesClasses)
+    {
+        _includesClasses = [NSMutableDictionary dictionary];
+    }
+    
+    if (classes)
+    {
+        [_includesClasses setObject:classes forKey:[context description]];
+    }
+    else
+    {
+        [_includesClasses removeObjectForKey:[context description]];
+    }
+    
 }
 
 #pragma mark - Private
@@ -65,10 +80,24 @@ static NSString *const ProxyTableName = @"_import_classes_";
  */
 + (int)_exportsClassWithName:(NSString *)clsName context:(LSCContext *)context
 {
+    lua_State *state = context.state;
     Class cls = NSClassFromString(clsName);
     
+    //判断是否为LSCObjectClass的子类
+    if ([cls isSubclassOfClass:[LSCObjectClass class]])
+    {
+        //注册类型模块
+        [context registerModuleWithClass:cls];
+        
+        //返回模块类
+        NSString *moduleName = [cls moduleName];
+        lua_getglobal(state, moduleName.UTF8String);
+        return 1;
+    }
+    
     //判断是否在导出类中
-    if (![_includesClasses containsObject:cls])
+    NSArray *classes = _includesClasses[[context description]];
+    if (![classes containsObject:cls])
     {
         //非导出类，直接返回
         NSLog(@"No permission to import the `%@` class, please call the setInculdesClasses method to set the class to the includes class list", clsName);
@@ -76,7 +105,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
     }
     
     //先判断_G下是否存在对象代理表
-    lua_State *state = context.state;
     
     lua_getglobal(state, "_G");
     if (lua_type(state, -1) == LUA_TTABLE)
