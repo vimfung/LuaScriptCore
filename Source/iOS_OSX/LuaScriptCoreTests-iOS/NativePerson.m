@@ -7,6 +7,7 @@
 //
 
 #import "NativePerson.h"
+#import "Person.h"
 
 @implementation NativePerson
 
@@ -20,9 +21,9 @@
     NSLog(@"person name = %@", person.name);
 }
 
-+ (NativePerson *)createPerson
++ (Person *)createPerson
 {
-    return [[NativePerson alloc] init];
+    return [[Person alloc] init];
 }
 
 @end

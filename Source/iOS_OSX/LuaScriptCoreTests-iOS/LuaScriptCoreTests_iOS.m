@@ -191,6 +191,14 @@
     [self.context evalScriptFromString:@"local Person = ClassImport('NativePerson'); print(Person); local p = Person.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
 }
 
+- (void)testClassImportAndObjectClass
+{
+    [self.context registerModuleWithClass:[LSCClassImport class]];
+    [LSCClassImport setInculdesClasses:@[[NativePerson class], [Person class]] withContext:_context];
+    
+    [self.context evalScriptFromString:@"local NativePerson = ClassImport('NativePerson'); local Person = ClassImport('Person'); print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
+}
+
 - (void)tearDown
 {
     // Put teardown code here. This method is called after the invocation of each test method in the class.

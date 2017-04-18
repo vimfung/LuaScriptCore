@@ -83,6 +83,15 @@ static NSString *const ProxyTableName = @"_import_classes_";
     lua_State *state = context.state;
     Class cls = NSClassFromString(clsName);
     
+    //判断是否在导出类中
+    NSArray *classes = _includesClasses[[context description]];
+    if (![classes containsObject:cls])
+    {
+        //非导出类，直接返回
+        NSLog(@"No permission to import the `%@` class, please call the setInculdesClasses method to set the class to the includes class list", clsName);
+        return 0;
+    }
+    
     //判断是否为LSCObjectClass的子类
     if ([cls isSubclassOfClass:[LSCObjectClass class]])
     {
@@ -93,15 +102,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
         NSString *moduleName = [cls moduleName];
         lua_getglobal(state, moduleName.UTF8String);
         return 1;
-    }
-    
-    //判断是否在导出类中
-    NSArray *classes = _includesClasses[[context description]];
-    if (![classes containsObject:cls])
-    {
-        //非导出类，直接返回
-        NSLog(@"No permission to import the `%@` class, please call the setInculdesClasses method to set the class to the includes class list", clsName);
-        return 0;
     }
     
     //先判断_G下是否存在对象代理表
