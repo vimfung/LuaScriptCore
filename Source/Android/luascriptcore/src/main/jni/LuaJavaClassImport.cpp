@@ -107,7 +107,6 @@ static bool _allowExportsClassHandlerFunc (LuaContext *context, LuaClassImport *
     //将className由.描述缓存/描述
     std::string clsName = StringUtils::replace(className, ".", "/");
     jclass cls = env -> FindClass(clsName.c_str());
-
     bool allow = false;
     for (std::list<jclass>::iterator it = _exportClassList.begin(); it != _exportClassList.end() ; ++it)
     {
@@ -122,6 +121,11 @@ static bool _allowExportsClassHandlerFunc (LuaContext *context, LuaClassImport *
     env -> DeleteLocalRef(cls);
 
     LuaJavaEnv::resetEnv(env);
+
+    if (!allow)
+    {
+        LOGW("No permission to import the `%s` class, please call the setInculdesClasses method to set the class to the includes class list", className.c_str());
+    }
 
     return allow;
 }

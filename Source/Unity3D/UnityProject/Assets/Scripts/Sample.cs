@@ -25,6 +25,11 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	private bool _isRegClass = false;
 
+	/// <summary>
+	/// 是否导入类型
+	/// </summary>
+	private bool _isClassImport = false;
+
 	public void Start()
 	{
 		LuaContext.currentContext.onException((errMessage) => {
@@ -136,9 +141,13 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void importClassButtonClickedHandler ()
 	{
-		LuaContext.currentContext.registerModule<LuaClassImport> ();
-		LuaClassImport.setIncludesClasses (LuaContext.currentContext, new List<Type> (){ typeof(Person) });
+		if (!_isClassImport)
+		{
+			_isClassImport = true;
+			LuaContext.currentContext.registerModule<LuaClassImport> ();
+			LuaClassImport.setIncludesClasses (LuaContext.currentContext, new List<Type> (){ typeof(Person), typeof(NativeData) });
+		}
 
-		LuaContext.currentContext.evalScript ("local Person = ClassImport('Person'); print(Person); local p = Person.create(); print(p); p:setName('xxxx'); print(Person.printPerson); p = Person.printPerson(p); print(p); print(p:name());");
+		LuaContext.currentContext.evalScript ("local Person = ClassImport('Person'); local NativeData = ClassImport('NativeData'); print(Person, NativeData); local d = NativeData.create(); d:setDataId('xxx'); print(d:dataId()); local p = NativeData.createPerson(); print(p); p:setName('xxxx'); p = Person.printPerson(p); print(p); print(p:name());");
 	}
 }

@@ -862,6 +862,7 @@ extern "C" {
     
     void registerClassImport(int nativeContextId,
                              const char *className,
+                             LuaCheckObjectSubclassHandlerPtr checkObjectSubclassHandler,
                              LuaAllowExportsClassHandlerPtr allowExportsClassHandler,
                              LuaAllExportClassMethodHandlerPtr allExportClassMethods,
                              LuaAllExportInstanceMethodHandlerPtr allExportInstanceMethods,
@@ -880,6 +881,7 @@ extern "C" {
         {
             LuaUnityClassImport *classImport = new LuaUnityClassImport();
             
+            classImport -> setCheckObjectSubclassHandler(checkObjectSubclassHandler);
             classImport -> setAllowExportsClassHandler(allowExportsClassHandler);
             classImport -> setAllExportClassMethodHandler(allExportClassMethods);
             classImport -> setAllExportInstanceMethodHandler(allExportInstanceMethods);

@@ -10,8 +10,6 @@
 #include "LuaDefined.h"
 #include "LuaTuple.h"
 
-#include "lunity.h"
-
 using namespace cn::vimfung::luascriptcore;
 using namespace cn::vimfung::luascriptcore::modules::oo;
 
@@ -350,13 +348,6 @@ static int objectCreateHandler (lua_State *state)
  */
 static int exportsClass(const std::string &name, LuaContext *context, LuaClassImport *classImport)
 {
-    LuaCheckObjectSubclassHandler checkObjectSubclassHandler = classImport -> getCheckObjectSubclassHandler();
-    if (checkObjectSubclassHandler != NULL && checkObjectSubclassHandler(context, classImport, name))
-    {
-        //如果类型为LuaObjectClass的子类，则由checkObjectSubclassHandler进行导入处理。
-        return 1;
-    }
-
     LuaAllowExportsClassHandler allowExportsHandler = classImport -> getAllowExportsClassHandler();
     LuaExportClassHandler exportClassHandler = classImport -> getExportClassHandler();
     if (allowExportsHandler == NULL || exportClassHandler == NULL)
@@ -366,6 +357,13 @@ static int exportsClass(const std::string &name, LuaContext *context, LuaClassIm
 
     if (allowExportsHandler(context, classImport, name))
     {
+        LuaCheckObjectSubclassHandler checkObjectSubclassHandler = classImport -> getCheckObjectSubclassHandler();
+        if (checkObjectSubclassHandler != NULL && checkObjectSubclassHandler(context, classImport, name))
+        {
+            //如果类型为LuaObjectClass的子类，则由checkObjectSubclassHandler进行导入处理。
+            return 1;
+        }
+
         LuaExportClassProxy *classProxy = exportClassHandler(context, classImport, name);
         if (classProxy == NULL)
         {

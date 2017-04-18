@@ -36,6 +36,25 @@ static bool _unityObjectPushFilter(LuaContext *context, LuaObjectDescriptor *obj
     return filted;
 }
 
+static bool _checkObjectSubclassHandlerFunc (LuaContext *context, LuaClassImport *classImport, const std::string &className)
+{
+    LuaUnityClassImport *unityClassImport = (LuaUnityClassImport *)classImport;
+    
+    LuaCheckObjectSubclassHandlerPtr checkObjectSubclassHandlerPtr = unityClassImport -> getCheckObjectSubclassHandler();
+    if (checkObjectSubclassHandlerPtr != NULL)
+    {
+        const char *moduleName = checkObjectSubclassHandlerPtr(context -> objectId(), className.c_str());
+
+        if (moduleName != NULL)
+        {
+            lua_getglobal(context -> getLuaState(), moduleName);
+            return true;
+        }
+    }
+    
+    return false;
+}
+
 static bool _allowExportsClassHandlerFunc (LuaContext *context, LuaClassImport *classImport, const std::string &className)
 {
     LuaUnityClassImport *unityClassImport = (LuaUnityClassImport *)classImport;
@@ -267,6 +286,7 @@ static LuaObjectDescriptor* _createInstanceHandlerFunc (LuaContext *context,
 
 LuaUnityClassImport::LuaUnityClassImport()
 {
+    onCheckObjectSubclass(_checkObjectSubclassHandlerFunc);
     onAllowExportsClass(_allowExportsClassHandlerFunc);
     onExportsClass(_exportClassHandlerFunc);
     onClassMethodInvoke(_classMethodInvokeHandlerFunc);
@@ -281,6 +301,11 @@ void LuaUnityClassImport::onRegister(const std::string &name, LuaContext *contex
     //添加对象过滤器
     LuaObjectDescriptor::addPushFilter(_unityObjectPushFilter);
     LuaClassImport::onRegister(name, context);
+}
+
+void LuaUnityClassImport::setCheckObjectSubclassHandler(LuaCheckObjectSubclassHandlerPtr handler)
+{
+    _checkObjectSubclassHandlerPtr = handler;
 }
 
 void LuaUnityClassImport::setAllowExportsClassHandler(LuaAllowExportsClassHandlerPtr handler)
@@ -331,6 +356,11 @@ void LuaUnityClassImport::setFieldGetterHandler(LuaNativeFieldGetterHandlerPtr h
 void LuaUnityClassImport::setFieldSetterHandler(LuaNativeFieldSetterHandlerPtr handler)
 {
     _fieldSetterHandlerPtr = handler;
+}
+
+LuaCheckObjectSubclassHandlerPtr LuaUnityClassImport::getCheckObjectSubclassHandler()
+{
+    return _checkObjectSubclassHandlerPtr;
 }
 
 LuaAllowExportsClassHandlerPtr LuaUnityClassImport::getAllowExportsClassHandler()
