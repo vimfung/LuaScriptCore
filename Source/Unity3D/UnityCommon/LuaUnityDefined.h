@@ -74,6 +74,11 @@ extern "C" {
     typedef void (*LuaExceptionHandlerPtr) (const void *);
     
     /**
+     检测是否为LuaObjectClass子类
+     */
+    typedef const char* (*LuaCheckObjectSubclassHandlerPtr) (int contextId, const char *className);
+    
+    /**
      允许类型导出处理器
      */
     typedef bool (*LuaAllowExportsClassHandlerPtr) (int contextId, const char *className);
