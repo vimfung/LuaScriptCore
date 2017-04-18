@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class Person;
+
 @interface NativePerson : NSObject
 
 @property (nonatomic, copy) NSString *name;
@@ -16,6 +18,6 @@
 
 + (void)printPersonName:(NativePerson *)person;
 
-+ (NativePerson *)createPerson;
++ (Person *)createPerson;
 
 @end

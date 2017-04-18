@@ -23,6 +23,11 @@ class LuaUnityClassImport : public cn::vimfung::luascriptcore::modules::oo::LuaC
 private:
     
     /**
+     检测是否为LuaObjectClass的子类
+     */
+    LuaCheckObjectSubclassHandlerPtr _checkObjectSubclassHandlerPtr = NULL;
+    
+    /**
      是否允许导出类型处理器
      */
     LuaAllowExportsClassHandlerPtr _allowExportsClassHandlerPtr = NULL;
@@ -88,6 +93,13 @@ public:
     void onRegister(const std::string &name, cn::vimfung::luascriptcore::LuaContext *context);
     
 public:
+    
+    /**
+     设置检测是否为LuaObjectClass子类处理器
+
+     @param handler 处理器
+     */
+    void setCheckObjectSubclassHandler(LuaCheckObjectSubclassHandlerPtr handler);
     
     /**
      设置是否允许导出类型处理器
@@ -160,6 +172,13 @@ public:
     void setFieldSetterHandler(LuaNativeFieldSetterHandlerPtr handler);
     
 public:
+    
+    /**
+     获取检测LuaObjectClass子类处理器
+
+     @return 处理器
+     */
+    LuaCheckObjectSubclassHandlerPtr getCheckObjectSubclassHandler();
     
     /**
      获取是否允许导出类型处理器

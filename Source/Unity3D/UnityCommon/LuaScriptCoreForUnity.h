@@ -209,6 +209,7 @@ extern "C" {
 
      @param nativeContextId 上下文标识
      @param className 类名
+     @param checkObjectSubclassHandler 检测对象是否为LuaObjectClass子类
      @param allowExportsClassHandler 是否允许导出类型处理器
      @param allExportClassMethods 导出所有类方法
      @param allExportInstanceMethods 导出所有实例方法
@@ -222,6 +223,7 @@ extern "C" {
      */
     LuaScriptCoreApi extern void registerClassImport(int nativeContextId,
                                                     const char *className,
+                                                    LuaCheckObjectSubclassHandlerPtr checkObjectSubclassHandler,
                                                     LuaAllowExportsClassHandlerPtr allowExportsClassHandler,
                                                     LuaAllExportClassMethodHandlerPtr allExportClassMethods,
                                                     LuaAllExportInstanceMethodHandlerPtr allExportInstanceMethods,

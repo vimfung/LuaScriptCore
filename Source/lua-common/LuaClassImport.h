@@ -153,6 +153,7 @@ namespace cn
                         LuaInstanceFieldSetterInvokeHandler _instanceFieldSetterInvokeHandler = NULL;
                         
                     public:
+
                         /**
                          * 注册模块时调用
                          *
