@@ -195,6 +195,24 @@
     <ClCompile Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaClassImport.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaExportClassProxy.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\StringUtils.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityClassImport.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityClassObjectDescriptor.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityExportClassProxy.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lua-core\src\lapi.h">
@@ -343,6 +361,24 @@
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaTuple.h">
       <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaClassImport.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaExportClassProxy.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\StringUtils.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityClassImport.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityClassObjectDescriptor.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityExportClassProxy.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
