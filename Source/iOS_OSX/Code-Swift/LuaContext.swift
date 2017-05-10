@@ -69,6 +69,28 @@ public class LuaContext: NSObject
         return LuaValue(rawValue: value);
     }
     
+    
+    /// 保留Lua层的变量引用，使其不被GC所回收。
+    /// 注：判断value能否被保留取决于value所保存的真实对象，所以只要保证保存对象一致，即使value为不同对象并不影响实际效果。
+    /// 即：LuaValue *val1 = LuaValue(objectValue:obj1);与LuaValue *val2 = LuaValue(objectValue:obj1);传入方法中效果相同。
+    ///
+    /// - Parameter value: 对应Lua层变量的原生对象Value，如果value为非Lua回传对象则调用此方法无任何效果。
+    public func retainValue (value : LuaValue) -> Void
+    {
+        _rawContext.retain(value.rawValue);
+    }
+    
+    
+    /// 释放Lua层的变量引用，使其内存管理权交回Lua。
+    /// 注：判断value能否被释放取决于value所保存的真实对象，所以只要保证保存对象一致，即使value为不同对象并不影响实际效果。
+    /// 即：LSCValue *val1 = [LSCValue objectValue:obj1]与LSCValue *val2 = [LSCValue objectValue:obj1]传入方法中效果相同。
+    ///
+    /// - Parameter value: 对应Lua层变量的原生对象Value，如果value为非Lua回传对象则调用此方法无任何效果。
+    public func releaseValue (value : LuaValue) -> Void
+    {
+        _rawContext.release(value.rawValue);
+    }
+    
     /// 解析脚本
     ///
     /// - Parameter script: 脚本字符串

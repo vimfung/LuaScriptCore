@@ -34,12 +34,4 @@
  */
 - (instancetype)initWithContext:(LSCContext *)context index:(NSInteger)index;
 
-
-/**
- 将方法入栈
- 
- @param context 上下文对象
- */
-- (void)pushWithContext:(LSCContext *)context;
-
 @end

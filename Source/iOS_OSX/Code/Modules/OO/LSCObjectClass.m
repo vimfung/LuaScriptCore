@@ -16,20 +16,6 @@
 #import <objc/runtime.h>
 #import <objc/message.h>
 
-/**
- 实例引用表名称
- */
-static NSString *const InstanceRefsTableName = @"_instanceRefs_";
-
-@interface LSCObjectClass () <LSCLuaObjectPushProtocol>
-
-/**
- 引用标识，每个实例对象在创建lua实例时都会向_G表的_instanceRefs_表写入一个引用，方便查找对应的引用对象，而改表对应引用的key就是该属性的值。
- */
-@property (nonatomic) NSString *_refId;
-
-@end
-
 @implementation LSCObjectClass
 
 + (NSString *)version
@@ -335,37 +321,6 @@ static int objectToStringHandler (lua_State *state)
     return 1;
 }
 
-///**
-// *  对象更新索引处理
-// *
-// *  @param state 状态机
-// *
-// *  @return 参数数量
-// */
-//static int objectNewIndexHandler (lua_State *state)
-//{
-//    //限于当前无法判断所定义的方法是使用.或:定义，因此对添加的属性或者方法统一添加到类表和实例元表中。
-//    lua_pushvalue(state, 2);
-//    lua_pushvalue(state, 3);
-//    lua_rawset(state, 1);
-//    
-//    //查找实例元表进行添加
-//    lua_getfield(state, 1, "_nativeClass");
-//    Class moduleClass = (__bridge Class)lua_topointer(state, -1);
-//    
-//    NSString *metaClsName = [LSCObjectClass _metaClassNameWithClass:[moduleClass moduleName]];
-//    luaL_getmetatable(state, metaClsName.UTF8String);
-//    if (lua_istable(state, -1))
-//    {
-//        lua_pushvalue(state, 2);
-//        lua_pushvalue(state, 3);
-//        lua_rawset(state, -3);
-//    }
-//    lua_pop(state, 1);
-//    
-//    return 0;
-//}
-
 /**
  实例对象更新索引处理
 
@@ -502,57 +457,26 @@ static int instanceOfHandler (lua_State *state)
 
 #pragma mark - LSCLuaObjectPushProtocol
 
-- (void)pushWithContext:(LSCContext *)context
+- (BOOL)pushWithContext:(LSCContext *)context
 {
     lua_State *state = context.state;
 
-    BOOL hasExists = NO;
-    if (self._refId)
+    //不存在lua实例需要进行创建
+    [LSCObjectClass _createLuaInstanceWithState:state instance:self];
+    
+    //调用默认init方法
+    lua_getfield(state, -1, "init");
+    if (lua_isfunction(state, -1))
     {
-        //先查找_instanceRefs_中是否存在实例
-        lua_getglobal(state, "_G");
-        if (lua_istable(state, -1))
-        {
-            lua_getfield(state, -1, InstanceRefsTableName.UTF8String);
-            if (lua_istable(state, -1))
-            {
-                lua_getfield(state, -1, self._refId.UTF8String);
-                if (lua_isuserdata(state, -1))
-                {
-                    //存在实例
-                    lua_insert(state, -3);
-                    hasExists = YES;
-                }
-                else
-                {
-                    lua_pop(state, 1);
-                }
-            }
-            
-            lua_pop(state, 1);
-        }
-
+        lua_pushvalue(state, -2);
+        lua_pcall(state, 1, 0, 0);
+    }
+    else
+    {
         lua_pop(state, 1);
     }
-    
-    if (!hasExists)
-    {
-        //不存在lua实例需要进行创建
-        [LSCObjectClass _createLuaInstanceWithState:state instance:self];
-        
-        //调用默认init方法
-        lua_getfield(state, -1, "init");
-        if (lua_isfunction(state, -1))
-        {
-            lua_pushvalue(state, -2);
-            lua_pcall(state, 1, 0, 0);
-        }
-        else
-        {
-            lua_pop(state, 1);
-        }
-    }
 
+    return YES;
 }
 
 #pragma mark - Private
@@ -611,7 +535,6 @@ static int instanceOfHandler (lua_State *state)
     LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
     //创建本地实例对象，赋予lua的内存块并进行保留引用
     ref -> value = (void *)CFBridgingRetain(instance);
-    instance._refId = [NSUUID UUID].UUIDString;
     
     //创建一个临时table作为元表，用于在lua上动态添加属性或方法
     lua_newtable(state);
@@ -643,36 +566,6 @@ static int instanceOfHandler (lua_State *state)
     }
     
     lua_pop(state, 1);
-    
-    //将实例对象放入_instanceRefs_表中
-    lua_getglobal(state, "_G");
-    if (lua_istable(state, -1))
-    {
-        lua_getfield(state, -1, InstanceRefsTableName.UTF8String);
-        if (lua_isnil(state, -1))
-        {
-            lua_pop(state, 1);
-            
-            //创建_instanceRefs_表，该表为弱引用表
-            lua_newtable(state);
-            
-            //创建弱引用表元表
-            lua_newtable(state);
-            lua_pushstring(state, "kv");
-            lua_setfield(state, -2, "__mode");
-            lua_setmetatable(state, -2);
-            
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -3, InstanceRefsTableName.UTF8String);
-        }
-        
-        //将实例对象放入表中
-        lua_pushvalue(state, -3);
-        lua_setfield(state, -2, instance._refId.UTF8String);
-        
-        lua_pop(state, 1);
-    }
-    lua_pop(state, 1);
 }
 
 /**
@@ -700,11 +593,6 @@ static int instanceOfHandler (lua_State *state)
     //关联索引
     lua_pushvalue(state, -1);
     lua_setfield(state, -2, "__index");
-    
-//    //关联更新索引处理
-//    lua_pushlightuserdata(state, (__bridge void *)context);
-//    lua_pushcclosure(state, objectNewIndexHandler, 1);
-//    lua_setfield(state, -2, "__newindex");
     
     //写入模块标识
     lua_pushstring(state, NativeModuleType.UTF8String);
@@ -754,19 +642,6 @@ static int instanceOfHandler (lua_State *state)
             lua_setmetatable(state, -2);
         }
     }
-//    else
-//    {
-//        //为根类，则创建一个table作为元表
-//        lua_newtable(state);
-//        
-//        //关联更新索引处理
-//        lua_pushlightuserdata(state, (__bridge void *)context);
-//        lua_pushlightuserdata(state, (__bridge void *)cls);
-//        lua_pushcclosure(state, objectNewIndexHandler, 2);
-//        lua_setfield(state, -2, "__newindex");
-//        
-//        lua_setmetatable(state, -2);
-//    }
     
     lua_setglobal(state, [moduleName UTF8String]);
     
