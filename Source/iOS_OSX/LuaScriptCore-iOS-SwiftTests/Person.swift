@@ -7,12 +7,15 @@
 //
 
 import UIKit
+import LuaScriptCore_iOS_Swift
 
-class Person: NSObject {
+private var _func : LuaValue? = nil;
+
+class Person: LSCObjectClass {
     
     var _name : String = "";
     
-    static func createPerson() -> Person
+    class func createPerson() -> Person
     {
         return Person();
     }
@@ -31,5 +34,27 @@ class Person: NSObject {
     {
         NSLog("%@ speak : %@", _name, text);
     }
-
+    
+    class func retainHandler (handler : LSCFunction) -> Void
+    {
+        _func = LuaValue(functionValue: LuaFunction(rawFunction: handler));
+        Env.defaultContext.retainValue(value: _func!);
+    }
+    
+    class func releaseHandler ()
+    {
+        if (_func != nil)
+        {
+            Env.defaultContext.releaseValue(value: _func!);
+            _func = nil;
+        }
+    }
+    
+    class func callHandler ()
+    {
+        if _func != nil
+        {
+            _ = _func!.functionValue.invoke(arguments: Array<LuaValue>());
+        }
+    }
 }

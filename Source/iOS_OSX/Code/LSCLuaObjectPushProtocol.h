@@ -23,7 +23,8 @@
  入栈数据
 
  @param context 上下文对象
+ @return YES 表示已将对象入栈，NO 表示未将对象入栈
  */
-- (void)pushWithContext:(LSCContext *)context;
+- (BOOL)pushWithContext:(LSCContext *)context;
 
 @end
