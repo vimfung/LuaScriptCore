@@ -749,7 +749,7 @@ static int objectDestroyHandler (lua_State *state)
 
 #pragma mark - LSCLuaObjectPushProtocol
 
-- (void)pushWithContext:(LSCContext *)context
+- (BOOL)pushWithContext:(LSCContext *)context
 {
     lua_State *state = context.state;
     
@@ -779,7 +779,7 @@ static int objectDestroyHandler (lua_State *state)
                 lua_remove(state, -2);  //移除代理表
                 lua_remove(state, -2);  //移除_G
                 
-                return;
+                return YES;
             }
 
             lua_pop(state, 1);
@@ -790,8 +790,7 @@ static int objectDestroyHandler (lua_State *state)
     
     lua_pop(state, 1);
     
-    //使用默认的入栈方式
-    [LSCValue pushObject:self context:context];
+    return NO;
 }
 
 @end

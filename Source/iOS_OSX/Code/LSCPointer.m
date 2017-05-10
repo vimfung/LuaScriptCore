@@ -7,8 +7,10 @@
 //
 
 #import "LSCPointer.h"
+#import "LSCLuaObjectPushProtocol.h"
+#import "LSCContext_Private.h"
 
-@interface LSCPointer ()
+@interface LSCPointer () <LSCLuaObjectPushProtocol>
 
 @property (nonatomic) LSCUserdataRef userdataRef;
 
@@ -56,6 +58,16 @@
 - (const LSCUserdataRef)value
 {
     return self.userdataRef;
+}
+
+#pragma mark - LSCLuaObjectPushProtocol
+
+- (BOOL)pushWithContext:(LSCContext *)context
+{
+    lua_State *state = context.state;
+    lua_pushlightuserdata(state, [self value]);
+    
+    return YES;
 }
 
 @end

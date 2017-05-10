@@ -13,12 +13,6 @@
 #import "LSCTuple.h"
 #import <objc/runtime.h>
 
-@interface LSCContext ()
-
-@property (nonatomic, strong) NSNumber *value;
-
-@end
-
 @implementation LSCContext
 
 - (instancetype)init
@@ -39,6 +33,9 @@
         //设置搜索路径
         NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
         [self addSearchPath:resourcePath];
+        
+        //初始化数据交换器
+        self.dataExchanger = [[LSCDataExchanger alloc] initWithContext:self];
     }
     
     return self;
@@ -69,6 +66,16 @@
 {
     lua_getglobal(self.state, name.UTF8String);
     return [LSCValue valueWithContext:self atIndex:-1];
+}
+
+- (void)retainValue:(LSCValue *)value
+{
+    [self.dataExchanger retainLuaObject:value];
+}
+
+- (void)releaseValue:(LSCValue *)value
+{
+    [self.dataExchanger releaseLuaObject:value];
 }
 
 - (LSCValue *)evalScriptFromString:(NSString *)string

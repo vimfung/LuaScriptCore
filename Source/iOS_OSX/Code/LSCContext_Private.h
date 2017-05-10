@@ -11,6 +11,7 @@
 #import "lua.h"
 #import "luaconf.h"
 #import "lualib.h"
+#import "LSCDataExchanger.h"
 
 @interface LSCContext ()
 
@@ -28,6 +29,11 @@
  *  方法处理器集合
  */
 @property(nonatomic, strong) NSMutableDictionary *methodBlocks;
+
+/**
+ 数据交换器
+ */
+@property (nonatomic, strong) LSCDataExchanger *dataExchanger;
 
 
 /**
