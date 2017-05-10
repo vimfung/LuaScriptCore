@@ -12,6 +12,7 @@
 #import "Person.h"
 #import "NativePerson.h"
 #import "LSCTuple.h"
+#import "Env.h"
 
 @interface LuaScriptCoreTests_iOS : XCTestCase
 
@@ -25,7 +26,7 @@
 {
     [super setUp];
     
-    self.context = [[LSCContext alloc] init];
+    self.context = [Env defaultContext];
     [self.context onException:^(NSString *message) {
        
         NSLog(@"error = %@", message);
@@ -99,7 +100,7 @@
 - (void)testRegisterClass
 {
     [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"local p = Person.createPerson(); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"local p = Person.createPerson(); print(p); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!');"];
 }
 
 - (void)testCreateObjectWithParams
@@ -143,7 +144,7 @@
 
 - (void)testTupleReturnValue
 {
-    [self.context registerMethodWithName:@"test" block:^LSCValue *(NSArray<LSCValue *> *arguments) {
+    [self.context registerMethodWithName:@"testTuple" block:^LSCValue *(NSArray<LSCValue *> *arguments) {
        
         LSCTuple *tuple = [[LSCTuple alloc] init];
         [tuple addReturnValue:@1000];
@@ -153,7 +154,7 @@
         
     }];
     
-    [self.context evalScriptFromString:@"local a,b = test(); print(a, b);"];
+    [self.context evalScriptFromString:@"local a,b = testTuple(); print(a, b);"];
 }
 
 - (void)testModuleTupleReturnValue
@@ -193,10 +194,20 @@
 
 - (void)testClassImportAndObjectClass
 {
+    [self.context registerModuleWithClass:[Person class]];
     [self.context registerModuleWithClass:[LSCClassImport class]];
     [LSCClassImport setInculdesClasses:@[[NativePerson class], [Person class]] withContext:_context];
     
     [self.context evalScriptFromString:@"local NativePerson = ClassImport('NativePerson'); local Person = ClassImport('Person'); print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
+}
+
+- (void)testRetainRelease
+{
+    [self.context registerModuleWithClass:[Person class]];
+    
+    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person.retainHandler(test);"];
+    [self.context evalScriptFromString:@"print('-------------1'); Person.callHandler(); Person.releaseHandler();"];
+    [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler();"];
 }
 
 - (void)tearDown

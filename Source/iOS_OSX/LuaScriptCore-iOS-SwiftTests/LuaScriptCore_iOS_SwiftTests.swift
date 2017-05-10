@@ -17,7 +17,7 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
     {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        _context = LuaContext();
+        _context = Env.defaultContext;
     }
     
     override func tearDown() {
@@ -38,6 +38,14 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
         LuaClassImport.setInculdesClasses(classes: [Person.self], context: _context!);
         
         _ = _context?.evalScript(script: "local Person = ClassImport('LuaScriptCore_iOS_SwiftTests.Person'); local p = Person.createPerson(); p:setName('vim'); p:speak('Hello World!');");
+    }
+    
+    func testRetainAndRelease()
+    {
+        _context?.registerModule(moduleClass: Person.self);
+        _ = _context?.evalScript(script: "local test = function() print('test func') end; test(); Person.retainHandler(test);");
+        _ = _context?.evalScript(script: "print('-------------1'); Person.callHandler(); Person.releaseHandler();");
+        _ = _context?.evalScript(script: "print('-------------2'); Person.callHandler();");
     }
     
 }
