@@ -12,7 +12,7 @@
 #import "LSCTypeDefinied.h"
 #import "LSCPointer.h"
 #import "LSCTuple.h"
-#import "LSCLuaObjectPushProtocol.h"
+#import "LSCManagedObjectProtocol.h"
 #import "LSCObjectClass.h"
 #import <objc/runtime.h>
 
@@ -741,13 +741,18 @@ static int objectDestroyHandler (lua_State *state)
 
 #pragma mark - NSObject Category
 
-@interface NSObject (ClassImport) <LSCLuaObjectPushProtocol>
+@interface NSObject (ClassImport) <LSCManagedObjectProtocol>
 
 @end
 
 @implementation NSObject (ClassImport)
 
-#pragma mark - LSCLuaObjectPushProtocol
+#pragma mark - LSCManagedObjectProtocol
+
+- (NSString *)linkId
+{
+    return [NSString stringWithFormat:@"%p", self];
+}
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {

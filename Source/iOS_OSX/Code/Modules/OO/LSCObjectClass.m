@@ -11,10 +11,19 @@
 #import "LSCModule_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
-#import "LSCLuaObjectPushProtocol.h"
+#import "LSCManagedObjectProtocol.h"
 #import "LSCPointer.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
+
+@interface LSCObjectClass () <LSCManagedObjectProtocol>
+
+/**
+ 对象标识
+ */
+@property (nonatomic, copy) NSString *_linkId;
+
+@end
 
 @implementation LSCObjectClass
 
@@ -455,7 +464,17 @@ static int instanceOfHandler (lua_State *state)
     return 1;
 }
 
-#pragma mark - LSCLuaObjectPushProtocol
+#pragma mark - LSCManagedObjectProtocol
+
+- (NSString *)linkId
+{
+    if (!self._linkId)
+    {
+        self._linkId = [NSString stringWithFormat:@"%p", self];
+    }
+    
+    return self._linkId;
+}
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {
@@ -676,6 +695,8 @@ static int instanceOfHandler (lua_State *state)
                                         @"subclass",
                                         @"context",
                                         @"setContext:",
+                                        @"pushWithContext",
+                                        @"objectId",
                                         nil];
     
     //解析方法
