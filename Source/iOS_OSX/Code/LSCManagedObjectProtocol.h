@@ -14,10 +14,17 @@
 /**
  对象入栈协议
  */
-@protocol LSCLuaObjectPushProtocol <NSObject>
+@protocol LSCManagedObjectProtocol <NSObject>
 
 
 @required
+
+/**
+ 获取关联标识
+
+ @return 关联标识
+ */
+- (NSString *)linkId;
 
 /**
  入栈数据

@@ -12,7 +12,7 @@
 #import "LSCPointer.h"
 #import "LSCFunction_Private.h"
 #import "LSCTuple_Private.h"
-#import "LSCLuaObjectPushProtocol.h"
+#import "LSCManagedObjectProtocol.h"
 
 
 /**
@@ -167,7 +167,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             LSCPointer *pointer = [[LSCPointer alloc] initWithUserdata:userdataRef];
             value = [LSCValue pointerValue:pointer];
             
-            objectId = [NSString stringWithFormat:@"%p", userdataRef];
+            objectId = [(id<LSCManagedObjectProtocol>)pointer linkId];
             break;
         }
         case LUA_TUSERDATA:
@@ -176,7 +176,14 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             id obj = (__bridge id)(userdataRef -> value);
             value = [LSCValue objectValue:obj];
             
-            objectId = [NSString stringWithFormat:@"%p", obj];
+            if ([obj conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
+            {
+                objectId = [obj linkId];
+            }
+            else
+            {
+                objectId = [NSString stringWithFormat:@"%p", obj];
+            }
             break;
         }
         case LUA_TFUNCTION:
@@ -184,7 +191,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             LSCFunction *func = [[LSCFunction alloc] initWithContext:self.context index:index];
             value = [LSCValue functionValue:func];
             
-            objectId = [NSString stringWithFormat:@"%p", func];
+            objectId = [(id<LSCManagedObjectProtocol>)func linkId];
             break;
         }
         default:
@@ -449,7 +456,16 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             //LSCFunction\LSCPointer\NSObject
             [self doActionInVarsTable:^{
                 
-                NSString *objectId = [NSString stringWithFormat:@"%p", object];
+                NSString *objectId = nil;
+                if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
+                {
+                    objectId = [(id<LSCManagedObjectProtocol>)object linkId];
+                }
+                else
+                {
+                    objectId = [NSString stringWithFormat:@"%p", object];
+                }
+                
                 lua_getfield(state, -1, objectId.UTF8String);
                 if (lua_isnil(state, -1))
                 {
@@ -458,9 +474,9 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     
                     //_vars_表中没有对应对象引用，则创建对应引用对象
                     BOOL hasPushStack = NO;
-                    if ([object conformsToProtocol:@protocol(LSCLuaObjectPushProtocol)])
+                    if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
                     {
-                        hasPushStack = [(id<LSCLuaObjectPushProtocol>)object pushWithContext:self.context];
+                        hasPushStack = [(id<LSCManagedObjectProtocol>)object pushWithContext:self.context];
                     }
                     
                     if (!hasPushStack)
@@ -554,35 +570,42 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     lua_State *state = self.context.state;
     
     lua_getglobal(state, "_G");
-    if (lua_istable(state, -1))
+    if (!lua_istable(state, -1))
     {
-        lua_getfield(state, -1, VarsTableName.UTF8String);
-        if (lua_isnil(state, -1))
-        {
-            lua_pop(state, 1);
-            
-            //创建引用表
-            lua_newtable(state);
-            
-            //创建弱引用表元表
-            lua_newtable(state);
-            lua_pushstring(state, "kv");
-            lua_setfield(state, -2, "__mode");
-            lua_setmetatable(state, -2);
-            
-            //放入全局变量_G中
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -3, VarsTableName.UTF8String);
-        }
-        
-        if (block)
-        {
-            block ();
-        }
-        
-        //弹出_vars_
         lua_pop(state, 1);
+        
+        lua_newtable(state);
+        
+        lua_pushvalue(state, -1);
+        lua_setglobal(state, "_G");
     }
+    
+    lua_getfield(state, -1, VarsTableName.UTF8String);
+    if (lua_isnil(state, -1))
+    {
+        lua_pop(state, 1);
+        
+        //创建引用表
+        lua_newtable(state);
+        
+        //创建弱引用表元表
+        lua_newtable(state);
+        lua_pushstring(state, "kv");
+        lua_setfield(state, -2, "__mode");
+        lua_setmetatable(state, -2);
+        
+        //放入全局变量_G中
+        lua_pushvalue(state, -1);
+        lua_setfield(state, -3, VarsTableName.UTF8String);
+    }
+    
+    if (block)
+    {
+        block ();
+    }
+    
+    //弹出_vars_
+    lua_pop(state, 1);
     
     //弹出_G
     lua_pop(state, 1);
