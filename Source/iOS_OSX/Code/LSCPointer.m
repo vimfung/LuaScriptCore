@@ -7,10 +7,10 @@
 //
 
 #import "LSCPointer.h"
-#import "LSCLuaObjectPushProtocol.h"
+#import "LSCManagedObjectProtocol.h"
 #import "LSCContext_Private.h"
 
-@interface LSCPointer () <LSCLuaObjectPushProtocol>
+@interface LSCPointer () <LSCManagedObjectProtocol>
 
 @property (nonatomic) LSCUserdataRef userdataRef;
 
@@ -18,6 +18,11 @@
  是否需要释放内存，对于传入原始指针的构造方法会为指针包装一层LSCPointerRef结构体，因此，在对象释放时需要进行释放LSCPointerRef结构体。
  */
 @property (nonatomic) BOOL needFree;
+
+/**
+ 连接标识
+ */
+@property (nonatomic, copy) NSString *_linkId;
 
 @end
 
@@ -60,7 +65,17 @@
     return self.userdataRef;
 }
 
-#pragma mark - LSCLuaObjectPushProtocol
+#pragma mark - LSCManagedObjectProtocol
+
+- (NSString *)linkId
+{
+    if (!self._linkId)
+    {
+        self._linkId = [NSString stringWithFormat:@"%p", [self value]];
+    }
+    
+    return self._linkId;
+}
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {

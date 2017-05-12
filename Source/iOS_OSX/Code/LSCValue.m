@@ -14,7 +14,7 @@
 #import "LSCTuple_Private.h"
 #import "lauxlib.h"
 #import "lua.h"
-#import "LSCLuaObjectPushProtocol.h"
+#import "LSCManagedObjectProtocol.h"
 
 @interface LSCValue ()
 
