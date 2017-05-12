@@ -186,6 +186,7 @@
 
 - (void)testObjProxy
 {
+    [self.context registerModuleWithClass:[Person class]];
     [self.context registerModuleWithClass:[LSCClassImport class]];
     [LSCClassImport setInculdesClasses:@[[NativePerson class]] withContext:_context];
     
@@ -194,7 +195,6 @@
 
 - (void)testClassImportAndObjectClass
 {
-    [self.context registerModuleWithClass:[Person class]];
     [self.context registerModuleWithClass:[LSCClassImport class]];
     [LSCClassImport setInculdesClasses:@[[NativePerson class], [Person class]] withContext:_context];
     

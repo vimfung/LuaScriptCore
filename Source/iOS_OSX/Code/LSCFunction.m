@@ -11,6 +11,16 @@
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
 #import "LSCTuple_Private.h"
+#import "LSCManagedObjectProtocol.h"
+
+@interface LSCFunction () <LSCManagedObjectProtocol>
+
+/**
+ 连接标识
+ */
+@property (nonatomic, copy) NSString *_linkId;
+
+@end
 
 @implementation LSCFunction
 
@@ -19,6 +29,7 @@
     if (self = [super init])
     {
         self.context = context;
+        self._linkId = [NSString stringWithFormat:@"%p", self];
     }
     
     return self;
@@ -87,6 +98,18 @@
     lua_gc(state, LUA_GCCOLLECT, 0);
     
     return retValue;
+}
+
+#pragma mark - LSCManagedObjectProtocol
+
+- (NSString *)linkId
+{
+    return self._linkId;
+}
+
+- (BOOL)pushWithContext:(LSCContext *)context
+{
+    return YES;
 }
 
 @end

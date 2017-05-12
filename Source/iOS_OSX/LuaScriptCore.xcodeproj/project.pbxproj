@@ -91,7 +91,7 @@
 		7C177BC31DEFDE49008C9DF1 /* LSCFunction_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E561DEECBBD009CB024 /* LSCFunction_Private.h */; };
 		7C177BC41DEFDE49008C9DF1 /* LSCFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E571DEECBBD009CB024 /* LSCFunction.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7C177BC51DEFDE49008C9DF1 /* LSCFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C238E581DEECBBD009CB024 /* LSCFunction.m */; };
-		7C177BC61DEFDE49008C9DF1 /* LSCLuaObjectPushProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E5F1DEECC2D009CB024 /* LSCLuaObjectPushProtocol.h */; };
+		7C177BC61DEFDE49008C9DF1 /* LSCManagedObjectProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E5F1DEECC2D009CB024 /* LSCManagedObjectProtocol.h */; };
 		7C177BC71DEFDE49008C9DF1 /* LSCPointer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E5B1DEECBDB009CB024 /* LSCPointer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7C177BC81DEFDE49008C9DF1 /* LSCPointer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C238E5C1DEECBDB009CB024 /* LSCPointer.m */; };
 		7C177BC91DEFDE50008C9DF1 /* lapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B13DC1D6B049200489D9E /* lapi.c */; };
@@ -235,7 +235,7 @@
 		7C238F401DEED3A1009CB024 /* LSCFunction_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E561DEECBBD009CB024 /* LSCFunction_Private.h */; };
 		7C238F411DEED3A1009CB024 /* LSCFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E571DEECBBD009CB024 /* LSCFunction.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7C238F421DEED3A1009CB024 /* LSCFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C238E581DEECBBD009CB024 /* LSCFunction.m */; };
-		7C238F431DEED3A1009CB024 /* LSCLuaObjectPushProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E5F1DEECC2D009CB024 /* LSCLuaObjectPushProtocol.h */; };
+		7C238F431DEED3A1009CB024 /* LSCManagedObjectProtocol.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E5F1DEECC2D009CB024 /* LSCManagedObjectProtocol.h */; };
 		7C238F441DEED3A1009CB024 /* LSCPointer.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C238E5B1DEECBDB009CB024 /* LSCPointer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7C238F451DEED3A1009CB024 /* LSCPointer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C238E5C1DEECBDB009CB024 /* LSCPointer.m */; };
 		7C238F461DEED3A6009CB024 /* LSCObjectClass.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C175A9A1D93B05B0094E910 /* LSCObjectClass.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -449,7 +449,7 @@
 		7C238E581DEECBBD009CB024 /* LSCFunction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCFunction.m; path = Code/LSCFunction.m; sourceTree = "<group>"; };
 		7C238E5B1DEECBDB009CB024 /* LSCPointer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCPointer.h; path = Code/LSCPointer.h; sourceTree = "<group>"; };
 		7C238E5C1DEECBDB009CB024 /* LSCPointer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCPointer.m; path = Code/LSCPointer.m; sourceTree = "<group>"; };
-		7C238E5F1DEECC2D009CB024 /* LSCLuaObjectPushProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCLuaObjectPushProtocol.h; path = Code/LSCLuaObjectPushProtocol.h; sourceTree = "<group>"; };
+		7C238E5F1DEECC2D009CB024 /* LSCManagedObjectProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCManagedObjectProtocol.h; path = Code/LSCManagedObjectProtocol.h; sourceTree = "<group>"; };
 		7C238EDF1DEED2B8009CB024 /* LuaScriptCore_iOS_Swift.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = LuaScriptCore_iOS_Swift.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C238EE11DEED2B8009CB024 /* LuaScriptCore_iOS_Swift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LuaScriptCore_iOS_Swift.h; sourceTree = "<group>"; };
 		7C238EE21DEED2B8009CB024 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -718,7 +718,7 @@
 				7C238E561DEECBBD009CB024 /* LSCFunction_Private.h */,
 				7C238E571DEECBBD009CB024 /* LSCFunction.h */,
 				7C238E581DEECBBD009CB024 /* LSCFunction.m */,
-				7C238E5F1DEECC2D009CB024 /* LSCLuaObjectPushProtocol.h */,
+				7C238E5F1DEECC2D009CB024 /* LSCManagedObjectProtocol.h */,
 				7C238E5B1DEECBDB009CB024 /* LSCPointer.h */,
 				7C238E5C1DEECBDB009CB024 /* LSCPointer.m */,
 				7C9B7C3A1E2E3D570026BD74 /* LSCTuple.h */,
@@ -866,7 +866,7 @@
 				7C177BF51DEFDE50008C9DF1 /* ltable.h in Headers */,
 				7C177BDD1DEFDE50008C9DF1 /* lgc.h in Headers */,
 				7C177BE21DEFDE50008C9DF1 /* llimits.h in Headers */,
-				7C177BC61DEFDE49008C9DF1 /* LSCLuaObjectPushProtocol.h in Headers */,
+				7C177BC61DEFDE49008C9DF1 /* LSCManagedObjectProtocol.h in Headers */,
 				7C177C011DEFDE50008C9DF1 /* lvm.h in Headers */,
 				7C177BD81DEFDE50008C9DF1 /* ldo.h in Headers */,
 				7C177BB81DEFDE49008C9DF1 /* LSCContext_Private.h in Headers */,
@@ -893,7 +893,7 @@
 				7C238F391DEED3A1009CB024 /* LSCValue.h in Headers */,
 				7C238F341DEED39A009CB024 /* lzio.h in Headers */,
 				7C238F3F1DEED3A1009CB024 /* LuaScriptCore.h in Headers */,
-				7C238F431DEED3A1009CB024 /* LSCLuaObjectPushProtocol.h in Headers */,
+				7C238F431DEED3A1009CB024 /* LSCManagedObjectProtocol.h in Headers */,
 				7C238F401DEED3A1009CB024 /* LSCFunction_Private.h in Headers */,
 				7C238F0E1DEED39A009CB024 /* lgc.h in Headers */,
 				7C238F041DEED39A009CB024 /* lctype.h in Headers */,
