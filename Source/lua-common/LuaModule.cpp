@@ -30,7 +30,7 @@ static int methodRouteHandler(lua_State *state)
         LuaArgumentList args;
         for (int i = 1; i <= top; i++)
         {
-            LuaValue *value = context -> getValueByIndex(i);
+            LuaValue *value = LuaValue::ValueByIndex(context, i);
             args.push_back(value);
         }
 

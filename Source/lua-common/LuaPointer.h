@@ -6,6 +6,7 @@
 #define ANDROID_LUAPOINTER_H
 
 #include "LuaObject.h"
+#include "LuaManagedObject.h"
 #include "LuaDefined.h"
 
 namespace cn {
@@ -18,11 +19,12 @@ namespace cn {
             /**
              * Lua的指针对象
              */
-            class LuaPointer : public LuaObject
+            class LuaPointer : public LuaManagedObject
             {
             private:
                 LuaUserdataRef _value;
                 bool _needFree;
+                std::string _linkId;
 
             public:
                 LuaPointer ();
@@ -57,6 +59,20 @@ namespace cn {
                  * 获取指针值
                  */
                 const LuaUserdataRef getValue();
+
+            public:
+
+                /**
+                 * 获取对象标识
+                 *
+                 * @return 对象标识
+                 */
+                virtual std::string getLinkId();
+
+                /**
+                 * 入栈数据
+                 */
+                virtual void push(LuaContext *context);
             };
 
         }

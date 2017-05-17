@@ -206,6 +206,30 @@ public class LuaContext extends LuaBaseObject
     }
 
     /**
+     * 释放Lua层的变量引用，使其内存管理权交回Lua。
+     * 注：判断value能否被释放取决于value所保存的真实对象，所以只要保证保存对象一致，即使value为不同对象并不影响实际效果。
+     * 即：LuaValue val1 = new LuaValue(obj1);与LuaValue val2 = new LuaValue(obj1);传入方法中效果相同。
+     *
+     * @param value 对应Lua层变量的原生对象Value，如果value为非Lua回传对象则调用此方法无任何效果。
+     */
+    public void retainValue(LuaValue value)
+    {
+        LuaNativeUtil.retainValue(this, value);
+    }
+
+    /**
+     * 释放Lua层的变量引用，使其内存管理权交回Lua。
+     * 注：判断value能否被释放取决于value所保存的真实对象，所以只要保证保存对象一致，即使value为不同对象并不影响实际效果。
+     * 即：LSCValue *val1 = [LSCValue objectValue:obj1]与LSCValue *val2 = [LSCValue objectValue:obj1]传入方法中效果相同。
+     *
+     * @param value 对应Lua层变量的原生对象Value，如果value为非Lua回传对象则调用此方法无任何效果。
+     */
+    public void releaseValue(LuaValue value)
+    {
+        LuaNativeUtil.releaseValue(this, value);
+    }
+
+    /**
      * 解析Lua脚本
      * @param script  脚本
      * @return 执行后返回的值

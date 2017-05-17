@@ -9,6 +9,9 @@
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectEncoder.hpp"
 #include "LuaNativeClass.hpp"
+#include "StringUtils.h"
+#include "LuaContext.h"
+#include "lua.hpp"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -24,6 +27,7 @@ LuaPointer::LuaPointer(LuaUserdataRef userdata)
 {
     _needFree = false;
     _value = userdata;
+    _linkId = StringUtils::format("%p", _value);
 }
 
 LuaPointer::LuaPointer(const void *value)
@@ -31,6 +35,7 @@ LuaPointer::LuaPointer(const void *value)
     _needFree = true;
     _value = (LuaUserdataRef)malloc(sizeof(LuaUserdataRef));
     _value -> value = (void *)value;
+    _linkId = StringUtils::format("%p", _value);
 }
 
 LuaPointer::~LuaPointer()
@@ -43,7 +48,7 @@ LuaPointer::~LuaPointer()
 }
 
 LuaPointer::LuaPointer (LuaObjectDecoder *decoder)
-    : LuaObject(decoder)
+    : LuaManagedObject(decoder)
 {
     void *objRef = NULL;
     objRef = (void *)decoder -> readInt64();
@@ -68,4 +73,15 @@ void LuaPointer::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
     encoder -> writeInt64((long long)_value -> value);
+}
+
+std::string LuaPointer::getLinkId()
+{
+    return _linkId;
+}
+
+void LuaPointer::push(LuaContext *context)
+{
+    lua_State *state = context -> getLuaState();
+    lua_pushlightuserdata(state, getValue());
 }

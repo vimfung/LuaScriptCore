@@ -8,6 +8,7 @@ import java.util.HashMap;
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaTuple;
+import cn.vimfung.luascriptcore.LuaValue;
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
 /**
@@ -17,7 +18,6 @@ import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 public class Person extends LuaObjectClass
 {
     public String name;
-
     public void speak()
     {
         Log.v("luascriptcore", String.format("%s speak", name));
@@ -50,5 +50,26 @@ public class Person extends LuaObjectClass
     public static void log (String msg)
     {
         Log.v("lsc===", msg);
+    }
+
+    private static LuaValue _func = null;
+
+    public static void retainHandler(LuaFunction handler)
+    {
+        _func = new LuaValue(handler);
+        Env.defaultContext().retainValue(_func);
+    }
+
+    public static void releaseHandler(LuaFunction handler)
+    {
+        Env.defaultContext().releaseValue(_func);
+    }
+
+    public static void callHandler()
+    {
+        if (_func != null)
+        {
+            _func.toFunction().invoke(null);
+        }
     }
 }

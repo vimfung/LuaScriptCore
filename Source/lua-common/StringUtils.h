@@ -30,6 +30,15 @@ namespace cn
                  * @return 替换后的文本内容
                  */
                 static std::string replace (std::string text, std::string str, std::string replacement);
+
+                /**
+                 * 格式化字符串
+                 *
+                 * @param format 字符串格式
+                 *
+                 * @return 字符串
+                 */
+                static std::string format (const char *format, ...);
             };
         }
     }

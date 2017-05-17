@@ -8,6 +8,7 @@
 #include "LuaObjectDecoder.hpp"
 #include "LuaContext.h"
 #include "LuaNativeClass.hpp"
+#include "StringUtils.h"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
@@ -41,22 +42,24 @@ static int objectReferenceGCHandler(lua_State *state)
 LuaObjectDescriptor::LuaObjectDescriptor()
         : _object(NULL)
 {
-
+    _linkId = StringUtils::format("%p", this);
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor(const void *object)
 {
+    _linkId = StringUtils::format("%p", this);
+
     setObject(object);
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
-    : LuaObject(decoder)
+    : LuaManagedObject(decoder)
 {
     void *objRef = NULL;
     objRef = (void *)decoder -> readInt64();
     setObject(objRef);
-    
-    setReferenceId(decoder -> readString());
+
+    _linkId = decoder -> readString();
     
     //读取用户数据
     int size = decoder -> readInt32();
@@ -113,16 +116,6 @@ std::string LuaObjectDescriptor::getUserdata(std::string key)
     return retValue;
 }
 
-void LuaObjectDescriptor::setReferenceId(const std::string &refId)
-{
-    _refId = refId;
-}
-
-std::string LuaObjectDescriptor::getReferenceId()
-{
-    return _refId;
-}
-
 void LuaObjectDescriptor::push(LuaContext *context)
 {
     //先判断是否有过滤器进行过滤
@@ -163,7 +156,7 @@ void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
     LuaObject::serialization(encoder);
     
     encoder -> writeInt64((long long)_object);
-    encoder -> writeString(_refId);
+    encoder -> writeString(_linkId);
     
     encoder -> writeInt32((int)_userdata.size());
     for (LuaObjectDescriptorUserData::iterator it = _userdata.begin(); it != _userdata.end(); ++it)
@@ -171,4 +164,9 @@ void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
         encoder -> writeString(it -> first);
         encoder -> writeString(it -> second);
     }
+}
+
+std::string LuaObjectDescriptor::getLinkId()
+{
+    return _linkId;
 }

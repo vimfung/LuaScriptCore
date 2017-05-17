@@ -11,6 +11,7 @@
 #include "lua.hpp"
 #include "LuaObject.h"
 #include "LuaDefined.h"
+#include "LuaContext.h"
 
 namespace cn
 {
@@ -37,7 +38,18 @@ namespace cn
                 double _numberValue;
                 size_t _bytesLen;
                 void *_value;
-                
+                LuaContext *_context;
+                bool _hasManagedObject;
+
+            private:
+
+                /**
+                 * 管理对象内存，接管Lua中的内存管理，让对象与LuaValue生命周期同步，随LuaValue释放而交还Lua层。
+                 *
+                 * @param context 上下文对象
+                 */
+                void managedObject(LuaContext *context);
+
             public:
                 /**
                  * 初始化
@@ -249,30 +261,6 @@ namespace cn
                  */
                 void push(LuaContext *context);
 
-                /**
-                 * 将某个LuaValue入栈
-                 *
-                 * @param context 上下文对象
-                 * @param value 值
-                 */
-                void pushValue(LuaContext *context, LuaValue *value);
-
-                /**
-                 * 将某个LuaValue列表入栈
-                 *
-                 * @param context 上下文对象
-                 * @param list 列表
-                 */
-                void pushTable(LuaContext *context, LuaValueList *list);
-
-                /**
-                 * 将某个LuaValue字典入栈
-                 *
-                 * @param context 上下文对象
-                 * @param map 字典
-                 */
-                void pushTable(LuaContext *context, LuaValueMap *map);
-
             public:
 
                 /**
@@ -381,6 +369,16 @@ namespace cn
                  * @return 值对象
                  */
                 static LuaValue* ObjectValue(LuaObjectDescriptor *value);
+
+                /**
+                 * 根据栈中位置创建值对象
+                 *
+                 * @param context 上下文对象
+                 * @param index 位置索引
+                 *
+                 * @return 值对象
+                 */
+                static LuaValue* ValueByIndex(LuaContext *context, int index);
             };
             
         }
