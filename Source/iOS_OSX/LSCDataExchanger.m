@@ -291,28 +291,22 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         {
             switch (((LSCValue *)nativeObject).valueType)
             {
-                case LSCValueTypeArray:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toArray]];
-                    break;
-                case LSCValueTypeMap:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toDictionary]];
-                    break;
                 case LSCValueTypeObject:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toObject]];
+                    [self getLuaObject:[(LSCValue *)nativeObject toObject]];
                     break;
                 case LSCValueTypePtr:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toPointer]];
+                    [self getLuaObject:[(LSCValue *)nativeObject toPointer]];
                     break;
                 case LSCValueTypeFunction:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toFunction]];
+                    [self getLuaObject:[(LSCValue *)nativeObject toFunction]];
                     break;
                 default:
                     break;
             }
         }
-        else if ([nativeObject isKindOfClass:[LSCPointer class]])
+        else if ([nativeObject conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
         {
-            objectId = [NSString stringWithFormat:@"%p", [(LSCPointer *)nativeObject value]];
+            objectId = [nativeObject linkId];
         }
         else
         {
@@ -344,12 +338,6 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         {
             switch (((LSCValue *)nativeObject).valueType)
             {
-                case LSCValueTypeArray:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toArray]];
-                    break;
-                case LSCValueTypeMap:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toDictionary]];
-                    break;
                 case LSCValueTypeObject:
                     [self retainLuaObject:[(LSCValue *)nativeObject toObject]];
                     break;
@@ -363,9 +351,9 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     break;
             }
         }
-        else if ([nativeObject isKindOfClass:[LSCPointer class]])
+        else if ([nativeObject conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
         {
-            objectId = [NSString stringWithFormat:@"%p", [(LSCPointer *)nativeObject value]];
+            objectId = [nativeObject linkId];
         }
         else
         {
@@ -386,12 +374,6 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         {
             switch (((LSCValue *)nativeObject).valueType)
             {
-                case LSCValueTypeArray:
-                    [self releaseLuaObject:[(LSCValue *)nativeObject toArray]];
-                    break;
-                case LSCValueTypeMap:
-                    [self releaseLuaObject:[(LSCValue *)nativeObject toDictionary]];
-                    break;
                 case LSCValueTypeObject:
                     [self releaseLuaObject:[(LSCValue *)nativeObject toObject]];
                     break;
@@ -405,9 +387,9 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     break;
             }
         }
-        else if ([nativeObject isKindOfClass:[LSCPointer class]])
+        else if ([nativeObject conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
         {
-            objectId = [NSString stringWithFormat:@"%p", [(LSCPointer *)nativeObject value]];
+            objectId = [nativeObject linkId];
         }
         else
         {
@@ -650,6 +632,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     switch (action)
                     {
                         case LSCLuaObjectActionRetain:
+                        {
                             //保留对象
                             //获取对象
                             lua_getfield(state, -1, objectId.UTF8String);
@@ -682,7 +665,9 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                             //弹出引用对象
                             lua_pop(state, 1);
                             break;
+                        }
                         case LSCLuaObjectActionRelease:
+                        {
                             //释放对象
                             //获取对象
                             lua_getfield(state, -1, objectId.UTF8String);
@@ -709,6 +694,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                             //弹出引用对象
                             lua_pop(state, 1);
                             break;
+                        }
                         default:
                             break;
                     }

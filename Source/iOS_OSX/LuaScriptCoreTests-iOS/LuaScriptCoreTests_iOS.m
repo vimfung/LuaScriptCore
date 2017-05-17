@@ -210,6 +210,15 @@
     [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler();"];
 }
 
+- (void)testRetainRelease_2
+{
+    [self.context evalScriptFromString:@"function getFunc() return function (a, b) print(\"------\", a, b); return a * b; end end"];
+    LSCValue *funcValue = [self.context callMethodWithName:@"getFunc" arguments:nil];
+    
+    LSCValue *retValue = [[funcValue toFunction] invokeWithArguments:@[[LSCValue numberValue:@100], [LSCValue numberValue:@924]]];
+    NSLog(@"%@", retValue);
+}
+
 - (void)tearDown
 {
     // Put teardown code here. This method is called after the invocation of each test method in the class.

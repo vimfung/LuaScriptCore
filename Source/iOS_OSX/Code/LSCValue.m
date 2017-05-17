@@ -144,6 +144,15 @@
     return self;
 }
 
+- (void)dealloc
+{
+    if (self.hasManagedObject)
+    {
+        self.hasManagedObject = false;
+        [self.context.dataExchanger releaseLuaObject:self];
+    }
+}
+
 - (void)pushWithContext:(LSCContext *)context
 {
     [context.dataExchanger pushStackWithValue:self];
@@ -310,7 +319,10 @@
 
 + (LSCValue *)valueWithContext:(LSCContext *)context atIndex:(NSInteger)index
 {
-    return [context.dataExchanger valueByStackIndex:(int)index];
+    LSCValue *value = [context.dataExchanger valueByStackIndex:(int)index];
+    //将对象内存管理权交给LSCValue
+    [value managedObjectWithContext:context];
+    return value;
 }
 
 /**
@@ -330,6 +342,16 @@
     }
     
     return self;
+}
+
+- (void)managedObjectWithContext:(LSCContext *)context
+{
+    self.context = context;
+    if (!self.hasManagedObject)
+    {
+        self.hasManagedObject = YES;
+        [self.context.dataExchanger retainLuaObject:self];
+    }
 }
 
 @end

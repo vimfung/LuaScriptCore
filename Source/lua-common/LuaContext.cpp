@@ -9,32 +9,33 @@
 #include "LuaFunction.h"
 #include "LuaTuple.h"
 #include "lunity.h"
+#include "LuaDataExchanger.h"
 #include <map>
 #include <list>
 #include <iostream>
 #include <sstream>
 
+using namespace cn::vimfung::luascriptcore;
+
 static int methodRouteHandler(lua_State *state) {
 
     int returnCount = 0;
 
-    using namespace cn::vimfung::luascriptcore;
-
-    cn::vimfung::luascriptcore::LuaContext *context = (cn::vimfung::luascriptcore::LuaContext *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaContext *context = (LuaContext *)lua_touserdata(state, lua_upvalueindex(1));
     const char *methodName = lua_tostring(state, lua_upvalueindex(2));
 
-    cn::vimfung::luascriptcore::LuaMethodHandler handler = context-> getMethodHandler(methodName);
+    LuaMethodHandler handler = context-> getMethodHandler(methodName);
     if (handler != NULL)
     {
         int top = lua_gettop(state);
-        cn::vimfung::luascriptcore::LuaArgumentList args;
+        LuaArgumentList args;
         for (int i = 1; i <= top; i++)
         {
-            cn::vimfung::luascriptcore::LuaValue *value = context -> getValueByIndex(i);
+            LuaValue *value = LuaValue::ValueByIndex(context, i);
             args.push_back(value);
         }
 
-        cn::vimfung::luascriptcore::LuaValue *retValue = handler (context, methodName, args);
+        LuaValue *retValue = handler (context, methodName, args);
         if (retValue != NULL)
         {
             if (retValue -> getType() == LuaValueTypeTuple)
@@ -51,9 +52,9 @@ static int methodRouteHandler(lua_State *state) {
         }
 
         //释放参数内存
-        for (cn::vimfung::luascriptcore::LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
         {
-            cn::vimfung::luascriptcore::LuaValue *item = *it;
+            LuaValue *item = *it;
             item -> release();
         }
     }
@@ -65,11 +66,12 @@ static int methodRouteHandler(lua_State *state) {
 }
 
 
-cn::vimfung::luascriptcore::LuaContext::LuaContext()
+LuaContext::LuaContext()
         : LuaObject()
 {
     _exceptionHandler = NULL;
     _state = luaL_newstate();
+    _dataExchanger = new LuaDataExchanger(this);
 
     lua_gc(_state, LUA_GCSTOP, 0);
     //加载标准库
@@ -77,7 +79,7 @@ cn::vimfung::luascriptcore::LuaContext::LuaContext()
     lua_gc(_state, LUA_GCRESTART, 0);
 }
 
-cn::vimfung::luascriptcore::LuaContext::~LuaContext()
+LuaContext::~LuaContext()
 {
     //释放模块内存
     for (LuaModuleMap::iterator it = _moduleMap.begin(); it != _moduleMap.end() ; ++it)
@@ -89,12 +91,12 @@ cn::vimfung::luascriptcore::LuaContext::~LuaContext()
     lua_close(_state);
 }
 
-void cn::vimfung::luascriptcore::LuaContext::onException(LuaExceptionHandler handler)
+void LuaContext::onException(LuaExceptionHandler handler)
 {
     _exceptionHandler = handler;
 }
 
-void cn::vimfung::luascriptcore::LuaContext::raiseException (std::string message)
+void LuaContext::raiseException (std::string message)
 {
     if (_exceptionHandler != NULL)
     {
@@ -102,155 +104,7 @@ void cn::vimfung::luascriptcore::LuaContext::raiseException (std::string message
     }
 }
 
-cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::getValueByIndex(int index)
-{
-    //fiexed: 转换负数索引为正数索引，修复由于索引负数导致崩溃问题
-    index = lua_absindex(_state, index);
-
-    LuaValue *value = NULL;
-    switch (lua_type(_state, index)) {
-        case LUA_TNIL:
-        {
-            value = LuaValue::NilValue();
-            break;
-        }
-        case LUA_TBOOLEAN:
-        {
-            value = LuaValue::BooleanValue((bool)lua_toboolean(_state, index));
-            break;
-        }
-        case LUA_TNUMBER:
-        {
-            value = LuaValue::NumberValue(lua_tonumber(_state, index));
-            break;
-        }
-        case LUA_TSTRING:
-        {
-            size_t len = 0;
-            const char *bytes = lua_tolstring(_state, index, &len);
-
-            if (strlen(bytes) != len)
-            {
-                //为二进制数据流
-                value = LuaValue::DataValue(bytes, len);
-            }
-            else
-            {
-                //为字符串
-                value = LuaValue::StringValue(bytes);
-            }
-            break;
-        }
-        case LUA_TTABLE:
-        {
-            LuaValueMap dictValue;
-            LuaValueList arrayValue;
-            bool isArray = true;
-
-            lua_pushnil(_state);
-            while (lua_next(_state, index))
-            {
-                LuaValue *item = getValueByIndex(-1);
-                LuaValue *key = getValueByIndex(-2);
-
-                if (isArray)
-                {
-                    if (key -> getType() != LuaValueTypeNumber)
-                    {
-                        //非数组对象，释放数组
-                        isArray = false;
-                    }
-                    else if (key -> getType() == LuaValueTypeNumber)
-                    {
-                        int arrayIndex = (int)key->toNumber();
-                        if (arrayIndex <= 0)
-                        {
-                            //非数组对象，释放数组
-                            isArray = false;
-                        }
-                        else if (arrayIndex - 1 != arrayValue.size())
-                        {
-                            //非数组对象，释放数组
-                            isArray = false;
-                        }
-                        else
-                        {
-                            arrayValue.push_back(item);
-                        }
-                    }
-                }
-
-                switch (key -> getType())
-                {
-                    case LuaValueTypeNumber:
-                    {
-                        std::ostringstream out;
-                        out << key->toNumber();
-                        dictValue[out.str()] = item;
-                        break;
-                    }
-                    case LuaValueTypeString:
-                        dictValue[key->toString()] = item;
-                        break;
-                    default:
-                        if (!isArray)
-                        {
-                            //如果并非是数组而且key也不是指定类型，则对item进行释放，避免造成内存泄露
-                            item -> release();
-                        }
-                        break;
-                }
-
-                key->release();
-
-                lua_pop(_state, 1);
-            }
-
-            if (isArray)
-            {
-                value = LuaValue::ArrayValue(arrayValue);
-            }
-            else
-            {
-                value = LuaValue::DictonaryValue(dictValue);
-            }
-
-            break;
-        }
-        case LUA_TLIGHTUSERDATA:
-        {
-            LuaUserdataRef ref = (LuaUserdataRef)lua_topointer(_state, index);
-            LuaPointer *pointer = new LuaPointer(ref);
-            value = LuaValue::PointerValue(pointer);
-            pointer -> release();
-
-            break;
-        }
-        case LUA_TUSERDATA:
-        {
-            LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(_state, index);
-            value = LuaValue::ObjectValue((LuaObjectDescriptor *)ref -> value);
-            break;
-        }
-        case LUA_TFUNCTION:
-        {
-            LuaFunction *function = new LuaFunction(this, index);
-            value = LuaValue::FunctionValue(function);
-            function -> release();
-            break;
-        }
-        default:
-        {
-            //默认为nil
-            value = LuaValue::NilValue();
-            break;
-        }
-    }
-
-    return value;
-}
-
-void cn::vimfung::luascriptcore::LuaContext::addSearchPath(std::string path)
+void LuaContext::addSearchPath(std::string path)
 {
     lua_getglobal(_state, "package");
     lua_getfield(_state, -1, "path");
@@ -265,19 +119,19 @@ void cn::vimfung::luascriptcore::LuaContext::addSearchPath(std::string path)
     lua_pop(_state, 1);
 }
 
-void cn::vimfung::luascriptcore::LuaContext::setGlobal(std::string name, LuaValue *value)
+void LuaContext::setGlobal(std::string name, LuaValue *value)
 {
     value -> push(this);
     lua_setglobal(_state, name.c_str());
 }
 
-cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::getGlobal(std::string name)
+LuaValue* LuaContext::getGlobal(std::string name)
 {
     lua_getglobal(_state, name.c_str());
-    return this -> getValueByIndex(-1);
+    return LuaValue::ValueByIndex(this, -1);
 }
 
-cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScript(std::string script)
+LuaValue* LuaContext::evalScript(std::string script)
 {
     LuaValue *retValue = NULL;
 
@@ -295,7 +149,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
             LuaTuple *tuple = new LuaTuple();
             for (int i = 1; i <= returnCount; i++)
             {
-                LuaValue *value = this -> getValueByIndex(curTop + i);
+                LuaValue *value = LuaValue::ValueByIndex(this, curTop + i);
                 tuple -> addReturnValue(value);
                 value -> release();
             }
@@ -306,7 +160,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         }
         else if (returnCount == 1)
         {
-            retValue = this -> getValueByIndex(-1);
+            retValue = LuaValue::ValueByIndex(this, -1);
         }
     }
     else
@@ -314,7 +168,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         //调用失败
         returnCount = 1;
 
-        LuaValue *value = this -> getValueByIndex(-1);
+        LuaValue *value = LuaValue::ValueByIndex(this, -1);
 
         std::string errMessage = value -> toString();
         this -> raiseException(errMessage);
@@ -336,8 +190,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
     return retValue;
 }
 
-cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::evalScriptFromFile(
-        std::string path)
+LuaValue* LuaContext::evalScriptFromFile(std::string path)
 {
     LuaValue *retValue = NULL;
 
@@ -355,7 +208,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
             LuaTuple *tuple = new LuaTuple();
             for (int i = 1; i <= returnCount; i++)
             {
-                LuaValue *value = this -> getValueByIndex(curTop + i);
+                LuaValue *value = LuaValue::ValueByIndex(this, curTop + i);
                 tuple -> addReturnValue(value);
                 value -> release();
             }
@@ -366,7 +219,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         }
         else if (returnCount == 1)
         {
-            retValue = this -> getValueByIndex(-1);
+            retValue = LuaValue::ValueByIndex(this, -1);
         }
     }
     else
@@ -374,7 +227,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
         //调用失败
         returnCount = 1;
 
-        LuaValue *value = this -> getValueByIndex(-1);
+        LuaValue *value = LuaValue::ValueByIndex(this, -1);
 
         std::string errMessage = value -> toString();
         this -> raiseException(errMessage);
@@ -396,8 +249,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ev
     return retValue;
 }
 
-cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::callMethod(
-        std::string methodName, LuaArgumentList *arguments)
+LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *arguments)
 {
     LuaValue *resultValue = NULL;
 
@@ -425,7 +277,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
                 LuaTuple *tuple = new LuaTuple();
                 for (int i = 1; i <= returnCount; i++)
                 {
-                    LuaValue *value = this -> getValueByIndex(curTop + i);
+                    LuaValue *value = LuaValue::ValueByIndex(this, curTop + i);
                     tuple -> addReturnValue(value);
                     value -> release();
                 }
@@ -436,7 +288,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
             }
             else if (returnCount == 1)
             {
-                resultValue = this -> getValueByIndex(-1);
+                resultValue = LuaValue::ValueByIndex(this, -1);
             }
         }
         else
@@ -444,7 +296,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
             //调用失败
             returnCount = 1;
 
-            LuaValue *value = getValueByIndex(-1);
+            LuaValue *value = LuaValue::ValueByIndex(this, -1);
             
             std::string errMessage = value -> toString();
             this -> raiseException(errMessage);
@@ -471,7 +323,7 @@ cn::vimfung::luascriptcore::LuaValue* cn::vimfung::luascriptcore::LuaContext::ca
     return resultValue;
 }
 
-void cn::vimfung::luascriptcore::LuaContext::registerMethod(std::string methodName,
+void LuaContext::registerMethod(std::string methodName,
                                                             LuaMethodHandler handler)
 {
     LuaMethodMap::iterator it =  _methodMap.find(methodName);
@@ -486,7 +338,7 @@ void cn::vimfung::luascriptcore::LuaContext::registerMethod(std::string methodNa
     }
 }
 
-cn::vimfung::luascriptcore::LuaMethodHandler cn::vimfung::luascriptcore::LuaContext::getMethodHandler(std::string methodName)
+LuaMethodHandler LuaContext::getMethodHandler(std::string methodName)
 {
     LuaMethodMap::iterator it =  _methodMap.find(methodName);
     if (it != _methodMap.end())
@@ -497,7 +349,7 @@ cn::vimfung::luascriptcore::LuaMethodHandler cn::vimfung::luascriptcore::LuaCont
     return NULL;
 }
 
-void cn::vimfung::luascriptcore::LuaContext::registerModule(const std::string &moduleName, LuaModule *module)
+void LuaContext::registerModule(const std::string &moduleName, LuaModule *module)
 {
     if (!this -> isModuleRegisted(moduleName))
     {
@@ -507,7 +359,7 @@ void cn::vimfung::luascriptcore::LuaContext::registerModule(const std::string &m
     }
 }
 
-bool cn::vimfung::luascriptcore::LuaContext::isModuleRegisted(const std::string &moduleName)
+bool LuaContext::isModuleRegisted(const std::string &moduleName)
 {
     lua_getglobal(_state, moduleName.c_str());
     bool retValue = lua_isnil(_state, -1);
@@ -516,7 +368,7 @@ bool cn::vimfung::luascriptcore::LuaContext::isModuleRegisted(const std::string 
     return !retValue;
 }
 
-cn::vimfung::luascriptcore::LuaModule* cn::vimfung::luascriptcore::LuaContext::getModule(const std::string &moduleName)
+LuaModule* LuaContext::getModule(const std::string &moduleName)
 {
     LuaModuleMap::iterator it = _moduleMap.find(moduleName);
     if (it != _moduleMap.end())
@@ -527,7 +379,22 @@ cn::vimfung::luascriptcore::LuaModule* cn::vimfung::luascriptcore::LuaContext::g
     return NULL;
 }
 
-lua_State* cn::vimfung::luascriptcore::LuaContext::getLuaState()
+lua_State* LuaContext::getLuaState()
 {
     return _state;
+}
+
+LuaDataExchanger* LuaContext::getDataExchanger()
+{
+    return  _dataExchanger;
+}
+
+void LuaContext::retainValue(LuaValue *value)
+{
+    _dataExchanger -> retainLuaObject(value);
+}
+
+void LuaContext::releaseValue(LuaValue *value)
+{
+    _dataExchanger -> releaseLuaObject(value);
 }

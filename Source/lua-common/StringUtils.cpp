@@ -3,6 +3,7 @@
 //
 
 #include "StringUtils.h"
+#include <stdio.h>
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -26,4 +27,19 @@ std::string StringUtils::replace (std::string text, std::string str, std::string
     }
 
     return ret;
+}
+
+std::string StringUtils::format (const char *format, ...)
+{
+    va_list marker;
+    va_start(marker, format);
+
+    char buffer[1024 * 1024] = {0};
+    int size = vsprintf(buffer, format, marker);
+
+    va_end(marker);
+
+    std::string str(buffer);
+
+    return str;
 }

@@ -14,6 +14,7 @@
 #include "LuaFunction.h"
 #include "LuaTuple.h"
 #include "LuaNativeClass.hpp"
+#include "LuaDataExchanger.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -24,6 +25,7 @@ LuaValue::LuaValue()
 {
     _type = LuaValueTypeNil;
     _value = NULL;
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(long value)
@@ -32,6 +34,7 @@ LuaValue::LuaValue(long value)
     _type = LuaValueTypeInteger;
     _intValue = (lua_Integer)value;
     _value = NULL;
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(bool value)
@@ -40,6 +43,7 @@ LuaValue::LuaValue(bool value)
     _type = LuaValueTypeBoolean;
     _booleanValue = value;
     _value = NULL;
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(double value)
@@ -48,6 +52,7 @@ LuaValue::LuaValue(double value)
     _type = LuaValueTypeNumber;
     _numberValue = value;
     _value = NULL;
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(std::string value)
@@ -55,6 +60,7 @@ LuaValue::LuaValue(std::string value)
 {
     _type = LuaValueTypeString;
     _value = new std::string(value);
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(const char *bytes, size_t length)
@@ -64,6 +70,7 @@ LuaValue::LuaValue(const char *bytes, size_t length)
     _bytesLen = length;
     _value = new char[_bytesLen];
     memcpy(_value, bytes, _bytesLen);
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(LuaValueList value)
@@ -71,6 +78,7 @@ LuaValue::LuaValue(LuaValueList value)
 {
     _type = LuaValueTypeArray;
     _value = new LuaValueList(value);
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(LuaValueMap value)
@@ -78,6 +86,7 @@ LuaValue::LuaValue(LuaValueMap value)
 {
     _type = LuaValueTypeMap;
     _value = new LuaValueMap (value);
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue (LuaPointer *value)
@@ -87,6 +96,7 @@ LuaValue::LuaValue (LuaPointer *value)
 
     value -> retain();
     _value = (void *)value;
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue (LuaObjectDescriptor *value)
@@ -95,6 +105,7 @@ LuaValue::LuaValue (LuaObjectDescriptor *value)
 
     value -> retain();
     _value = (void *)value;
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(LuaFunction *value)
@@ -103,6 +114,7 @@ LuaValue::LuaValue(LuaFunction *value)
 
     value -> retain();
     _value = (void *)value;
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue (LuaTuple *value)
@@ -111,11 +123,13 @@ LuaValue::LuaValue (LuaTuple *value)
 
     value -> retain();
     _value = (void *)value;
+    _hasManagedObject = false;
 }
 
 LuaValue::LuaValue(LuaObjectDecoder *decoder)
     : LuaObject(decoder)
 {
+    _hasManagedObject = false;
 	_value = NULL;
 	_intValue = 0;
 	_numberValue = 0;
@@ -197,6 +211,12 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
 
 LuaValue::~LuaValue()
 {
+    if (_hasManagedObject && _context != NULL)
+    {
+        _hasManagedObject = false;
+        _context -> getDataExchanger() -> releaseLuaObject(this);
+    }
+
     if (_value != NULL)
     {
         if (_type == LuaValueTypeArray)
@@ -302,6 +322,14 @@ LuaValue* LuaValue::ObjectValue(LuaObjectDescriptor *value)
     return new LuaValue(value);
 }
 
+LuaValue* LuaValue::ValueByIndex(LuaContext *context, int index)
+{
+    LuaValue *value = context -> getDataExchanger() -> getValue(index);
+    value -> managedObject(context);
+
+    return value;
+}
+
 LuaValueType LuaValue::getType()
 {
     return _type;
@@ -315,88 +343,7 @@ std::string LuaValue::typeName()
 
 void LuaValue::push(LuaContext *context)
 {
-    pushValue(context, this);
-}
-
-void LuaValue::pushValue(LuaContext *context, LuaValue *value)
-{
-    lua_State *state = context -> getLuaState();
-
-    switch (value -> getType())
-    {
-        case LuaValueTypeInteger:
-            lua_pushinteger(state, value -> _intValue);
-            break;
-        case LuaValueTypeNumber:
-            lua_pushnumber(state, value -> _numberValue);
-            break;
-        case LuaValueTypeNil:
-            lua_pushnil(state);
-            break;
-        case LuaValueTypeString:
-            lua_pushstring(state, ((std::string *)value -> _value) -> c_str());
-            break;
-        case LuaValueTypeBoolean:
-            lua_pushboolean(state, value -> _booleanValue);
-            break;
-        case LuaValueTypeArray:
-            pushTable(context, static_cast<LuaValueList *> (value -> _value));
-            break;
-        case LuaValueTypeMap:
-            pushTable(context, static_cast<LuaValueMap *> (value -> _value));
-            break;
-        case LuaValueTypeData:
-            lua_pushlstring(state, (char *)value -> _value, value -> _bytesLen);
-            break;
-        case LuaValueTypePtr:
-            lua_pushlightuserdata(state, (void *)value -> toPointer() -> getValue());
-            break;
-        case LuaValueTypeFunction:
-            value -> toFunction() -> push(context);
-            break;
-        case LuaValueTypeTuple:
-            value -> toTuple() -> push(context);
-            break;
-        case LuaValueTypeObject:
-        {
-            value -> toObject() -> push(context);
-            break;
-        }
-        default:
-            lua_pushnil(state);
-            break;
-    }
-}
-
-void LuaValue::pushTable(LuaContext *context, LuaValueList *list)
-{
-    lua_State *state = context -> getLuaState();
-
-    lua_newtable(state);
-
-    lua_Integer index = 1;
-    for (LuaValueList::iterator it = list -> begin(); it != list -> end(); ++it)
-    {
-        LuaValue *item = *it;
-        pushValue(context, item);
-        lua_rawseti(state, -2, index);
-
-        index ++;
-    }
-}
-
-void LuaValue::pushTable(LuaContext *context, LuaValueMap *map)
-{
-    lua_State *state = context -> getLuaState();
-
-    lua_newtable(state);
-
-    for (LuaValueMap::iterator it = map -> begin(); it != map -> end() ; ++it)
-    {
-        LuaValue *item = it -> second;
-        pushValue(context, item);
-        lua_setfield(state, -2, it -> first.c_str());
-    }
+    context -> getDataExchanger() -> pushStack(this);
 }
 
 long LuaValue::toInteger()
@@ -606,5 +553,15 @@ void LuaValue::serialization (LuaObjectEncoder *encoder)
         }
         default:
             break;
+    }
+}
+
+void LuaValue::managedObject(LuaContext *context)
+{
+    _context = context;
+    if (!_hasManagedObject)
+    {
+        _hasManagedObject = true;
+        _context -> getDataExchanger() -> retainLuaObject(this);
     }
 }

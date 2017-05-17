@@ -8,7 +8,6 @@
 #include "lua.hpp"
 #include "LuaObject.h"
 #include "LuaDefined.h"
-#include "LuaValue.h"
 
 namespace cn
 {
@@ -18,6 +17,7 @@ namespace cn
         {
             class LuaValue;
             class LuaModule;
+            class LuaDataExchanger;
 
             /**
              * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。
@@ -45,6 +45,11 @@ namespace cn
                  * 模块映射表
                  */
                 LuaModuleMap _moduleMap;
+
+                /**
+                 * 数据交换器
+                 */
+                LuaDataExchanger *_dataExchanger;
 
             public:
 
@@ -99,6 +104,24 @@ namespace cn
                  * @return 变量值
                  */
                 LuaValue* getGlobal(std::string name);
+
+                /**
+                 * 保留Lua层的变量引用，使其不被GC所回收。
+                 * 注：判断value能否被保留取决于value所保存的真实对象，所以只要保证保存对象一致，即使value为不同对象并不影响实际效果。
+                 * 即：LuaValue *val1 = new LuaValue(obj1)与LuaValue *val2 = new LuaValue(obj1)传入方法中效果相同。
+                 *
+                 * @param value 对应Lua层变量的原生对象Value，如果value为非Lua回传对象则调用此方法无任何效果。
+                 */
+                void retainValue(LuaValue *value);
+
+                /**
+                 * 释放Lua层的变量引用，使其内存管理权交回Lua。
+                 * 注：判断value能否被释放取决于value所保存的真实对象，所以只要保证保存对象一致，即使value为不同对象并不影响实际效果。
+                 * 即：LuaValue *val1 = new LuaValue(obj1)与LuaValue *val2 = new LuaValue(obj1)传入方法中效果相同。
+                 *
+                 * @param value 对应Lua层变量的原生对象Value，如果value为非Lua回传对象则调用此方法无任何效果。
+                 */
+                void releaseValue(LuaValue *value);
 
                 /**
                  * 解析脚本
@@ -168,20 +191,16 @@ namespace cn
                 LuaMethodHandler getMethodHandler(std::string methodName);
 
                 /**
-                 * 获取数据栈中对应索引的值
-                 *
-                 * @param index 数据栈索引
-                 *
-                 * @return 值对象
-                 */
-                LuaValue* getValueByIndex(int index);
-
-                /**
                  * 获取Lua状态机
                  *
                  * @return Lua状态机
                  */
                 lua_State* getLuaState();
+
+                /**
+                 * 获取数据数据交换层
+                 */
+                LuaDataExchanger *getDataExchanger();
 
             };
 

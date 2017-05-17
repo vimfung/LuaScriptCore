@@ -5,8 +5,7 @@
 #ifndef ANDROID_LUAOBJECTDESC_H
 #define ANDROID_LUAOBJECTDESC_H
 
-#include "LuaObject.h"
-#include "LuaContext.h"
+#include "LuaManagedObject.h"
 #include <string>
 #include <map>
 
@@ -16,6 +15,7 @@ namespace cn {
 
             class LuaContext;
             class LuaObjectDecoder;
+            class LuaObjectDescriptor;
             
             /**
              * 用户数据
@@ -30,7 +30,7 @@ namespace cn {
             /**
              * Lua对象描述器
              */
-            class LuaObjectDescriptor : public LuaObject
+            class LuaObjectDescriptor : public LuaManagedObject
             {
             private:
 
@@ -38,16 +38,16 @@ namespace cn {
                  * 对象
                  */
                 void *_object;
-
-                /**
-                 * 引用标识，每个实例对象在创建lua实例时都会向_G表的_instanceRefs_表写入一个引用，方便查找对应的引用对象，而改表对应引用的key就是该属性的值。
-                 */
-                std::string _refId;
                 
                 /**
                  * 用户自定义数据
                  */
                 LuaObjectDescriptorUserData _userdata;
+
+                /**
+                 * 连接ID
+                 */
+                std::string _linkId;
 
             protected:
 
@@ -133,15 +133,14 @@ namespace cn {
                  */
                 const void* getObject();
 
-                /**
-                 * 获取引用标识
-                 */
-                void setReferenceId(const std::string &refId);
+            public:
 
                 /**
-                 * 设置引用标识
+                 * 获取对象标识
+                 *
+                 * @return 对象标识
                  */
-                std::string getReferenceId();
+                virtual std::string getLinkId();
 
                 /**
                  * 入栈数据
