@@ -86,8 +86,11 @@
         //弹出返回值
         lua_pop(state, returnCount);
     }
-    
-    lua_pop(state, 1);
+    else
+    {
+        //弹出func
+        lua_pop(state, 1);
+    }
 
     if (!retValue)
     {

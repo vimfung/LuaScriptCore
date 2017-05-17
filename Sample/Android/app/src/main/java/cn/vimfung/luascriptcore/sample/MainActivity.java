@@ -45,7 +45,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //创建LuaContext
-        _luaContext = LuaContext.create(this);
+        Env.setup(this);
+        _luaContext = Env.defaultContext();
+
         _luaContext.onException(new LuaExceptionHandler() {
             @Override
             public void onException(String message) {
@@ -113,6 +115,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
+                    Log.v("luaScriptCore", "callMethodBtn clicked.");
+
                     //调用脚本
                     File todoFile = new File ("todo.lua");
                     _luaContext.evalScriptFromFile(todoFile.toString());
@@ -142,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     _luaContext.evalScript("LogModule.writeLog('Hello Lua Module!');");
-//                    _luaContext.evalScript("LogModule.testObj(LogModule.createObj());");
+                    _luaContext.evalScript("LogModule.testObj(LogModule.createObj());");
                 }
             });
         }
@@ -188,6 +192,23 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     _luaContext.evalScript("local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person'); local Data = ClassImport('cn.vimfung.luascriptcore.sample.NativeData'); print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
+                }
+            });
+        }
+
+        Button retainReleaseBtn = (Button) findViewById(R.id.retainReleaseButton);
+        if (retainReleaseBtn != null)
+        {
+            retainReleaseBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    _luaContext.registerModule(Person.class);
+
+                    _luaContext.evalScript("local test = function() print('test func') end; test(); Person.retainHandler(test);");
+                    _luaContext.evalScript("print('-------------1'); Person.callHandler(); Person.releaseHandler();");
+                    _luaContext.evalScript("print('-------------2'); Person.callHandler();");
+
                 }
             });
         }

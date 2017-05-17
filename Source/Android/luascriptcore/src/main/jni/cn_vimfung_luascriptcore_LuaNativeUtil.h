@@ -136,6 +136,12 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_setInculdesCl
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClassImport
         (JNIEnv *, jclass, jobject, jstring);
 
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_retainValue
+        (JNIEnv *, jclass, jobject, jobject);
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseValue
+        (JNIEnv *, jclass, jobject, jobject);
+
 #ifdef __cplusplus
 }
 #endif
