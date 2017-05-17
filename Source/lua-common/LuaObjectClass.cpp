@@ -17,11 +17,6 @@
 static int InstanceSeed = 0;
 
 /**
- * 实例引用表名称
- */
-static std::string InstanceRefsTableName = "_instanceRefs_";
-
-/**
  *  对象销毁处理
  *
  *  @param state 状态机
@@ -332,7 +327,7 @@ static int instanceMethodRouteHandler(lua_State *state)
         cn::vimfung::luascriptcore::LuaArgumentList args;
         for (int i = 2; i <= top; i++)
         {
-            cn::vimfung::luascriptcore::LuaValue *value = context -> getValueByIndex(i);
+            cn::vimfung::luascriptcore::LuaValue *value = LuaValue::ValueByIndex(context, i);
             args.push_back(value);
         }
 
@@ -405,7 +400,7 @@ static int instanceSetterRouteHandler (lua_State *state)
         int top = lua_gettop(state);
         if (top > 1)
         {
-            value = context -> getValueByIndex(2);
+            value = LuaValue::ValueByIndex(context, 2);
         }
         else
         {
@@ -801,17 +796,6 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(
     //创建本地实例对象，赋予lua的内存块并进行保留引用
     ref -> value = objectDescriptor;
 
-    //创建实例索引
-    char buf[40];
-#if _WINDOWS
-    sprintf_s(buf, sizeof(buf), "Instance_%ld", InstanceSeed);
-#else
-    snprintf(buf, sizeof(buf), "Instance_%d", InstanceSeed);
-#endif
-    objectDescriptor -> setReferenceId(buf);
-	InstanceSeed++;
-	InstanceSeed %= INT_MAX;
-
     //对描述器进行引用
     objectDescriptor -> retain();
 
@@ -847,36 +831,6 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(
     }
 
     lua_pop(state, 1);
-
-    //将实例对象放入_instanceRefs_表中
-    lua_getglobal(state, "_G");
-    if (lua_istable(state, -1))
-    {
-        lua_getfield(state, -1, InstanceRefsTableName.c_str());
-        if (lua_isnil(state, -1))
-        {
-            lua_pop(state, 1);
-
-            //创建_instanceRefs_表，该表为弱引用表
-            lua_newtable(state);
-
-            //创建弱引用表元表
-            lua_newtable(state);
-            lua_pushstring(state, "kv");
-            lua_setfield(state, -2, "__mode");
-            lua_setmetatable(state, -2);
-
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -3, InstanceRefsTableName.c_str());
-        }
-
-        //将实例对象放入表中
-        lua_pushvalue(state, -3);
-        lua_setfield(state, -2, objectDescriptor -> getReferenceId().c_str());
-
-        lua_pop(state, 1);
-    }
-    lua_pop(state, 1);
 }
 
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInstanceDescriptor *objectDescriptor)
@@ -884,50 +838,18 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInst
     //对LuaObjectClass的类型对象需要进行特殊处理
     lua_State *state = getContext() -> getLuaState();
 
-    bool hasExists = false;
-    if (!objectDescriptor -> getReferenceId().empty())
+    createLuaInstance(objectDescriptor);
+
+    //调用默认init
+    lua_getfield(state, -1, "init");
+    if (lua_isfunction(state, -1))
     {
-        //先查找_instanceRefs_中是否存在实例
-        lua_getglobal(state, "_G");
-        if (lua_istable(state, -1))
-        {
-            lua_getfield(state, -1, InstanceRefsTableName.c_str());
-            if (lua_istable(state, -1))
-            {
-                lua_getfield(state, -1, objectDescriptor -> getReferenceId().c_str());
-                if (lua_isuserdata(state, -1))
-                {
-                    //存在实例
-                    lua_insert(state, -3);
-                    hasExists = true;
-                }
-                else
-                {
-                    lua_pop(state, 1);
-                }
-            }
-
-            lua_pop(state, 1);
-        }
-
-        lua_pop(state, 1);
+        lua_pushvalue(state, -2);
+        lua_pcall(state, 1, 0, 0);
     }
-
-    if (!hasExists)
+    else
     {
-        createLuaInstance(objectDescriptor);
-
-        //调用默认init
-        lua_getfield(state, -1, "init");
-        if (lua_isfunction(state, -1))
-        {
-            lua_pushvalue(state, -2);
-            lua_pcall(state, 1, 0, 0);
-        }
-        else
-        {
-            lua_pop(state, 1);
-        }
+        lua_pop(state, 1);
     }
 }
 

@@ -384,3 +384,25 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClass
         env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
     }
 }
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_retainValue(JNIEnv *env, jclass type, jobject jcontext, jobject jvalue)
+{
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
+    {
+        LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, jvalue);
+        context -> retainValue(value);
+        value -> release();
+    }
+}
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseValue(JNIEnv *env, jclass type, jobject jcontext, jobject jvalue)
+{
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
+    {
+        LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, jvalue);
+        context -> releaseValue(value);
+        value -> release();
+    }
+}

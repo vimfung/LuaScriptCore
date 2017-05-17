@@ -52,6 +52,20 @@ public class LuaNativeUtil
     public static native LuaValue getGlobal(int contextNativeId, String name);
 
     /**
+     * 保留LuaValue的Lua对象
+     * @param context   上下文对象
+     * @param value  值对象
+     */
+    public static native void retainValue(LuaContext context, LuaValue value);
+
+    /**
+     * 释放LuaValue的Lua对象
+     * @param context   上下文对象
+     * @param value     值对象
+     */
+    public static native void releaseValue(LuaContext context, LuaValue value);
+
+    /**
      * 捕获Lua异常
      * @param context   上下文对象
      * @param enabled   true表示捕获异常，false表示不进行捕获

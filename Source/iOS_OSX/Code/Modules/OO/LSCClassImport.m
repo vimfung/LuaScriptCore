@@ -20,7 +20,6 @@
  包含类型列表
  */
 static NSMutableDictionary *_includesClasses = nil;
-//static NSArray *_includesClasses = nil;
 
 /**
  实例引用表名称

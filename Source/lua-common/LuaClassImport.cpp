@@ -37,7 +37,7 @@ static int classMethodRouteHandler(lua_State *state)
         LuaArgumentList args;
         for (int i = 1; i <= top; i++)
         {
-            LuaValue *value = context -> getValueByIndex(i);
+            LuaValue *value = LuaValue::ValueByIndex(context, i);
             args.push_back(value);
         }
 
@@ -110,7 +110,7 @@ static int instanceMethodRouteHandler(lua_State *state)
         LuaArgumentList args;
         for (int i = 2; i <= top; i++)
         {
-            LuaValue *value = context -> getValueByIndex(i);
+            LuaValue *value = LuaValue::ValueByIndex(context, i);
             args.push_back(value);
         }
 
@@ -232,7 +232,7 @@ static int instanceSetterRouteHandler (lua_State *state)
         int top = lua_gettop(state);
         if (top > 1)
         {
-            value = context -> getValueByIndex(2);
+            value = LuaValue::ValueByIndex(context, 2);
         }
         else
         {
@@ -582,7 +582,7 @@ static int setupProxyHandler (lua_State *state)
     int top = lua_gettop(state);
     if (top > 0)
     {
-        LuaValue *clsName = context -> getValueByIndex(1);
+        LuaValue *clsName = LuaValue::ValueByIndex(context, 1);
         if (clsName -> getType() == LuaValueTypeString)
         {
             //导出类型

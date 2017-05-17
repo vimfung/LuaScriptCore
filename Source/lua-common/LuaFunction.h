@@ -5,7 +5,7 @@
 #ifndef ANDROID_LUAFUNCTION_H
 #define ANDROID_LUAFUNCTION_H
 
-#include "LuaObject.h"
+#include "LuaManagedObject.h"
 #include "LuaDefined.h"
 
 namespace cn {
@@ -20,19 +20,19 @@ namespace cn {
             /**
              * 方法对象, 表示了一个对应在Lua中的function，在lua中传入一个function到本地方法，将会自动转换为此类型的实例对象。
              */
-            class LuaFunction : public LuaObject
+            class LuaFunction : public LuaManagedObject
             {
             private:
-
-                /**
-                 * 方法索引
-                 */
-                std::string _index;
 
                 /**
                  * Lua上下文环境
                  */
                 LuaContext *_context;
+
+                /**
+                 * 连接ID
+                 */
+                std::string _linkId;
 
             public:
                 
@@ -48,11 +48,6 @@ namespace cn {
                  * @param index 数据栈索引
                  */
                 LuaFunction (LuaContext *context, int index);
-
-                /**
-                 * 销毁方法对象
-                 */
-                ~LuaFunction();
                 
                 /**
                  * 初始化, 在反序列化对象时会触发该方法
@@ -78,11 +73,6 @@ namespace cn {
             public:
 
                 /**
-                 * 入栈数据
-                 */
-                void push(LuaContext *context);
-
-                /**
                  * 调用方法
                  *
                  * @param arguments 参数列表
@@ -90,6 +80,20 @@ namespace cn {
                  * @return 返回值
                  */
                 LuaValue* invoke(LuaArgumentList *arguments);
+
+            public:
+
+                /**
+                 * 获取对象标识
+                 *
+                 * @return 对象标识
+                 */
+                virtual std::string getLinkId();
+
+                /**
+                 * 入栈数据
+                 */
+                virtual void push(LuaContext *context);
             };
 
         }
