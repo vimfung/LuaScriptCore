@@ -12,11 +12,6 @@
 #include "LuaTuple.h"
 
 /**
- * 实例种子，参与实例索引的生成，每次创建实例，该值会自增.
- */
-static int InstanceSeed = 0;
-
-/**
  *  对象销毁处理
  *
  *  @param state 状态机
@@ -500,7 +495,6 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onSubClass (LuaSub
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const std::string &name,
                                                                          cn::vimfung::luascriptcore::LuaContext *context)
 {
-    _isInternalCall = true;
 
     cn::vimfung::luascriptcore::LuaModule::onRegister(name, context);
 
@@ -542,15 +536,20 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
         if (_superClass != NULL)
         {
             //存在父类，则直接设置父类为元表
-            lua_getglobal(state, _superClass -> getName().c_str());
+            std::string superClassName = _superClass -> getName();
+            lua_getglobal(state, superClassName.c_str());
             if (lua_istable(state, -1))
             {
-                //设置父类元表
-                lua_pushvalue(state, -1);
-                lua_setmetatable(state, -3);
-
                 //关联父类
-                lua_setfield(state, -2, "super");
+                lua_pushvalue(state, -1);
+                lua_setfield(state, -3, "super");
+
+                //设置父类元表
+                lua_setmetatable(state, -2);
+            }
+            else
+            {
+                lua_pop(state, 1);
             }
         }
 
@@ -587,7 +586,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
             {
                 //设置父类访问属性 since ver 1.3
                 lua_pushvalue(state, -1);
-                lua_setfield(state, -2, "super");
+                lua_setfield(state, -3, "super");
 
                 //设置父类元表
                 lua_setmetatable(state, -2);
@@ -609,8 +608,6 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
     }
 
     lua_pop(state, 1);
-
-    _isInternalCall = false;
 }
 
 cn::vimfung::luascriptcore::modules::oo::LuaClassObjectCreatedHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getObjectCreatedHandler()
@@ -636,7 +633,6 @@ cn::vimfung::luascriptcore::modules::oo::LuaSubClassHandler cn::vimfung::luascri
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceField(std::string fieldName, LuaInstanceGetterHandler getterHandler, LuaInstanceSetterHandler setterHandler)
 {
     //与iOS中的属性getter和setter方法保持一致, getter直接是属性名称,setter则需要将属性首字母大写并在前面加上set
-    _isInternalCall = true;
     char upperCStr[2] = {0};
     upperCStr[0] = (char)toupper(fieldName[0]);
     std::string upperStr = upperCStr;
@@ -648,22 +644,6 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
     luaL_getmetatable(state, metaClassName.c_str());
     if (lua_istable(state, -1))
     {
-        lua_getfield(state, -1, setterMethodName.c_str());
-        if (!lua_isnil(state, -1))
-        {
-            _isInternalCall = false;
-            return;
-        }
-        lua_pop(state, 1);
-
-        lua_getfield(state, -1, fieldName.c_str());
-        if (!lua_isnil(state, -1))
-        {
-            _isInternalCall = false;
-            return;
-        }
-        lua_pop(state, 1);
-
         //设置Setter方法
         if (setterHandler != NULL)
         {
@@ -687,10 +667,9 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
             
             _instanceGetterMap[fieldName] = getterHandler;
         }
-        
     }
 
-    _isInternalCall = false;
+    lua_pop(state, 1);
 }
 
 cn::vimfung::luascriptcore::modules::oo::LuaObjectClass* cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getSupuerClass()
@@ -721,37 +700,27 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerMethod(
         std::string methodName,
         LuaModuleMethodHandler handler)
 {
-    _isInternalCall = true;
     cn::vimfung::luascriptcore::LuaModule::registerMethod(methodName, handler);
-    _isInternalCall = false;
 }
 
 void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceMethod(
         std::string methodName,
         LuaInstanceMethodHandler handler)
 {
-    _isInternalCall = true;
     lua_State *state = getContext() -> getLuaState();
     std::string metaClassName = _getMetaClassName(getName());
     luaL_getmetatable(state, metaClassName.c_str());
     if (lua_istable(state, -1))
     {
-        lua_getfield(state, -1, methodName.c_str());
-        if (lua_isnil(state, -1))
-        {
-            //尚未注册
-            lua_pop(state, 1);
+        lua_pushlightuserdata(state, this);
+        lua_pushstring(state, methodName.c_str());
+        lua_pushcclosure(state, instanceMethodRouteHandler, 2);
+        lua_setfield(state, -2, methodName.c_str());
 
-            lua_pushlightuserdata(state, this);
-            lua_pushstring(state, methodName.c_str());
-            lua_pushcclosure(state, instanceMethodRouteHandler, 2);
-            lua_setfield(state, -2, methodName.c_str());
-
-            _instanceMethodMap[methodName] = handler;
-        }
-
+        _instanceMethodMap[methodName] = handler;
     }
-    _isInternalCall = false;
+
+    lua_pop(state, 1);
 }
 
 cn::vimfung::luascriptcore::modules::oo::LuaInstanceMethodHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getInstanceMethodHandler(std::string methodName)

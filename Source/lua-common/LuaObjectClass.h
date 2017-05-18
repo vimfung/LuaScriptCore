@@ -134,14 +134,6 @@ namespace cn
                          */
                         std::string _getMetaClassName(std::string className);
 
-                    protected:
-
-                        /**
-                         * 是否为内部调用，如果该标识为true，部分操作行为可能改变，如__newindex处理中
-                         * 如果处于内部调用则不自动添加实例方法或属性。
-                         */
-                        bool _isInternalCall;
-
                     public:
 
                         /**
