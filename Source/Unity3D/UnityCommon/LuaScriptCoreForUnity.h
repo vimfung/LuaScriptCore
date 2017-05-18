@@ -89,6 +89,24 @@ extern "C" {
      */
     LuaScriptCoreApi extern int getGlobal(int nativeContextId, const char *name, const void **result);
     
+    
+    /**
+     保留LuaValue中的对象值
+
+     @param nativeContextId 本地上下文对象ID
+     @param value 变量值
+     */
+    LuaScriptCoreApi extern void retainValue(int nativeContextId, const void *value);
+    
+    
+    /**
+     释放LuaValue中的对象值
+
+     @param nativeContextId 本地上下文对象ID
+     @param value 变量值
+     */
+    LuaScriptCoreApi extern void releaseValue(int nativeContextId, const void *value);
+    
     /**
      解析Lua脚本
      

@@ -27,24 +27,6 @@ static const char * VarsTableName = "_vars_";
  */
 static const char * RetainVarsTableName = "_retainVars_";
 
-/**
- 对象引用回收处理
-
- @param state Lua状态机
-
- @return 返回值数量
- */
-static int objectReferenceGCHandler(lua_State *state)
-{
-    using namespace cn::vimfung::luascriptcore;
-
-    //释放对象
-    LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
-    LuaObjectDescriptor *descriptor = (LuaObjectDescriptor *)(ref -> value);
-    descriptor -> release();
-
-    return 0;
-}
 
 LuaDataExchanger::LuaDataExchanger(LuaContext *context)
 {
@@ -316,20 +298,20 @@ void LuaDataExchanger::getLuaObject(LuaObject *object)
         }
         else
         {
-            linkId =  StringUtils::format("%p", object);
+            linkId = StringUtils::format("%p", object);
         }
 
         if (!linkId.empty())
         {
             lua_State *state = _context -> getLuaState();
-
+            
             beginGetVarsTable();
-
+            
             lua_getfield(state, -1, linkId.c_str());
-
+            
             //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
             lua_insert(state, -3);
-
+            
             endGetVarsTable();
         }
     }
@@ -367,7 +349,7 @@ void LuaDataExchanger::retainLuaObject(LuaObject *object)
         }
         else
         {
-            linkId =  StringUtils::format("%p", object);
+            linkId = StringUtils::format("%p", object);
         }
 
         doObjectAction(linkId, LuaObjectActionRetain);
@@ -406,7 +388,7 @@ void LuaDataExchanger::releaseLuaObject(LuaObject *object)
         }
         else
         {
-            linkId =  StringUtils::format("%p", object);
+            linkId = StringUtils::format("%p", object);
         }
 
         doObjectAction(linkId, LuaObjectActionRelease);

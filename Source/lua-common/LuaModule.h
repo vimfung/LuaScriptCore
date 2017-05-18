@@ -63,7 +63,7 @@ namespace cn
                  *
                  * @return 模块名称
                  */
-                const std::string getName();
+                const std::string& getName();
 
                 /**
                  * 获取模块方法处理器, 提供Lua回调方法调用

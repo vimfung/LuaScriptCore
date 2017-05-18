@@ -68,6 +68,7 @@ public class Sample : MonoBehaviour {
 				tuple.addRetrunValue("Hello");
 				tuple.addRetrunValue(2017);
 				tuple.addRetrunValue("World");
+				tuple.addRetrunValue(111);
 
 				return new LuaValue(tuple);
 			});
@@ -149,5 +150,14 @@ public class Sample : MonoBehaviour {
 		}
 
 		LuaContext.currentContext.evalScript ("local Person = ClassImport('Person'); local NativeData = ClassImport('NativeData'); print(Person, NativeData); local d = NativeData.create(); d:setDataId('xxx'); print(d:dataId()); local p = NativeData.createPerson(); print(p); p:setName('xxxx'); p = Person.printPerson(p); print(p); print(p:name());");
+	}
+
+	public void retainAndReleaseButtonClickedHandler ()
+	{
+		LuaContext.currentContext.registerModule<Person> ();
+
+		LuaContext.currentContext.evalScript ("local test = function() print('test func') end; test(); Person.retainHandler(test);");
+		LuaContext.currentContext.evalScript ("print('-------------1'); Person.callHandler(); Person.releaseHandler();");
+		LuaContext.currentContext.evalScript ("print('-------------2'); Person.callHandler();");
 	}
 }
