@@ -84,8 +84,10 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\lua-common\LuaClassImport.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaContext.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaDataExchanger.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaExportClassProxy.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaFunction.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaManagedObject.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaModule.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaNativeClass.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaNativeClassFactory.cpp" />
@@ -146,9 +148,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\lua-common\LuaClassImport.h" />
     <ClInclude Include="..\..\..\lua-common\LuaContext.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaDataExchanger.h" />
     <ClInclude Include="..\..\..\lua-common\LuaDefined.h" />
     <ClInclude Include="..\..\..\lua-common\LuaExportClassProxy.h" />
     <ClInclude Include="..\..\..\lua-common\LuaFunction.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaManagedObject.h" />
     <ClInclude Include="..\..\..\lua-common\LuaModule.h" />
     <ClInclude Include="..\..\..\lua-common\LuaNativeClass.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaNativeClassFactory.hpp" />
