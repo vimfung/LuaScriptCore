@@ -405,14 +405,33 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static void setExceptionHandler (int contextId, IntPtr handlerRef);
 
-		/// <summary>
-		/// 解析Lua脚本
+        /// <summary>
+		/// 设置全局变量
 		/// </summary>
-		/// <returns>返回值的缓冲区大小</returns>
-		/// <param name="contextId">Lua上下文对象的本地标识</param>
-		/// <param name="script">Lua脚本</param>
-		/// <param name="resultBuffer">返回值缓冲区</param>
+		/// <param name="contextId">Lua上下文对象的本地标识.</param>
+		/// <param name="name">变量名称.</param>
+		/// <param name="value">变量值.</param>
 		[DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static void setGlobal(int contextId, string name, IntPtr value);
+
+        /// <summary>
+        /// 获取全局变量
+        /// </summary>
+        /// <returns>全局变量值缓存长度.</returns>
+        /// <param name="contextId">Lua上下文对象的本地标识.</param>
+        /// <param name="name">变量名称.</param>
+        /// <param name="resultBuffer">返回值缓存.</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static int getGlobal(int contextId, string name, out IntPtr resultBuffer);
+
+        /// <summary>
+        /// 解析Lua脚本
+        /// </summary>
+        /// <returns>返回值的缓冲区大小</returns>
+        /// <param name="contextId">Lua上下文对象的本地标识</param>
+        /// <param name="script">Lua脚本</param>
+        /// <param name="resultBuffer">返回值缓冲区</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static int evalScript(int contextId, string script, out IntPtr resultBuffer);
 
 		/// <summary>
@@ -517,6 +536,54 @@ namespace cn.vimfung.luascriptcore
             IntPtr fieldSetterHandler,
             IntPtr instanceMethodRouteHandler,
             IntPtr classMethodRouteHandler);
+
+        /// <summary>
+		/// 注册ClassImport
+		/// </summary>
+		/// <param name="nativeContextId">上下文对象标识.</param>
+		/// <param name="className">类名.</param>
+		/// <param name="allowExportsClassHandler">是否允许导出类型处理器.</param>
+		/// <param name="exportsClassHandler">导出类型处理器.</param>
+		/// <param name="allExportClassMethods">获取所有导出的类方法处理器.</param>
+		/// <param name="allExportInstanceMethods">获取所有导出的实例方法处理器</param>
+		/// <param name="allExportGetterFields">获取所有导出的获取权限字段处理器.</param>
+		/// <param name="allExportSetterFields">获取所有导出的设置权限字段处理器</param>
+		/// <param name="instanceCreateHandler">创建实例处理器.</param>
+		/// <param name="classMethodInvokeHandler">类方法调用处理器.</param>
+		/// <param name="instanceMethodInvokeHandler">实例方法调用处理器.</param>
+		/// <param name="fieldGetterHandler">获取字段处理器.</param>
+		/// <param name="fieldSetterHandler">获取字段处理器.</param>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static void registerClassImport(
+            int nativeContextId,
+            string className,
+            IntPtr checkObjectSubclassHandler,
+            IntPtr allowExportsClassHandler,
+            IntPtr allExportClassMethods,
+            IntPtr allExportInstanceMethods,
+            IntPtr allExportGetterFields,
+            IntPtr allExportSetterFields,
+            IntPtr instanceCreateHandler,
+            IntPtr classMethodInvokeHandler,
+            IntPtr instanceMethodInvokeHandler,
+            IntPtr fieldGetterHandler,
+            IntPtr fieldSetterHandler);
+
+        /// <summary>
+        /// 保留LuaValue的对象
+        /// </summary>
+        /// <param name="nativeContextId">原生上下文对象标识.</param>
+        /// <param name="value">值对象.</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static void retainValue(int nativeContextId, IntPtr value);
+
+        /// <summary>
+        /// 释放LuaValue的对象
+        /// </summary>
+        /// <param name="nativeContextId">原生上下文对象标识.</param>
+        /// <param name="value">值对象.</param>
+        [DllImport("LuaScriptCore-Unity-Win64")]
+        internal extern static void releaseValue(int nativeContextId, IntPtr value);
 
         /// <summary>
         /// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。
