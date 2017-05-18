@@ -660,6 +660,10 @@ static int instanceOfHandler (lua_State *state)
             //关联元表
             lua_setmetatable(state, -2);
         }
+        else
+        {
+            lua_pop(state, 1);
+        }
     }
     
     lua_setglobal(state, [moduleName UTF8String]);

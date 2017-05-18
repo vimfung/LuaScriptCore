@@ -94,8 +94,7 @@ public:
      * @param name 模块名称
      * @param context 上下文对象
      */
-    void onRegister(const std::string &name,
-                    LuaContext *context);
+    virtual void onRegister(const std::string &name, LuaContext *context);
 
     /**
      * 创建Lua实例对象

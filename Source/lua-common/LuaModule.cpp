@@ -92,22 +92,16 @@ void LuaModule::registerMethod(
     lua_getglobal(state, getName().c_str());
     if (lua_istable(state, -1))
     {
-        lua_getfield(state, -1, methodName.c_str());
-        if (lua_isnil(state, -1))
-        {
-            //尚未注册
-            lua_pop(state, 1);
+        lua_pushlightuserdata(state, this);
+        lua_pushstring(state, methodName.c_str());
+        lua_pushcclosure(state, methodRouteHandler, 2);
 
-            lua_pushlightuserdata(state, this);
-            lua_pushstring(state, methodName.c_str());
-            lua_pushcclosure(state, methodRouteHandler, 2);
+        lua_setfield(state, -2, methodName.c_str());
 
-            lua_setfield(state, -2, methodName.c_str());
-
-            _methodMap[methodName] = handler;
-        }
-
+        _methodMap[methodName] = handler;
     }
+
+    lua_pop(state, 1);
 }
 
 LuaModuleMethodHandler LuaModule::getMethodHandler(std::string methodName)
@@ -121,9 +115,9 @@ LuaModuleMethodHandler LuaModule::getMethodHandler(std::string methodName)
     return NULL;
 }
 
-const std::string LuaModule::getName()
+const std::string& LuaModule::getName()
 {
-    return (const std::string)_name;
+    return _name;
 }
 
 LuaContext* LuaModule::getContext()

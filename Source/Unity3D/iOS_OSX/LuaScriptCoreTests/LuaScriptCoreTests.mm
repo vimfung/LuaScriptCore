@@ -12,6 +12,8 @@
 #import "LuaObjectEncoder.hpp"
 #import "LuaObjectDecoder.hpp"
 #import "LuaTuple.h"
+#import "StringUtils.h"
+#import "LuaObjectClass.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -128,6 +130,13 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
 //    evalScript(navId, "LogModule.test({1,2,3,4,5});", NULL);
 }
 
+- (void)testRegClass
+{
+    using namespace cn::vimfung::luascriptcore::modules::oo;
+    
+    LuaObjectClass *personCls = new LuaObjectClass();
+}
+
 - (void)testTypeIdFeature
 {
     LuaValue *luaValue = new LuaValue();
@@ -192,6 +201,13 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
     
     value -> push(context);
     value -> release();
+}
+
+- (void)testStringFormat
+{
+    LuaContext *context = (LuaContext *)LuaObject::findObject(self.contextId);
+    LuaValue *value = context -> evalScript("return function () print('hello world'); end;");
+    printf("%p", value);
 }
 
 @end

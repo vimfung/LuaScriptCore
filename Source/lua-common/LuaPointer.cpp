@@ -56,6 +56,8 @@ LuaPointer::LuaPointer (LuaObjectDecoder *decoder)
     _needFree = true;
     _value = (LuaUserdataRef)malloc(sizeof(LuaUserdataRef));
     _value -> value = (void *)objRef;
+    
+    _linkId = decoder -> readString();
 }
 
 std::string LuaPointer::typeName()
@@ -73,6 +75,7 @@ void LuaPointer::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
     encoder -> writeInt64((long long)_value -> value);
+    encoder -> writeString(_linkId);
 }
 
 std::string LuaPointer::getLinkId()

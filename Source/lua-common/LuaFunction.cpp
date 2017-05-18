@@ -15,21 +15,10 @@
 #include "StringUtils.h"
 #include "LuaDataExchanger.h"
 #include <typeinfo>
-#include <LuaDefine.h>
 
 using namespace cn::vimfung::luascriptcore;
 
 DECLARE_NATIVE_CLASS(LuaFunction);
-
-/**
- * 方法种子，主要参与方法索引的生成，每次创建一个Function，该值就会自增。
- */
-static int FunctionSeed = 0;
-
-/**
- * 方法表名称
- */
-static std::string FunctionsTableName = "_tmpFuncs_";
 
 LuaFunction::LuaFunction ()
     : LuaManagedObject()
@@ -68,7 +57,7 @@ void LuaFunction::serialization (LuaObjectEncoder *encoder)
 
 void LuaFunction::push(LuaContext *context)
 {
-
+    
 }
 
 LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)

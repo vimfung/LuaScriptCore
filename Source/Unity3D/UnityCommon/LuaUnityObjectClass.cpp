@@ -94,7 +94,7 @@ void LuaUnityObjectClass::createLuaInstance(LuaObjectInstanceDescriptor *objectD
     
     LuaUnityEnv::sharedInstance() -> setNativeObjectId(objectDescriptor -> getObject(),
                                                        objectDescriptor -> objectId(),
-                                                       objectDescriptor -> getReferenceId());
+                                                       objectDescriptor -> getLinkId());
 }
 
 
