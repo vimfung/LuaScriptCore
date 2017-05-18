@@ -213,6 +213,12 @@
     <ClCompile Include="..\..\UnityCommon\LuaUnityExportClassProxy.cpp">
       <Filter>Source Files\UnityCommon</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaDataExchanger.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaManagedObject.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lua-core\src\lapi.h">
@@ -379,6 +385,12 @@
     </ClInclude>
     <ClInclude Include="..\..\UnityCommon\LuaUnityExportClassProxy.hpp">
       <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaDataExchanger.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaManagedObject.h">
+      <Filter>Header Files\lua-common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
