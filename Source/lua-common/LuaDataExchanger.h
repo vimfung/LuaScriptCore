@@ -74,11 +74,12 @@ namespace cn {
                  * @param object 原生对象
                  */
                 void retainLuaObject(LuaObject *object);
+    
 
                 /**
                  * 释放对象对应在Lua中的引用
                  *
-                 * @param nativeObject 原生对象
+                 * @param object 原生对象
                  */
                 void releaseLuaObject(LuaObject *object);
 

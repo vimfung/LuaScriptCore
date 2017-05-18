@@ -34,12 +34,17 @@ std::string StringUtils::format (const char *format, ...)
     va_list marker;
     va_start(marker, format);
 
-    char buffer[1024 * 1024] = {0};
+    char buffer[1024] = {0};
     int size = vsprintf(buffer, format, marker);
 
     va_end(marker);
 
-    std::string str(buffer);
+    char *cStr = new char[size];
+    memcpy(cStr, buffer, size);
+    
+    std::string str(cStr);
+    
+    delete[] cStr;
 
     return str;
 }

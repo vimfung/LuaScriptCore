@@ -10,6 +10,7 @@
 #include "LuaObjectDescriptor.h"
 #include "LuaObjectDecoder.hpp"
 #include "LuaUnityClassObjectDescriptor.hpp"
+#include "LuaContext.h"
 #include <stdlib.h>
 
 using namespace cn::vimfung::luascriptcore;

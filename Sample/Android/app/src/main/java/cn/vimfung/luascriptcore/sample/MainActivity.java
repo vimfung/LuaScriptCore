@@ -144,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
                         _hasRegModule = true;
                         _luaContext.registerModule(LogModule.class);
                     }
-
                     _luaContext.evalScript("LogModule.writeLog('Hello Lua Module!');");
                     _luaContext.evalScript("LogModule.testObj(LogModule.createObj());");
                 }
@@ -162,12 +161,14 @@ public class MainActivity extends AppCompatActivity {
                 if(!_hasRegClass)
                 {
                     _hasRegClass = true;
+                    _luaContext.registerModule(LogModule.class);
                     _luaContext.registerModule(Person.class);
                     _luaContext.registerModule(Chinese.class);
+                    _luaContext.registerModule(English.class);
                     _luaContext.registerModule(Console.class);
                 }
 
-                _luaContext.evalScript("Person.subclass('Chinese'); print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
+                _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
                 }
             });
         }

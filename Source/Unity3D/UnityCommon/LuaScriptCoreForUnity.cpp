@@ -529,6 +529,36 @@ extern "C" {
         return 0;
     }
     
+    void retainValue(int nativeContextId, const void *value)
+    {
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL)
+        {
+            LuaObjectDecoder *decoder = new LuaObjectDecoder(context, value);
+            
+            LuaValue *value =  (LuaValue *)decoder -> readObject();
+            context -> retainValue(value);
+            value -> release();
+            
+            decoder -> release();
+        }
+    }
+    
+    void releaseValue(int nativeContextId, const void *value)
+    {
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL)
+        {
+            LuaObjectDecoder *decoder = new LuaObjectDecoder(context, value);
+            
+            LuaValue *value =  (LuaValue *)decoder -> readObject();
+            context -> releaseValue(value);
+            value -> release();
+            
+            decoder -> release();
+        }
+    }
+    
     
     /**
      调用方法

@@ -10,6 +10,9 @@
 #import "LuaScriptCore.h"
 #import "TestModule.h"
 #import "Person.h"
+#import "Chinese.h"
+#import "English.h"
+#import "America.h"
 #import "NativePerson.h"
 #import "LSCTuple.h"
 #import "Env.h"
@@ -166,6 +169,9 @@
 - (void)testClassInstanceTupleReturnValue
 {
     [self.context registerModuleWithClass:[Person class]];
+    [self.context registerModuleWithClass:[Chinese class]];
+    [self.context registerModuleWithClass:[English class]];
+    [self.context registerModuleWithClass:[America class]];
     [self.context evalScriptFromString:@"local p = Person.create(); local a,b = p:test(); print(a, b);"];
 }
 
