@@ -10,6 +10,7 @@ import UIKit
 import LuaScriptCore_iOS_Swift
 
 private var _func : LuaValue? = nil;
+private var _managedFunc : LuaManagedValue? = nil;
 
 class Person: LSCObjectClass {
     
@@ -55,6 +56,24 @@ class Person: LSCObjectClass {
         if _func != nil
         {
             _ = _func!.functionValue.invoke(arguments: Array<LuaValue>());
+        }
+    }
+    
+    class func retainHandler2 (handler : LSCFunction) -> Void
+    {
+        _managedFunc = LuaManagedValue(source: LuaValue(functionValue: LuaFunction(rawFunction: handler)), context: Env.defaultContext);
+    }
+    
+    class func releaseHandler2 ()
+    {
+        _managedFunc = nil;
+    }
+    
+    class func callHandler2 ()
+    {
+        if _managedFunc != nil
+        {
+            _ = _managedFunc?.source.functionValue.invoke(arguments: Array<LuaValue>());
         }
     }
 }
