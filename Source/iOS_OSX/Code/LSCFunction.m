@@ -30,9 +30,16 @@
     {
         self.context = context;
         self._linkId = [NSString stringWithFormat:@"%p", self];
+        
+        [self.context retainValue:[LSCValue functionValue:self]];
     }
     
     return self;
+}
+
+- (void)dealloc
+{
+    [self.context releaseValue:[LSCValue functionValue:self]];
 }
 
 - (LSCValue *)invokeWithArguments:(NSArray<LSCValue *> *)arguments
