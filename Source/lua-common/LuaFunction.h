@@ -55,6 +55,11 @@ namespace cn {
                  * @param decoder 解码器
                  */
                 LuaFunction (LuaObjectDecoder *decoder);
+
+                /**
+                 * 释放对象
+                 */
+                ~LuaFunction();
                 
                 /**
                  获取类型名称

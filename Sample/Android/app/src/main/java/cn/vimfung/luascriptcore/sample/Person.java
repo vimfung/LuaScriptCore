@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaFunction;
+import cn.vimfung.luascriptcore.LuaManagedValue;
 import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
 import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
@@ -70,6 +71,26 @@ public class Person extends LuaObjectClass
         if (_func != null)
         {
             _func.toFunction().invoke(null);
+        }
+    }
+
+    private static LuaManagedValue _func2 = null;
+
+    public static void retainHandler2(LuaFunction handler)
+    {
+        _func2 = new LuaManagedValue(new LuaValue(handler), Env.defaultContext());
+    }
+
+    public static void releaseHandler2(LuaFunction handler)
+    {
+        _func2 = null;
+    }
+
+    public static void callHandler2()
+    {
+        if (_func2 != null)
+        {
+            _func2.getSource().toFunction().invoke(null);
         }
     }
 }
