@@ -11,8 +11,10 @@
 #import "LSCFunction.h"
 #import "LSCValue.h"
 #import "Env.h"
+#import "LSCManagedValue.h"
 
 static LSCValue *_func = nil;
+static LSCManagedValue *_managedFunc = nil;
 
 @implementation Person
 
@@ -46,9 +48,19 @@ static LSCValue *_func = nil;
     [[Env defaultContext] retainValue:_func];
 }
 
++ (void)retainHandler2:(LSCFunction *)handler
+{
+    _managedFunc = [[LSCManagedValue alloc] initWithValue:[LSCValue functionValue:handler] context:[Env defaultContext]];
+}
+
 + (void)releaseHandler
 {
     [[Env defaultContext] releaseValue:_func];
+}
+
++ (void)releaseHandler2
+{
+    _managedFunc = nil;
 }
 
 + (void)callHandler
@@ -56,6 +68,14 @@ static LSCValue *_func = nil;
     if (_func)
     {
         [[_func toFunction] invokeWithArguments:nil];
+    }
+}
+
++ (void)callHandler2
+{
+    if (_managedFunc)
+    {
+        [[_managedFunc.source toFunction] invokeWithArguments:nil];
     }
 }
 
