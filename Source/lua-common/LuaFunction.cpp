@@ -31,6 +31,20 @@ LuaFunction::LuaFunction(LuaContext *context, int index)
 {
     _context = context;
     _linkId = StringUtils::format("%p", this);
+
+    LuaValue *value = LuaValue::FunctionValue(this);
+    _context->retainValue(value);
+    value -> release();
+}
+
+LuaFunction::~LuaFunction()
+{
+    if (_context != NULL)
+    {
+        LuaValue *value = LuaValue::FunctionValue(this);
+        _context->releaseValue(value);
+        value -> release();
+    }
 }
 
 std::string LuaFunction::typeName()
