@@ -206,9 +206,9 @@ public class MainActivity extends AppCompatActivity {
 
                     _luaContext.registerModule(Person.class);
 
-                    _luaContext.evalScript("local test = function() print('test func') end; test(); Person.retainHandler(test);");
-                    _luaContext.evalScript("print('-------------1'); Person.callHandler(); Person.releaseHandler();");
-                    _luaContext.evalScript("print('-------------2'); Person.callHandler();");
+                    _luaContext.evalScript("local test = function() print('test func') end; test(); Person.retainHandler2(test);");
+                    _luaContext.evalScript("print('-------------1'); Person.callHandler2(); Person.releaseHandler2();");
+                    _luaContext.evalScript("print('-------------2'); Person.callHandler2();");
 
                 }
             });
