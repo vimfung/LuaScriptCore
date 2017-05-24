@@ -210,4 +210,13 @@
     [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler();"];
 }
 
+- (void)testRetainRelease_2
+{
+    [self.context registerModuleWithClass:[Person class]];
+    
+    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person.retainHandler2(test);"];
+    [self.context evalScriptFromString:@"print('-------------1'); Person.callHandler2(); Person.releaseHandler2();"];
+    [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler2();"];
+}
+
 @end

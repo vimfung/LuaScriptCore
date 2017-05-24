@@ -48,4 +48,12 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
         _ = _context?.evalScript(script: "print('-------------2'); Person.callHandler();");
     }
     
+    func testRetainAndRelease_2()
+    {
+        _context?.registerModule(moduleClass: Person.self);
+        _ = _context?.evalScript(script: "local test = function() print('test func') end; test(); Person.retainHandler2(test);");
+        _ = _context?.evalScript(script: "print('-------------1'); Person.callHandler2(); Person.releaseHandler2();");
+        _ = _context?.evalScript(script: "print('-------------2'); Person.callHandler2();");
+    }
+    
 }
