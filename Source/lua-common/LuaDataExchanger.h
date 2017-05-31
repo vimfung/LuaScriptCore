@@ -69,6 +69,14 @@ namespace cn {
                 void getLuaObject(LuaObject *object);
 
                 /**
+                 * 设置Lua对象
+                 *
+                 * @param stackIndex 栈索引
+                 * @param linkId 连接标识
+                 */
+                void setLuaObject(int stackIndex, const std::string &linkId);
+
+                /**
                  * 保留对象对应在Lua中的引用
                  *
                  * @param object 原生对象
