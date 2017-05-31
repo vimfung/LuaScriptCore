@@ -8,10 +8,11 @@
 
 #import "LSCFunction.h"
 #import "lua.h"
+#import "LSCManagedObjectProtocol.h"
 
 @class LSCContext;
 
-@interface LSCFunction ()
+@interface LSCFunction () <LSCManagedObjectProtocol>
 
 /**
  上下文对象
@@ -23,6 +24,11 @@
  方法的本地索引
  */
 @property (nonatomic, copy) NSString *index;
+
+/**
+ 连接标识
+ */
+@property (nonatomic, copy) NSString *linkId;
 
 /**
  初始化Lua方法
