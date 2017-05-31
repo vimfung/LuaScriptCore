@@ -32,6 +32,8 @@ LuaFunction::LuaFunction(LuaContext *context, int index)
     _context = context;
     _linkId = StringUtils::format("%p", this);
 
+    _context -> getDataExchanger() -> setLuaObject(index, _linkId);
+
     LuaValue *value = LuaValue::FunctionValue(this);
     _context->retainValue(value);
     value -> release();

@@ -317,6 +317,19 @@ void LuaDataExchanger::getLuaObject(LuaObject *object)
     }
 }
 
+void LuaDataExchanger::setLuaObject(int stackIndex, const std::string &linkId)
+{
+    lua_State *state = _context -> getLuaState();
+
+    beginGetVarsTable();
+
+    //放入对象到_vars_表中
+    lua_pushvalue(state, stackIndex);
+    lua_setfield(state, -2, linkId.c_str());
+
+    endGetVarsTable();
+}
+
 void LuaDataExchanger::retainLuaObject(LuaObject *object)
 {
     if (object != NULL)
