@@ -11,16 +11,6 @@
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
 #import "LSCTuple_Private.h"
-#import "LSCManagedObjectProtocol.h"
-
-@interface LSCFunction () <LSCManagedObjectProtocol>
-
-/**
- 连接标识
- */
-@property (nonatomic, copy) NSString *_linkId;
-
-@end
 
 @implementation LSCFunction
 
@@ -29,8 +19,11 @@
     if (self = [super init])
     {
         self.context = context;
-        self._linkId = [NSString stringWithFormat:@"%p", self];
+        self.linkId = [NSString stringWithFormat:@"%p", self];
         
+        //设置Lua对象到_vars_表中
+        [self.context.dataExchanger setLubObjectByStackIndex:index objectId:self.linkId];
+        //进行引用
         [self.context retainValue:[LSCValue functionValue:self]];
     }
     
@@ -111,11 +104,6 @@
 }
 
 #pragma mark - LSCManagedObjectProtocol
-
-- (NSString *)linkId
-{
-    return self._linkId;
-}
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {

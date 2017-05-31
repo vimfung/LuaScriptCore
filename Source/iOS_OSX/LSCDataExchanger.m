@@ -205,13 +205,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     if (objectId && (type == LUA_TTABLE || type == LUA_TUSERDATA || type == LUA_TLIGHTUSERDATA || type == LUA_TFUNCTION))
     {
         //将引用对象放入表中
-        [self doActionInVarsTable:^{
-            
-            //放入对象到_vars_表中
-            lua_pushvalue(state, (int)index);
-            lua_setfield(state, -2, objectId.UTF8String);
-            
-        }];
+        [self setLubObjectByStackIndex:index objectId:objectId];
     }
     
     return value;
@@ -326,6 +320,19 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             }];
         }
     }
+}
+
+- (void)setLubObjectByStackIndex:(NSInteger)index objectId:(NSString *)objectId
+{
+    lua_State *state = self.context.state;
+    
+    [self doActionInVarsTable:^{
+        
+        //放入对象到_vars_表中
+        lua_pushvalue(state, (int)index);
+        lua_setfield(state, -2, objectId.UTF8String);
+        
+    }];
 }
 
 - (void)retainLuaObject:(id)nativeObject
