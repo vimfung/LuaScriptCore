@@ -47,6 +47,14 @@
 - (void)getLuaObject:(id)nativeObject;
 
 /**
+ 设置Lua对象
+
+ @param index Lua对象在栈中索引
+ @param objectId 对象标识
+ */
+- (void)setLubObjectByStackIndex:(NSInteger)index objectId:(NSString *)objectId;
+
+/**
  保留对象对应在Lua中的引用
 
  @param nativeObject 原生对象
@@ -59,5 +67,7 @@
  @param nativeObject 原生对象
  */
 - (void)releaseLuaObject:(id)nativeObject;
+
+
 
 @end
