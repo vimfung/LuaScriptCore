@@ -11,9 +11,9 @@ LuaScriptCore旨在能够在多种平台上方便地使用Lua。其提供了与�
 
 ## Release 1.3.4 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/1.3.4)
 
-1. LuaContext增加retainValue和releaseValue，允许原生层对Lua层对象进行内存上的管理。
+1. `LuaContext`增加`retainValue`和`releaseValue`，允许原生层对Lua层对象进行内存上的管理。
 
-2. 新增LuaManagedValue类型，使用该类型可以延长Lua对象生命周期，使其在类型被释放之后进行。
+2. 新增`LuaManagedValue`类型，使用该类型可以延长Lua对象生命周期，使其在类型被释放之后进行。
 
 3. 改进框架，优化执行效率
 
