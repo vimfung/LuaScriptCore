@@ -9,15 +9,13 @@ LuaScriptCore旨在能够在多种平台上方便地使用Lua。其提供了与�
 
 # 最近更新
 
-## Release 1.3.1 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/1.3.1)
+## Release 1.3.4 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/1.3.4)
 
-1. 新增类型导入模块ClassImport，允许原生类型直接导入Lua中使用，如：`Person = ClassImport('Person'); local p = Person.create();`，具体请参考：[iOS/OS X平台](https://github.com/vimfung/LuaScriptCore/wiki/iOS-OS-X%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3#%E5%8A%A8%E6%80%81%E5%AF%BC%E5%85%A5%E5%8E%9F%E7%94%9F%E7%B1%BB%E5%9E%8B%E5%88%B0lua)、[Android平台](https://github.com/vimfung/LuaScriptCore/wiki/Android-%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3#%E5%8A%A8%E6%80%81%E5%AF%BC%E5%85%A5%E5%8E%9F%E7%94%9F%E7%B1%BB%E5%9E%8B%E5%88%B0lua)、[Unity3D](https://github.com/vimfung/LuaScriptCore/wiki/Unity3D%E9%9B%86%E6%88%90%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3#%E5%8A%A8%E6%80%81%E5%AF%BC%E5%85%A5%E5%8E%9F%E7%94%9F%E7%B1%BB%E5%9E%8B%E5%88%B0lua)
+1. `LuaContext`增加`retainValue`和`releaseValue`，允许原生层对Lua层对象进行内存上的管理。
 
-2. 新增iOS的Swift版本和Unity3D下获取和设置全局变量功能。
+2. 新增`LuaManagedValue`类型，使用该类型可以延长Lua对象生命周期，使其在类型被释放之后进行。
 
-3. 调整动态声明类方法和实例方法形式，类方法声明不变，实例方法由原来如：`function Person:init () end`改为`function Person.prototype:init () end`
-
-4. 修复Android内存泄露问题
+3. 改进框架，优化执行效率
 
 ## [更多更新历史](https://github.com/vimfung/LuaScriptCore/wiki/%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2)
 
