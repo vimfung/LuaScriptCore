@@ -12,6 +12,7 @@
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectDescriptor.h"
+#include "LuaSession.h"
 #include <stdlib.h>
 
 using namespace cn::vimfung::luascriptcore;
@@ -47,7 +48,7 @@ static bool _checkObjectSubclassHandlerFunc (LuaContext *context, LuaClassImport
 
         if (moduleName != NULL)
         {
-            lua_getglobal(context -> getLuaState(), moduleName);
+            lua_getglobal(context -> getCurrentSession() -> getState(), moduleName);
             return true;
         }
     }
@@ -132,7 +133,7 @@ static LuaValue* _classMethodInvokeHandlerFunc (LuaContext *context,
 static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context,
                                                    LuaClassImport *classImport,
                                                    LuaObjectDescriptor *classDescriptor,
-                                                   LuaUserdataRef instance,
+                                                   LuaObjectDescriptor *instance,
                                                    std::string methodName,
                                                    LuaArgumentList args)
 {
@@ -150,14 +151,13 @@ static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context,
             encoder -> writeObject(value);
         }
         
-        LuaObjectDescriptor *objDesc = (LuaObjectDescriptor *)instance -> value;
         std::string className = (char *)classDescriptor -> getObject();
         
         //paramsBuffer的内容由C#端进行释放
         const void *paramsBuffer = encoder -> cloneBuffer();
         void *returnBuffer = handler(context -> objectId(),
                                      className.c_str(),
-                                     (long long) objDesc -> getObject(),
+                                     (long long) instance -> getObject(),
                                      methodName.c_str(),
                                      paramsBuffer,
                                      encoder -> getBufferLength());
@@ -188,7 +188,7 @@ static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context,
 static LuaValue* _instanceFieldGetterInvokeHandlerFunc (LuaContext *context,
                                                         LuaClassImport *classImport,
                                                         LuaObjectDescriptor *classDescriptor,
-                                                        LuaUserdataRef instance,
+                                                        LuaObjectDescriptor *instance,
                                                         std::string fieldName)
 {
     LuaUnityClassImport *unityClassImport = (LuaUnityClassImport *)classImport;
@@ -196,12 +196,11 @@ static LuaValue* _instanceFieldGetterInvokeHandlerFunc (LuaContext *context,
     LuaNativeFieldGetterHandlerPtr methodHandler = unityClassImport -> getFieldGetterHandler();
     if (methodHandler != NULL)
     {
-        LuaObjectDescriptor *objDesc = (LuaObjectDescriptor *)instance -> value;
         std::string className = (char *)classDescriptor -> getObject();
         
         void *returnBuffer = methodHandler (context -> objectId(),
                                             className.c_str(),
-                                            (long long) objDesc -> getObject(),
+                                            (long long) instance -> getObject(),
                                             fieldName.c_str());
         
         LuaValue *retValue = NULL;
@@ -228,7 +227,7 @@ static LuaValue* _instanceFieldGetterInvokeHandlerFunc (LuaContext *context,
 static void _instanceFieldSetterInvokeHandlerFunc (LuaContext *context,
                                                    LuaClassImport *classImport,
                                                    LuaObjectDescriptor *classDescriptor,
-                                                   LuaUserdataRef instance,
+                                                   LuaObjectDescriptor *instance,
                                                    std::string fieldName,
                                                    LuaValue *value)
 {
@@ -252,12 +251,11 @@ static void _instanceFieldSetterInvokeHandlerFunc (LuaContext *context,
         //valueBuf的内容由C#端进行释放
         const void *valueBuf = encoder -> cloneBuffer();
         
-        LuaObjectDescriptor *objDesc = (LuaObjectDescriptor *)instance -> value;
         std::string className = (char *)classDescriptor -> getObject();
         
         methodHandler (context -> objectId(),
                        className.c_str(),
-                       (long long) objDesc -> getObject(),
+                       (long long) instance -> getObject(),
                        fieldName.c_str(),
                        valueBuf,
                        encoder -> getBufferLength());
