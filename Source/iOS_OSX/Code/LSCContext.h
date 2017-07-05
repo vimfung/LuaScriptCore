@@ -101,7 +101,6 @@
  */
 - (void)registerMethodWithName:(NSString *)methodName block:(LSCFunctionHandler)block;
 
-
 /**
  *  注册模块
  *

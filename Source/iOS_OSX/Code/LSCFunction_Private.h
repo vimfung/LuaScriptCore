@@ -38,6 +38,7 @@
 
  @return Lua方法对象
  */
-- (instancetype)initWithContext:(LSCContext *)context index:(NSInteger)index;
+- (instancetype)initWithContext:(LSCContext *)context
+                          index:(NSInteger)index;
 
 @end

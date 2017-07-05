@@ -7,7 +7,8 @@
 //
 
 #import "LSCDataExchanger.h"
-#import "LSCContext_Private.h"
+#import "LSCDataExchanger_Private.h"
+#import "LSCSession_Private.h"
 #import "LSCValue.h"
 #import "LSCPointer.h"
 #import "LSCFunction_Private.h"
@@ -39,15 +40,6 @@ static NSString *const VarsTableName = @"_vars_";
  */
 static NSString *const RetainVarsTableName = @"_retainVars_";
 
-@interface LSCDataExchanger ()
-
-/**
- 上下文对象
- */
-@property (nonatomic, weak) LSCContext *context;
-
-@end
-
 @implementation LSCDataExchanger
 
 - (instancetype)initWithContext:(LSCContext *)context
@@ -61,7 +53,494 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
 
 - (LSCValue *)valueByStackIndex:(int)index
 {
-    lua_State *state = self.context.state;
+    lua_State *state = self.context.currentSession.state;
+    return [self valueByStackIndex:index withState:state];
+}
+
+- (void)pushStackWithValue:(LSCValue *)value
+{
+    lua_State *state = self.context.currentSession.state;
+    
+    //先判断_vars_中是否存在对象，如果存在则直接返回表中对象
+    switch (value.valueType)
+    {
+        case LSCValueTypeInteger:
+            lua_pushinteger(state, [value toInteger]);
+            break;
+        case LSCValueTypeNumber:
+            lua_pushnumber(state, [value toDouble]);
+            break;
+        case LSCValueTypeNil:
+            lua_pushnil(state);
+            break;
+        case LSCValueTypeString:
+            lua_pushstring(state, [value toString].UTF8String);
+            break;
+        case LSCValueTypeBoolean:
+            lua_pushboolean(state, [value toBoolean]);
+            break;
+        case LSCValueTypeArray:
+        {
+            [self pushStackWithObject:[value toArray]];
+            break;
+        }
+        case LSCValueTypeMap:
+        {
+            [self pushStackWithObject:[value toDictionary]];
+            break;
+        }
+        case LSCValueTypeData:
+        {
+            NSData *data = [value toData];
+            lua_pushlstring(state, data.bytes, data.length);
+            break;
+        }
+        case LSCValueTypeObject:
+        {
+            [self pushStackWithObject:[value toObject]];
+            break;
+        }
+        case LSCValueTypePtr:
+        {
+            [self pushStackWithObject:[value toPointer]];
+            break;
+        }
+        case LSCValueTypeFunction:
+        {
+            [self pushStackWithObject:[value toFunction]];
+            break;
+        }
+        case LSCValueTypeTuple:
+        {
+            [self pushStackWithTuple:[value toTuple] state:state];
+            break;
+        }
+        default:
+            lua_pushnil(state);
+            break;
+    }
+}
+
+- (void)getLuaObject:(id)nativeObject
+{
+    lua_State *state = self.context.currentSession.state;
+    [self getLuaObject:nativeObject state:state];
+}
+
+- (void)setLubObjectByStackIndex:(NSInteger)index
+                        objectId:(NSString *)objectId
+{
+    lua_State *state = self.context.currentSession.state;
+    [self setLubObjectByStackIndex:index
+                          objectId:objectId
+                             state:state];
+}
+
+- (void)retainLuaObject:(id)nativeObject
+{
+    if (nativeObject)
+    {
+        NSString *objectId = nil;
+        
+        if ([nativeObject isKindOfClass:[LSCValue class]])
+        {
+            switch (((LSCValue *)nativeObject).valueType)
+            {
+                case LSCValueTypeObject:
+                    [self retainLuaObject:[(LSCValue *)nativeObject toObject]];
+                    break;
+                case LSCValueTypePtr:
+                    [self retainLuaObject:[(LSCValue *)nativeObject toPointer]];
+                    break;
+                case LSCValueTypeFunction:
+                    [self retainLuaObject:[(LSCValue *)nativeObject toFunction]];
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if ([nativeObject conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
+        {
+            objectId = [nativeObject linkId];
+        }
+        else
+        {
+            objectId = [NSString stringWithFormat:@"%p", nativeObject];
+        }
+        
+        [self doAction:LSCLuaObjectActionRetain withObjectId:objectId];
+    }
+}
+
+- (void)releaseLuaObject:(id)nativeObject
+{
+    if (nativeObject)
+    {
+        NSString *objectId = nil;
+        
+        if ([nativeObject isKindOfClass:[LSCValue class]])
+        {
+            switch (((LSCValue *)nativeObject).valueType)
+            {
+                case LSCValueTypeObject:
+                    [self releaseLuaObject:[(LSCValue *)nativeObject toObject]];
+                    break;
+                case LSCValueTypePtr:
+                    [self releaseLuaObject:[(LSCValue *)nativeObject toPointer]];
+                    break;
+                case LSCValueTypeFunction:
+                    [self releaseLuaObject:[(LSCValue *)nativeObject toFunction]];
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if ([nativeObject conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
+        {
+            objectId = [nativeObject linkId];
+        }
+        else
+        {
+            objectId = [NSString stringWithFormat:@"%p", nativeObject];
+        }
+        
+        [self doAction:LSCLuaObjectActionRelease withObjectId:objectId];
+    }
+}
+
+#pragma mark - Private
+
+/**
+ 入栈对象
+
+ @param object 需要入栈的对象
+ */
+- (void)pushStackWithObject:(id)object
+{
+    lua_State *state = self.context.currentSession.state;
+    
+    if (object)
+    {
+        if ([object isKindOfClass:[NSDictionary class]])
+        {
+            [self pushStackWithDictionary:object];
+        }
+        else if ([object isKindOfClass:[NSArray class]])
+        {
+            [self pushStackWithArray:object];
+        }
+        else if ([object isKindOfClass:[NSNumber class]])
+        {
+            lua_pushnumber(state, [object doubleValue]);
+        }
+        else if ([object isKindOfClass:[NSString class]])
+        {
+            lua_pushstring(state, [object UTF8String]);
+        }
+        else if ([object isKindOfClass:[NSData class]])
+        {
+            lua_pushlstring(state, [object bytes], [object length]);
+        }
+        else
+        {
+            //LSCFunction\LSCPointer\NSObject
+            [self doActionInVarsTableWithState:state block:^{
+                
+                NSString *objectId = nil;
+                if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
+                {
+                    objectId = [(id<LSCManagedObjectProtocol>)object linkId];
+                }
+                else
+                {
+                    objectId = [NSString stringWithFormat:@"%p", object];
+                }
+                
+                lua_getfield(state, -1, objectId.UTF8String);
+                if (lua_isnil(state, -1))
+                {
+                    //弹出变量
+                    lua_pop(state, 1);
+                    
+                    //_vars_表中没有对应对象引用，则创建对应引用对象
+                    BOOL hasPushStack = NO;
+                    if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
+                    {
+                        hasPushStack = [(id<LSCManagedObjectProtocol>)object pushWithContext:self.context];
+                    }
+                    
+                    if (!hasPushStack)
+                    {
+                        //先为实例对象在lua中创建内存
+                        LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+                        //创建本地实例对象，赋予lua的内存块
+                        ref -> value = (void *)CFBridgingRetain(object);
+                        
+                        //设置userdata的元表
+                        luaL_getmetatable(state, "_ObjectReference_");
+                        if (lua_isnil(state, -1))
+                        {
+                            lua_pop(state, 1);
+                            
+                            //尚未注册_ObjectReference,开始注册对象
+                            luaL_newmetatable(state, "_ObjectReference_");
+                            
+                            lua_pushcfunction(state, objectReferenceGCHandler);
+                            lua_setfield(state, -2, "__gc");
+                        }
+                        lua_setmetatable(state, -2);
+                        
+                        //放入_vars_表中
+                        lua_pushvalue(state, -1);
+                        lua_setfield(state, -3, objectId.UTF8String);
+                    }
+                }
+                
+                //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
+                lua_insert(state, -3);
+            }];
+        }
+    }
+    else
+    {
+        lua_pushnil(state);
+    }
+}
+
+
+/**
+ 入栈一个字典
+
+ @param dictionary 字典
+ */
+- (void)pushStackWithDictionary:(NSDictionary *)dictionary
+{
+    lua_State *state = self.context.currentSession.state;
+    
+    lua_newtable(state);
+    
+    __weak typeof(self) theExchanger = self;
+    [dictionary enumerateKeysAndObjectsUsingBlock:^(id _Nonnull key, id _Nonnull obj, BOOL *_Nonnull stop) {
+        
+        [theExchanger pushStackWithObject:obj];
+        lua_setfield(state, -2, [[NSString stringWithFormat:@"%@", key] UTF8String]);
+        
+    }];
+}
+
+/**
+ 入栈一个数组
+
+ @param array 数组
+ */
+- (void)pushStackWithArray:(NSArray *)array
+{
+    lua_State *state = self.context.currentSession.state;
+    
+    lua_newtable(state);
+    
+    __weak typeof(self) theExchanger = self;
+    [array enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL *_Nonnull stop) {
+        
+        // lua数组下标从1开始
+        [theExchanger pushStackWithObject:obj];
+        lua_rawseti(state, -2, idx + 1);
+        
+    }];
+}
+
+/**
+ 入栈元组
+
+ @param tuple 元组
+ @param state 状态
+ */
+- (void)pushStackWithTuple:(LSCTuple *)tuple state:(lua_State *)state
+{
+    __weak typeof(self) theDataExchanger = self;
+    [tuple.returnValues enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        
+        LSCValue *value = [LSCValue objectValue:obj];
+        [theDataExchanger pushStackWithValue:value];
+        
+    }];
+}
+
+
+/**
+ 在_vars_表中操作
+ 
+ @param state 状态
+ @param block 操作行为
+ */
+- (void)doActionInVarsTableWithState:(lua_State *)state block:(void (^)())block
+{
+    lua_getglobal(state, "_G");
+    if (!lua_istable(state, -1))
+    {
+        lua_pop(state, 1);
+        
+        lua_newtable(state);
+        
+        lua_pushvalue(state, -1);
+        lua_setglobal(state, "_G");
+    }
+    
+    lua_getfield(state, -1, VarsTableName.UTF8String);
+    if (lua_isnil(state, -1))
+    {
+        lua_pop(state, 1);
+        
+        //创建引用表
+        lua_newtable(state);
+        
+        //创建弱引用表元表
+        lua_newtable(state);
+        lua_pushstring(state, "kv");
+        lua_setfield(state, -2, "__mode");
+        lua_setmetatable(state, -2);
+        
+        //放入全局变量_G中
+        lua_pushvalue(state, -1);
+        lua_setfield(state, -3, VarsTableName.UTF8String);
+    }
+    
+    if (block)
+    {
+        block ();
+    }
+    
+    //弹出_vars_
+    lua_pop(state, 1);
+    
+    //弹出_G
+    lua_pop(state, 1);
+}
+
+/**
+ 执行对象操作
+
+ @param action 行为
+ @param objectId 对象ID
+ */
+- (void)doAction:(LSCLuaObjectAction)action withObjectId:(NSString *)objectId
+{
+    if (objectId)
+    {
+        lua_State *state = self.context.mainSession.state;
+        
+        lua_getglobal(state, "_G");
+        if (lua_istable(state, -1))
+        {
+            lua_getfield(state, -1, VarsTableName.UTF8String);
+            if (lua_istable(state, -1))
+            {
+                //检查对象是否在_vars_表中登记
+                lua_getfield(state, -1, objectId.UTF8String);
+                if (!lua_isnil(state, -1))
+                {
+                    //检查_retainVars_表是否已经记录对象
+                    lua_getfield(state, -3, RetainVarsTableName.UTF8String);
+                    if (!lua_istable(state, -1))
+                    {
+                        lua_pop(state, 1);
+                        
+                        //创建引用表
+                        lua_newtable(state);
+                        
+                        //放入全局变量_G中
+                        lua_pushvalue(state, -1);
+                        lua_setfield(state, -5, RetainVarsTableName.UTF8String);
+                    }
+                    
+                    switch (action)
+                    {
+                        case LSCLuaObjectActionRetain:
+                        {
+                            //保留对象
+                            //获取对象
+                            lua_getfield(state, -1, objectId.UTF8String);
+                            if (lua_isnil(state, -1))
+                            {
+                                lua_pop(state, 1);
+                                
+                                lua_newtable(state);
+                                
+                                //初始化引用次数
+                                lua_pushnumber(state, 0);
+                                lua_setfield(state, -2, "retainCount");
+                                
+                                lua_pushvalue(state, -3);
+                                lua_setfield(state, -2, "object");
+                                
+                                //将对象放入表中
+                                lua_pushvalue(state, -1);
+                                lua_setfield(state, -3, objectId.UTF8String);
+                            }
+                            
+                            //引用次数+1
+                            lua_getfield(state, -1, "retainCount");
+                            lua_Integer retainCount = lua_tointeger(state, -1);
+                            lua_pop(state, 1);
+                            
+                            lua_pushnumber(state, retainCount+1);
+                            lua_setfield(state, -2, "retainCount");
+                            
+                            //弹出引用对象
+                            lua_pop(state, 1);
+                            break;
+                        }
+                        case LSCLuaObjectActionRelease:
+                        {
+                            //释放对象
+                            //获取对象
+                            lua_getfield(state, -1, objectId.UTF8String);
+                            if (!lua_isnil(state, -1))
+                            {
+                                //引用次数-1
+                                lua_getfield(state, -1, "retainCount");
+                                lua_Integer retainCount = lua_tointeger(state, -1);
+                                lua_pop(state, 1);
+                                
+                                if (retainCount - 1 > 0)
+                                {
+                                    lua_pushnumber(state, retainCount - 1);
+                                    lua_setfield(state, -2, "retainCount");
+                                }
+                                else
+                                {
+                                    //retainCount<=0时移除对象引用
+                                    lua_pushnil(state);
+                                    lua_setfield(state, -3, objectId.UTF8String);
+                                }
+                            }
+                            
+                            //弹出引用对象
+                            lua_pop(state, 1);
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                    
+                    //弹出_retainVars_
+                    lua_pop(state, 1);
+                }
+                //弹出变量
+                lua_pop(state, 1);
+            }
+            
+            //弹出_vars_
+            lua_pop(state, 1);
+        }
+        
+        //弹出_G
+        lua_pop(state, 1);
+    }
+}
+
+- (LSCValue *)valueByStackIndex:(int)index withState:(lua_State *)state
+{
     index = lua_absindex(state, (int)index);
     
     NSString *objectId = nil;
@@ -205,77 +684,41 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     if (objectId && (type == LUA_TTABLE || type == LUA_TUSERDATA || type == LUA_TLIGHTUSERDATA || type == LUA_TFUNCTION))
     {
         //将引用对象放入表中
-        [self setLubObjectByStackIndex:index objectId:objectId];
+        [self setLubObjectByStackIndex:index objectId:objectId state:state];
     }
     
     return value;
 }
 
-- (void)pushStackWithValue:(LSCValue *)value
+/**
+ 设置Lua对象到_vars_表
+
+ @param index 对应state中的栈索引
+ @param objectId 对象标识
+ @param state 状态
+ */
+- (void)setLubObjectByStackIndex:(NSInteger)index
+                        objectId:(NSString *)objectId
+                           state:(lua_State *)state
 {
-    lua_State *state = self.context.state;
-    
-    //先判断_vars_中是否存在对象，如果存在则直接返回表中对象
-    switch (value.valueType)
-    {
-        case LSCValueTypeInteger:
-            lua_pushinteger(state, [value toInteger]);
-            break;
-        case LSCValueTypeNumber:
-            lua_pushnumber(state, [value toDouble]);
-            break;
-        case LSCValueTypeNil:
-            lua_pushnil(state);
-            break;
-        case LSCValueTypeString:
-            lua_pushstring(state, [value toString].UTF8String);
-            break;
-        case LSCValueTypeBoolean:
-            lua_pushboolean(state, [value toBoolean]);
-            break;
-        case LSCValueTypeArray:
-        {
-            [self pushStackWithObject:[value toArray]];
-            break;
-        }
-        case LSCValueTypeMap:
-        {
-            [self pushStackWithObject:[value toDictionary]];
-            break;
-        }
-        case LSCValueTypeData:
-        {
-            NSData *data = [value toData];
-            lua_pushlstring(state, data.bytes, data.length);
-            break;
-        }
-        case LSCValueTypeObject:
-        {
-            [self pushStackWithObject:[value toObject]];
-            break;
-        }
-        case LSCValueTypePtr:
-        {
-            [self pushStackWithObject:[value toPointer]];
-            break;
-        }
-        case LSCValueTypeFunction:
-        {
-            [self pushStackWithObject:[value toFunction]];
-            break;
-        }
-        case LSCValueTypeTuple:
-        {
-            [[value toTuple] pushWithContext:self.context];
-            break;
-        }
-        default:
-            lua_pushnil(state);
-            break;
-    }
+    [self doActionInVarsTableWithState:state block:^{
+        
+        //放入对象到_vars_表中
+        lua_pushvalue(state, (int)index);
+        lua_setfield(state, -2, objectId.UTF8String);
+        
+    }];
 }
 
+
+/**
+ 获取Lua对象并入栈
+
+ @param nativeObject 原生对象
+ @param state 状态
+ */
 - (void)getLuaObject:(id)nativeObject
+               state:(lua_State *)state
 {
     if (nativeObject)
     {
@@ -286,13 +729,13 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             switch (((LSCValue *)nativeObject).valueType)
             {
                 case LSCValueTypeObject:
-                    [self getLuaObject:[(LSCValue *)nativeObject toObject]];
+                    [self getLuaObject:[(LSCValue *)nativeObject toObject] state:state];
                     break;
                 case LSCValueTypePtr:
-                    [self getLuaObject:[(LSCValue *)nativeObject toPointer]];
+                    [self getLuaObject:[(LSCValue *)nativeObject toPointer] state:state];
                     break;
                 case LSCValueTypeFunction:
-                    [self getLuaObject:[(LSCValue *)nativeObject toFunction]];
+                    [self getLuaObject:[(LSCValue *)nativeObject toFunction] state:state];
                     break;
                 default:
                     break;
@@ -309,9 +752,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         
         if (objectId)
         {
-            lua_State *state = self.context.state;
-            
-            [self doActionInVarsTable:^{
+            [self doActionInVarsTableWithState:state block:^{
                 
                 lua_getfield(state, -1, objectId.UTF8String);
                 
@@ -319,406 +760,6 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                 lua_insert(state, -3);
             }];
         }
-    }
-}
-
-- (void)setLubObjectByStackIndex:(NSInteger)index objectId:(NSString *)objectId
-{
-    lua_State *state = self.context.state;
-    
-    [self doActionInVarsTable:^{
-        
-        //放入对象到_vars_表中
-        lua_pushvalue(state, (int)index);
-        lua_setfield(state, -2, objectId.UTF8String);
-        
-    }];
-}
-
-- (void)retainLuaObject:(id)nativeObject
-{
-    if (nativeObject)
-    {
-        NSString *objectId = nil;
-        
-        if ([nativeObject isKindOfClass:[LSCValue class]])
-        {
-            switch (((LSCValue *)nativeObject).valueType)
-            {
-                case LSCValueTypeObject:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toObject]];
-                    break;
-                case LSCValueTypePtr:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toPointer]];
-                    break;
-                case LSCValueTypeFunction:
-                    [self retainLuaObject:[(LSCValue *)nativeObject toFunction]];
-                    break;
-                default:
-                    break;
-            }
-        }
-        else if ([nativeObject conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
-        {
-            objectId = [nativeObject linkId];
-        }
-        else
-        {
-            objectId = [NSString stringWithFormat:@"%p", nativeObject];
-        }
-        
-        [self doAction:LSCLuaObjectActionRetain withObjectId:objectId];
-    }
-}
-
-- (void)releaseLuaObject:(id)nativeObject
-{
-    if (nativeObject)
-    {
-        NSString *objectId = nil;
-        
-        if ([nativeObject isKindOfClass:[LSCValue class]])
-        {
-            switch (((LSCValue *)nativeObject).valueType)
-            {
-                case LSCValueTypeObject:
-                    [self releaseLuaObject:[(LSCValue *)nativeObject toObject]];
-                    break;
-                case LSCValueTypePtr:
-                    [self releaseLuaObject:[(LSCValue *)nativeObject toPointer]];
-                    break;
-                case LSCValueTypeFunction:
-                    [self releaseLuaObject:[(LSCValue *)nativeObject toFunction]];
-                    break;
-                default:
-                    break;
-            }
-        }
-        else if ([nativeObject conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
-        {
-            objectId = [nativeObject linkId];
-        }
-        else
-        {
-            objectId = [NSString stringWithFormat:@"%p", nativeObject];
-        }
-        
-        [self doAction:LSCLuaObjectActionRelease withObjectId:objectId];
-    }
-}
-
-#pragma mark - Private
-
-/**
- 入栈对象
-
- @param object 需要入栈的对象
- */
-- (void)pushStackWithObject:(id)object
-{
-    lua_State *state = self.context.state;
-    
-    if (object)
-    {
-        if ([object isKindOfClass:[NSDictionary class]])
-        {
-            [self pushStackWithDictionary:object];
-        }
-        else if ([object isKindOfClass:[NSArray class]])
-        {
-            [self pushStackWithArray:object];
-        }
-        else if ([object isKindOfClass:[NSNumber class]])
-        {
-            lua_pushnumber(state, [object doubleValue]);
-        }
-        else if ([object isKindOfClass:[NSString class]])
-        {
-            lua_pushstring(state, [object UTF8String]);
-        }
-        else if ([object isKindOfClass:[NSData class]])
-        {
-            lua_pushlstring(state, [object bytes], [object length]);
-        }
-        else
-        {
-            //LSCFunction\LSCPointer\NSObject
-            [self doActionInVarsTable:^{
-                
-                NSString *objectId = nil;
-                if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
-                {
-                    objectId = [(id<LSCManagedObjectProtocol>)object linkId];
-                }
-                else
-                {
-                    objectId = [NSString stringWithFormat:@"%p", object];
-                }
-                
-                lua_getfield(state, -1, objectId.UTF8String);
-                if (lua_isnil(state, -1))
-                {
-                    //弹出变量
-                    lua_pop(state, 1);
-                    
-                    //_vars_表中没有对应对象引用，则创建对应引用对象
-                    BOOL hasPushStack = NO;
-                    if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
-                    {
-                        hasPushStack = [(id<LSCManagedObjectProtocol>)object pushWithContext:self.context];
-                    }
-                    
-                    if (!hasPushStack)
-                    {
-                        //先为实例对象在lua中创建内存
-                        LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
-                        //创建本地实例对象，赋予lua的内存块
-                        ref -> value = (void *)CFBridgingRetain(object);
-                        
-                        //设置userdata的元表
-                        luaL_getmetatable(state, "_ObjectReference_");
-                        if (lua_isnil(state, -1))
-                        {
-                            lua_pop(state, 1);
-                            
-                            //尚未注册_ObjectReference,开始注册对象
-                            luaL_newmetatable(state, "_ObjectReference_");
-                            
-                            lua_pushcfunction(state, objectReferenceGCHandler);
-                            lua_setfield(state, -2, "__gc");
-                        }
-                        lua_setmetatable(state, -2);
-                        
-                        //放入_vars_表中
-                        lua_pushvalue(state, -1);
-                        lua_setfield(state, -3, objectId.UTF8String);
-                    }
-                }
-                
-                //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
-                lua_insert(state, -3);
-            }];
-        }
-    }
-    else
-    {
-        lua_pushnil(state);
-    }
-}
-
-
-/**
- 入栈一个字典
-
- @param dictionary 字典
- */
-- (void)pushStackWithDictionary:(NSDictionary *)dictionary
-{
-    lua_State *state = self.context.state;
-    
-    lua_newtable(state);
-    
-    __weak typeof(self) theExchanger = self;
-    [dictionary enumerateKeysAndObjectsUsingBlock:^(id _Nonnull key, id _Nonnull obj, BOOL *_Nonnull stop) {
-        
-        [theExchanger pushStackWithObject:obj];
-        lua_setfield(state, -2, [[NSString stringWithFormat:@"%@", key] UTF8String]);
-        
-    }];
-}
-
-/**
- 入栈一个数组
-
- @param array 数组
- */
-- (void)pushStackWithArray:(NSArray *)array
-{
-    lua_State *state = self.context.state;
-    
-    lua_newtable(state);
-    
-    __weak typeof(self) theExchanger = self;
-    [array enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL *_Nonnull stop) {
-        
-        // lua数组下标从1开始
-        [theExchanger pushStackWithObject:obj];
-        lua_rawseti(state, -2, idx + 1);
-        
-    }];
-}
-
-
-/**
- 在_vars_表中操作
-
- @param block 操作行为
- */
-- (void)doActionInVarsTable:(void (^)())block
-{
-    lua_State *state = self.context.state;
-    
-    lua_getglobal(state, "_G");
-    if (!lua_istable(state, -1))
-    {
-        lua_pop(state, 1);
-        
-        lua_newtable(state);
-        
-        lua_pushvalue(state, -1);
-        lua_setglobal(state, "_G");
-    }
-    
-    lua_getfield(state, -1, VarsTableName.UTF8String);
-    if (lua_isnil(state, -1))
-    {
-        lua_pop(state, 1);
-        
-        //创建引用表
-        lua_newtable(state);
-        
-        //创建弱引用表元表
-        lua_newtable(state);
-        lua_pushstring(state, "kv");
-        lua_setfield(state, -2, "__mode");
-        lua_setmetatable(state, -2);
-        
-        //放入全局变量_G中
-        lua_pushvalue(state, -1);
-        lua_setfield(state, -3, VarsTableName.UTF8String);
-    }
-    
-    if (block)
-    {
-        block ();
-    }
-    
-    //弹出_vars_
-    lua_pop(state, 1);
-    
-    //弹出_G
-    lua_pop(state, 1);
-}
-
-/**
- 执行对象操作
-
- @param action 行为
- @param objectId 对象ID
- */
-- (void)doAction:(LSCLuaObjectAction)action withObjectId:(NSString *)objectId
-{
-    if (objectId)
-    {
-        lua_State *state = self.context.state;
-        
-        lua_getglobal(state, "_G");
-        if (lua_istable(state, -1))
-        {
-            lua_getfield(state, -1, VarsTableName.UTF8String);
-            if (lua_istable(state, -1))
-            {
-                //检查对象是否在_vars_表中登记
-                lua_getfield(state, -1, objectId.UTF8String);
-                if (!lua_isnil(state, -1))
-                {
-                    //检查_retainVars_表是否已经记录对象
-                    lua_getfield(state, -3, RetainVarsTableName.UTF8String);
-                    if (!lua_istable(state, -1))
-                    {
-                        lua_pop(state, 1);
-                        
-                        //创建引用表
-                        lua_newtable(state);
-                        
-                        //放入全局变量_G中
-                        lua_pushvalue(state, -1);
-                        lua_setfield(state, -5, RetainVarsTableName.UTF8String);
-                    }
-                    
-                    switch (action)
-                    {
-                        case LSCLuaObjectActionRetain:
-                        {
-                            //保留对象
-                            //获取对象
-                            lua_getfield(state, -1, objectId.UTF8String);
-                            if (lua_isnil(state, -1))
-                            {
-                                lua_pop(state, 1);
-                                
-                                lua_newtable(state);
-                                
-                                //初始化引用次数
-                                lua_pushnumber(state, 0);
-                                lua_setfield(state, -2, "retainCount");
-                                
-                                lua_pushvalue(state, -3);
-                                lua_setfield(state, -2, "object");
-                                
-                                //将对象放入表中
-                                lua_pushvalue(state, -1);
-                                lua_setfield(state, -3, objectId.UTF8String);
-                            }
-                            
-                            //引用次数+1
-                            lua_getfield(state, -1, "retainCount");
-                            lua_Integer retainCount = lua_tointeger(state, -1);
-                            lua_pop(state, 1);
-                            
-                            lua_pushnumber(state, retainCount+1);
-                            lua_setfield(state, -2, "retainCount");
-                            
-                            //弹出引用对象
-                            lua_pop(state, 1);
-                            break;
-                        }
-                        case LSCLuaObjectActionRelease:
-                        {
-                            //释放对象
-                            //获取对象
-                            lua_getfield(state, -1, objectId.UTF8String);
-                            if (!lua_isnil(state, -1))
-                            {
-                                //引用次数-1
-                                lua_getfield(state, -1, "retainCount");
-                                lua_Integer retainCount = lua_tointeger(state, -1);
-                                lua_pop(state, 1);
-                                
-                                if (retainCount - 1 > 0)
-                                {
-                                    lua_pushnumber(state, retainCount - 1);
-                                    lua_setfield(state, -2, "retainCount");
-                                }
-                                else
-                                {
-                                    //retainCount<=0时移除对象引用
-                                    lua_pushnil(state);
-                                    lua_setfield(state, -3, objectId.UTF8String);
-                                }
-                            }
-                            
-                            //弹出引用对象
-                            lua_pop(state, 1);
-                            break;
-                        }
-                        default:
-                            break;
-                    }
-                    
-                    //弹出_retainVars_
-                    lua_pop(state, 1);
-                }
-                //弹出变量
-                lua_pop(state, 1);
-            }
-            
-            //弹出_vars_
-            lua_pop(state, 1);
-        }
-        
-        //弹出_G
-        lua_pop(state, 1);
     }
 }
 
