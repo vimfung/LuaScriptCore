@@ -29,7 +29,6 @@ static int methodRouteHandler(lua_State *state) {
     {
         LuaSession *session = context -> makeSession(state);
 
-        int top = lua_gettop(state);
         LuaArgumentList args;
         session -> parseArguments(args);
 

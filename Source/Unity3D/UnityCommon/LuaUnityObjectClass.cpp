@@ -11,6 +11,8 @@
 #include "LuaUnityEnv.hpp"
 #include "LuaContext.h"
 
+using namespace cn::vimfung::luascriptcore;
+
 static void luaInstanceCreateHandler (LuaObjectClass *objectClass)
 {
     LuaUnityObjectClass *unityObjectClass = (LuaUnityObjectClass *)objectClass;
@@ -28,9 +30,9 @@ static void luaInstanceCreateHandler (LuaObjectClass *objectClass)
     }
 }
 
-static void luaInstanceDestoryHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance)
+static void luaInstanceDestoryHandler (LuaObjectDescriptor *instance)
 {
-    LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance -> value;
+    LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance;
     LuaUnityObjectClass *unityObjectClass = (LuaUnityObjectClass *)objDesc -> getObjectClass();
     
     LuaInstanceDestoryHandlerPtr methodHandler = unityObjectClass -> getInstanceDestroyHandler();
@@ -40,11 +42,11 @@ static void luaInstanceDestoryHandler (cn::vimfung::luascriptcore::LuaUserdataRe
     }
 }
 
-static std::string luaInstanceDescriptHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance)
+static std::string luaInstanceDescriptHandler (LuaObjectDescriptor *instance)
 {
     std::string desc;
     
-    LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance -> value;
+    LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance;
     LuaUnityObjectClass *unityObjectClass = (LuaUnityObjectClass *)objDesc -> getObjectClass();
     
     LuaInstanceDescriptionHandlerPtr methodHandler = unityObjectClass -> getInstanceDescriptionHandler();

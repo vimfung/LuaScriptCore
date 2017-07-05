@@ -30,6 +30,8 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	private bool _isClassImport = false;
 
+	private bool _isCoroutineImport = false;
+
 	public void Start()
 	{
 		LuaContext.currentContext.onException((errMessage) => {
@@ -159,5 +161,39 @@ public class Sample : MonoBehaviour {
 		LuaContext.currentContext.evalScript ("local test = function() print('test func') end; test(); Person.retainHandler(test);");
 		LuaContext.currentContext.evalScript ("print('-------------1'); Person.callHandler(); Person.releaseHandler();");
 		LuaContext.currentContext.evalScript ("print('-------------2'); Person.callHandler();");
+	}
+
+	public void coroutineButtonClickedHandler ()
+	{
+		if (!_isCoroutineImport)
+		{
+			_isCoroutineImport = true;
+
+			LuaContext.currentContext.registerModule<Person> ();
+			LuaContext.currentContext.registerModule<LogModule> ();
+			LuaContext.currentContext.registerModule<LuaClassImport> ();
+
+			LuaClassImport.setIncludesClasses (LuaContext.currentContext, new List<Type> (){ typeof(Person), typeof(NativeData) });
+
+			LuaContext.currentContext.registerMethod ("GetValue", (arguments) =>
+			{
+				return new LuaValue (1024);
+
+			});
+
+			LuaContext.currentContext.registerMethod ("GetPixel", (arguments) =>
+			{
+
+				LuaTuple tuple = new LuaTuple ();
+				tuple.addRetrunValue (100);
+				tuple.addRetrunValue (38);
+				tuple.addRetrunValue (1002);
+
+				return new LuaValue (tuple);
+
+			});
+		}
+
+		LuaContext.currentContext.evalScriptFromFile ("coroutine.lua");
 	}
 }

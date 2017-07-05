@@ -27,11 +27,11 @@ static int objectDestroyHandler (lua_State *state)
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
     LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
-    LuaArgumentList args;
-    session -> parseArguments(args);
-
-    if (args.size() > 0 && args[0] -> getType() == LuaValueTypeObject)
+    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
     {
+        LuaArgumentList args;
+        session -> parseArguments(args);
+        
         LuaObjectDescriptor *objDesc = args[0] -> toObject();
 
         if (objectClass -> getObjectDestroyHandler() != NULL)
@@ -54,13 +54,15 @@ static int objectDestroyHandler (lua_State *state)
         }
 
         lua_pop(state, 1);
+        
+        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+        {
+            LuaValue *value = *it;
+            value -> release();
+        }
     }
 
-    for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
-    {
-        LuaValue *value = *it;
-        value -> release();
-    }
+    
 
     objectClass -> getContext() -> destorySession(session);
 
