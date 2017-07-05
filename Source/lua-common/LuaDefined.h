@@ -48,7 +48,7 @@ namespace cn
             }LuaUserdata, *LuaUserdataRef;
 
             typedef void (*LuaExceptionHandler) (LuaContext *context, std::string message);
-            typedef std::list<LuaValue *> LuaArgumentList;
+            typedef std::deque<LuaValue *> LuaArgumentList;
             typedef std::deque<LuaValue *> LuaValueList;
             typedef std::map<std::string, LuaValue*> LuaValueMap;
             typedef std::map<int, LuaObject*> LuaObjectMap;

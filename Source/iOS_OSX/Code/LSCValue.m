@@ -10,6 +10,7 @@
 #import "LSCValue_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCFunction_Private.h"
+#import "LSCDataExchanger_Private.h"
 #import "LSCPointer.h"
 #import "LSCTuple_Private.h"
 #import "lauxlib.h"

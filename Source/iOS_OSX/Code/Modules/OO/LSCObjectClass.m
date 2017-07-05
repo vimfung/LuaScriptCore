@@ -11,6 +11,7 @@
 #import "LSCModule_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
+#import "LSCSession_Private.h"
 #import "LSCManagedObjectProtocol.h"
 #import "LSCPointer.h"
 #import <objc/runtime.h>
@@ -50,7 +51,7 @@
         return;
     }
     
-    lua_State *state = context.state;
+    lua_State *state = context.mainSession.state;
     NSString *name = [module moduleName];
     
     lua_getglobal(state, name.UTF8String);
@@ -96,8 +97,10 @@ static int InstanceMethodRouteHandler(lua_State *state)
         return retCount;
     }
     
-    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
-    LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
+    //创建调用会话
+    LSCSession *callSession = [context makeSessionWithState:state];
+    NSArray *arguments = [callSession parseArguments];
+    LSCObjectClass *instance = [arguments[0] toObject];
 
     NSMethodSignature *sign = [moduleClass instanceMethodSignatureForSelector:selector];
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
@@ -109,17 +112,15 @@ static int InstanceMethodRouteHandler(lua_State *state)
         [invocation setSelector:selector];
         [invocation retainArguments];
         
-        int top = lua_gettop(state);
-        
         Method m = class_getInstanceMethod(moduleClass, selector);
         for (int i = 2; i < method_getNumberOfArguments(m); i++)
         {
             char *argType = method_copyArgumentType(m, i);
 
             LSCValue *value = nil;
-            if (i <= top)
+            if (i - 1 < arguments.count)
             {
-                value = [LSCValue valueWithContext:context atIndex:i];
+                value = arguments[i - 1];
             }
             else
             {
@@ -178,15 +179,6 @@ static int InstanceMethodRouteHandler(lua_State *state)
             id __unsafe_unretained retObj = nil;
             [invocation getReturnValue:&retObj];
             
-            if ([retObj isKindOfClass:[LSCTuple class]])
-            {
-                retCount = (int)[(LSCTuple *)retObj count];
-            }
-            else
-            {
-                retCount = 1;
-            }
-            
             retValue = [LSCValue objectValue:retObj];
         }
         else if (strcmp(returnType, @encode(int)) == 0
@@ -209,8 +201,6 @@ static int InstanceMethodRouteHandler(lua_State *state)
             NSInteger intValue = 0;
             [invocation getReturnValue:&intValue];
             retValue = [LSCValue integerValue:intValue];
-            
-            retCount = 1;
         }
         else if (strcmp(returnType, @encode(float)) == 0)
         {
@@ -219,8 +209,6 @@ static int InstanceMethodRouteHandler(lua_State *state)
             [invocation getReturnValue:&floatStruct];
             retValue = [LSCValue numberValue:@(floatStruct.f)];
             
-            retCount = 1;
-            
         }
         else if (strcmp(returnType, @encode(double)) == 0)
         {
@@ -228,8 +216,6 @@ static int InstanceMethodRouteHandler(lua_State *state)
             double doubleValue = 0.0;
             [invocation getReturnValue:&doubleValue];
             retValue = [LSCValue numberValue:@(doubleValue)];
-            
-            retCount = 1;
         }
         else if (strcmp(returnType, @encode(BOOL)) == 0)
         {
@@ -237,8 +223,6 @@ static int InstanceMethodRouteHandler(lua_State *state)
             BOOL boolValue = NO;
             [invocation getReturnValue:&boolValue];
             retValue = [LSCValue booleanValue:boolValue];
-            
-            retCount = 1;
         }
         else
         {
@@ -250,13 +234,10 @@ static int InstanceMethodRouteHandler(lua_State *state)
         
         if (retValue)
         {
-            [retValue pushWithContext:context];
+            retCount = [callSession setReturnValue:retValue];
         }
         
     }
-    
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
     
     return retCount;
 }
@@ -270,6 +251,9 @@ static int InstanceMethodRouteHandler(lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCSession *session = [context makeSessionWithState:state];
+    
     if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
     {
         //如果为userdata类型，则进行释放
@@ -292,6 +276,8 @@ static int objectDestroyHandler (lua_State *state)
         CFBridgingRelease(ref -> value);
     }
     
+    session = nil;
+    
     return 0;
 }
 
@@ -304,6 +290,9 @@ static int objectDestroyHandler (lua_State *state)
  */
 static int objectToStringHandler (lua_State *state)
 {
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCSession *session = [context makeSessionWithState:state];
+    
     //由于加入了实例的super对象，因此需要根据不同类型进行不同输出。since ver 1.3
     int type = lua_type(state, 1);
     switch (type)
@@ -327,6 +316,8 @@ static int objectToStringHandler (lua_State *state)
         }
     }
     
+    session = nil;
+    
     return 1;
 }
 
@@ -338,6 +329,9 @@ static int objectToStringHandler (lua_State *state)
  */
 static int instanceNewIndexHandler (lua_State *state)
 {
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCSession *session = [context makeSessionWithState:state];
+    
     //先找到实例对象的元表，向元表添加属性
     lua_getmetatable(state, 1);
     if (lua_istable(state, -1))
@@ -346,6 +340,8 @@ static int instanceNewIndexHandler (lua_State *state)
         lua_pushvalue(state, 3);
         lua_rawset(state, -3);
     }
+    
+    session = nil;
     
     return 0;
 }
@@ -362,8 +358,10 @@ static int objectCreateHandler (lua_State *state)
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
     
+    LSCSession *callSession = [context makeSessionWithState:state];
+    
     //创建对象
-    [moduleClass _constructObjectWithContext:context];
+    [moduleClass _constructObjectWithCallSession:callSession];
 
     return 1;
 }
@@ -386,11 +384,21 @@ static int subClassHandler (lua_State *state)
         return 0;
     }
     
+    LSCSession *session = [context makeSessionWithState:state];
+    
     NSString *subclassName = [NSString stringWithUTF8String:luaL_checkstring(state, 1)];
     Class subCls = objc_allocateClassPair(moduleClass, subclassName.UTF8String, 0);
-    objc_registerClassPair(subCls);
+    if (subCls != NULL)
+    {
+        objc_registerClassPair(subCls);
+        [context registerModuleWithClass:subCls];
+    }
+    else
+    {
+        [context raiseExceptionWithMessage:[NSString stringWithFormat:@"`%@` class has already exists.", subclassName]];
+    }
     
-    [context registerModuleWithClass:subCls];
+    session = nil;
     
     return 0;
 }
@@ -410,8 +418,12 @@ static int subclassOfHandler (lua_State *state)
         return 1;
     }
     
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
     Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
     
+    
+    LSCSession *session = [context makeSessionWithState:state];
+
     if (lua_type(state, 1) == LUA_TTABLE)
     {
         lua_getfield(state, 1, "_nativeClass");
@@ -426,6 +438,9 @@ static int subclassOfHandler (lua_State *state)
     }
     
     lua_pushboolean(state, NO);
+    
+    session = nil;
+    
     return 1;
 }
 
@@ -444,6 +459,9 @@ static int instanceOfHandler (lua_State *state)
         return 1;
     }
     
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCSession *session = [context makeSessionWithState:state];
+    
     LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
     LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
     
@@ -461,6 +479,9 @@ static int instanceOfHandler (lua_State *state)
     }
     
     lua_pushboolean(state, NO);
+    
+    session = nil;
+    
     return 1;
 }
 
@@ -478,10 +499,10 @@ static int instanceOfHandler (lua_State *state)
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {
-    lua_State *state = context.state;
-
+    lua_State *state = context.currentSession.state;
+    
     //不存在lua实例需要进行创建
-    [LSCObjectClass _createLuaInstanceWithState:state instance:self];
+    [LSCObjectClass _createLuaInstanceWithContext:context instance:self];
     
     //调用默认init方法
     lua_getfield(state, -1, "init");
@@ -504,17 +525,17 @@ static int instanceOfHandler (lua_State *state)
 /**
  构造对象
 
- @param context 上下文对象
+ @param callSession 调用会话
 
  @return 类实例对象
  */
-+ (instancetype)_constructObjectWithContext:(LSCContext *)context;
++ (instancetype)_constructObjectWithCallSession:(LSCSession *)callSession;
 {
     LSCObjectClass *instance = [[self alloc] init];
     
-    lua_State *state = context.state;
+    lua_State *state = callSession.state;
     
-    [self _createLuaInstanceWithState:state instance:instance];
+    [self _createLuaInstanceWithContext:callSession.context instance:instance];
     
     //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
     //调用实例对象的init方法
@@ -545,11 +566,13 @@ static int instanceOfHandler (lua_State *state)
 /**
  创建lua实例
 
- @param state 状态机
+ @param context 上下文对象
  @param instance 实例对象
  */
-+ (void)_createLuaInstanceWithState:(lua_State *)state instance:(LSCObjectClass *)instance
++ (void)_createLuaInstanceWithContext:(LSCContext *)context instance:(LSCObjectClass *)instance
 {
+    lua_State *state = context.currentSession.state;
+    
     //先为实例对象在lua中创建内存
     LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
     //创建本地实例对象，赋予lua的内存块并进行保留引用
@@ -561,13 +584,16 @@ static int instanceOfHandler (lua_State *state)
     lua_pushvalue(state, -1);
     lua_setfield(state, -2, "__index");
     
-    lua_pushcclosure(state, instanceNewIndexHandler, 0);
+    lua_pushlightuserdata(state, (__bridge void *)context);
+    lua_pushcclosure(state, instanceNewIndexHandler, 1);
     lua_setfield(state, -2, "__newindex");
     
-    lua_pushcfunction(state, objectDestroyHandler);
+    lua_pushlightuserdata(state, (__bridge void *)context);
+    lua_pushcclosure(state, objectDestroyHandler, 1);
     lua_setfield(state, -2, "__gc");
     
-    lua_pushcfunction(state, objectToStringHandler);
+    lua_pushlightuserdata(state, (__bridge void *)context);
+    lua_pushcclosure(state, objectToStringHandler, 1);
     lua_setfield(state, -2, "__tostring");
     
     lua_pushvalue(state, -1);
@@ -596,7 +622,7 @@ static int instanceOfHandler (lua_State *state)
  */
 + (void)_regClass:(Class)cls withContext:(LSCContext *)context moduleName:(NSString *)moduleName
 {
-    lua_State *state = context.state;
+    lua_State *state = context.mainSession.state;
     
     //创建类模块
     lua_newtable(state);
@@ -681,10 +707,12 @@ static int instanceOfHandler (lua_State *state)
     lua_pushvalue(state, -1);
     lua_setfield(state, -2, "__index");
     
-    lua_pushcfunction(state, objectDestroyHandler);
+    lua_pushlightuserdata(state, (__bridge void *)context);
+    lua_pushcclosure(state, objectDestroyHandler, 1);
     lua_setfield(state, -2, "__gc");
     
-    lua_pushcfunction(state, objectToStringHandler);
+    lua_pushlightuserdata(state, (__bridge void *)context);
+    lua_pushcclosure(state, objectToStringHandler, 1);
     lua_setfield(state, -2, "__tostring");
     
     //给类元表绑定该实例元表

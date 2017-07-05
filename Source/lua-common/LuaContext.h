@@ -18,6 +18,7 @@ namespace cn
             class LuaValue;
             class LuaModule;
             class LuaDataExchanger;
+            class LuaSession;
 
             /**
              * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。
@@ -25,11 +26,6 @@ namespace cn
             class LuaContext : public LuaObject
             {
             private:
-
-                /**
-                 * Lua状态机
-                 */
-                lua_State *_state;
 
                 /**
                  * Lua运行异常处理器
@@ -50,6 +46,16 @@ namespace cn
                  * 数据交换器
                  */
                 LuaDataExchanger *_dataExchanger;
+
+                /**
+                 * 主会话对象
+                 */
+                LuaSession *_mainSession;
+
+                /**
+                 * 当前会话对象
+                 */
+                LuaSession *_currentSession;
 
             public:
 
@@ -191,17 +197,38 @@ namespace cn
                 LuaMethodHandler getMethodHandler(std::string methodName);
 
                 /**
-                 * 获取Lua状态机
-                 *
-                 * @return Lua状态机
-                 */
-                lua_State* getLuaState();
-
-                /**
                  * 获取数据数据交换层
                  */
                 LuaDataExchanger *getDataExchanger();
 
+                /**
+                 * 创建会话
+                 *
+                 * @param state 状态
+                 * @return 会话对象
+                 */
+                LuaSession* makeSession(lua_State *state);
+
+                /**
+                 * 销毁会话
+                 *
+                 * @param 会话对象
+                 */
+                void destorySession(LuaSession *session);
+
+                /**
+                 * 获取主会话对象
+                 *
+                 * @return 主会话对象
+                 */
+                LuaSession* getMainSession();
+
+                /**
+                 * 获取当前会话对象
+                 *
+                 * @return 当前会话对象
+                 */
+                LuaSession* getCurrentSession();
             };
 
         }

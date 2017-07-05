@@ -40,7 +40,7 @@
     LSCValue *retValue = nil;
     
     __weak LSCFunction *theFunc = self;
-    lua_State *state = self.context.state;
+    lua_State *state = self.context.currentSession.state;
     
     int top = lua_gettop(state);
     [self.context.dataExchanger getLuaObject:self];
