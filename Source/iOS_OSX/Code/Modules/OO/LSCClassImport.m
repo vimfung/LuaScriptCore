@@ -41,7 +41,7 @@ static NSString *const ProxyTableName = @"_import_classes_";
 + (void)_regModule:(Class)module context:(LSCContext *)context
 {
     //注册一个ObjectProxy的全局方法，用于导出原生类型
-    lua_State *state = context.state;
+    lua_State *state = context.mainSession.state;
     
     //关联更新索引处理
     lua_pushlightuserdata(state, (__bridge void *)context);
@@ -74,16 +74,16 @@ static NSString *const ProxyTableName = @"_import_classes_";
  导出类型
 
  @param clsName 类型名称
- @param context 上下文对象
+ @param session 会话
  @return 返回值数量
  */
-+ (int)_exportsClassWithName:(NSString *)clsName context:(LSCContext *)context
++ (int)_exportsClassWithName:(NSString *)clsName session:(LSCSession *)session
 {
-    lua_State *state = context.state;
+    lua_State *state = session.state;
     Class cls = NSClassFromString(clsName);
     
     //判断是否在导出类中
-    NSArray *classes = _includesClasses[[context description]];
+    NSArray *classes = _includesClasses[[session.context description]];
     if (![classes containsObject:cls])
     {
         //非导出类，直接返回
@@ -95,7 +95,7 @@ static NSString *const ProxyTableName = @"_import_classes_";
     if ([cls isSubclassOfClass:[LSCObjectClass class]])
     {
         //注册类型模块
-        [context registerModuleWithClass:cls];
+        [session.context registerModuleWithClass:cls];
         
         //返回模块类
         NSString *moduleName = [cls moduleName];
@@ -104,7 +104,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
     }
     
     //先判断_G下是否存在对象代理表
-    
     lua_getglobal(state, "_G");
     if (lua_type(state, -1) == LUA_TTABLE)
     {
@@ -138,17 +137,18 @@ static NSString *const ProxyTableName = @"_import_classes_";
             lua_pushvalue(state, -1);
             lua_setfield(state, -2, "__index");
             
-            lua_pushcfunction(state, objectDestroyHandler);
+            lua_pushlightuserdata(state, (__bridge void *)session.context);
+            lua_pushcclosure(state, objectDestroyHandler, 1);
             lua_setfield(state, -2, "__gc");
             
             //添加创建对象方法
-            lua_pushlightuserdata(state, (__bridge void *)context);
+            lua_pushlightuserdata(state, (__bridge void *)session.context);
             lua_pushlightuserdata(state, (__bridge void *)cls);
             lua_pushcclosure(state, objectCreateHandler, 2);
             lua_setfield(state, -2, "create");
             
             //导出类方法
-            [self _exportAllClassMethod:cls exportsClass:cls context:context filterMethodNames:nil];
+            [self _exportAllClassMethod:cls exportsClass:cls session:session filterMethodNames:nil];
             
             //关联元表
             lua_setmetatable(state, -2);
@@ -159,11 +159,15 @@ static NSString *const ProxyTableName = @"_import_classes_";
             lua_pushvalue(state, -1);
             lua_setfield(state, -2, "__index");
             
-            lua_pushcfunction(state, objectDestroyHandler);
+            lua_pushlightuserdata(state, (__bridge void *)session.context);
+            lua_pushcclosure(state, objectDestroyHandler, 1);
             lua_setfield(state, -2, "__gc");
             
             //导出实例方法
-            [self _exportAllInstanceMethod:cls exportsClass:cls context:context filterMethodNames:nil];
+            [self _exportAllInstanceMethod:cls
+                              exportsClass:cls
+                                   session:session
+                         filterMethodNames:nil];
 
             lua_setfield(state, -3, [NSString stringWithFormat:@"%@_prototype", clsName].UTF8String);
             
@@ -189,20 +193,26 @@ static NSString *const ProxyTableName = @"_import_classes_";
 
  @param thiz 当前类型
  @param exportsClass 正在导出类型，该类型可以为当前类型，也可以是其父类
- @param context 上下文对象
+ @param session 会话
  @param filterMethodNames 过滤的方法名称列表
  */
 + (void)_exportAllInstanceMethod:(Class)thiz
                     exportsClass:(Class)exportsClass
-                         context:(LSCContext *)context
+                         session:(LSCSession *)session
                filterMethodNames:(NSArray<NSString *> *)filterMethodNames
 {
-    [self _exportInstanceMethod:thiz exportsClass:exportsClass context:context filterMethodNames:filterMethodNames];
+    [self _exportInstanceMethod:thiz
+                   exportsClass:exportsClass
+                        session:session
+              filterMethodNames:filterMethodNames];
     
     if (exportsClass != [NSObject class])
     {
         //如果不是NSObject，则获取其父类继续进行方法导出
-        [self _exportAllInstanceMethod:thiz exportsClass:class_getSuperclass(exportsClass) context:context filterMethodNames:filterMethodNames];
+        [self _exportAllInstanceMethod:thiz
+                          exportsClass:class_getSuperclass(exportsClass)
+                               session:session
+                     filterMethodNames:filterMethodNames];
     }
 }
 
@@ -212,15 +222,15 @@ static NSString *const ProxyTableName = @"_import_classes_";
 
  @param thiz 当前类型
  @param exportsClass 正在导出类型，该类型可以为当前类型，也可以是其父类
- @param context 上下文对象
+ @param session 会话
  @param filterMethodNames 过滤的方法名称列表
  */
 + (void)_exportInstanceMethod:(Class)thiz
                  exportsClass:(Class)exportsClass
-                      context:(LSCContext *)context
+                      session:(LSCSession *)session
             filterMethodNames:(NSArray<NSString *> *)filterMethodNames
 {
-    lua_State *state = context.state;
+    lua_State *state = session.state;
     
     //解析方法
     unsigned int methodCount = 0;
@@ -248,7 +258,7 @@ static NSString *const ProxyTableName = @"_import_classes_";
             
             if (!hasExists)
             {
-                lua_pushlightuserdata(state, (__bridge void *)context);
+                lua_pushlightuserdata(state, (__bridge void *)session.context);
                 lua_pushlightuserdata(state, (__bridge void *)thiz);
                 lua_pushstring(state, [methodName UTF8String]);
                 lua_pushcclosure(state, instanceMethodRouteHandler, 3);
@@ -265,20 +275,26 @@ static NSString *const ProxyTableName = @"_import_classes_";
 
  @param thiz 当前类型
  @param exportsClass 正在导出类型，该类型可以为当前类型，也可以是其父类
- @param context 上下文对象
+ @param session 会话
  @param filterMethodNames 过滤的方法名称列表
  */
 + (void)_exportAllClassMethod:(Class)thiz
                  exportsClass:(Class)exportsClass
-                      context:(LSCContext *)context
+                      session:(LSCSession *)session
             filterMethodNames:(NSArray<NSString *> *)filterMethodNames
 {
-    [self _exportClassMethod:thiz exportsClass:exportsClass context:context filterMethodNames:filterMethodNames];
+    [self _exportClassMethod:thiz
+                exportsClass:exportsClass
+                     session:session
+           filterMethodNames:filterMethodNames];
     
     if (exportsClass != [NSObject class])
     {
         //如果不是NSObject，则获取其父类继续进行方法导出
-        [self _exportAllClassMethod:thiz exportsClass:class_getSuperclass(exportsClass) context:context filterMethodNames:filterMethodNames];
+        [self _exportAllClassMethod:thiz
+                       exportsClass:class_getSuperclass(exportsClass)
+                            session:session
+                  filterMethodNames:filterMethodNames];
     }
 }
 
@@ -288,15 +304,15 @@ static NSString *const ProxyTableName = @"_import_classes_";
 
  @param thiz 当前类型
  @param exportsClass 正在导出类型，该类型可以为当前类型，也可以是其父类
- @param context 上下文对象
+ @param session 会话
  @param filterMethodNames 过滤的方法名称列表
  */
 + (void)_exportClassMethod:(Class)thiz
               exportsClass:(Class)exportsClass
-                   context:(LSCContext *)context
+                   session:(LSCSession *)session
          filterMethodNames:(NSArray<NSString *> *)filterMethodNames
 {
-    lua_State *state = context.state;
+    lua_State *state = session.state;
     
     Class metaClass = objc_getMetaClass(NSStringFromClass(exportsClass).UTF8String);
     
@@ -325,7 +341,7 @@ static NSString *const ProxyTableName = @"_import_classes_";
 
             if (!hasExists)
             {
-                lua_pushlightuserdata(state, (__bridge void *)context);
+                lua_pushlightuserdata(state, (__bridge void *)session.context);
                 lua_pushlightuserdata(state, (__bridge void *)thiz);
                 lua_pushstring(state, [methodName UTF8String]);
                 lua_pushcclosure(state, classMethodRouteHandler, 3);
@@ -383,22 +399,22 @@ static NSString *const ProxyTableName = @"_import_classes_";
  @param targetType 目标类型，0 类型， 1 实例
  @param selector 方法
  @param cls 类型
- @param context 上下文对象
+ @param session 会话
+ @param arguments 参数列表
  @return 返回值数量
  */
 + (int)_invokeMethodWithTarget:(id)target
                     targetType:(int)targetType
                       selector:(SEL)selector
                            cls:(Class)cls
-                       context:(LSCContext *)context
+                       session:(LSCSession *)session
+                     arguments:(NSArray *)arguments
 {
     int retCount = 0;
     
     //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
     typedef struct {float f;} LSCFloatStruct;
-    
-    lua_State *state = context.state;
-    
+
     NSMethodSignature *sign = nil;
     Method m = NULL;
     switch (targetType)
@@ -420,7 +436,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
     [invocation setSelector:selector];
     [invocation retainArguments];
     
-    int top = lua_gettop(state);
     for (int i = 2; i < method_getNumberOfArguments(m); i++)
     {
         char *argType = method_copyArgumentType(m, i);
@@ -433,9 +448,9 @@ static NSString *const ProxyTableName = @"_import_classes_";
         }
         
         LSCValue *value = nil;
-        if (i - 1 <= top)
+        if (i - 2 < arguments.count)
         {
-            value = [LSCValue valueWithContext:context atIndex:paramIndex];
+            value = arguments[i - 2];
         }
         else
         {
@@ -494,15 +509,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
         id __unsafe_unretained retObj = nil;
         [invocation getReturnValue:&retObj];
         
-        if ([retObj isKindOfClass:[LSCTuple class]])
-        {
-            retCount = (int)[(LSCTuple *)retObj count];
-        }
-        else
-        {
-            retCount = 1;
-        }
-        
         retValue = [LSCValue objectValue:retObj];
     }
     else if (strcmp(returnType, @encode(int)) == 0
@@ -525,8 +531,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
         NSInteger intValue = 0;
         [invocation getReturnValue:&intValue];
         retValue = [LSCValue integerValue:intValue];
-        
-        retCount = 1;
     }
     else if (strcmp(returnType, @encode(float)) == 0)
     {
@@ -534,8 +538,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
         LSCFloatStruct floatStruct = {0};
         [invocation getReturnValue:&floatStruct];
         retValue = [LSCValue numberValue:@(floatStruct.f)];
-        
-        retCount = 1;
     }
     else if (strcmp(returnType, @encode(double)) == 0)
     {
@@ -543,8 +545,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
         double doubleValue = 0.0;
         [invocation getReturnValue:&doubleValue];
         retValue = [LSCValue numberValue:@(doubleValue)];
-        
-        retCount = 1;
     }
     else if (strcmp(returnType, @encode(BOOL)) == 0)
     {
@@ -552,8 +552,6 @@ static NSString *const ProxyTableName = @"_import_classes_";
         BOOL boolValue = NO;
         [invocation getReturnValue:&boolValue];
         retValue = [LSCValue booleanValue:boolValue];
-        
-        retCount = 1;
     }
     else
     {
@@ -564,7 +562,7 @@ static NSString *const ProxyTableName = @"_import_classes_";
     
     if (retValue)
     {
-        [retValue pushWithContext:context];
+        retCount = [session setReturnValue:retValue];
     }
     
     return retCount;
@@ -582,15 +580,17 @@ static NSString *const ProxyTableName = @"_import_classes_";
 static int setupProxyHandler (lua_State *state)
 {
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCSession *session = [context makeSessionWithState:state];
+    NSArray *arguments = [session parseArguments];
     
-    int top = lua_gettop(state);
-    if (top > 0)
+    if (arguments.count > 0)
     {
         //获取第一个参数
-        LSCValue *clsName = [LSCValue valueWithContext:context atIndex:1];
+        LSCValue *clsName = arguments[0];
         if (clsName.valueType == LSCValueTypeString)
         {
-            return [LSCClassImport _exportsClassWithName:[clsName toString] context:context];
+            return [LSCClassImport _exportsClassWithName:[clsName toString]
+                                                 session:session];
         }
     }
     
@@ -609,6 +609,8 @@ static int classMethodRouteHandler(lua_State *state)
     int retCount = 0;
     
     LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCSession *session = [context makeSessionWithState:state];
+    
     Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
     NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
     SEL selector = NSSelectorFromString(methodName);
@@ -617,10 +619,8 @@ static int classMethodRouteHandler(lua_State *state)
                                             targetType:0
                                               selector:selector
                                                    cls:moduleClass
-                                               context:context];
-    
-    //释放内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+                                               session:session
+                                             arguments:[session parseArguments]];
     
     return retCount;
 }
@@ -647,8 +647,9 @@ static int instanceMethodRouteHandler(lua_State *state)
         return retCount;
     }
     
-    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
-    id instance = (__bridge id)(ref -> value);
+    LSCSession *session = [context makeSessionWithState:state];
+    NSArray *arguments = [session parseArguments];
+    id instance = [arguments[0] toObject];
     
     //获取类实例对象
     if (instance)
@@ -657,11 +658,9 @@ static int instanceMethodRouteHandler(lua_State *state)
                                                 targetType:1
                                                   selector:selector
                                                        cls:moduleClass
-                                                   context:context];
+                                                   session:session
+                                                 arguments:arguments];
     }
-    
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
     
     return retCount;
 }
@@ -675,6 +674,9 @@ static int instanceMethodRouteHandler(lua_State *state)
  */
 static int objectCreateHandler (lua_State *state)
 {
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCSession *session = [context makeSessionWithState:state];
+    
     Class cls = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
     NSString *clsName = NSStringFromClass(cls);
     
@@ -712,6 +714,8 @@ static int objectCreateHandler (lua_State *state)
     
     lua_pop(state, 1);
     
+    session = nil;
+    
     return 1;
 }
 
@@ -724,6 +728,9 @@ static int objectCreateHandler (lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
+    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCSession *session = [context makeSessionWithState:state];
+    
     if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
     {
         //如果为userdata类型，则进行释放
@@ -732,6 +739,8 @@ static int objectDestroyHandler (lua_State *state)
         //释放内存
         CFBridgingRelease(ref -> value);
     }
+    
+    session = nil;
     
     return 0;
 }
@@ -755,7 +764,7 @@ static int objectDestroyHandler (lua_State *state)
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {
-    lua_State *state = context.state;
+    lua_State *state = context.currentSession.state;
     
     NSString *clsName = NSStringFromClass([self class]);
     

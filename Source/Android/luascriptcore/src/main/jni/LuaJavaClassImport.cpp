@@ -9,6 +9,7 @@
 #include "LuaJavaObjectDescriptor.h"
 #include "LuaJavaType.h"
 #include "LuaJavaConverter.h"
+#include "LuaSession.h"
 #include "LuaDefine.h"
 
 using namespace cn::vimfung::luascriptcore::modules::oo;
@@ -23,10 +24,10 @@ static std::list<jclass> _exportClassList;
  * @param context 上下文对象
  * @param objectDescriptor 需要入栈的对象描述
  */
-static bool _javaObjectPushFilter(LuaContext *context, LuaObjectDescriptor *objectDescriptor)
+static bool _javaObjectPushFilter(LuaContext *context,
+                                  LuaObjectDescriptor *objectDescriptor)
 {
     bool filted = false;
-    lua_State *state = context -> getLuaState();
 
     LuaJavaObjectDescriptor *javaObjectDescriptor = dynamic_cast<LuaJavaObjectDescriptor *>(objectDescriptor);
     if (javaObjectDescriptor != NULL)
@@ -55,9 +56,11 @@ static bool _javaObjectPushFilter(LuaContext *context, LuaObjectDescriptor *obje
  * @param classImport 类导入器
  * @param className 类名
  *
- * @return
+ * @return true 是子类，false 不是子类
  */
-static bool _checkObjectSubclassFunc (LuaContext *context, LuaClassImport *classImport, const std::string &className)
+static bool _checkObjectSubclassFunc (LuaContext *context,
+                                      LuaClassImport *classImport,
+                                      const std::string &className)
 {
     bool isSubclass = false;
 
@@ -81,7 +84,7 @@ static bool _checkObjectSubclassFunc (LuaContext *context, LuaClassImport *class
         jstring moduleName = (jstring)env -> CallStaticObjectMethod(moduleCls, moduleNameMethodId, cls);
         const char *moduleNameCStr = env -> GetStringUTFChars(moduleName, NULL);
 
-        lua_getglobal(context -> getLuaState(), moduleNameCStr);
+        lua_getglobal(context -> getCurrentSession() -> getState(), moduleNameCStr);
 
         env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
         env -> DeleteLocalRef(moduleName);
@@ -100,7 +103,9 @@ static bool _checkObjectSubclassFunc (LuaContext *context, LuaClassImport *class
  *
  * @return true 允许导出，false 不允许导出
  */
-static bool _allowExportsClassHandlerFunc (LuaContext *context, LuaClassImport *classImport, const std::string &className)
+static bool _allowExportsClassHandlerFunc (LuaContext *context,
+                                           LuaClassImport *classImport,
+                                           const std::string &className)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
@@ -137,7 +142,9 @@ static bool _allowExportsClassHandlerFunc (LuaContext *context, LuaClassImport *
  *
  * @return 导出类型代理
  */
-static LuaExportClassProxy* _exportClassHandlerFunc (LuaContext *context, LuaClassImport *classImport, const std::string &className)
+static LuaExportClassProxy* _exportClassHandlerFunc (LuaContext *context,
+                                                     LuaClassImport *classImport,
+                                                     const std::string &className)
 {
     return new LuaJavaExportClassProxy(className);
 }
@@ -149,7 +156,9 @@ static LuaExportClassProxy* _exportClassHandlerFunc (LuaContext *context, LuaCla
  *
  * @return 实例对象描述
  */
-static LuaObjectDescriptor* _createInstanceHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor)
+static LuaObjectDescriptor* _createInstanceHandlerFunc (LuaContext *context,
+                                                        LuaClassImport *classImport,
+                                                        LuaObjectDescriptor *classDescriptor)
 {
     LuaJavaObjectDescriptor *objectDescriptor = NULL;
 
@@ -178,7 +187,11 @@ static LuaObjectDescriptor* _createInstanceHandlerFunc (LuaContext *context, Lua
  *
  * @return 返回值
  */
-static LuaValue* _classMethodInvokeHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor, std::string methodName, LuaArgumentList arguments)
+static LuaValue* _classMethodInvokeHandlerFunc (LuaContext *context,
+                                                LuaClassImport *classImport,
+                                                LuaObjectDescriptor *classDescriptor,
+                                                std::string methodName,
+                                                LuaArgumentList arguments)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
     LuaValue *retValue = NULL;
@@ -193,7 +206,7 @@ static LuaValue* _classMethodInvokeHandlerFunc (LuaContext *context, LuaClassImp
     jstring jMethodName = env -> NewStringUTF(methodName.c_str());
 
     //参数
-    jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
+    jobjectArray argumentArr = env -> NewObjectArray((int)arguments.size(), luaValueClass, NULL);
     int index = 0;
     for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
     {
@@ -232,7 +245,12 @@ static LuaValue* _classMethodInvokeHandlerFunc (LuaContext *context, LuaClassImp
  *
  * @return 返回值
  */
-static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string methodName, LuaArgumentList args)
+static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context,
+                                                   LuaClassImport *classImport,
+                                                   LuaObjectDescriptor *classDescriptor,
+                                                   LuaObjectDescriptor *instance,
+                                                   std::string methodName,
+                                                   LuaArgumentList args)
 {
     LuaValue *retValue = NULL;
 
@@ -242,7 +260,7 @@ static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context, LuaClass
     jclass moduleClass = (jclass)classDescriptor -> getObject();
 
     //转换为Java的实例对象
-    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
+    jobject jInstance = (jobject)instance -> getObject();
     jmethodID invokeMethodID = env -> GetStaticMethodID(classImportCls, "_instanceMethodInvoke", "(Ljava/lang/Class;Ljava/lang/Object;Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
 
     static jclass luaValueClass = LuaJavaType::luaValueClass(env);
@@ -250,7 +268,7 @@ static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context, LuaClass
     jstring jMethodName = env -> NewStringUTF(methodName.c_str());
 
     //参数
-    jobjectArray argumentArr = env -> NewObjectArray(args.size(), luaValueClass, NULL);
+    jobjectArray argumentArr = env -> NewObjectArray((int)args.size(), luaValueClass, NULL);
     int index = 0;
     for (LuaArgumentList::iterator it = args.begin(); it != args.end(); it ++)
     {
@@ -288,7 +306,11 @@ static LuaValue* _instanceMethodInvokeHandlerFunc (LuaContext *context, LuaClass
  *
  * @return 字段值
  */
-static LuaValue* _instanceFieldGetterInvokeHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string fieldName)
+static LuaValue* _instanceFieldGetterInvokeHandlerFunc (LuaContext *context,
+                                                        LuaClassImport *classImport,
+                                                        LuaObjectDescriptor *classDescriptor,
+                                                        LuaObjectDescriptor *instance,
+                                                        std::string fieldName)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
     LuaValue *retValue = NULL;
@@ -297,7 +319,7 @@ static LuaValue* _instanceFieldGetterInvokeHandlerFunc (LuaContext *context, Lua
     jclass cls = (jclass)classDescriptor -> getObject();
 
     //转换为Java的实例对象
-    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
+    jobject jInstance = (jobject)instance -> getObject();
 
     jmethodID getFieldId = env -> GetStaticMethodID(classImportCls, "_getField", "(Ljava/lang/Class;Ljava/lang/Object;Ljava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;");
 
@@ -331,7 +353,12 @@ static LuaValue* _instanceFieldGetterInvokeHandlerFunc (LuaContext *context, Lua
  * @param fieldName 字段名字
  * @param value 字段值
  */
-static void _instanceFieldSetterInvokeHandlerFunc (LuaContext *context, LuaClassImport *classImport, LuaObjectDescriptor *classDescriptor, LuaUserdataRef instance, std::string fieldName, LuaValue *value)
+static void _instanceFieldSetterInvokeHandlerFunc (LuaContext *context,
+                                                   LuaClassImport *classImport,
+                                                   LuaObjectDescriptor *classDescriptor,
+                                                   LuaObjectDescriptor *instance,
+                                                   std::string fieldName,
+                                                   LuaValue *value)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
@@ -339,7 +366,7 @@ static void _instanceFieldSetterInvokeHandlerFunc (LuaContext *context, LuaClass
     jclass cls = (jclass)classDescriptor -> getObject();
 
     //转换为Java的实例对象
-    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
+    jobject jInstance = (jobject)instance -> getObject();
     jmethodID setFieldId = env -> GetStaticMethodID(classImportCls, "_setField", "(Ljava/lang/Class;Ljava/lang/Object;Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
     jstring fieldNameStr = env -> NewStringUTF(fieldName.c_str());
 

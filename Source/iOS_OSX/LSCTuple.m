@@ -31,16 +31,6 @@
     [self.returnValues addObject:returnValue];
 }
 
-- (void)pushWithContext:(LSCContext *)context
-{
-    [self.returnValues enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        
-        LSCValue *value = [LSCValue objectValue:obj];
-        [value pushWithContext:context];
-        
-    }];
-}
-
 - (id)returnValueForIndex:(NSInteger)index
 {
     return self.returnValues[index];

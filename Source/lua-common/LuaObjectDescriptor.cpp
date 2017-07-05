@@ -9,6 +9,7 @@
 #include "LuaContext.h"
 #include "LuaNativeClass.hpp"
 #include "StringUtils.h"
+#include "LuaSession.h"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
@@ -129,7 +130,7 @@ void LuaObjectDescriptor::push(LuaContext *context)
         }
     }
 
-    lua_State *state = context -> getLuaState();
+    lua_State *state = context -> getCurrentSession() -> getState();
 
     //创建userdata
     LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));

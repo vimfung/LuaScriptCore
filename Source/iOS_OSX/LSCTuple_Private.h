@@ -9,6 +9,7 @@
 #import "LSCTuple.h"
 
 @class LSCContext;
+@class LSCSession;
 
 @interface LSCTuple ()
 
@@ -16,12 +17,5 @@
  返回值集合
  */
 @property (nonatomic, strong) NSMutableArray *returnValues;
-
-/**
- 将元组入栈
-
- @param context 上下文对象
- */
-- (void)pushWithContext:(LSCContext *)context;
 
 @end

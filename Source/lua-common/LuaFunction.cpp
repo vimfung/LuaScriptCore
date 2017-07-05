@@ -14,6 +14,7 @@
 #include "LuaObjectManager.h"
 #include "StringUtils.h"
 #include "LuaDataExchanger.h"
+#include "LuaSession.h"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
@@ -78,7 +79,7 @@ void LuaFunction::push(LuaContext *context)
 
 LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
 
     LuaValue *retValue = NULL;
 

@@ -10,6 +10,7 @@
 
 @class LSCContext;
 @class LSCValue;
+@class LSCSession;
 
 /**
  数据交换器，用于Lua->OC或者OC->Lua时数据的转换和内存管理方面的操作
@@ -48,11 +49,13 @@
 
 /**
  设置Lua对象
-
+ 
  @param index Lua对象在栈中索引
  @param objectId 对象标识
  */
-- (void)setLubObjectByStackIndex:(NSInteger)index objectId:(NSString *)objectId;
+- (void)setLubObjectByStackIndex:(NSInteger)index
+                        objectId:(NSString *)objectId;
+
 
 /**
  保留对象对应在Lua中的引用

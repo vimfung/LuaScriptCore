@@ -9,6 +9,7 @@
 #include "LuaContext.h"
 #include "LuaDefined.h"
 #include "LuaTuple.h"
+#include "LuaSession.h"
 
 using namespace cn::vimfung::luascriptcore;
 using namespace cn::vimfung::luascriptcore::modules::oo;
@@ -30,30 +31,20 @@ static int classMethodRouteHandler(lua_State *state)
     LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(3));
     std::string methodName = lua_tostring(state, lua_upvalueindex(4));
 
+    LuaSession *session = context -> makeSession(state);
+
     LuaClassMethodInvokeHandler handler = classImport -> getClassMethodInvokeHandler();
     if (handler != NULL)
     {
-        int top = lua_gettop(state);
         LuaArgumentList args;
-        for (int i = 1; i <= top; i++)
-        {
-            LuaValue *value = LuaValue::ValueByIndex(context, i);
-            args.push_back(value);
-        }
+        session -> parseArguments(args);
 
         LuaValue *retValue = handler (context, classImport, clsDesc, methodName, args);
         if (retValue != NULL)
         {
-            if (retValue -> getType() == LuaValueTypeTuple)
-            {
-                returnCount = (int)retValue -> toTuple() -> count();
-            }
-            else
-            {
-                returnCount = 1;
-            }
+            returnCount = session -> setReturnValue(retValue);
 
-            retValue -> push(context);
+            //释放返回值
             retValue -> release();
         }
 
@@ -65,8 +56,7 @@ static int classMethodRouteHandler(lua_State *state)
         }
     }
 
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    context -> destorySession(session);
 
     return returnCount;
 }
@@ -80,9 +70,6 @@ static int classMethodRouteHandler(lua_State *state)
  */
 static int instanceMethodRouteHandler(lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     int returnCount = 0;
 
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
@@ -101,20 +88,24 @@ static int instanceMethodRouteHandler(lua_State *state)
         return 0;
     }
 
-    LuaUserdataRef instance = (LuaUserdataRef)lua_touserdata(state, 1);
+    LuaSession *session = context -> makeSession(state);
+
     LuaInstanceMethodInvokeHandler handler = classImport -> getInstanceMethodInvokeHandler();
-    
     if (handler != NULL)
     {
-        int top = lua_gettop(state);
         LuaArgumentList args;
-        for (int i = 2; i <= top; i++)
+        session -> parseArguments(args);
+
+        LuaObjectDescriptor *instance = args[0] -> toObject();
+
+        LuaArgumentList methodArgs;
+        for (int i = 1; i < args.size(); i++)
         {
-            LuaValue *value = LuaValue::ValueByIndex(context, i);
-            args.push_back(value);
+            LuaValue *value = args[i];
+            methodArgs.push_back(value);
         }
 
-        LuaValue *retValue = handler (context, classImport, clsDesc, instance, methodName, args);
+        LuaValue *retValue = handler (context, classImport, clsDesc, instance, methodName, methodArgs);
 
         if (retValue != NULL)
         {
@@ -140,8 +131,7 @@ static int instanceMethodRouteHandler(lua_State *state)
         }
     }
 
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    context -> destorySession(session);
 
     return returnCount;
 }
@@ -155,9 +145,6 @@ static int instanceMethodRouteHandler(lua_State *state)
  */
 static int instanceGetterRouteHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
     LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
     LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(3));
@@ -174,24 +161,34 @@ static int instanceGetterRouteHandler (lua_State *state)
         return 0;
     }
 
-    LuaUserdataRef instance = (LuaUserdataRef)lua_touserdata(state, 1);
+    LuaSession *session = context -> makeSession(state);
+
     LuaInstanceFieldGetterInvokeHandler handler = classImport -> getInstanceFieldGetterInvokeHandler();
     if (handler != NULL)
     {
+        LuaArgumentList args;
+        session -> parseArguments(args);
+
+        LuaObjectDescriptor *instance = args[0] -> toObject();
         LuaValue *retValue = handler (context, classImport, clsDesc, instance, fieldName);
+
+        session -> setReturnValue(retValue);
+
         if (retValue != NULL)
         {
-            retValue -> push(context);
+            //释放返回值
             retValue -> release();
         }
-        else
+
+        //释放参数内存
+        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
         {
-            lua_pushnil(state);
+            LuaValue *item = *it;
+            item -> release();
         }
     }
 
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    context -> destorySession(session);
 
     return 1;
 }
@@ -205,9 +202,6 @@ static int instanceGetterRouteHandler (lua_State *state)
  */
 static int instanceSetterRouteHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
     LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
     LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_touserdata(state, lua_upvalueindex(3));
@@ -224,15 +218,20 @@ static int instanceSetterRouteHandler (lua_State *state)
         return 0;
     }
 
-    LuaUserdataRef instance = (LuaUserdataRef)lua_touserdata(state, 1);
+    LuaSession *session = context -> makeSession(state);
+
     LuaInstanceFieldSetterInvokeHandler handler = classImport -> getInstanceFieldSetterInvokeHandler();
     if (handler != NULL)
     {
+        LuaArgumentList args;
+        session -> parseArguments(args);
+
+        LuaObjectDescriptor *instance = args[0] -> toObject();
+
         LuaValue *value = NULL;
-        int top = lua_gettop(state);
-        if (top > 1)
+        if (args.size() > 1)
         {
-            value = LuaValue::ValueByIndex(context, 2);
+            value = args[1];
         }
         else
         {
@@ -246,7 +245,7 @@ static int instanceSetterRouteHandler (lua_State *state)
     }
 
     //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    context -> destorySession(session);
 
     return 0;
 }
@@ -260,6 +259,9 @@ static int instanceSetterRouteHandler (lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
+    LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
+    LuaSession *session = context -> makeSession(state);
+
     if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
     {
         //如果为userdata类型，则进行释放
@@ -269,6 +271,8 @@ static int objectDestroyHandler (lua_State *state)
         //释放内存
         objectDescriptor -> release();
     }
+
+    context -> destorySession(session);
 
     return 0;
 }
@@ -291,50 +295,54 @@ static int objectCreateHandler (lua_State *state)
 
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
     LuaObjectDescriptor *clsDesc = (LuaObjectDescriptor *)lua_topointer(state, lua_upvalueindex(3));
-    
     std::string clsName = lua_tostring(state, lua_upvalueindex(4));
+
+    LuaSession *session = context -> makeSession(state);
     LuaObjectDescriptor *instanceDesc = createInstanceHandler(context, classImport, clsDesc);
 
-    if (instanceDesc == NULL)
-    {
-        return 0;
-    }
+    int retCount = 0;
 
-    //先为实例对象在lua中创建内存
-    LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
-    //创建本地实例对象，赋予lua的内存块并进行保留引用
-    ref -> value = instanceDesc;
-    instanceDesc -> retain();
-
-    //获取实例代理类型
-    lua_getglobal(state, "_G");
-    if (lua_type(state, -1) == LUA_TTABLE)
+    if (instanceDesc != NULL)
     {
-        lua_getfield(state, -1, ProxyTableName.c_str());
-        if (lua_type(state, -1) != LUA_TNIL)
+        //先为实例对象在lua中创建内存
+        LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
+        //创建本地实例对象，赋予lua的内存块并进行保留引用
+        ref -> value = instanceDesc;
+        instanceDesc -> retain();
+
+        //获取实例代理类型
+        lua_getglobal(state, "_G");
+        if (lua_type(state, -1) == LUA_TTABLE)
         {
-            //查找是否存在此类型的代理
-            std::string prototypeClsName = clsName + "_prototype";
-            lua_getfield(state, -1, prototypeClsName.c_str());
-            if (lua_istable(state, -1))
+            lua_getfield(state, -1, ProxyTableName.c_str());
+            if (lua_type(state, -1) != LUA_TNIL)
             {
-                lua_setmetatable(state, -4);
+                //查找是否存在此类型的代理
+                std::string prototypeClsName = clsName + "_prototype";
+                lua_getfield(state, -1, prototypeClsName.c_str());
+                if (lua_istable(state, -1))
+                {
+                    lua_setmetatable(state, -4);
+                }
+                else
+                {
+                    lua_pop(state, 1);
+                }
             }
-            else
-            {
-                lua_pop(state, 1);
-            }
+
+            lua_pop(state, 1);
+
         }
 
         lua_pop(state, 1);
 
+        instanceDesc -> release();
+        retCount = 1;
     }
 
-    lua_pop(state, 1);
+    context -> destorySession(session);
 
-    instanceDesc -> release();
-
-    return 1;
+    return retCount;
 }
 
 /**
@@ -372,7 +380,7 @@ static int exportsClass(const std::string &name, LuaContext *context, LuaClassIm
         }
 
         //先判断_G下是否存在对象代理表
-        lua_State *state = context -> getLuaState();
+        lua_State *state = context -> getCurrentSession() -> getState();
 
         lua_getglobal(state, "_G");
         if (lua_type(state, -1) == LUA_TTABLE)
@@ -409,7 +417,8 @@ static int exportsClass(const std::string &name, LuaContext *context, LuaClassIm
                 lua_pushvalue(state, -1);
                 lua_setfield(state, -2, "__index");
 
-                lua_pushcfunction(state, objectDestroyHandler);
+                lua_pushlightuserdata(state, (void *)context);
+                lua_pushcclosure(state, objectDestroyHandler, 1);
                 lua_setfield(state, -2, "__gc");
 
                 //添加创建对象方法
@@ -454,7 +463,8 @@ static int exportsClass(const std::string &name, LuaContext *context, LuaClassIm
                 lua_pushvalue(state, -1);
                 lua_setfield(state, -2, "__index");
 
-                lua_pushcfunction(state, objectDestroyHandler);
+                lua_pushlightuserdata(state, (void *)context);
+                lua_pushcclosure(state, objectDestroyHandler, 1);
                 lua_setfield(state, -2, "__gc");
 
                 //导出实例方法
@@ -578,7 +588,9 @@ static int setupProxyHandler (lua_State *state)
 {
     LuaContext *context = (LuaContext *)lua_topointer(state, lua_upvalueindex(1));
     LuaClassImport *classImport = (LuaClassImport *)lua_topointer(state, lua_upvalueindex(2));
+    LuaSession *session = context -> makeSession(state);
 
+    int retCount = 0;
     int top = lua_gettop(state);
     if (top > 0)
     {
@@ -586,11 +598,13 @@ static int setupProxyHandler (lua_State *state)
         if (clsName -> getType() == LuaValueTypeString)
         {
             //导出类型
-            return exportsClass(clsName -> toString(), context, classImport);
+            retCount = exportsClass(clsName -> toString(), context, classImport);
         }
     }
 
-    return 0;
+    context -> destorySession(session);
+
+    return retCount;
 }
 
 void LuaClassImport::onRegister(const std::string &name,
@@ -599,7 +613,7 @@ void LuaClassImport::onRegister(const std::string &name,
     _context = context;
     
     //注册一个ObjectProxy的全局方法，用于导出原生类型
-    lua_State *state = context -> getLuaState();
+    lua_State *state = context -> getMainSession() -> getState();
 
     //关联更新索引处理
     lua_pushlightuserdata(state, context);
@@ -610,7 +624,7 @@ void LuaClassImport::onRegister(const std::string &name,
 
 bool LuaClassImport::setLuaMetatable(LuaContext *context, const std::string &className, LuaObjectDescriptor *objectDescriptor)
 {
-    lua_State *state = context -> getLuaState();
+    lua_State *state = context -> getCurrentSession() -> getState();
 
     //查找类型是否为导出对象
     //获取实例代理类型
