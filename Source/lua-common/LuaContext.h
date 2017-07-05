@@ -212,7 +212,7 @@ namespace cn
                 /**
                  * 销毁会话
                  *
-                 * @param 会话对象
+                 * @param session 会话对象
                  */
                 void destorySession(LuaSession *session);
 

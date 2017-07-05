@@ -180,6 +180,9 @@
 		7C6F38A41E94F0E5009487A6 /* LuaUnityExportClassProxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7C6F38A21E94F0E5009487A6 /* LuaUnityExportClassProxy.cpp */; };
 		7C6F38A51E94F0E5009487A6 /* LuaUnityExportClassProxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7C6F38A21E94F0E5009487A6 /* LuaUnityExportClassProxy.cpp */; };
 		7C6F38A61E94F0E5009487A6 /* LuaUnityExportClassProxy.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 7C6F38A31E94F0E5009487A6 /* LuaUnityExportClassProxy.hpp */; };
+		7C8499FA1F0CE2FD006A99A2 /* LuaSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7C8499F81F0CE2FD006A99A2 /* LuaSession.cpp */; };
+		7C8499FB1F0CE2FD006A99A2 /* LuaSession.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7C8499F81F0CE2FD006A99A2 /* LuaSession.cpp */; };
+		7C8499FC1F0CE2FD006A99A2 /* LuaSession.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8499F91F0CE2FD006A99A2 /* LuaSession.h */; };
 		7C8DE9FE1DDC4DA100AFD695 /* lunity.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C8DE9FC1DDC4DA100AFD695 /* lunity.c */; };
 		7C8DE9FF1DDC4DA100AFD695 /* lunity.c in Sources */ = {isa = PBXBuildFile; fileRef = 7C8DE9FC1DDC4DA100AFD695 /* lunity.c */; };
 		7C8DEA001DDC4DA100AFD695 /* lunity.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8DE9FD1DDC4DA100AFD695 /* lunity.h */; };
@@ -278,6 +281,8 @@
 		7C651AFF1DD96495001C2552 /* libLuaScriptCore-Unity-iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-Unity-iOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C6F38A21E94F0E5009487A6 /* LuaUnityExportClassProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LuaUnityExportClassProxy.cpp; sourceTree = "<group>"; };
 		7C6F38A31E94F0E5009487A6 /* LuaUnityExportClassProxy.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LuaUnityExportClassProxy.hpp; sourceTree = "<group>"; };
+		7C8499F81F0CE2FD006A99A2 /* LuaSession.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LuaSession.cpp; sourceTree = "<group>"; };
+		7C8499F91F0CE2FD006A99A2 /* LuaSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaSession.h; sourceTree = "<group>"; };
 		7C8DE9FC1DDC4DA100AFD695 /* lunity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lunity.c; sourceTree = "<group>"; };
 		7C8DE9FD1DDC4DA100AFD695 /* lunity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lunity.h; sourceTree = "<group>"; };
 		7CBA49861DD5986800D5880A /* LuaContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LuaContext.cpp; sourceTree = "<group>"; };
@@ -452,6 +457,8 @@
 		7CBA49851DD5986800D5880A /* lua-common */ = {
 			isa = PBXGroup;
 			children = (
+				7C8499F81F0CE2FD006A99A2 /* LuaSession.cpp */,
+				7C8499F91F0CE2FD006A99A2 /* LuaSession.h */,
 				7C5318D71ECBF42E00E0EB17 /* LuaManagedObject.cpp */,
 				7C5318D81ECBF42E00E0EB17 /* LuaManagedObject.h */,
 				7C5318D21ECBF30B00E0EB17 /* LuaDataExchanger.cpp */,
@@ -674,6 +681,7 @@
 				7CF1EDDC1E8FA7D900E28E59 /* LuaExportClassProxy.h in Headers */,
 				7C60AA311DD95163000D56CA /* ltm.h in Headers */,
 				7C60AA241DD95163000D56CA /* ldo.h in Headers */,
+				7C8499FC1F0CE2FD006A99A2 /* LuaSession.h in Headers */,
 				7C60AA251DD95163000D56CA /* lfunc.h in Headers */,
 				7C2291C11E35A54300855915 /* LuaUnityEnv.hpp in Headers */,
 				7C60AA2A1DD95163000D56CA /* lobject.h in Headers */,
@@ -854,6 +862,7 @@
 				7C60AA031DD95132000D56CA /* lcorolib.c in Sources */,
 				7C5318D91ECBF42E00E0EB17 /* LuaManagedObject.cpp in Sources */,
 				7CF1EDD71E8FA7D900E28E59 /* LuaClassImport.cpp in Sources */,
+				7C8499FA1F0CE2FD006A99A2 /* LuaSession.cpp in Sources */,
 				7C60AA191DD95132000D56CA /* ltablib.c in Sources */,
 				7C60AA121DD95132000D56CA /* lopcodes.c in Sources */,
 				7C60AA081DD95132000D56CA /* ldump.c in Sources */,
@@ -922,6 +931,7 @@
 				7C651B1D1DD964B9001C2552 /* loslib.c in Sources */,
 				7C5318DA1ECBF42E00E0EB17 /* LuaManagedObject.cpp in Sources */,
 				7CF1EDD81E8FA7D900E28E59 /* LuaClassImport.cpp in Sources */,
+				7C8499FB1F0CE2FD006A99A2 /* LuaSession.cpp in Sources */,
 				7C651B261DD964B9001C2552 /* lutf8lib.c in Sources */,
 				7C651B1F1DD964B9001C2552 /* lstate.c in Sources */,
 				7C651B181DD964B9001C2552 /* lmathlib.c in Sources */,

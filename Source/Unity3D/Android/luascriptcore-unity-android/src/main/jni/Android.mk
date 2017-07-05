@@ -70,7 +70,8 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportClassProxy.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/StringUtils.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaDataExchanger.cpp \
-	$(LOCAL_PATH)/../../../../../../lua-common/LuaManagedObject.cpp
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaManagedObject.cpp \
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaSession.cpp
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../../lua-core/src

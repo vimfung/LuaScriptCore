@@ -209,7 +209,7 @@ extern "C" {
      @param arguments 参数列表
      @return 返回值
      */
-    static LuaValue* luaInstanceMethodHandler (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments)
+    static LuaValue* luaInstanceMethodHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments)
     {
         LuaUnityObjectClass *unityObjectClass = (LuaUnityObjectClass *)objectClass;
 
@@ -226,7 +226,7 @@ extern "C" {
                 encoder -> writeObject(value);
             }
             
-            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance -> value;
+            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance;
             
             //paramsBuffer的内容由C#端进行释放
             const void *paramsBuffer = encoder -> cloneBuffer();
@@ -268,14 +268,14 @@ extern "C" {
      @param fieldName 字段名
      @return 字段值
      */
-    static LuaValue* luaInstanceFieldGetterHandler (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string fieldName)
+    static LuaValue* luaInstanceFieldGetterHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string fieldName)
     {
         LuaUnityObjectClass *unityObjectClass = (LuaUnityObjectClass *)objectClass;
         
         LuaInstanceFieldGetterHandlerPtr methodHandler = unityObjectClass -> getFieldGetterHandler();
         if (methodHandler != NULL)
         {
-            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance -> value;
+            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance;
             void *returnBuffer = methodHandler (unityObjectClass -> objectId(), (long long) objDesc -> getObject(), fieldName.c_str());
             
             LuaValue *retValue = NULL;
@@ -308,7 +308,7 @@ extern "C" {
      @param fieldName 字段名
      @param value 字段值
      */
-    static void luaInstanceFieldSetterHandler (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string fieldName, LuaValue *value)
+    static void luaInstanceFieldSetterHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string fieldName, LuaValue *value)
     {
         using namespace cn::vimfung::luascriptcore::modules::oo;
         
@@ -332,7 +332,7 @@ extern "C" {
             //valueBuf的内容由C#端进行释放
             const void *valueBuf = encoder -> cloneBuffer();
             
-            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance -> value;
+            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance;
             methodHandler (unityObjectClass -> objectId(),
                            (long long) objDesc -> getObject(),
                            fieldName.c_str(),
