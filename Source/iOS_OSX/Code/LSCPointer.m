@@ -9,6 +9,7 @@
 #import "LSCPointer.h"
 #import "LSCManagedObjectProtocol.h"
 #import "LSCContext_Private.h"
+#import "LSCSession_Private.h"
 
 @interface LSCPointer () <LSCManagedObjectProtocol>
 
@@ -79,9 +80,8 @@
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {
-    lua_State *state = context.state;
+    lua_State *state = context.currentSession.state;
     lua_pushlightuserdata(state, [self value]);
-    
     return YES;
 }
 

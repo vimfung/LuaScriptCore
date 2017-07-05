@@ -11,6 +11,7 @@
 #include "LuaNativeClass.hpp"
 #include "StringUtils.h"
 #include "LuaContext.h"
+#include "LuaSession.h"
 #include "lua.hpp"
 
 using namespace cn::vimfung::luascriptcore;
@@ -85,6 +86,6 @@ std::string LuaPointer::getLinkId()
 
 void LuaPointer::push(LuaContext *context)
 {
-    lua_State *state = context -> getLuaState();
+    lua_State *state = context -> getCurrentSession() -> getState();
     lua_pushlightuserdata(state, getValue());
 }

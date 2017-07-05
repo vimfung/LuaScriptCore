@@ -56,6 +56,7 @@ static LSCManagedValue *_managedFunc = nil;
 + (void)releaseHandler
 {
     [[Env defaultContext] releaseValue:_func];
+    _func = nil;
 }
 
 + (void)releaseHandler2

@@ -10,6 +10,10 @@
 #include "LuaContext.h"
 #include "LuaValue.h"
 #include "LuaTuple.h"
+#include "LuaSession.h"
+
+using namespace cn::vimfung::luascriptcore;
+using namespace cn::vimfung::luascriptcore::modules::oo;
 
 /**
  *  对象销毁处理
@@ -20,18 +24,19 @@
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
+    LuaArgumentList args;
+    session -> parseArguments(args);
+
+    if (args.size() > 0 && args[0] -> getType() == LuaValueTypeObject)
     {
-        LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
-
-        LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+        LuaObjectDescriptor *objDesc = args[0] -> toObject();
 
         if (objectClass -> getObjectDestroyHandler() != NULL)
         {
-            objectClass -> getObjectDestroyHandler() (ref);
+            objectClass -> getObjectDestroyHandler() (objDesc);
         }
 
         //调用实例对象的destroy方法
@@ -51,6 +56,14 @@ static int objectDestroyHandler (lua_State *state)
         lua_pop(state, 1);
     }
 
+    for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+    {
+        LuaValue *value = *it;
+        value -> release();
+    }
+
+    objectClass -> getContext() -> destorySession(session);
+
     return 0;
 }
 
@@ -63,10 +76,10 @@ static int objectDestroyHandler (lua_State *state)
  */
 static int objectToStringHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     std::string desc;
+
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     if (lua_gettop(state) > 0)
     {
@@ -77,12 +90,14 @@ static int objectToStringHandler (lua_State *state)
         {
             case LUA_TUSERDATA:
             {
-                LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
+                LuaArgumentList args;
+                session -> parseArguments(args);
 
-                LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+                LuaObjectDescriptor *instance = args[0] -> toObject();
+
                 if (objectClass -> getObjectDescriptionHandler() != NULL)
                 {
-                    desc = objectClass -> getObjectDescriptionHandler()(ref);
+                    desc = objectClass -> getObjectDescriptionHandler()(instance);
                 }
 
                 if (desc.empty())
@@ -116,6 +131,8 @@ static int objectToStringHandler (lua_State *state)
         lua_pushstring(state, "<Unknown Type>");
     }
 
+    objectClass -> getContext() -> destorySession(session);
+
     return 1;
 }
 
@@ -128,9 +145,8 @@ static int objectToStringHandler (lua_State *state)
  */
 static int objectCreateHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     if (objectClass -> getObjectCreatedHandler() != NULL)
     {
@@ -158,6 +174,8 @@ static int objectCreateHandler (lua_State *state)
         lua_pop(state, 1);
     }
 
+    objectClass -> getContext() -> destorySession(session);
+
     return 1;
 }
 
@@ -169,6 +187,9 @@ static int objectCreateHandler (lua_State *state)
  */
 static int instanceNewIndexHandler (lua_State *state)
 {
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
+
     //先找到实例对象的元表，向元表添加属性
     lua_getmetatable(state, 1);
     if (lua_istable(state, -1))
@@ -177,6 +198,8 @@ static int instanceNewIndexHandler (lua_State *state)
         lua_pushvalue(state, 3);
         lua_rawset(state, -3);
     }
+
+    objectClass -> getContext() -> destorySession(session);
 
     return 0;
 }
@@ -190,21 +213,20 @@ static int instanceNewIndexHandler (lua_State *state)
  */
 static int subClassHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
-    if (lua_gettop(state) == 0)
+    if (lua_gettop(state) > 0)
     {
-        return 0;
+        const char *subclassName = luaL_checkstring(state, 1);
+
+        if (objectClass -> getSubClassHandler() != NULL)
+        {
+            objectClass -> getSubClassHandler()(objectClass, subclassName);
+        }
     }
 
-    const char *subclassName = luaL_checkstring(state, 1);
-
-    if (objectClass -> getSubClassHandler() != NULL)
-    {
-        objectClass -> getSubClassHandler()(objectClass, subclassName);
-    }
+    objectClass -> getContext() -> destorySession(session);
 
     return 0;
 }
@@ -217,8 +239,6 @@ static int subClassHandler (lua_State *state)
  */
 static int subclassOfHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     if (lua_gettop(state) == 0)
     {
         lua_pushboolean(state, false);
@@ -226,6 +246,7 @@ static int subclassOfHandler (lua_State *state)
     }
 
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     if (lua_type(state, 1) == LUA_TTABLE)
     {
@@ -236,12 +257,19 @@ static int subclassOfHandler (lua_State *state)
 
             bool flag = objectClass -> subclassOf(checkClass);
             lua_pushboolean(state, flag);
-
-            return 1;
+        }
+        else
+        {
+            lua_pushboolean(state, false);
         }
     }
+    else
+    {
+        lua_pushboolean(state, false);
+    }
 
-    lua_pushboolean(state, false);
+    objectClass -> getContext() -> destorySession(session);
+
     return 1;
 }
 
@@ -253,14 +281,14 @@ static int subclassOfHandler (lua_State *state)
  */
 static int instanceOfHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     if (lua_gettop(state) < 2)
     {
         lua_pushboolean(state, false);
         return 1;
     }
+
+    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     //表示有实例对象传入
     LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
@@ -275,11 +303,19 @@ static int instanceOfHandler (lua_State *state)
 
             bool flag = objDesc -> instanceOf(objectClass);
             lua_pushboolean(state, flag);
-            return 1;
+        }
+        else
+        {
+            lua_pushboolean(state, false);
         }
     }
+    else
+    {
+        lua_pushboolean(state, false);
+    }
 
-    lua_pushboolean(state, false);
+    objectClass -> getContext() -> destorySession(session);
+
     return 1;
 }
 
@@ -292,9 +328,6 @@ static int instanceOfHandler (lua_State *state)
  */
 static int instanceMethodRouteHandler(lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     int returnCount = 0;
 
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
@@ -311,49 +344,40 @@ static int instanceMethodRouteHandler(lua_State *state)
         return 0;
     }
 
-    cn::vimfung::luascriptcore::LuaUserdataRef instance = (cn::vimfung::luascriptcore::LuaUserdataRef)lua_touserdata(state, 1);
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     LuaInstanceMethodHandler handler = objectClass -> getInstanceMethodHandler(methodName);
     if (handler != NULL)
     {
-        LuaContext *context = objectClass -> getContext();
+        LuaArgumentList args;
+        session -> parseArguments(args);
+        LuaObjectDescriptor *instance = args[0] -> toObject();
 
-        int top = lua_gettop(state);
-        cn::vimfung::luascriptcore::LuaArgumentList args;
-        for (int i = 2; i <= top; i++)
+        LuaArgumentList methodArgs;
+        for (int i = 1; i < args.size(); i++)
         {
-            cn::vimfung::luascriptcore::LuaValue *value = LuaValue::ValueByIndex(context, i);
-            args.push_back(value);
+            LuaValue *value = args[i];
+            methodArgs.push_back(value);
         }
 
-        cn::vimfung::luascriptcore::LuaValue *retValue = handler (instance, objectClass, methodName, args);
+        cn::vimfung::luascriptcore::LuaValue *retValue = handler (instance, objectClass, methodName, methodArgs);
 
         if (retValue != NULL)
         {
+            returnCount = session -> setReturnValue(retValue);
             //释放返回值
-            if (retValue -> getType() == LuaValueTypeTuple)
-            {
-                returnCount = (int)retValue -> toTuple() -> count();
-            }
-            else
-            {
-                returnCount = 1;
-            }
-
-            retValue -> push(context);
             retValue -> release();
         }
 
         //释放参数内存
-        for (cn::vimfung::luascriptcore::LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
         {
-            cn::vimfung::luascriptcore::LuaValue *item = *it;
+            LuaValue *item = *it;
             item -> release();
         }
     }
 
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    objectClass -> getContext() -> destorySession(session);
 
     return returnCount;
 }
@@ -367,9 +391,6 @@ static int instanceMethodRouteHandler(lua_State *state)
  */
 static int instanceSetterRouteHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
     std::string fieldName = lua_tostring(state, lua_upvalueindex(2));
 
@@ -384,32 +405,36 @@ static int instanceSetterRouteHandler (lua_State *state)
         return 0;
     }
 
-    cn::vimfung::luascriptcore::LuaUserdataRef instance = (cn::vimfung::luascriptcore::LuaUserdataRef)lua_touserdata(state, 1);
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     LuaInstanceSetterHandler handler = objectClass -> getInstanceSetterHandler(fieldName);
     if (handler != NULL)
     {
-        LuaContext *context = objectClass -> getContext();
+        LuaArgumentList args;
+        session -> parseArguments(args);
+        LuaObjectDescriptor *instance = args[0] -> toObject();
 
-        cn::vimfung::luascriptcore::LuaValue *value = NULL;
-        int top = lua_gettop(state);
-        if (top > 1)
+        LuaValue *value = NULL;
+        if (args.size() > 1)
         {
-            value = LuaValue::ValueByIndex(context, 2);
+            value = args[1];
         }
         else
         {
-            value = new cn::vimfung::luascriptcore::LuaValue();
+            value = LuaValue::NilValue();
         }
 
         handler (instance, objectClass, fieldName, value);
 
         //释放参数内存
-        value -> release();
+        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+        {
+            LuaValue *item = *it;
+            item -> release();
+        }
     }
 
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    objectClass -> getContext() -> destorySession(session);
 
     return 0;
 }
@@ -423,9 +448,6 @@ static int instanceSetterRouteHandler (lua_State *state)
  */
 static int instanceGetterRouteHandler (lua_State *state)
 {
-    using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-
     LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
     std::string fieldName = lua_tostring(state, lua_upvalueindex(2));
 
@@ -440,30 +462,39 @@ static int instanceGetterRouteHandler (lua_State *state)
         return 0;
     }
 
-    cn::vimfung::luascriptcore::LuaUserdataRef instance = (cn::vimfung::luascriptcore::LuaUserdataRef)lua_touserdata(state, 1);
+    LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     LuaInstanceGetterHandler handler = objectClass -> getGetterHandler(fieldName);
     if (handler != NULL)
     {
-        cn::vimfung::luascriptcore::LuaValue *retValue = handler (instance, objectClass, fieldName);
+        LuaArgumentList args;
+        session -> parseArguments(args);
+        LuaObjectDescriptor *instance = args[0] -> toObject();
+
+        LuaValue *retValue = handler (instance, objectClass, fieldName);
+
+        session -> setReturnValue(retValue);
+
         if (retValue != NULL)
         {
-            retValue -> push(objectClass -> getContext());
+            //释放返回值
             retValue -> release();
         }
-        else
+
+        //释放参数内存
+        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
         {
-            lua_pushnil(state);
+            LuaValue *item = *it;
+            item -> release();
         }
     }
 
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    objectClass -> getContext() -> destorySession(session);
 
     return 1;
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::LuaObjectClass(LuaObjectClass *superClass)
+LuaObjectClass::LuaObjectClass(LuaObjectClass *superClass)
 {
     _superClass = superClass;
     _classObjectCreatedHandler = NULL;
@@ -472,33 +503,32 @@ cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::LuaObjectClass(LuaObjec
     _subclassHandler = NULL;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onObjectCreated(LuaClassObjectCreatedHandler handler)
+void LuaObjectClass::onObjectCreated(LuaClassObjectCreatedHandler handler)
 {
     _classObjectCreatedHandler = handler;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onObjectDestroy(LuaClassObjectDestroyHandler handler)
+void LuaObjectClass::onObjectDestroy(LuaClassObjectDestroyHandler handler)
 {
     _classObjectDestroyHandler = handler;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onObjectGetDescription (LuaClassObjectGetDescriptionHandler handler)
+void LuaObjectClass::onObjectGetDescription (LuaClassObjectGetDescriptionHandler handler)
 {
     _classObjectDescriptionHandler = handler;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onSubClass (LuaSubClassHandler handler)
+void LuaObjectClass::onSubClass (LuaSubClassHandler handler)
 {
     _subclassHandler = handler;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const std::string &name,
-                                                                         cn::vimfung::luascriptcore::LuaContext *context)
+void LuaObjectClass::onRegister(const std::string &name, LuaContext *context)
 {
 
-    cn::vimfung::luascriptcore::LuaModule::onRegister(name, context);
+    LuaModule::onRegister(name, context);
 
-    lua_State *state = context -> getLuaState();
+    lua_State *state = context -> getMainSession() -> getState();
     lua_getglobal(state, name.c_str());
 
     if (lua_istable(state, -1))
@@ -610,27 +640,27 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(const s
     lua_pop(state, 1);
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaClassObjectCreatedHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getObjectCreatedHandler()
+LuaClassObjectCreatedHandler LuaObjectClass::getObjectCreatedHandler()
 {
     return _classObjectCreatedHandler;
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaClassObjectDestroyHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getObjectDestroyHandler()
+LuaClassObjectDestroyHandler LuaObjectClass::getObjectDestroyHandler()
 {
     return  _classObjectDestroyHandler;
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaClassObjectGetDescriptionHandler  cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getObjectDescriptionHandler()
+LuaClassObjectGetDescriptionHandler  LuaObjectClass::getObjectDescriptionHandler()
 {
     return  _classObjectDescriptionHandler;
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaSubClassHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getSubClassHandler()
+LuaSubClassHandler LuaObjectClass::getSubClassHandler()
 {
     return _subclassHandler;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceField(std::string fieldName, LuaInstanceGetterHandler getterHandler, LuaInstanceSetterHandler setterHandler)
+void LuaObjectClass::registerInstanceField(std::string fieldName, LuaInstanceGetterHandler getterHandler, LuaInstanceSetterHandler setterHandler)
 {
     //与iOS中的属性getter和setter方法保持一致, getter直接是属性名称,setter则需要将属性首字母大写并在前面加上set
     char upperCStr[2] = {0};
@@ -639,7 +669,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
     std::string fieldNameStr = fieldName.c_str() + 1;
     std::string setterMethodName = "set" + upperStr + fieldNameStr;
 
-    lua_State *state = getContext() -> getLuaState();
+    lua_State *state = getContext() -> getMainSession() -> getState();
     std::string metaClassName = _getMetaClassName(getName());
     luaL_getmetatable(state, metaClassName.c_str());
     if (lua_istable(state, -1))
@@ -672,12 +702,12 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceFi
     lua_pop(state, 1);
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaObjectClass* cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getSupuerClass()
+LuaObjectClass* LuaObjectClass::getSupuerClass()
 {
     return _superClass;
 }
 
-bool cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::subclassOf(LuaObjectClass *type)
+bool LuaObjectClass::subclassOf(LuaObjectClass *type)
 {
     bool isSubclass = false;
 
@@ -696,18 +726,18 @@ bool cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::subclassOf(LuaObje
     return isSubclass;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerMethod(
+void LuaObjectClass::registerMethod(
         std::string methodName,
         LuaModuleMethodHandler handler)
 {
-    cn::vimfung::luascriptcore::LuaModule::registerMethod(methodName, handler);
+    LuaModule::registerMethod(methodName, handler);
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceMethod(
+void LuaObjectClass::registerInstanceMethod(
         std::string methodName,
         LuaInstanceMethodHandler handler)
 {
-    lua_State *state = getContext() -> getLuaState();
+    lua_State *state = getContext() -> getMainSession() -> getState();
     std::string metaClassName = _getMetaClassName(getName());
     luaL_getmetatable(state, metaClassName.c_str());
     if (lua_istable(state, -1))
@@ -723,7 +753,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::registerInstanceMe
     lua_pop(state, 1);
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaInstanceMethodHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getInstanceMethodHandler(std::string methodName)
+LuaInstanceMethodHandler LuaObjectClass::getInstanceMethodHandler(std::string methodName)
 {
     LuaInstanceMethodMap::iterator it =  _instanceMethodMap.find(methodName.c_str());
     if (it != _instanceMethodMap.end())
@@ -734,7 +764,7 @@ cn::vimfung::luascriptcore::modules::oo::LuaInstanceMethodHandler cn::vimfung::l
     return NULL;
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaInstanceSetterHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getInstanceSetterHandler(std::string fieldName)
+LuaInstanceSetterHandler LuaObjectClass::getInstanceSetterHandler(std::string fieldName)
 {
     LuaInstanceSetterMap::iterator it =  _instanceSetterMap.find(fieldName.c_str());
     if (it != _instanceSetterMap.end())
@@ -745,7 +775,7 @@ cn::vimfung::luascriptcore::modules::oo::LuaInstanceSetterHandler cn::vimfung::l
     return NULL;
 }
 
-cn::vimfung::luascriptcore::modules::oo::LuaInstanceGetterHandler cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::getGetterHandler(std::string fieldName)
+LuaInstanceGetterHandler LuaObjectClass::getGetterHandler(std::string fieldName)
 {
     LuaInstanceGetterMap::iterator it =  _instanceGetterMap.find(fieldName.c_str());
     if (it != _instanceGetterMap.end())
@@ -756,9 +786,9 @@ cn::vimfung::luascriptcore::modules::oo::LuaInstanceGetterHandler cn::vimfung::l
     return NULL;
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(LuaObjectInstanceDescriptor *objectDescriptor)
+void LuaObjectClass::createLuaInstance(LuaObjectInstanceDescriptor *objectDescriptor)
 {
-    lua_State *state = getContext() -> getLuaState();
+    lua_State *state = getContext() -> getCurrentSession() -> getState();
 
     //先为实例对象在lua中创建内存
     LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
@@ -774,7 +804,8 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(
     lua_pushvalue(state, -1);
     lua_setfield(state, -2, "__index");
 
-    lua_pushcclosure(state, instanceNewIndexHandler, 0);
+    lua_pushlightuserdata(state, this);
+    lua_pushcclosure(state, instanceNewIndexHandler, 1);
     lua_setfield(state, -2, "__newindex");
 
     lua_pushlightuserdata(state, this);
@@ -802,10 +833,10 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(
     lua_pop(state, 1);
 }
 
-void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInstanceDescriptor *objectDescriptor)
+void LuaObjectClass::push(LuaObjectInstanceDescriptor *objectDescriptor)
 {
     //对LuaObjectClass的类型对象需要进行特殊处理
-    lua_State *state = getContext() -> getLuaState();
+    lua_State *state = getContext() -> getCurrentSession() -> getState();
 
     createLuaInstance(objectDescriptor);
 
@@ -822,7 +853,7 @@ void cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::push(LuaObjectInst
     }
 }
 
-std::string cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::_getMetaClassName(std::string className)
+std::string LuaObjectClass::_getMetaClassName(std::string className)
 {
     return "_" + className + "_META_";
 }

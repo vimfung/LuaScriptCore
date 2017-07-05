@@ -11,6 +11,7 @@
 #import "LSCModule_Private.h"
 #import "LSCValue_Private.h"
 #import "LSCContext_Private.h"
+#import "LSCSession_Private.h"
 #import "lauxlib.h"
 #import "lualib.h"
 #import <objc/runtime.h>
@@ -37,22 +38,25 @@ static int ModuleMethodRouteHandler(lua_State *state)
     [invocation setSelector:selector];
     [invocation retainArguments];
     
-    int top = lua_gettop(state);
+    LSCSession *callSession = [context makeSessionWithState:state];
+    NSArray *arguments = [callSession parseArguments];
+    
+    
     Method m = class_getClassMethod(moduleClass, selector);
     for (int i = 2; i < method_getNumberOfArguments(m); i++)
     {
         char *argType = method_copyArgumentType(m, i);
         
         LSCValue *value = nil;
-        if (i - 1 <= top)
+        if (i - 2 < arguments.count)
         {
-            value = [LSCValue valueWithContext:context atIndex:i - 1];
+            value = arguments[i-2];
         }
         else
         {
             value = [LSCValue nilValue];
         }
-        
+
         if (strcmp(argType, @encode(float)) == 0)
         {
             //浮点型数据
@@ -105,15 +109,6 @@ static int ModuleMethodRouteHandler(lua_State *state)
         id __unsafe_unretained retObj = nil;
         [invocation getReturnValue:&retObj];
         
-        if ([retObj isKindOfClass:[LSCTuple class]])
-        {
-            retCount = (int)[(LSCTuple *)retObj count];
-        }
-        else
-        {
-            retCount = 1;
-        }
-        
         retValue = [LSCValue objectValue:retObj];
     }
     else if (strcmp(returnType, @encode(int)) == 0
@@ -136,8 +131,6 @@ static int ModuleMethodRouteHandler(lua_State *state)
         NSInteger intValue = 0;
         [invocation getReturnValue:&intValue];
         retValue = [LSCValue integerValue:intValue];
-        
-        retCount = 1;
     }
     else if (strcmp(returnType, @encode(float)) == 0)
     {
@@ -145,8 +138,6 @@ static int ModuleMethodRouteHandler(lua_State *state)
         LSCFloatStruct floatStruct = {0};
         [invocation getReturnValue:&floatStruct];
         retValue = [LSCValue numberValue:@(floatStruct.f)];
-        
-        retCount = 1;
     }
     else if (strcmp(returnType, @encode(double)) == 0)
     {
@@ -154,8 +145,6 @@ static int ModuleMethodRouteHandler(lua_State *state)
         double doubleValue = 0.0;
         [invocation getReturnValue:&doubleValue];
         retValue = [LSCValue numberValue:@(doubleValue)];
-        
-        retCount = 1;
     }
     else if (strcmp(returnType, @encode(BOOL)) == 0)
     {
@@ -163,24 +152,20 @@ static int ModuleMethodRouteHandler(lua_State *state)
         BOOL boolValue = NO;
         [invocation getReturnValue:&boolValue];
         retValue = [LSCValue booleanValue:boolValue];
-        
-        retCount = 1;
     }
     else
     {
         //结构体和其他类型暂时认为和v一样无返回值
         retValue = nil;
     }
+    
     free(returnType);
     
     if (retValue)
     {
-        [retValue pushWithContext:context];
+        retCount = [callSession setReturnValue:retValue];
     }
-    
-    //释放内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
-    
+
     return retCount;
 }
 
@@ -239,7 +224,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
         return;
     }
     
-    lua_State *state = context.state;
+    lua_State *state = context.mainSession.state;
     NSString *name = [module moduleName];
     
     lua_getglobal(state, [name UTF8String]);
@@ -275,7 +260,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
                     context:(LSCContext *)context
           filterMethodNames:(NSArray<NSString *> *)filterMethodNames
 {
-    lua_State *state = context.state;
+    lua_State *state = context.mainSession.state;
     
     Class metaClass = objc_getMetaClass(NSStringFromClass(module).UTF8String);
     
@@ -332,7 +317,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
 
 + (void)_unregModule:(Class)module context:(LSCContext *)context
 {
-    lua_State *state = context.state;
+    lua_State *state = context.mainSession.state;
     
     if (![module isSubclassOfClass:[LSCModule class]])
     {

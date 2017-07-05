@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean _hasRegModule;
     private boolean _hasRegClass;
     private boolean _useClassProxy;
+    private boolean _hasRegCoroutineMethod;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                         LuaClassImport.setInculdesClasses(_luaContext, exportsClasses);
                     }
 
-                    _luaContext.evalScript("local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person'); local Data = ClassImport('cn.vimfung.luascriptcore.sample.NativeData'); print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
+                    _luaContext.evalScript("local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person'); print(Person); local Data = ClassImport('cn.vimfung.luascriptcore.sample.NativeData'); print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
                 }
             });
         }
@@ -209,6 +210,54 @@ public class MainActivity extends AppCompatActivity {
                     _luaContext.evalScript("local test = function() print('test func') end; test(); Person.retainHandler2(test);");
                     _luaContext.evalScript("print('-------------1'); Person.callHandler2(); Person.releaseHandler2();");
                     _luaContext.evalScript("print('-------------2'); Person.callHandler2();");
+
+                }
+            });
+        }
+
+        Button coroutineBtn = (Button) findViewById(R.id.coroutineButton);
+        if (coroutineBtn != null)
+        {
+            coroutineBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    if (!_hasRegCoroutineMethod) {
+
+                        _hasRegCoroutineMethod = true;
+
+                        _luaContext.registerModule(LogModule.class);
+                        _luaContext.registerModule(Person.class);
+                        _luaContext.registerModule(LuaClassImport.class);
+
+                        ArrayList<Class> exportsClasses = new ArrayList<Class>();
+                        exportsClasses.add(Person.class);
+                        exportsClasses.add(NativeData.class);
+                        LuaClassImport.setInculdesClasses(_luaContext, exportsClasses);
+
+                        _luaContext.registerMethod("GetValue", new LuaMethodHandler() {
+                            @Override
+                            public LuaValue onExecute(LuaValue[] arguments) {
+
+                                return new LuaValue(1024);
+                            }
+                        });
+
+                        _luaContext.registerMethod("GetPixel", new LuaMethodHandler() {
+                            @Override
+                            public LuaValue onExecute(LuaValue[] arguments) {
+
+                                LuaTuple tuple = new LuaTuple();
+                                tuple.addReturnValue(100);
+                                tuple.addReturnValue(20);
+                                tuple.addReturnValue(232);
+
+                                return new LuaValue(tuple);
+                            }
+                        });
+                    }
+
+                    _luaContext.evalScriptFromFile("coroutine.lua");
 
                 }
             });

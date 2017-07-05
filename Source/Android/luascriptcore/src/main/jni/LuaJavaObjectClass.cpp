@@ -18,15 +18,16 @@
 #include "LuaContext.h"
 #include "LuaValue.h"
 
+using namespace cn::vimfung::luascriptcore;
+using namespace cn::vimfung::luascriptcore::modules::oo;
+
 /**
  * 类实例化处理器
  *
  * @param instance 实例对象
  */
-static void _luaClassObjectCreated (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass)
+static void _luaClassObjectCreated (LuaObjectClass *objectClass)
 {
-    using namespace cn::vimfung::luascriptcore;
-
     JNIEnv *env = LuaJavaEnv::getEnv();
 
     LuaJavaObjectClass *jobjectClass = (LuaJavaObjectClass *)objectClass;
@@ -51,33 +52,27 @@ static void _luaClassObjectCreated (cn::vimfung::luascriptcore::modules::oo::Lua
     LuaJavaEnv::resetEnv(env);
 }
 
-static void _luaClassObjectDestroy (cn::vimfung::luascriptcore::LuaUserdataRef instance)
+static void _luaClassObjectDestroy (LuaObjectDescriptor* instance)
 {
-    using namespace cn::vimfung::luascriptcore;
-
     JNIEnv *env = LuaJavaEnv::getEnv();
 
-    LuaObjectDescriptor *objDesc = (LuaObjectDescriptor *)instance -> value;
-    jobject jInstance = (jobject)objDesc -> getObject();
-
+    jobject jInstance = (jobject)instance -> getObject();
     LuaJavaEnv::removeAssociateInstance(env, jInstance);
 
     //移除对象引用
-    objDesc -> release();
+    instance -> release();
 
     LuaJavaEnv::resetEnv(env);
 }
 
-static std::string _luaClassObjectDescription (cn::vimfung::luascriptcore::LuaUserdataRef instance)
+static std::string _luaClassObjectDescription (LuaObjectDescriptor* instance)
 {
-    using namespace cn::vimfung::luascriptcore;
-
     std::string str;
 
     JNIEnv *env = LuaJavaEnv::getEnv();
 
     //表示有实例对象传入
-    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
+    jobject jInstance = (jobject)instance -> getObject();
 
     jclass cls = env -> GetObjectClass(jInstance);
     jmethodID toStringMethodId = env -> GetMethodID(cls, "toString", "()Ljava/lang/String;");
@@ -120,7 +115,7 @@ static LuaValue* _luaClassMethodHandler(LuaModule *module, std::string methodNam
         jstring jMethodName = env -> NewStringUTF(methodName.c_str());
 
         //参数
-        jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
+        jobjectArray argumentArr = env -> NewObjectArray((int)arguments.size(), luaValueClass, NULL);
         int index = 0;
         for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
         {
@@ -159,15 +154,14 @@ static LuaValue* _luaClassMethodHandler(LuaModule *module, std::string methodNam
  *
  * @return 方法返回值
  */
-static LuaValue* _luaInstanceMethodHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance, cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments)
+static LuaValue* _luaInstanceMethodHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments)
 {
-    using namespace cn::vimfung::luascriptcore;
     LuaValue *retValue = NULL;
 
     JNIEnv *env = LuaJavaEnv::getEnv();
 
     //转换为Java的实例对象
-    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
+    jobject jInstance = (jobject)instance -> getObject();
 
     jmethodID invokeMethodID = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_instanceMethodInvoke", "(Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
 
@@ -176,7 +170,7 @@ static LuaValue* _luaInstanceMethodHandler (cn::vimfung::luascriptcore::LuaUserd
     jstring jMethodName = env -> NewStringUTF(methodName.c_str());
 
     //参数
-    jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
+    jobjectArray argumentArr = env -> NewObjectArray((int)arguments.size(), luaValueClass, NULL);
     int index = 0;
     for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
     {
@@ -213,7 +207,7 @@ static LuaValue* _luaInstanceMethodHandler (cn::vimfung::luascriptcore::LuaUserd
  *
  * @return 返回值
  */
-static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance, cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string fieldName)
+static LuaValue* _luaClassGetterHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string fieldName)
 {
     using namespace cn::vimfung::luascriptcore;
 
@@ -221,7 +215,7 @@ static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::LuaUserdata
     LuaValue *retValue = NULL;
 
     //转换为Java的实例对象
-    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
+    jobject jInstance = (jobject)instance -> getObject();
 
     jmethodID getFieldId = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_getField", "(Ljava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;");
 
@@ -254,14 +248,14 @@ static LuaValue* _luaClassGetterHandler (cn::vimfung::luascriptcore::LuaUserdata
  * @param fieldName 字段名称
  * @param value 字段值
  */
-static void _luaClassSetterHandler (cn::vimfung::luascriptcore::LuaUserdataRef instance, cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string fieldName, LuaValue *value)
+static void _luaClassSetterHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string fieldName, LuaValue *value)
 {
     using namespace cn::vimfung::luascriptcore;
 
     JNIEnv *env = LuaJavaEnv::getEnv();
 
     //转换为Java的实例对象
-    jobject jInstance = (jobject)((LuaObjectDescriptor *)instance -> value) -> getObject();
+    jobject jInstance = (jobject)instance -> getObject();
 
     jmethodID setFieldId = env -> GetMethodID(LuaJavaType::luaObjectClass(env), "_setField", "(Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
 
@@ -276,7 +270,7 @@ static void _luaClassSetterHandler (cn::vimfung::luascriptcore::LuaUserdataRef i
     LuaJavaEnv::resetEnv(env);
 }
 
-static void _luaSubclassHandler (cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *objectClass, std::string subclassName)
+static void _luaSubclassHandler (LuaObjectClass *objectClass, std::string subclassName)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
@@ -335,9 +329,9 @@ jclass LuaJavaObjectClass::getModuleClass(JNIEnv *env)
 }
 
 void LuaJavaObjectClass::onRegister(const std::string &name,
-                                    cn::vimfung::luascriptcore::LuaContext *context)
+                                    LuaContext *context)
 {
-    cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::onRegister(name, context);
+    LuaObjectClass::onRegister(name, context);
 
     JNIEnv *env = LuaJavaEnv::getEnv();
 
@@ -405,7 +399,7 @@ void LuaJavaObjectClass::onRegister(const std::string &name,
 
 }
 
-bool LuaJavaObjectClass::subclassOf(cn::vimfung::luascriptcore::modules::oo::LuaObjectClass *type)
+bool LuaJavaObjectClass::subclassOf(LuaObjectClass *type)
 {
     jboolean isSubclass;
 
@@ -425,9 +419,9 @@ bool LuaJavaObjectClass::subclassOf(cn::vimfung::luascriptcore::modules::oo::Lua
     return isSubclass;
 }
 
-void LuaJavaObjectClass::createLuaInstance(cn::vimfung::luascriptcore::modules::oo::LuaObjectInstanceDescriptor *objectDescriptor)
+void LuaJavaObjectClass::createLuaInstance(LuaObjectInstanceDescriptor *objectDescriptor)
 {
-    cn::vimfung::luascriptcore::modules::oo::LuaObjectClass::createLuaInstance(objectDescriptor);
+    LuaObjectClass::createLuaInstance(objectDescriptor);
 
     //关联对象
     JNIEnv *env = LuaJavaEnv::getEnv();

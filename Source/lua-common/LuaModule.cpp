@@ -6,6 +6,7 @@
 #include "LuaContext.h"
 #include "LuaValue.h"
 #include "LuaTuple.h"
+#include "LuaSession.h"
 #include "lua.hpp"
 #include <ctype.h>
 
@@ -25,28 +26,16 @@ static int methodRouteHandler(lua_State *state)
     if (handler != NULL)
     {
         LuaContext *context = module -> getContext();
+        LuaSession *session = context -> makeSession(state);
 
-        int top = lua_gettop(state);
         LuaArgumentList args;
-        for (int i = 1; i <= top; i++)
-        {
-            LuaValue *value = LuaValue::ValueByIndex(context, i);
-            args.push_back(value);
-        }
+        session -> parseArguments(args);
 
         LuaValue *retValue = handler (module, methodName, args);
         if (retValue != NULL)
         {
-            if (retValue -> getType() == LuaValueTypeTuple)
-            {
-                returnCount = (int)retValue -> toTuple() -> count();
-            }
-            else
-            {
-                returnCount = 1;
-            }
-
-            retValue -> push(context);
+            returnCount = session -> setReturnValue(retValue);
+            //释放返回值
             retValue -> release();
         }
 
@@ -56,10 +45,10 @@ static int methodRouteHandler(lua_State *state)
             LuaValue *item = *it;
             item -> release();
         }
-    }
 
-    //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+        //销毁会话
+        context -> destorySession(session);
+    }
 
     return returnCount;
 }
@@ -70,7 +59,7 @@ void LuaModule::onRegister (const std::string &name, LuaContext *context)
     _context = context;
 
     //注册模块
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getMainSession() -> getState();
     lua_newtable(state);
 
     //设置模块名称。since ver 1.3
@@ -88,7 +77,7 @@ void LuaModule::registerMethod(
         std::string methodName,
         LuaModuleMethodHandler handler)
 {
-    lua_State *state = getContext() -> getLuaState();
+    lua_State *state = getContext() -> getMainSession() -> getState();
     lua_getglobal(state, getName().c_str());
     if (lua_istable(state, -1))
     {

@@ -6,6 +6,7 @@
 #define ANDROID_LUAOBJECTCLASS_H
 
 #include "LuaModule.h"
+#include "LuaObjectDescriptor.h"
 
 namespace cn
 {
@@ -32,7 +33,7 @@ namespace cn
                      *
                      * @param instance 类实例
                      */
-                    typedef void (*LuaClassObjectDestroyHandler) (LuaUserdataRef instance);
+                    typedef void (*LuaClassObjectDestroyHandler) (LuaObjectDescriptor *instance);
 
                     /**
                      * 类对象实例获取描述处理器
@@ -41,7 +42,7 @@ namespace cn
                      *
                      * @return 对象描述
                      */
-                    typedef std::string (*LuaClassObjectGetDescriptionHandler) (LuaUserdataRef instance);
+                    typedef std::string (*LuaClassObjectGetDescriptionHandler) (LuaObjectDescriptor *instance);
 
                     /**
                      * 子类化事件处理器
@@ -53,17 +54,17 @@ namespace cn
                     /**
                      * 类实例方法处理器
                      */
-                    typedef LuaValue* (*LuaInstanceMethodHandler) (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments);
+                    typedef LuaValue* (*LuaInstanceMethodHandler) (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments);
 
                     /**
                      * 类属性Getter处理器
                      */
-                    typedef LuaValue* (*LuaInstanceGetterHandler) (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string fieldName);
+                    typedef LuaValue* (*LuaInstanceGetterHandler) (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string fieldName);
 
                     /**
                      * 类属性Setter处理器
                      */
-                    typedef void (*LuaInstanceSetterHandler) (LuaUserdataRef instance, LuaObjectClass *objectClass, std::string fieldName, LuaValue *value);
+                    typedef void (*LuaInstanceSetterHandler) (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string fieldName, LuaValue *value);
 
                     /**
                      * 类方法映射表类型

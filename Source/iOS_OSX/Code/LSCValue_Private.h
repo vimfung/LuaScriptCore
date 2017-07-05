@@ -7,6 +7,11 @@
 //
 
 #import "LSCValue.h"
+#import "LSCSession_Private.h"
+#import "lauxlib.h"
+#import "lua.h"
+#import "luaconf.h"
+#import "lualib.h"
 
 @interface LSCValue ()
 
@@ -43,5 +48,6 @@
  *  @param context 上下文对象
  */
 - (void)pushWithContext:(LSCContext *)context;
+
 
 @end

@@ -12,6 +12,7 @@
 #include "LuaDefined.h"
 #include "LuaManagedObject.h"
 #include "LuaObjectDescriptor.h"
+#include "LuaSession.h"
 #include <iostream>
 #include <sstream>
 
@@ -35,7 +36,7 @@ LuaDataExchanger::LuaDataExchanger(LuaContext *context)
 
 LuaValue* LuaDataExchanger::getValue(int stackIndex)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
     stackIndex = lua_absindex(state, stackIndex);
 
     std::string objectId;
@@ -205,7 +206,7 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
 
 void LuaDataExchanger::pushStack(LuaValue *value)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
 
     //先判断_vars_中是否存在对象，如果存在则直接返回表中对象
     switch (value -> getType())
@@ -303,7 +304,7 @@ void LuaDataExchanger::getLuaObject(LuaObject *object)
 
         if (!linkId.empty())
         {
-            lua_State *state = _context -> getLuaState();
+            lua_State *state = _context -> getCurrentSession() -> getState();
             
             beginGetVarsTable();
             
@@ -319,7 +320,7 @@ void LuaDataExchanger::getLuaObject(LuaObject *object)
 
 void LuaDataExchanger::setLuaObject(int stackIndex, const std::string &linkId)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
 
     beginGetVarsTable();
 
@@ -410,7 +411,7 @@ void LuaDataExchanger::releaseLuaObject(LuaObject *object)
 
 void LuaDataExchanger::beginGetVarsTable()
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
 
     lua_getglobal(state, "_G");
     if (!lua_istable(state, -1))
@@ -445,7 +446,7 @@ void LuaDataExchanger::beginGetVarsTable()
 
 void LuaDataExchanger::endGetVarsTable()
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
 
     //弹出_vars_
     //弹出_G
@@ -455,7 +456,7 @@ void LuaDataExchanger::endGetVarsTable()
 void LuaDataExchanger::pushStackByObject(LuaManagedObject *object)
 {
     //LSCFunction\LSCPointer\NSObject
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
 
     beginGetVarsTable();
 
@@ -479,7 +480,7 @@ void LuaDataExchanger::pushStackByObject(LuaManagedObject *object)
 
 void LuaDataExchanger::pushStackByTable(LuaValueList *list)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
 
     lua_newtable(state);
 
@@ -496,7 +497,7 @@ void LuaDataExchanger::pushStackByTable(LuaValueList *list)
 
 void LuaDataExchanger::pushStackByTable(LuaValueMap *map)
 {
-    lua_State *state = _context -> getLuaState();
+    lua_State *state = _context -> getCurrentSession() -> getState();
 
     lua_newtable(state);
 
@@ -512,7 +513,7 @@ void LuaDataExchanger::doObjectAction(std::string linkId, LuaObjectAction action
 {
     if (!linkId.empty())
     {
-        lua_State *state = _context -> getLuaState();
+        lua_State *state = _context -> getMainSession() -> getState();
 
         lua_getglobal(state, "_G");
         if (lua_istable(state, -1))

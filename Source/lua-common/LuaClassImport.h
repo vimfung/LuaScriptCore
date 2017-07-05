@@ -76,7 +76,7 @@ namespace cn
                         LuaContext *context,
                         LuaClassImport *classImport,
                         LuaObjectDescriptor *classDescriptor,
-                        LuaUserdataRef instance,
+                        LuaObjectDescriptor *instance,
                         std::string methodName,
                         LuaArgumentList args);
 
@@ -87,7 +87,7 @@ namespace cn
                         LuaContext *context,
                         LuaClassImport *classImport,
                         LuaObjectDescriptor *classDescriptor,
-                        LuaUserdataRef instance,
+                        LuaObjectDescriptor *instance,
                         std::string fieldName);
 
                     /**
@@ -97,7 +97,7 @@ namespace cn
                         LuaContext *context,
                         LuaClassImport *classImport,
                         LuaObjectDescriptor *classDescriptor,
-                        LuaUserdataRef instance,
+                        LuaObjectDescriptor *instance,
                         std::string fieldName,
                         LuaValue *value);
 
