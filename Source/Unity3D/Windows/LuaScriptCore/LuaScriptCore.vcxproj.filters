@@ -219,6 +219,9 @@
     <ClCompile Include="..\..\..\lua-common\LuaManagedObject.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaSession.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lua-core\src\lapi.h">
@@ -390,6 +393,9 @@
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaManagedObject.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaSession.h">
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
   </ItemGroup>
