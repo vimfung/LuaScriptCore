@@ -123,6 +123,5 @@
     <orderEntry type="library" exported="" name="support-annotations-24.1.0" level="project" />
     <orderEntry type="library" exported="" name="animated-vector-drawable-24.1.0" level="project" />
     <orderEntry type="library" exported="" name="support-vector-drawable-24.1.0" level="project" />
-    <orderEntry type="module" module-name="luascriptcore" exported="" />
   </component>
 </module>
