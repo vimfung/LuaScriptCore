@@ -70,7 +70,14 @@
 
 - (void)addSearchPath:(NSString *)path
 {
-    [self setSearchPath:[NSString stringWithFormat:@"%@/?.lua", path]];
+    NSMutableString *fullPath = [NSMutableString stringWithString:path];
+    if (![path hasSuffix:@"/"])
+    {
+        [fullPath appendString:@"/"];
+    }
+    [fullPath appendString:@"?.lua"];
+    
+    [self setSearchPath:fullPath];
 }
 
 - (void)setGlobalWithValue:(LSCValue *)value forName:(NSString *)name
