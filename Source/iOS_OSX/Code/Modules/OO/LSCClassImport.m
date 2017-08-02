@@ -448,9 +448,9 @@ static NSString *const ProxyTableName = @"_import_classes_";
         }
         
         LSCValue *value = nil;
-        if (i - 2 < arguments.count)
+        if (paramIndex - 1 < arguments.count)
         {
-            value = arguments[i - 2];
+            value = arguments[paramIndex - 1];
         }
         else
         {
