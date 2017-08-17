@@ -23,14 +23,14 @@
     {
         self.methodBlocks = [NSMutableDictionary dictionary];
         
-        lua_State *state = luaL_newstate();
+        lua_State *state = [LSCEngineAdapter newState];
         
-        lua_gc(state, LUA_GCSTOP, 0);
-        
+        [LSCEngineAdapter gc:state what:LSCGCTypeStop data:0];
+
         //加载标准库
-        luaL_openlibs(state);
+        [LSCEngineAdapter openLibs:state];
         
-        lua_gc(state, LUA_GCRESTART, 0);
+        [LSCEngineAdapter gc:state what:LSCGCTypeRestart data:0];
         
         //创建主会话
         self.mainSession = [[LSCSession alloc] initWithState:state context:self];
@@ -50,7 +50,7 @@
 
 - (void)dealloc
 {
-    lua_close(self.mainSession.state);
+    [LSCEngineAdapter close:self.mainSession.state];
 }
 
 - (LSCSession *)currentSession
@@ -83,12 +83,12 @@
 - (void)setGlobalWithValue:(LSCValue *)value forName:(NSString *)name
 {
     [value pushWithContext:self];
-    lua_setglobal(self.mainSession.state, name.UTF8String);
+    [LSCEngineAdapter setGlobal:self.mainSession.state name:name.UTF8String];
 }
 
 - (LSCValue *)getGlobalForName:(NSString *)name
 {
-    lua_getglobal(self.mainSession.state, name.UTF8String);
+    [LSCEngineAdapter getGlobal:self.mainSession.state name:name.UTF8String];
     return [LSCValue valueWithContext:self atIndex:-1];
 }
 
@@ -107,14 +107,14 @@
     lua_State *state = self.mainSession.state;
     
     LSCValue *returnValue = nil;
-    int curTop = lua_gettop(state);
+    int curTop = [LSCEngineAdapter getTop:state];
     int returnCount = 0;
     
-    luaL_loadstring(state, [string UTF8String]);
-    if (lua_pcall(state, 0, LUA_MULTRET, 0) == 0)
+    [LSCEngineAdapter loadString:state string:string.UTF8String];
+    if ([LSCEngineAdapter pCall:state nargs:0 nresults:LUA_MULTRET errfunc:0] == 0)
     {
         //调用成功
-        returnCount = lua_gettop(state) - curTop;
+        returnCount = [LSCEngineAdapter getTop:state] - curTop;
         if (returnCount > 1)
         {
             LSCTuple *tuple = [[LSCTuple alloc] init];
@@ -141,7 +141,7 @@
     }
     
     //弹出返回值
-    lua_pop(state, returnCount);
+    [LSCEngineAdapter pop:state count:returnCount];
     
     if (!returnValue)
     {
@@ -149,7 +149,7 @@
     }
     
     //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    [LSCEngineAdapter gc:state what:LSCGCTypeCollect data:0];
     
     return returnValue;
 }
@@ -173,14 +173,14 @@
     lua_State *state = self.mainSession.state;
     
     LSCValue *retValue = nil;
-    int curTop = lua_gettop(state);
+    int curTop = [LSCEngineAdapter getTop:state];
     int returnCount = 0;
     
-    luaL_loadfile(state, [path UTF8String]);
-    if (lua_pcall(state, 0, LUA_MULTRET, 0) == 0)
+    [LSCEngineAdapter loadFile:state path:path.UTF8String];
+    if ([LSCEngineAdapter pCall:state nargs:0 nresults:LUA_MULTRET errfunc:0] == 0)
     {
         //调用成功
-        returnCount = lua_gettop(state) - curTop;
+        returnCount = [LSCEngineAdapter getTop:state] - curTop;
         if (returnCount > 1)
         {
             LSCTuple *tuple = [[LSCTuple alloc] init];
@@ -206,7 +206,7 @@
     }
     
     //弹出返回值
-    lua_pop(state, returnCount);
+    [LSCEngineAdapter pop:state count:returnCount];
     
     if (!retValue)
     {
@@ -214,7 +214,7 @@
     }
     
     //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    [LSCEngineAdapter gc:state what:LSCGCTypeCollect data:0];
     
     return retValue;
 }
@@ -226,10 +226,10 @@
     
     LSCValue *resultValue = nil;
     
-    int curTop = lua_gettop(state);
+    int curTop = [LSCEngineAdapter getTop:state];
     
-    lua_getglobal(state, [methodName UTF8String]);
-    if (lua_isfunction(state, -1))
+    [LSCEngineAdapter getGlobal:state name:methodName.UTF8String];
+    if ([LSCEngineAdapter isFunction:state index:-1])
     {
         int returnCount = 0;
         
@@ -241,10 +241,10 @@
              
          }];
         
-        if (lua_pcall(state, (int)arguments.count, LUA_MULTRET, 0) == 0)
+        if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:0] == 0)
         {
             //调用成功
-            returnCount = lua_gettop(state) - curTop;
+            returnCount = [LSCEngineAdapter getTop:state] - curTop;
             if (returnCount > 1)
             {
                 LSCTuple *tuple = [[LSCTuple alloc] init];
@@ -269,16 +269,16 @@
             [self raiseExceptionWithMessage:errMessage];
         }
         
-        lua_pop(state, returnCount);
+        [LSCEngineAdapter pop:state count:returnCount];
     }
     else
     {
         //将变量从栈中移除
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
     }
     
     //内存回收
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    [LSCEngineAdapter gc:state what:LSCGCTypeCollect data:0];
     
     return resultValue;
 }
@@ -292,10 +292,10 @@
     {
         [self.methodBlocks setObject:block forKey:methodName];
         
-        lua_pushlightuserdata(state, (__bridge void *)self);
-        lua_pushstring(state, [methodName UTF8String]);
-        lua_pushcclosure(state, cfuncRouteHandler, 2);
-        lua_setglobal(state, [methodName UTF8String]);
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushString:methodName.UTF8String state:state];
+        [LSCEngineAdapter pushCClosure:cfuncRouteHandler n:2 state:state];
+        [LSCEngineAdapter setGlobal:state name:methodName.UTF8String];
     }
     else
     {
@@ -358,8 +358,12 @@ static int cfuncRouteHandler(lua_State *state)
     //fixed: 修复Lua中在协程调用方法时无法正确解析问题, 使用LSCCallSession解决问题 2017-7-3
     int count = 0;
     
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
-    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(2))];
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
+    
+    const char *methodNameCStr = [LSCEngineAdapter toString:state
+                                                      index:[LSCEngineAdapter upvalueIndex:2]];
+    NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
 
     LSCFunctionHandler handler = context.methodBlocks[methodName];
     if (handler)
@@ -387,18 +391,18 @@ static int cfuncRouteHandler(lua_State *state)
 {
     lua_State *state = self.mainSession.state;
     
-    lua_getglobal(state, "package");
-    lua_getfield(state, -1, "path");
+    [LSCEngineAdapter getGlobal:state name:"package"];
+    [LSCEngineAdapter getField:state index:-1 name:"path"];
     
     //取出当前路径，并附加新路径
     NSMutableString *curPath =
     [NSMutableString stringWithUTF8String:lua_tostring(state, -1)];
     [curPath appendFormat:@";%@", path];
     
-    lua_pop(state, 1);
-    lua_pushstring(state, curPath.UTF8String);
-    lua_setfield(state, -2, "path");
-    lua_pop(state, 1);
+    [LSCEngineAdapter pop:state count:1];
+    [LSCEngineAdapter pushString:curPath.UTF8String state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"path"];
+    [LSCEngineAdapter pop:state count:1];
 }
 
 @end

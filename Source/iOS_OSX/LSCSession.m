@@ -10,6 +10,7 @@
 #import "LSCSession_Private.h"
 #import "LSCValue_Private.h"
 #import "LSCTuple_Private.h"
+#import "LSCEngineAdapter.h"
 
 static LSCSession *_curSession = nil;
 static LSCSession *_mainSession = nil;
@@ -30,12 +31,12 @@ static LSCSession *_mainSession = nil;
 - (void)dealloc
 {
     //释放内存
-    lua_gc(self.state, LUA_GCCOLLECT, 0);
+    [LSCEngineAdapter gc:self.state what:LSCGCTypeCollect data:0];
 }
 
 - (NSArray *)parseArguments
 {
-    int top = lua_gettop(self.state);
+    int top = [LSCEngineAdapter getTop:self.state];
     if (top >= 1)
     {
         NSMutableArray *arguments = [NSMutableArray array];
@@ -69,7 +70,7 @@ static LSCSession *_mainSession = nil;
     }
     else
     {
-        lua_pushnil(self.state);
+        [LSCEngineAdapter pushNil:self.state];
     }
     
     return count;
