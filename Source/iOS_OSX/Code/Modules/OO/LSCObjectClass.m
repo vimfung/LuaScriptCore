@@ -14,6 +14,7 @@
 #import "LSCSession_Private.h"
 #import "LSCManagedObjectProtocol.h"
 #import "LSCPointer.h"
+#import "LSCEngineAdapter.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 
@@ -54,25 +55,25 @@
     lua_State *state = context.mainSession.state;
     NSString *name = [module moduleName];
     
-    lua_getglobal(state, name.UTF8String);
-    if (!lua_isnil(state, -1))
+    [LSCEngineAdapter getGlobal:state name:name.UTF8String];
+    if (![LSCEngineAdapter isNil:state index:-1])
     {
         [context raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module of the specified name already exists!", name]];
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
         return;
     }
-    lua_pop(state, 1);
+    [LSCEngineAdapter pop:state count:1];
     
     Class superClass = class_getSuperclass(module);
     if (superClass != [LSCModule class])
     {
-        lua_getglobal(state, [[superClass moduleName] UTF8String]);
-        if (lua_isnil(state, -1))
+        [LSCEngineAdapter getGlobal:state name:[[superClass moduleName] UTF8String]];
+        if ([LSCEngineAdapter isNil:state index:-1])
         {
             //如果父类还没有注册，则进行注册操作
             [context registerModuleWithClass:superClass];
         }
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
     }
     
     [self _regClass:module withContext:context moduleName:name];
@@ -85,12 +86,16 @@ static int InstanceMethodRouteHandler(lua_State *state)
     //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
     typedef struct {float f;} LSCFloatStruct;
     
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
-    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
-    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
+    Class moduleClass = (__bridge Class)[LSCEngineAdapter toPointer:state
+                                                              index:[LSCEngineAdapter upvalueIndex:2]];
+    const char *methodNameCStr = [LSCEngineAdapter toString:state
+                                                      index:[LSCEngineAdapter upvalueIndex:3]];
+    NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
     SEL selector = NSSelectorFromString(methodName);
     
-    if (lua_type(state, 1) != LUA_TUSERDATA)
+    if ([LSCEngineAdapter type:state index:1] != LUA_TUSERDATA)
     {
         NSString *errMsg = [NSString stringWithFormat:@"call %@ method error : missing self parameter, please call by instance:methodName(param)", methodName];
         [context raiseExceptionWithMessage:errMsg];
@@ -251,26 +256,27 @@ static int InstanceMethodRouteHandler(lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
     LSCSession *session = [context makeSessionWithState:state];
     
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
+    if ([LSCEngineAdapter getTop:state] > 0 && [LSCEngineAdapter isUserdata:state index:1])
     {
         //如果为userdata类型，则进行释放
-        LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+        LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
         
-        lua_pushvalue(state, 1);
-        lua_getfield(state, -1, "destroy");
-        if (lua_isfunction(state, -1))
+        [LSCEngineAdapter pushValue:1 state:state];
+        [LSCEngineAdapter getField:state index:-1 name:"destroy"];
+        if ([LSCEngineAdapter isFunction:state index:-1])
         {
-            lua_pushvalue(state, 1);
-            lua_pcall(state, 1, 0, 0);
+            [LSCEngineAdapter pushValue:1 state:state];
+            [LSCEngineAdapter pCall:state nargs:1 nresults:0 errfunc:0];
         }
         else
         {
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
         }
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
         
         //释放内存
         CFBridgingRelease(ref -> value);
@@ -290,28 +296,29 @@ static int objectDestroyHandler (lua_State *state)
  */
 static int objectToStringHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
     LSCSession *session = [context makeSessionWithState:state];
     
     //由于加入了实例的super对象，因此需要根据不同类型进行不同输出。since ver 1.3
-    int type = lua_type(state, 1);
+    int type = [LSCEngineAdapter type:state index:1];
     switch (type)
     {
         case LUA_TUSERDATA:
         {
-            LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+            LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
             LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
-            lua_pushstring(state, [[instance description] UTF8String]);
+            [LSCEngineAdapter pushString:[[instance description] UTF8String] state:state];
             break;
         }
         case LUA_TTABLE:
         {
-            lua_pushstring(state, "<SuperClass Type>");
+            [LSCEngineAdapter pushString:"<SuperClass Type>" state:state];
             break;
         }
         default:
         {
-            lua_pushstring(state, "<Unknown Type>");
+            [LSCEngineAdapter pushString:"<Unknown Type>" state:state];
             break;
         }
     }
@@ -329,16 +336,17 @@ static int objectToStringHandler (lua_State *state)
  */
 static int instanceNewIndexHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
     LSCSession *session = [context makeSessionWithState:state];
     
     //先找到实例对象的元表，向元表添加属性
-    lua_getmetatable(state, 1);
-    if (lua_istable(state, -1))
+    [LSCEngineAdapter getMetatable:state index:1];
+    if ([LSCEngineAdapter isTable:state index:-1])
     {
-        lua_pushvalue(state, 2);
-        lua_pushvalue(state, 3);
-        lua_rawset(state, -3);
+        [LSCEngineAdapter pushValue:2 state:state];
+        [LSCEngineAdapter pushValue:3 state:state];
+        [LSCEngineAdapter rawSet:state index:-3];
     }
     
     session = nil;
@@ -355,8 +363,10 @@ static int instanceNewIndexHandler (lua_State *state)
  */
 static int objectCreateHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
-    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
+    Class moduleClass = (__bridge Class)[LSCEngineAdapter toPointer:state
+                                                              index:[LSCEngineAdapter upvalueIndex:2]];
     
     LSCSession *callSession = [context makeSessionWithState:state];
     
@@ -375,10 +385,12 @@ static int objectCreateHandler (lua_State *state)
  */
 static int subClassHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
-    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
+    Class moduleClass = (__bridge Class)[LSCEngineAdapter toPointer:state
+                                                              index:[LSCEngineAdapter upvalueIndex:2]];
     
-    if (lua_gettop(state) == 0)
+    if ([LSCEngineAdapter getTop:state] == 0)
     {
         [context raiseExceptionWithMessage:@"Miss the subclass name parameter"];
         return 0;
@@ -386,7 +398,7 @@ static int subClassHandler (lua_State *state)
     
     LSCSession *session = [context makeSessionWithState:state];
     
-    NSString *subclassName = [NSString stringWithUTF8String:luaL_checkstring(state, 1)];
+    NSString *subclassName = [NSString stringWithUTF8String:[LSCEngineAdapter checkString:state index:1]];
     Class subCls = objc_allocateClassPair(moduleClass, subclassName.UTF8String, 0);
     if (subCls != NULL)
     {
@@ -412,32 +424,34 @@ static int subClassHandler (lua_State *state)
  */
 static int subclassOfHandler (lua_State *state)
 {
-    if (lua_gettop(state) == 0)
+    if ([LSCEngineAdapter getTop:state] == 0)
     {
-        lua_pushboolean(state, NO);
+        [LSCEngineAdapter pushBoolean:NO state:state];
         return 1;
     }
     
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
-    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
+    Class moduleClass = (__bridge Class)[LSCEngineAdapter toPointer:state
+                                                              index:[LSCEngineAdapter upvalueIndex:2]];
     
     
     LSCSession *session = [context makeSessionWithState:state];
 
-    if (lua_type(state, 1) == LUA_TTABLE)
+    if ([LSCEngineAdapter type:state index:1] == LUA_TTABLE)
     {
-        lua_getfield(state, 1, "_nativeClass");
-        if (lua_type(state, -1) == LUA_TLIGHTUSERDATA)
+        [LSCEngineAdapter getField:state index:1 name:"_nativeClass"];
+        if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
         {
-            Class checkClass = (__bridge Class)lua_topointer(state, -1);
+            Class checkClass = (__bridge Class)[LSCEngineAdapter toPointer:state index:-1];
             BOOL flag = [moduleClass isSubclassOfClass:checkClass];
             
-            lua_pushboolean(state, flag);
+            [LSCEngineAdapter pushBoolean:flag state:state];
             return 1;
         }
     }
     
-    lua_pushboolean(state, NO);
+    [LSCEngineAdapter pushBoolean:NO state:state];
     
     session = nil;
     
@@ -453,32 +467,32 @@ static int subclassOfHandler (lua_State *state)
  */
 static int instanceOfHandler (lua_State *state)
 {
-    if (lua_gettop(state) < 2)
+    if ([LSCEngineAdapter getTop:state] < 2)
     {
-        lua_pushboolean(state, NO);
+        [LSCEngineAdapter pushBoolean:NO state:state];
         return 1;
     }
     
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state index:[LSCEngineAdapter upvalueIndex:1]];
     LSCSession *session = [context makeSessionWithState:state];
     
-    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+    LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
     LSCObjectClass *instance = (__bridge LSCObjectClass *)(ref -> value);
     
-    if (lua_type(state, 2) == LUA_TTABLE)
+    if ([LSCEngineAdapter type:state index:2] == LUA_TTABLE)
     {
-        lua_getfield(state, 2, "_nativeClass");
-        if (lua_type(state, -1) == LUA_TLIGHTUSERDATA)
+        [LSCEngineAdapter getField:state index:2 name:"_nativeClass"];
+        if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
         {
-            Class checkClass = (__bridge Class)lua_topointer(state, -1);
+            Class checkClass = (__bridge Class)[LSCEngineAdapter toPointer:state index:-1];
             BOOL flag = [instance isKindOfClass:checkClass];
             
-            lua_pushboolean(state, flag);
+            [LSCEngineAdapter pushBoolean:flag state:state];
             return 1;
         }
     }
     
-    lua_pushboolean(state, NO);
+    [LSCEngineAdapter pushBoolean:NO state:state];
     
     session = nil;
     
@@ -505,15 +519,15 @@ static int instanceOfHandler (lua_State *state)
     [LSCObjectClass _createLuaInstanceWithContext:context instance:self];
     
     //调用默认init方法
-    lua_getfield(state, -1, "init");
-    if (lua_isfunction(state, -1))
+    [LSCEngineAdapter getField:state index:-1 name:"init"];
+    if ([LSCEngineAdapter isFunction:state index:-1])
     {
-        lua_pushvalue(state, -2);
-        lua_pcall(state, 1, 0, 0);
+        [LSCEngineAdapter pushValue:-2 state:state];
+        [LSCEngineAdapter pCall:state nargs:1 nresults:0 errfunc:0];
     }
     else
     {
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
     }
 
     return YES;
@@ -539,24 +553,24 @@ static int instanceOfHandler (lua_State *state)
     
     //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
     //调用实例对象的init方法
-    lua_getfield(state, -1, "init");
-    if (lua_isfunction(state, -1))
+    [LSCEngineAdapter getField:state index:-1 name:"init"];
+    if ([LSCEngineAdapter isFunction:state index:-1])
     {
-        lua_pushvalue(state, -2);
+        [LSCEngineAdapter pushValue:-2 state:state];
         
         //将create传入的参数传递给init方法
         //-3 代表有3个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象
-        int paramCount = lua_gettop(state) - 3;
+        int paramCount = [LSCEngineAdapter getTop:state] - 3;
         for (int i = 1; i <= paramCount; i++)
         {
-            lua_pushvalue(state, i);
+            [LSCEngineAdapter pushValue:i state:state];
         }
         
-        lua_pcall(state, paramCount + 1, 0, 0);
+        [LSCEngineAdapter pCall:state nargs:paramCount + 1 nresults:0 errfunc:0];
     }
     else
     {
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
     }
     
     return instance;
@@ -574,43 +588,43 @@ static int instanceOfHandler (lua_State *state)
     lua_State *state = context.currentSession.state;
     
     //先为实例对象在lua中创建内存
-    LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+    LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
     //创建本地实例对象，赋予lua的内存块并进行保留引用
     ref -> value = (void *)CFBridgingRetain(instance);
     
     //创建一个临时table作为元表，用于在lua上动态添加属性或方法
-    lua_newtable(state);
+    [LSCEngineAdapter newTable:state];
     
-    lua_pushvalue(state, -1);
-    lua_setfield(state, -2, "__index");
+    [LSCEngineAdapter pushValue:-1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__index"];
     
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushcclosure(state, instanceNewIndexHandler, 1);
-    lua_setfield(state, -2, "__newindex");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushCClosure:instanceNewIndexHandler n:1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__newindex"];
     
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushcclosure(state, objectDestroyHandler, 1);
-    lua_setfield(state, -2, "__gc");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__gc"];
     
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushcclosure(state, objectToStringHandler, 1);
-    lua_setfield(state, -2, "__tostring");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushCClosure:objectToStringHandler n:1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
     
-    lua_pushvalue(state, -1);
-    lua_setmetatable(state, -3);
+    [LSCEngineAdapter pushValue:-1 state:state];
+    [LSCEngineAdapter setMetatable:state index:-3];
     
     NSString *metaClsName = [self _metaClassNameWithClass:[instance.class moduleName]];
-    luaL_getmetatable(state, metaClsName.UTF8String);
-    if (lua_istable(state, -1))
+    [LSCEngineAdapter getMetatable:state name:metaClsName.UTF8String];
+    if ([LSCEngineAdapter isTable:state index:-1])
     {
-        lua_setmetatable(state, -2);
+        [LSCEngineAdapter setMetatable:state index:-2];
     }
     else
     {
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
     }
     
-    lua_pop(state, 1);
+    [LSCEngineAdapter pop:state count:1];
 }
 
 /**
@@ -625,23 +639,23 @@ static int instanceOfHandler (lua_State *state)
     lua_State *state = context.mainSession.state;
     
     //创建类模块
-    lua_newtable(state);
+    [LSCEngineAdapter newTable:state];
     
     //设置类名, since ver 1.3
-    lua_pushstring(state, moduleName.UTF8String);
-    lua_setfield(state, -2, "name");
+    [LSCEngineAdapter pushString:moduleName.UTF8String state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"name"];
     
     //关联本地类型
-    lua_pushlightuserdata(state, (__bridge void *)(cls));
-    lua_setfield(state, -2, "_nativeClass");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)(cls) state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"_nativeClass"];
     
     //关联索引
-    lua_pushvalue(state, -1);
-    lua_setfield(state, -2, "__index");
+    [LSCEngineAdapter pushValue:-1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__index"];
     
     //写入模块标识
-    lua_pushstring(state, NativeModuleType.UTF8String);
-    lua_setfield(state, -2, NativeTypeKey.UTF8String);
+    [LSCEngineAdapter pushString:NativeModuleType.UTF8String state:state];
+    [LSCEngineAdapter setField:state index:-2 name:NativeTypeKey.UTF8String];
     
     /**
      fixed : 由于OC中类方法存在继承关系，因此，直接导出某个类定义的类方法无法满足这种继承关系。
@@ -655,71 +669,71 @@ static int instanceOfHandler (lua_State *state)
                filterMethodNames:@[@"moduleName", @"version"]];
     
     //添加创建对象方法
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushlightuserdata(state, (__bridge void *)cls);
-    lua_pushcclosure(state, objectCreateHandler, 2);
-    lua_setfield(state, -2, "create");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)cls state:state];
+    [LSCEngineAdapter pushCClosure:objectCreateHandler n:2 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"create"];
     
     //添加子类化对象方法
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushlightuserdata(state, (__bridge void *)cls);
-    lua_pushcclosure(state, subClassHandler, 2);
-    lua_setfield(state, -2, "subclass");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)cls state:state];
+    [LSCEngineAdapter pushCClosure:subClassHandler n:2 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"subclass"];
     
     //增加子类判断方法, since ver 1.3
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushlightuserdata(state, (__bridge void *)cls);
-    lua_pushcclosure(state, subclassOfHandler, 2);
-    lua_setfield(state, -2, "subclassOf");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)cls state:state];
+    [LSCEngineAdapter pushCClosure:subclassOfHandler n:2 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"subclassOf"];
     
     //关联父类模块, 放在所有方法导出之后进行关联，否则会触发__newindex方法
     if (cls != [LSCObjectClass class])
     {
         //存在父类，则直接设置父类为元表
-        lua_getglobal(state, [[[cls superclass] moduleName] UTF8String]);
-        if (lua_istable(state, -1))
+        [LSCEngineAdapter getGlobal:state name:[[[cls superclass] moduleName] UTF8String]];
+        if ([LSCEngineAdapter isTable:state index:-1])
         {
             //设置父类指向
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -3, "super");
+            [LSCEngineAdapter pushValue:-1 state:state];
+            [LSCEngineAdapter setField:state index:-3 name:"super"];
             
             //关联元表
-            lua_setmetatable(state, -2);
+            [LSCEngineAdapter setMetatable:state index:-2];
         }
         else
         {
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
         }
     }
     
-    lua_setglobal(state, [moduleName UTF8String]);
+    [LSCEngineAdapter setGlobal:state name:moduleName.UTF8String];
     
     //---------创建实例对象元表---------------
     NSString *metaClassName = [self _metaClassNameWithClass:moduleName];
-    luaL_newmetatable(state, metaClassName.UTF8String);
+    [LSCEngineAdapter newMetatable:state name:metaClassName.UTF8String];
     
-    lua_getglobal(state, [moduleName UTF8String]);
-    lua_setfield(state, -2, "class");
+    [LSCEngineAdapter getGlobal:state name:moduleName.UTF8String];
+    [LSCEngineAdapter setField:state index:-2 name:"class"];
     
-    lua_pushlightuserdata(state, (__bridge void *)(cls));
-    lua_setfield(state, -2, "_nativeClass");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)(cls) state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"_nativeClass"];
     
-    lua_pushvalue(state, -1);
-    lua_setfield(state, -2, "__index");
+    [LSCEngineAdapter pushValue:-1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__index"];
     
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushcclosure(state, objectDestroyHandler, 1);
-    lua_setfield(state, -2, "__gc");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__gc"];
     
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushcclosure(state, objectToStringHandler, 1);
-    lua_setfield(state, -2, "__tostring");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushCClosure:objectToStringHandler n:1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
     
     //给类元表绑定该实例元表
-    lua_getglobal(state, [moduleName UTF8String]);
-    lua_pushvalue(state, -2);
-    lua_setfield(state, -2, "prototype");
-    lua_pop(state, 1);
+    [LSCEngineAdapter getGlobal:state name:moduleName.UTF8String];
+    [LSCEngineAdapter pushValue:-2 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"prototype"];
+    [LSCEngineAdapter pop:state count:1];
     
     //注册实例方法
     NSMutableArray *filterMethodList = [NSMutableArray arrayWithObjects:
@@ -744,13 +758,13 @@ static int instanceOfHandler (lua_State *state)
             && ![methodName hasPrefix:@"init"]
             && ![filterMethodList containsObject:methodName])
         {
-            lua_pushlightuserdata(state, (__bridge void *)context);
-            lua_pushlightuserdata(state, (__bridge void *)cls);
-            lua_pushstring(state, [methodName UTF8String]);
-            lua_pushcclosure(state, InstanceMethodRouteHandler, 3);
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)cls state:state];
+            [LSCEngineAdapter pushString:methodName.UTF8String state:state];
+            [LSCEngineAdapter pushCClosure:InstanceMethodRouteHandler n:3 state:state];
             
             NSString *luaMethodName = [LSCModule _getLuaMethodNameWithName:methodName];
-            lua_setfield(state, -2, [luaMethodName UTF8String]);
+            [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
         }
     }
     free(methods);
@@ -764,33 +778,32 @@ static int instanceOfHandler (lua_State *state)
         
         //获取父级元表
         NSString *superMetaClassName = [self _metaClassNameWithClass:[superClass moduleName]];
-        luaL_getmetatable(state, [superMetaClassName UTF8String]);
-        if (lua_istable(state, -1))
+        [LSCEngineAdapter getMetatable:state name:superMetaClassName.UTF8String];
+        if ([LSCEngineAdapter isTable:state index:-1])
         {
             //设置父类访问属性 since ver 1.3
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -3, "super");
+            [LSCEngineAdapter pushValue:-1 state:state];
+            [LSCEngineAdapter setField:state index:-3 name:"super"];
             
             //设置父类元表
-            lua_setmetatable(state, -2);
+            [LSCEngineAdapter setMetatable:state index:-2];
         }
         else
         {
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
         }
     }
     else
     {
         //Object类需要增加一些特殊方法
         //创建instanceOf方法 since ver 1.3
-        lua_pushlightuserdata(state, (__bridge void *)context);
-        lua_pushlightuserdata(state, (__bridge void *)cls);
-        lua_pushcclosure(state, instanceOfHandler, 2);
-        lua_setfield(state, -2, "instanceOf");
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)cls state:state];
+        [LSCEngineAdapter pushCClosure:instanceOfHandler n:2 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"instanceOf"];
     }
     
-    lua_pop(state, 1);
-    
+    [LSCEngineAdapter pop:state count:1];
 }
 
 

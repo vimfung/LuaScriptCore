@@ -12,8 +12,7 @@
 #import "LSCValue_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCSession_Private.h"
-#import "lauxlib.h"
-#import "lualib.h"
+#import "LSCEngineAdapter.h"
 #import <objc/runtime.h>
 #import <objc/message.h>
 
@@ -27,9 +26,13 @@ static int ModuleMethodRouteHandler(lua_State *state)
     typedef struct {float f;} LSCFloatStruct;
     id obj = nil;
     
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
-    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
-    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
+    Class moduleClass = (__bridge Class)[LSCEngineAdapter toPointer:state
+                                                              index:[LSCEngineAdapter upvalueIndex:2]];
+    const char *methodNameCStr = [LSCEngineAdapter toString:state
+                                                      index:[LSCEngineAdapter upvalueIndex:3]];
+    NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
     SEL selector = NSSelectorFromString(methodName);
     
     NSMethodSignature *sign = [moduleClass methodSignatureForSelector:selector];
@@ -227,26 +230,26 @@ static int ModuleMethodRouteHandler(lua_State *state)
     lua_State *state = context.mainSession.state;
     NSString *name = [module moduleName];
     
-    lua_getglobal(state, [name UTF8String]);
-    if (lua_isnil(state, -1))
+    [LSCEngineAdapter getGlobal:state name:name.UTF8String];
+    if ([LSCEngineAdapter isNil:state index:-1])
     {
         //允许注册
-        lua_newtable(state);
+        [LSCEngineAdapter newTable:state];
         
         //设置模块名, since ver 1.3
-        lua_pushstring(state, name.UTF8String);
-        lua_setfield(state, -2, "name");
+        [LSCEngineAdapter pushString:name.UTF8String state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"name"];
         
         //写入模块标识
-        lua_pushstring(state, NativeModuleType.UTF8String);
-        lua_setfield(state, -2, NativeTypeKey.UTF8String);
+        [LSCEngineAdapter pushString:NativeModuleType.UTF8String state:state];
+        [LSCEngineAdapter setField:state index:-2 name:NativeTypeKey.UTF8String];
         
         [self _exportModuleAllMethod:module
                               module:module
                              context:context
                    filterMethodNames:@[@"moduleName", @"version"]];
         
-        lua_setglobal(state, [name UTF8String]);
+        [LSCEngineAdapter setGlobal:state name:name.UTF8String];
     }
     else
     {
@@ -280,21 +283,21 @@ static int ModuleMethodRouteHandler(lua_State *state)
             
             //判断是否已导出
             BOOL hasExists = NO;
-            lua_getfield(state, -1, [luaMethodName UTF8String]);
-            if (!lua_isnil(state, -1))
+            [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
+            if (![LSCEngineAdapter isNil:state index:-1])
             {
                 hasExists = YES;
             }
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
             
             if (!hasExists)
             {
-                lua_pushlightuserdata(state, (__bridge void *)context);
-                lua_pushlightuserdata(state, (__bridge void *)thiz);
-                lua_pushstring(state, [methodName UTF8String]);
-                lua_pushcclosure(state, ModuleMethodRouteHandler, 3);
+                [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+                [LSCEngineAdapter pushLightUserdata:(__bridge void *)thiz state:state];
+                [LSCEngineAdapter pushString:methodName.UTF8String state:state];
+                [LSCEngineAdapter pushCClosure:ModuleMethodRouteHandler n:3 state:state];
                 
-                lua_setfield(state, -2, [luaMethodName UTF8String]);
+                [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
             }
         }
     }
@@ -327,18 +330,18 @@ static int ModuleMethodRouteHandler(lua_State *state)
     
     NSString *name = [module moduleName];
     
-    lua_getglobal(state, [name UTF8String]);
-    if (lua_istable(state, -1))
+    [LSCEngineAdapter getGlobal:state name:name.UTF8String];
+    if ([LSCEngineAdapter isTable:state index:-1])
     {
-        lua_getfield(state, -1, NativeTypeKey.UTF8String);
+        [LSCEngineAdapter getField:state index:-1 name:NativeTypeKey.UTF8String];
         LSCValue *value = [LSCValue valueWithContext:context atIndex:-1];
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
         
         if ([[value toString] isEqualToString:NativeModuleType])
         {
             //为模块类型，则进行注销
-            lua_pushnil(state);
-            lua_setglobal(state, [name UTF8String]);
+            [LSCEngineAdapter pushNil:state];
+            [LSCEngineAdapter setGlobal:state name:name.UTF8String];
         }
     }
 }
