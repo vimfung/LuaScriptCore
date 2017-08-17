@@ -14,7 +14,7 @@
 #import "LSCFunction_Private.h"
 #import "LSCTuple_Private.h"
 #import "LSCManagedObjectProtocol.h"
-
+#import "LSCEngineAdapter.h"
 
 /**
  Lua对象行为
@@ -65,19 +65,19 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     switch (value.valueType)
     {
         case LSCValueTypeInteger:
-            lua_pushinteger(state, [value toInteger]);
+            [LSCEngineAdapter pushInteger:[value toInteger] state:state];
             break;
         case LSCValueTypeNumber:
-            lua_pushnumber(state, [value toDouble]);
+            [LSCEngineAdapter pushNumber:[value toDouble] state:state];
             break;
         case LSCValueTypeNil:
-            lua_pushnil(state);
+            [LSCEngineAdapter pushNil:state];
             break;
         case LSCValueTypeString:
-            lua_pushstring(state, [value toString].UTF8String);
+            [LSCEngineAdapter pushString:[value toString].UTF8String state:state];
             break;
         case LSCValueTypeBoolean:
-            lua_pushboolean(state, [value toBoolean]);
+            [LSCEngineAdapter pushBoolean:[value toBoolean] state:state];
             break;
         case LSCValueTypeArray:
         {
@@ -92,7 +92,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         case LSCValueTypeData:
         {
             NSData *data = [value toData];
-            lua_pushlstring(state, data.bytes, data.length);
+            [LSCEngineAdapter pushString:data.bytes len:data.length state:state];
             break;
         }
         case LSCValueTypeObject:
@@ -116,7 +116,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             break;
         }
         default:
-            lua_pushnil(state);
+            [LSCEngineAdapter pushNil:state];
             break;
     }
 }
@@ -231,15 +231,15 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         }
         else if ([object isKindOfClass:[NSNumber class]])
         {
-            lua_pushnumber(state, [object doubleValue]);
+            [LSCEngineAdapter pushNumber:[object doubleValue] state:state];
         }
         else if ([object isKindOfClass:[NSString class]])
         {
-            lua_pushstring(state, [object UTF8String]);
+            [LSCEngineAdapter pushString:[object UTF8String] state:state];
         }
         else if ([object isKindOfClass:[NSData class]])
         {
-            lua_pushlstring(state, [object bytes], [object length]);
+            [LSCEngineAdapter pushString:[object bytes] len:[object length] state:state];
         }
         else
         {
@@ -256,11 +256,11 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     objectId = [NSString stringWithFormat:@"%p", object];
                 }
                 
-                lua_getfield(state, -1, objectId.UTF8String);
-                if (lua_isnil(state, -1))
+                [LSCEngineAdapter getField:state index:-1 name:objectId.UTF8String];
+                if ([LSCEngineAdapter isNil:state index:-1])
                 {
                     //弹出变量
-                    lua_pop(state, 1);
+                    [LSCEngineAdapter pop:state count:1];
                     
                     //_vars_表中没有对应对象引用，则创建对应引用对象
                     BOOL hasPushStack = NO;
@@ -272,38 +272,39 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     if (!hasPushStack)
                     {
                         //先为实例对象在lua中创建内存
-                        LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+                        LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state
+                                                                                      size:sizeof(LSCUserdataRef)];
                         //创建本地实例对象，赋予lua的内存块
                         ref -> value = (void *)CFBridgingRetain(object);
                         
                         //设置userdata的元表
-                        luaL_getmetatable(state, "_ObjectReference_");
-                        if (lua_isnil(state, -1))
+                        [LSCEngineAdapter getMetatable:state name:"_ObjectReference_"];
+                        if ([LSCEngineAdapter isNil:state index:-1])
                         {
-                            lua_pop(state, 1);
-                            
+                            [LSCEngineAdapter pop:state count:1];
+
                             //尚未注册_ObjectReference,开始注册对象
-                            luaL_newmetatable(state, "_ObjectReference_");
+                            [LSCEngineAdapter newMetatable:state name:"_ObjectReference_"];
                             
-                            lua_pushcfunction(state, objectReferenceGCHandler);
-                            lua_setfield(state, -2, "__gc");
+                            [LSCEngineAdapter pushCFunction:objectReferenceGCHandler state:state];
+                            [LSCEngineAdapter setField:state index:-2 name:"__gc"];
                         }
-                        lua_setmetatable(state, -2);
+                        [LSCEngineAdapter setMetatable:state index:-2];
                         
                         //放入_vars_表中
-                        lua_pushvalue(state, -1);
-                        lua_setfield(state, -3, objectId.UTF8String);
+                        [LSCEngineAdapter pushValue:-1 state:state];
+                        [LSCEngineAdapter setField:state index:-3 name:objectId.UTF8String];
                     }
                 }
                 
                 //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
-                lua_insert(state, -3);
+                [LSCEngineAdapter insert:state index:-3];
             }];
         }
     }
     else
     {
-        lua_pushnil(state);
+        [LSCEngineAdapter pushNil:state];
     }
 }
 
@@ -317,13 +318,13 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
 {
     lua_State *state = self.context.currentSession.state;
     
-    lua_newtable(state);
+    [LSCEngineAdapter newTable:state];
     
     __weak typeof(self) theExchanger = self;
     [dictionary enumerateKeysAndObjectsUsingBlock:^(id _Nonnull key, id _Nonnull obj, BOOL *_Nonnull stop) {
         
         [theExchanger pushStackWithObject:obj];
-        lua_setfield(state, -2, [[NSString stringWithFormat:@"%@", key] UTF8String]);
+        [LSCEngineAdapter setField:state index:-2 name:[[NSString stringWithFormat:@"%@", key] UTF8String]];
         
     }];
 }
@@ -337,14 +338,14 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
 {
     lua_State *state = self.context.currentSession.state;
     
-    lua_newtable(state);
+    [LSCEngineAdapter newTable:state];
     
     __weak typeof(self) theExchanger = self;
     [array enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL *_Nonnull stop) {
         
         // lua数组下标从1开始
         [theExchanger pushStackWithObject:obj];
-        lua_rawseti(state, -2, idx + 1);
+        [LSCEngineAdapter rawSetI:state index:-2 n:(int)idx + 1];
         
     }];
 }
@@ -375,34 +376,34 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
  */
 - (void)doActionInVarsTableWithState:(lua_State *)state block:(void (^)())block
 {
-    lua_getglobal(state, "_G");
-    if (!lua_istable(state, -1))
+    [LSCEngineAdapter getGlobal:state name:"_G"];
+    if (![LSCEngineAdapter isTable:state index:-1])
     {
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
         
-        lua_newtable(state);
+        [LSCEngineAdapter newTable:state];
         
-        lua_pushvalue(state, -1);
-        lua_setglobal(state, "_G");
+        [LSCEngineAdapter pushValue:-1 state:state];
+        [LSCEngineAdapter setGlobal:state name:"_G"];
     }
     
-    lua_getfield(state, -1, VarsTableName.UTF8String);
-    if (lua_isnil(state, -1))
+    [LSCEngineAdapter getField:state index:-1 name:VarsTableName.UTF8String];
+    if ([LSCEngineAdapter isNil:state index:-1])
     {
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
         
         //创建引用表
-        lua_newtable(state);
+        [LSCEngineAdapter newTable:state];
         
         //创建弱引用表元表
-        lua_newtable(state);
-        lua_pushstring(state, "kv");
-        lua_setfield(state, -2, "__mode");
-        lua_setmetatable(state, -2);
+        [LSCEngineAdapter newTable:state];
+        [LSCEngineAdapter pushString:"kv" state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__mode"];
+        [LSCEngineAdapter setMetatable:state index:-2];
         
         //放入全局变量_G中
-        lua_pushvalue(state, -1);
-        lua_setfield(state, -3, VarsTableName.UTF8String);
+        [LSCEngineAdapter pushValue:-1 state:state];
+        [LSCEngineAdapter setField:state index:-3 name:VarsTableName.UTF8String];
     }
     
     if (block)
@@ -411,10 +412,10 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     }
     
     //弹出_vars_
-    lua_pop(state, 1);
+    [LSCEngineAdapter pop:state count:1];
     
     //弹出_G
-    lua_pop(state, 1);
+    [LSCEngineAdapter pop:state count:1];
 }
 
 /**
@@ -429,28 +430,28 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     {
         lua_State *state = self.context.mainSession.state;
         
-        lua_getglobal(state, "_G");
-        if (lua_istable(state, -1))
+        [LSCEngineAdapter getGlobal:state name:"_G"];
+        if ([LSCEngineAdapter isTable:state index:-1])
         {
-            lua_getfield(state, -1, VarsTableName.UTF8String);
-            if (lua_istable(state, -1))
+            [LSCEngineAdapter getField:state index:-1 name:VarsTableName.UTF8String];
+            if ([LSCEngineAdapter isTable:state index:-1])
             {
                 //检查对象是否在_vars_表中登记
-                lua_getfield(state, -1, objectId.UTF8String);
-                if (!lua_isnil(state, -1))
+                [LSCEngineAdapter getField:state index:-1 name:objectId.UTF8String];
+                if (![LSCEngineAdapter isNil:state index:-1])
                 {
                     //检查_retainVars_表是否已经记录对象
-                    lua_getfield(state, -3, RetainVarsTableName.UTF8String);
-                    if (!lua_istable(state, -1))
+                    [LSCEngineAdapter getField:state index:-3 name:RetainVarsTableName.UTF8String];
+                    if (![LSCEngineAdapter isTable:state index:-1])
                     {
-                        lua_pop(state, 1);
+                        [LSCEngineAdapter pop:state count:1];
                         
                         //创建引用表
-                        lua_newtable(state);
+                        [LSCEngineAdapter newTable:state];
                         
                         //放入全局变量_G中
-                        lua_pushvalue(state, -1);
-                        lua_setfield(state, -5, RetainVarsTableName.UTF8String);
+                        [LSCEngineAdapter pushValue:-1 state:state];
+                        [LSCEngineAdapter setField:state index:-5 name:RetainVarsTableName.UTF8String];
                     }
                     
                     switch (action)
@@ -459,64 +460,64 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                         {
                             //保留对象
                             //获取对象
-                            lua_getfield(state, -1, objectId.UTF8String);
-                            if (lua_isnil(state, -1))
+                            [LSCEngineAdapter getField:state index:-1 name:objectId.UTF8String];
+                            if ([LSCEngineAdapter isNil:state index:-1])
                             {
-                                lua_pop(state, 1);
+                                [LSCEngineAdapter pop:state count:1];
                                 
-                                lua_newtable(state);
+                                [LSCEngineAdapter newTable:state];
                                 
                                 //初始化引用次数
-                                lua_pushnumber(state, 0);
-                                lua_setfield(state, -2, "retainCount");
+                                [LSCEngineAdapter pushNumber:0 state:state];
+                                [LSCEngineAdapter setField:state index:-2 name:"retainCount"];
                                 
-                                lua_pushvalue(state, -3);
-                                lua_setfield(state, -2, "object");
+                                [LSCEngineAdapter pushValue:-3 state:state];
+                                [LSCEngineAdapter setField:state index:-2 name:"object"];
                                 
                                 //将对象放入表中
-                                lua_pushvalue(state, -1);
-                                lua_setfield(state, -3, objectId.UTF8String);
+                                [LSCEngineAdapter pushValue:-1 state:state];
+                                [LSCEngineAdapter setField:state index:-3 name:objectId.UTF8String];
                             }
                             
                             //引用次数+1
-                            lua_getfield(state, -1, "retainCount");
-                            lua_Integer retainCount = lua_tointeger(state, -1);
-                            lua_pop(state, 1);
+                            [LSCEngineAdapter getField:state index:-1 name:"retainCount"];
+                            lua_Integer retainCount = [LSCEngineAdapter toInteger:state index:-1];
+                            [LSCEngineAdapter pop:state count:1];
                             
-                            lua_pushnumber(state, retainCount+1);
-                            lua_setfield(state, -2, "retainCount");
+                            [LSCEngineAdapter pushNumber:retainCount + 1 state:state];
+                            [LSCEngineAdapter setField:state index:-2 name:"retainCount"];
                             
                             //弹出引用对象
-                            lua_pop(state, 1);
+                            [LSCEngineAdapter pop:state count:1];
                             break;
                         }
                         case LSCLuaObjectActionRelease:
                         {
                             //释放对象
                             //获取对象
-                            lua_getfield(state, -1, objectId.UTF8String);
-                            if (!lua_isnil(state, -1))
+                            [LSCEngineAdapter getField:state index:-1 name:objectId.UTF8String];
+                            if (![LSCEngineAdapter isNil:state index:-1])
                             {
                                 //引用次数-1
-                                lua_getfield(state, -1, "retainCount");
-                                lua_Integer retainCount = lua_tointeger(state, -1);
-                                lua_pop(state, 1);
+                                [LSCEngineAdapter getField:state index:-1 name:"retainCount"];
+                                lua_Integer retainCount = [LSCEngineAdapter toInteger:state index:-1];
+                                [LSCEngineAdapter pop:state count:1];
                                 
                                 if (retainCount - 1 > 0)
                                 {
-                                    lua_pushnumber(state, retainCount - 1);
-                                    lua_setfield(state, -2, "retainCount");
+                                    [LSCEngineAdapter pushNumber:retainCount - 1 state:state];
+                                    [LSCEngineAdapter setField:state index:-2 name:"retainCount"];
                                 }
                                 else
                                 {
                                     //retainCount<=0时移除对象引用
-                                    lua_pushnil(state);
-                                    lua_setfield(state, -3, objectId.UTF8String);
+                                    [LSCEngineAdapter pushNil:state];
+                                    [LSCEngineAdapter setField:state index:-3 name:objectId.UTF8String];
                                 }
                             }
                             
                             //弹出引用对象
-                            lua_pop(state, 1);
+                            [LSCEngineAdapter pop:state count:1];
                             break;
                         }
                         default:
@@ -524,29 +525,29 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     }
                     
                     //弹出_retainVars_
-                    lua_pop(state, 1);
+                    [LSCEngineAdapter pop:state count:1];
                 }
                 //弹出变量
-                lua_pop(state, 1);
+                [LSCEngineAdapter pop:state count:1];
             }
             
             //弹出_vars_
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
         }
         
         //弹出_G
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
     }
 }
 
 - (LSCValue *)valueByStackIndex:(int)index withState:(lua_State *)state
 {
-    index = lua_absindex(state, (int)index);
+    index = [LSCEngineAdapter absIndex:index state:state];
     
     NSString *objectId = nil;
     LSCValue *value = nil;
     
-    int type = lua_type(state, index);
+    int type = [LSCEngineAdapter type:state index:index];
     
     switch (type)
     {
@@ -557,18 +558,18 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         }
         case LUA_TBOOLEAN:
         {
-            value = [LSCValue booleanValue:lua_toboolean(state, (int)index)];
+            value = [LSCValue booleanValue:[LSCEngineAdapter toBoolean:state index:index]];
             break;
         }
         case LUA_TNUMBER:
         {
-            value = [LSCValue numberValue:@(lua_tonumber(state, (int)index))];
+            value = [LSCValue numberValue:@([LSCEngineAdapter toNumber:state index:index])];
             break;
         }
         case LUA_TSTRING:
         {
             size_t len = 0;
-            const char *bytes = lua_tolstring(state, (int)index, &len);
+            const char *bytes = [LSCEngineAdapter toString:state index:index len:&len];
             
             //尝试转换成字符串
             NSString *strValue = [NSString stringWithCString:bytes encoding:NSUTF8StringEncoding];
@@ -591,8 +592,8 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             NSMutableDictionary *dictValue = [NSMutableDictionary dictionary];
             NSMutableArray *arrayValue = [NSMutableArray array];
             
-            lua_pushnil(state);
-            while (lua_next(state, (int)index))
+            [LSCEngineAdapter pushNil:state];
+            while ([LSCEngineAdapter next:state index:index])
             {
                 LSCValue *value = [self valueByStackIndex:-1];
                 LSCValue *key = [self valueByStackIndex:-2];
@@ -626,7 +627,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                 
                 [dictValue setObject:[value toObject] forKey:[key toString]];
                 
-                lua_pop(state, 1);
+                [LSCEngineAdapter pop:state count:1];
             }
             
             if (arrayValue)
@@ -642,7 +643,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         }
         case LUA_TLIGHTUSERDATA:
         {
-            LSCUserdataRef userdataRef = (LSCUserdataRef)(lua_topointer(state, (int)index));
+            LSCUserdataRef userdataRef = (LSCUserdataRef)([LSCEngineAdapter toPointer:state index:index]);
             LSCPointer *pointer = [[LSCPointer alloc] initWithUserdata:userdataRef];
             value = [LSCValue pointerValue:pointer];
             
@@ -651,7 +652,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         }
         case LUA_TUSERDATA:
         {
-            LSCUserdataRef userdataRef = (LSCUserdataRef)lua_touserdata(state, (int)index);
+            LSCUserdataRef userdataRef = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:index];
             id obj = (__bridge id)(userdataRef -> value);
             value = [LSCValue objectValue:obj];
             
@@ -704,8 +705,8 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     [self doActionInVarsTableWithState:state block:^{
         
         //放入对象到_vars_表中
-        lua_pushvalue(state, (int)index);
-        lua_setfield(state, -2, objectId.UTF8String);
+        [LSCEngineAdapter pushValue:(int)index state:state];
+        [LSCEngineAdapter setField:state index:-2 name:objectId.UTF8String];
         
     }];
 }
@@ -754,10 +755,10 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         {
             [self doActionInVarsTableWithState:state block:^{
                 
-                lua_getfield(state, -1, objectId.UTF8String);
+                [LSCEngineAdapter getField:state index:-1 name:objectId.UTF8String];
                 
                 //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
-                lua_insert(state, -3);
+                [LSCEngineAdapter insert:state index:-3];
             }];
         }
     }
@@ -772,7 +773,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
  */
 static int objectReferenceGCHandler(lua_State *state)
 {
-    LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+    LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
     //释放对象
     CFBridgingRelease(ref -> value);
     

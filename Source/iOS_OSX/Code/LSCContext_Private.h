@@ -7,10 +7,7 @@
 //
 
 #import "LSCContext.h"
-#import "lauxlib.h"
-#import "lua.h"
-#import "luaconf.h"
-#import "lualib.h"
+#import "LSCEngineAdapter.h"
 #import "LSCDataExchanger.h"
 
 @class LSCSession;
