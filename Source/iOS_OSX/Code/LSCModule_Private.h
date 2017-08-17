@@ -8,7 +8,6 @@
 
 #import "LSCModule.h"
 #import "LSCContext.h"
-#import "lua.h"
 
 /**
  本地类型标识
@@ -73,21 +72,5 @@ static NSString *const NativeModuleType = @"module";
  @param context 上下文对象
  */
 + (void)_unregModule:(Class)module context:(LSCContext *)context;
-
-/**
- *  注册模块
- *
- *  @param state Lua状态机
- *  @param moduleName   模块名称
- */
-//- (void)_regWithContext:(LSCContext *)context moduleName:(NSString *)moduleName;
-
-/**
- *  反注册模块
- *
- *  @param state Lua状态机
- *  @param moduleName 模块名称
- */
-//- (void)_unregWithContext:(LSCContext *)context moduleName:(NSString *)moduleName;
 
 @end

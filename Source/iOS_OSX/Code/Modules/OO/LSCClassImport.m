@@ -14,6 +14,7 @@
 #import "LSCTuple.h"
 #import "LSCManagedObjectProtocol.h"
 #import "LSCObjectClass.h"
+#import "LSCEngineAdapter.h"
 #import <objc/runtime.h>
 
 /**
@@ -44,9 +45,9 @@ static NSString *const ProxyTableName = @"_import_classes_";
     lua_State *state = context.mainSession.state;
     
     //关联更新索引处理
-    lua_pushlightuserdata(state, (__bridge void *)context);
-    lua_pushcclosure(state, setupProxyHandler, 1);
-    lua_setglobal(state, "ClassImport");
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)context state:state];
+    [LSCEngineAdapter pushCClosure:setupProxyHandler n:1 state:state];
+    [LSCEngineAdapter setGlobal:state name:"ClassImport"];
 }
 
 + (void)setInculdesClasses:(NSArray<Class> *)classes withContext:(LSCContext *)context
@@ -99,91 +100,94 @@ static NSString *const ProxyTableName = @"_import_classes_";
         
         //返回模块类
         NSString *moduleName = [cls moduleName];
-        lua_getglobal(state, moduleName.UTF8String);
+        [LSCEngineAdapter getGlobal:state name:moduleName.UTF8String];
         return 1;
     }
     
     //先判断_G下是否存在对象代理表
-    lua_getglobal(state, "_G");
-    if (lua_type(state, -1) == LUA_TTABLE)
+    [LSCEngineAdapter getGlobal:state name:"_G"];
+    if ([LSCEngineAdapter type:state index:-1] == LUA_TTABLE)
     {
-        lua_getfield(state, -1, ProxyTableName.UTF8String);
-        if (lua_type(state, -1) == LUA_TNIL)
+        [LSCEngineAdapter getField:state index:-1 name:ProxyTableName.UTF8String];
+        if ([LSCEngineAdapter type:state index:-1] == LUA_TNIL)
         {
             //弹出nil
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
             
             //创建对象代理表
-            lua_newtable(state);
+            [LSCEngineAdapter newTable:state];
             
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -3, ProxyTableName.UTF8String);
+            [LSCEngineAdapter pushValue:-1 state:state];
+            [LSCEngineAdapter setField:state index:-3 name:ProxyTableName.UTF8String];
         }
         
         //查找是否存在此类型的代理
-        lua_getfield(state, -1, clsName.UTF8String);
-        if (lua_type(state, -1) == LUA_TNIL)
+        [LSCEngineAdapter getField:state index:-1 name:clsName.UTF8String];
+        if ([LSCEngineAdapter type:state index:-1] == LUA_TNIL)
         {
             //弹出nil
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
             
             //导出代理类型
-            LSCUserdataRef userdataRef = lua_newuserdata(state, sizeof(LSCUserdataRef));
+            LSCUserdataRef userdataRef = [LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
             userdataRef -> value = (void *)CFBridgingRetain(cls);
 
             //建立代理类元表
-            lua_newtable(state);
+            [LSCEngineAdapter newTable:state];
             
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -2, "__index");
+            [LSCEngineAdapter pushValue:-1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"__index"];
             
-            lua_pushlightuserdata(state, (__bridge void *)session.context);
-            lua_pushcclosure(state, objectDestroyHandler, 1);
-            lua_setfield(state, -2, "__gc");
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)session.context state:state];
+            [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"__gc"];
             
             //添加创建对象方法
-            lua_pushlightuserdata(state, (__bridge void *)session.context);
-            lua_pushlightuserdata(state, (__bridge void *)cls);
-            lua_pushcclosure(state, objectCreateHandler, 2);
-            lua_setfield(state, -2, "create");
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)session.context state:state];
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)cls state:state];
+            [LSCEngineAdapter pushCClosure:objectCreateHandler n:2 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"create"];
             
             //导出类方法
             [self _exportAllClassMethod:cls exportsClass:cls session:session filterMethodNames:nil];
             
             //关联元表
-            lua_setmetatable(state, -2);
+            [LSCEngineAdapter setMetatable:state index:-2];
             
             //---------创建实例对象元表---------------
-            lua_newtable(state);
+            [LSCEngineAdapter newTable:state];
             
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -2, "__index");
+            [LSCEngineAdapter pushValue:-1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"__index"];
             
-            lua_pushlightuserdata(state, (__bridge void *)session.context);
-            lua_pushcclosure(state, objectDestroyHandler, 1);
-            lua_setfield(state, -2, "__gc");
-            
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)session.context state:state];
+            [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"__gc"];
+
             //导出实例方法
             [self _exportAllInstanceMethod:cls
                               exportsClass:cls
                                    session:session
                          filterMethodNames:nil];
 
-            lua_setfield(state, -3, [NSString stringWithFormat:@"%@_prototype", clsName].UTF8String);
+            [LSCEngineAdapter setField:state
+                                 index:-3
+                                  name:[NSString stringWithFormat:@"%@_prototype", clsName].UTF8String];
             
-            lua_pushvalue(state, -1);
-            lua_setfield(state, -3, clsName.UTF8String);
+            [LSCEngineAdapter pushValue:-1 state:state];
+            [LSCEngineAdapter setField:state index:-3 name:clsName.UTF8String];
         }
         
         //移除代理表
-        lua_remove(state, -2);
+        [LSCEngineAdapter remove:state index:-2];
+
         //移除_G
-        lua_remove(state, -2);
+        [LSCEngineAdapter remove:state index:-2];
         
         return 1;
     }
     
-    lua_pop(state, 1);
+    [LSCEngineAdapter pop:state count:1];
     
     return 0;
 }
@@ -249,21 +253,21 @@ static NSString *const ProxyTableName = @"_import_classes_";
             
             //判断是否已导出
             BOOL hasExists = NO;
-            lua_getfield(state, -1, [luaMethodName UTF8String]);
-            if (!lua_isnil(state, -1))
+            [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
+            if (![LSCEngineAdapter isNil:state index:-1])
             {
                 hasExists = YES;
             }
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
             
             if (!hasExists)
             {
-                lua_pushlightuserdata(state, (__bridge void *)session.context);
-                lua_pushlightuserdata(state, (__bridge void *)thiz);
-                lua_pushstring(state, [methodName UTF8String]);
-                lua_pushcclosure(state, instanceMethodRouteHandler, 3);
+                [LSCEngineAdapter pushLightUserdata:(__bridge void *)session.context state:state];
+                [LSCEngineAdapter pushLightUserdata:(__bridge void *)thiz state:state];
+                [LSCEngineAdapter pushString:methodName.UTF8String state:state];
+                [LSCEngineAdapter pushCClosure:instanceMethodRouteHandler n:3 state:state];
                 
-                lua_setfield(state, -2, [luaMethodName UTF8String]);
+                [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
             }
         }
     }
@@ -332,21 +336,21 @@ static NSString *const ProxyTableName = @"_import_classes_";
 
             //判断是否已导出
             BOOL hasExists = NO;
-            lua_getfield(state, -1, [luaMethodName UTF8String]);
-            if (!lua_isnil(state, -1))
+            [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
+            if (![LSCEngineAdapter isNil:state index:-1])
             {
                 hasExists = YES;
             }
-            lua_pop(state, 1);
+            [LSCEngineAdapter pop:state count:1];
 
             if (!hasExists)
             {
-                lua_pushlightuserdata(state, (__bridge void *)session.context);
-                lua_pushlightuserdata(state, (__bridge void *)thiz);
-                lua_pushstring(state, [methodName UTF8String]);
-                lua_pushcclosure(state, classMethodRouteHandler, 3);
+                [LSCEngineAdapter pushLightUserdata:(__bridge void *)session.context state:state];
+                [LSCEngineAdapter pushLightUserdata:(__bridge void *)thiz state:state];
+                [LSCEngineAdapter pushString:methodName.UTF8String state:state];
+                [LSCEngineAdapter pushCClosure:classMethodRouteHandler n:3 state:state];
                 
-                lua_setfield(state, -2, [luaMethodName UTF8String]);
+                [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
             }
         }
     }
@@ -579,7 +583,8 @@ static NSString *const ProxyTableName = @"_import_classes_";
  */
 static int setupProxyHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
     LSCSession *session = [context makeSessionWithState:state];
     NSArray *arguments = [session parseArguments];
     
@@ -608,11 +613,15 @@ static int classMethodRouteHandler(lua_State *state)
 {
     int retCount = 0;
     
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
     LSCSession *session = [context makeSessionWithState:state];
     
-    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
-    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
+    Class moduleClass = (__bridge Class)[LSCEngineAdapter toPointer:state
+                                                              index:[LSCEngineAdapter upvalueIndex:2]];
+    const char *methodNameCStr = [LSCEngineAdapter toString:state
+                                                      index:[LSCEngineAdapter upvalueIndex:3]];
+    NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
     SEL selector = NSSelectorFromString(methodName);
     
     retCount = [LSCClassImport _invokeMethodWithTarget:moduleClass
@@ -635,12 +644,16 @@ static int instanceMethodRouteHandler(lua_State *state)
 {
     int retCount = 0;
     
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
-    Class moduleClass = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
-    NSString *methodName = [NSString stringWithUTF8String:lua_tostring(state, lua_upvalueindex(3))];
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
+    Class moduleClass = (__bridge Class)[LSCEngineAdapter toPointer:state
+                                                              index:[LSCEngineAdapter upvalueIndex:2]];
+    const char *methodNameCStr = [LSCEngineAdapter toString:state
+                                                      index:[LSCEngineAdapter upvalueIndex:3]];
+    NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
     SEL selector = NSSelectorFromString(methodName);
     
-    if (lua_type(state, 1) != LUA_TUSERDATA)
+    if ([LSCEngineAdapter type:state index:1] != LUA_TUSERDATA)
     {
         NSString *errMsg = [NSString stringWithFormat:@"call %@ method error : missing self parameter, please call by instance:methodName(param)", methodName];
         [context raiseExceptionWithMessage:errMsg];
@@ -674,45 +687,47 @@ static int instanceMethodRouteHandler(lua_State *state)
  */
 static int objectCreateHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
     LSCSession *session = [context makeSessionWithState:state];
     
-    Class cls = (__bridge Class)lua_topointer(state, lua_upvalueindex(2));
+    Class cls = (__bridge Class)[LSCEngineAdapter toPointer:state
+                                                      index:[LSCEngineAdapter upvalueIndex:2]];
     NSString *clsName = NSStringFromClass(cls);
     
     //创建对象
     id instance = [[cls alloc] init];
     
     //先为实例对象在lua中创建内存
-    LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+    LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
     //创建本地实例对象，赋予lua的内存块并进行保留引用
     ref -> value = (void *)CFBridgingRetain(instance);
     
     //获取实例代理类型
-    lua_getglobal(state, "_G");
-    if (lua_type(state, -1) == LUA_TTABLE)
+    [LSCEngineAdapter getGlobal:state name:"_G"];
+    if ([LSCEngineAdapter type:state index:-1] == LUA_TTABLE)
     {
-        lua_getfield(state, -1, ProxyTableName.UTF8String);
-        if (lua_type(state, -1) != LUA_TNIL)
+        [LSCEngineAdapter getField:state index:-1 name:ProxyTableName.UTF8String];
+        if ([LSCEngineAdapter type:state index:-1] != LUA_TNIL)
         {
             //查找是否存在此类型的代理
             NSString *prototypeClsName = [NSString stringWithFormat:@"%@_prototype", clsName];
-            lua_getfield(state, -1, prototypeClsName.UTF8String);
-            if (lua_istable(state, -1))
+            [LSCEngineAdapter getField:state index:-1 name:prototypeClsName.UTF8String];
+            if ([LSCEngineAdapter isTable:state index:-1])
             {
-                lua_setmetatable(state, -4);
+                [LSCEngineAdapter setMetatable:state index:-4];
             }
             else
             {
-                lua_pop(state, 1);
+                [LSCEngineAdapter pop:state count:1];
             }
         }
         
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
         
     }
     
-    lua_pop(state, 1);
+    [LSCEngineAdapter pop:state count:1];
     
     session = nil;
     
@@ -728,13 +743,14 @@ static int objectCreateHandler (lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    LSCContext *context = (__bridge LSCContext *)lua_topointer(state, lua_upvalueindex(1));
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
     LSCSession *session = [context makeSessionWithState:state];
     
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
+    if ([LSCEngineAdapter getTop:state] > 0 && [LSCEngineAdapter isUserdata:state index:1])
     {
         //如果为userdata类型，则进行释放
-        LSCUserdataRef ref = (LSCUserdataRef)lua_touserdata(state, 1);
+        LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
         
         //释放内存
         CFBridgingRelease(ref -> value);
@@ -770,38 +786,38 @@ static int objectDestroyHandler (lua_State *state)
     
     //查找类型是否为导出对象
     //获取实例代理类型
-    lua_getglobal(state, "_G");
-    if (lua_type(state, -1) == LUA_TTABLE)
+    [LSCEngineAdapter getGlobal:state name:"_G"];
+    if ([LSCEngineAdapter type:state index:-1] == LUA_TTABLE)
     {
-        lua_getfield(state, -1, ProxyTableName.UTF8String);
-        if (lua_type(state, -1) != LUA_TNIL)
+        [LSCEngineAdapter getField:state index:-1 name:ProxyTableName.UTF8String];
+        if ([LSCEngineAdapter type:state index:-1] != LUA_TNIL)
         {
             //查找是否存在此类型的代理
             NSString *prototypeClsName = [NSString stringWithFormat:@"%@_prototype", clsName];
-            lua_getfield(state, -1, prototypeClsName.UTF8String);
-            if (lua_istable(state, -1))
+            [LSCEngineAdapter getField:state index:-1 name:prototypeClsName.UTF8String];
+            if ([LSCEngineAdapter isTable:state index:-1])
             {
-                LSCUserdataRef ref = (LSCUserdataRef)lua_newuserdata(state, sizeof(LSCUserdataRef));
+                LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
                 //讲本地对象赋予lua的内存块并进行保留引用
                 ref -> value = (void *)CFBridgingRetain(self);
                 
-                lua_pushvalue(state, -2);
-                lua_setmetatable(state, -2);
+                [LSCEngineAdapter pushValue:-2 state:state];
+                [LSCEngineAdapter setMetatable:state index:-2];
                 
-                lua_remove(state, -2);  //移除代理实例元表
-                lua_remove(state, -2);  //移除代理表
-                lua_remove(state, -2);  //移除_G
+                [LSCEngineAdapter remove:state index:-2]; //移除代理实例元表
+                [LSCEngineAdapter remove:state index:-2]; //移除代理表
+                [LSCEngineAdapter remove:state index:-2]; //移除_G
                 
                 return YES;
             }
-
-            lua_pop(state, 1);
+            
+            [LSCEngineAdapter pop:state count:1];
         }
         
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
     }
     
-    lua_pop(state, 1);
+    [LSCEngineAdapter pop:state count:1];
     
     return NO;
 }
