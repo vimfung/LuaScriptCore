@@ -13,6 +13,7 @@
 #include "LuaManagedObject.h"
 #include "LuaObjectDescriptor.h"
 #include "LuaSession.h"
+#include "LuaEngineAdapter.hpp"
 #include <iostream>
 #include <sstream>
 
@@ -37,12 +38,12 @@ LuaDataExchanger::LuaDataExchanger(LuaContext *context)
 LuaValue* LuaDataExchanger::getValue(int stackIndex)
 {
     lua_State *state = _context -> getCurrentSession() -> getState();
-    stackIndex = lua_absindex(state, stackIndex);
+    stackIndex = LuaEngineAdapter::absIndex(state, stackIndex);
 
     std::string objectId;
     LuaValue *value = NULL;
 
-    int type = lua_type(state, stackIndex);
+    int type = LuaEngineAdapter::type(state, stackIndex);
 
     switch (type)
     {
@@ -53,18 +54,18 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
         }
         case LUA_TBOOLEAN:
         {
-            value = LuaValue::BooleanValue((bool)lua_toboolean(state, stackIndex));
+            value = LuaValue::BooleanValue((bool)LuaEngineAdapter::toBoolean(state, stackIndex));
             break;
         }
         case LUA_TNUMBER:
         {
-            value = LuaValue::NumberValue(lua_tonumber(state, stackIndex));
+            value = LuaValue::NumberValue(LuaEngineAdapter::toNumber(state, stackIndex));
             break;
         }
         case LUA_TSTRING:
         {
             size_t len = 0;
-            const char *bytes = lua_tolstring(state, stackIndex, &len);
+            const char *bytes = LuaEngineAdapter::toLString(state, stackIndex, &len);
 
             if (*(bytes + len) != '\0' || strlen(bytes) != len)
             {
@@ -85,8 +86,8 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
             LuaValueList arrayValue;
             bool isArray = true;
 
-            lua_pushnil(state);
-            while (lua_next(state, stackIndex))
+            LuaEngineAdapter::pushNil(state);
+            while (LuaEngineAdapter::next(state, stackIndex))
             {
                 LuaValue *item = getValue(-1);
                 LuaValue *key = getValue(-2);
@@ -141,7 +142,7 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
 
                 key->release();
 
-                lua_pop(state, 1);
+                LuaEngineAdapter::pop(state, 1);
             }
 
             if (isArray)
@@ -157,7 +158,7 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
         }
         case LUA_TLIGHTUSERDATA:
         {
-            LuaUserdataRef ref = (LuaUserdataRef)lua_topointer(state, stackIndex);
+            LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::toPointer(state, stackIndex);
             LuaPointer *pointer = new LuaPointer(ref);
             value = LuaValue::PointerValue(pointer);
             pointer -> release();
@@ -167,7 +168,7 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
         }
         case LUA_TUSERDATA:
         {
-            LuaUserdataRef userdataRef = (LuaUserdataRef)lua_touserdata(state, stackIndex);
+            LuaUserdataRef userdataRef = (LuaUserdataRef)LuaEngineAdapter::toUserdata(state, stackIndex);
             void *obj = userdataRef -> value;
             value = LuaValue::ObjectValue((LuaObjectDescriptor *)obj);
 
@@ -195,8 +196,8 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
         //将引用对象放入表中
         beginGetVarsTable();
 
-        lua_pushvalue(state, (int)stackIndex);
-        lua_setfield(state, -2, objectId.c_str());
+        LuaEngineAdapter::pushValue(state, stackIndex);
+        LuaEngineAdapter::setField(state, -2, objectId.c_str());
 
         endGetVarsTable();
     }
@@ -212,19 +213,19 @@ void LuaDataExchanger::pushStack(LuaValue *value)
     switch (value -> getType())
     {
         case LuaValueTypeInteger:
-            lua_pushinteger(state, value -> toInteger());
+            LuaEngineAdapter::pushInteger(state, value -> toInteger());
             break;
         case LuaValueTypeNumber:
-            lua_pushnumber(state, value -> toNumber());
+            LuaEngineAdapter::pushNumber(state, value -> toNumber());
             break;
         case LuaValueTypeNil:
-            lua_pushnil(state);
+            LuaEngineAdapter::pushNil(state);
             break;
         case LuaValueTypeString:
-            lua_pushstring(state, value -> toString().c_str());
+            LuaEngineAdapter::pushString(state, value -> toString().c_str());
             break;
         case LuaValueTypeBoolean:
-            lua_pushboolean(state, value -> toBoolean());
+            LuaEngineAdapter::pushBoolean(state, value -> toBoolean());
             break;
         case LuaValueTypeArray:
         {
@@ -239,7 +240,7 @@ void LuaDataExchanger::pushStack(LuaValue *value)
         case LuaValueTypeData:
         {
             const char *data = value -> toData();
-            lua_pushlstring(state, data, value -> getDataLength());
+            LuaEngineAdapter::pushString(state, data, value -> getDataLength());
             break;
         }
         case LuaValueTypeObject:
@@ -263,7 +264,7 @@ void LuaDataExchanger::pushStack(LuaValue *value)
             break;
         }
         default:
-            lua_pushnil(state);
+            LuaEngineAdapter::pushNil(state);
             break;
     }
 }
@@ -308,10 +309,10 @@ void LuaDataExchanger::getLuaObject(LuaObject *object)
             
             beginGetVarsTable();
             
-            lua_getfield(state, -1, linkId.c_str());
+            LuaEngineAdapter::getField(state, -1, linkId.c_str());
             
             //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
-            lua_insert(state, -3);
+            LuaEngineAdapter::insert(state, -3);
             
             endGetVarsTable();
         }
@@ -325,8 +326,8 @@ void LuaDataExchanger::setLuaObject(int stackIndex, const std::string &linkId)
     beginGetVarsTable();
 
     //放入对象到_vars_表中
-    lua_pushvalue(state, stackIndex);
-    lua_setfield(state, -2, linkId.c_str());
+    LuaEngineAdapter::pushValue(state, stackIndex);
+    LuaEngineAdapter::setField(state, -2, linkId.c_str());
 
     endGetVarsTable();
 }
@@ -413,34 +414,34 @@ void LuaDataExchanger::beginGetVarsTable()
 {
     lua_State *state = _context -> getCurrentSession() -> getState();
 
-    lua_getglobal(state, "_G");
-    if (!lua_istable(state, -1))
+    LuaEngineAdapter::getGlobal(state, "_G");
+    if (!LuaEngineAdapter::isTable(state, -1))
     {
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
 
-        lua_newtable(state);
+        LuaEngineAdapter::newTable(state);
 
-        lua_pushvalue(state, -1);
-        lua_setglobal(state, "_G");
+        LuaEngineAdapter::pushValue(state, -1);
+        LuaEngineAdapter::setGlobal(state, "_G");
     }
 
-    lua_getfield(state, -1, VarsTableName);
-    if (lua_isnil(state, -1))
+    LuaEngineAdapter::getField(state, -1, VarsTableName);
+    if (LuaEngineAdapter::isNil(state, -1))
     {
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
 
         //创建引用表
-        lua_newtable(state);
+        LuaEngineAdapter::newTable(state);
 
         //创建弱引用表元表
-        lua_newtable(state);
-        lua_pushstring(state, "kv");
-        lua_setfield(state, -2, "__mode");
-        lua_setmetatable(state, -2);
+        LuaEngineAdapter::newTable(state);
+        LuaEngineAdapter::pushString(state, "kv");
+        LuaEngineAdapter::setField(state, -2, "__mode");
+        LuaEngineAdapter::setMetatable(state, -2);
 
         //放入全局变量_G中
-        lua_pushvalue(state, -1);
-        lua_setfield(state, -3, VarsTableName);
+        LuaEngineAdapter::pushValue(state, -1);
+        LuaEngineAdapter::setField(state, -3, VarsTableName);
     }
 }
 
@@ -450,7 +451,7 @@ void LuaDataExchanger::endGetVarsTable()
 
     //弹出_vars_
     //弹出_G
-    lua_pop(state, 2);
+    LuaEngineAdapter::pop(state, 2);
 }
 
 void LuaDataExchanger::pushStackByObject(LuaManagedObject *object)
@@ -462,18 +463,18 @@ void LuaDataExchanger::pushStackByObject(LuaManagedObject *object)
 
     std::string linkId = object -> getLinkId();
 
-    lua_getfield(state, -1, linkId.c_str());
-    if (lua_isnil(state, -1))
+    LuaEngineAdapter::getField(state, -1, linkId.c_str());
+    if (LuaEngineAdapter::isNil(state, -1))
     {
         //弹出变量
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
 
         //_vars_表中没有对应对象引用，则创建对应引用对象
         object -> push(_context);
     }
 
     //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
-    lua_insert(state, -3);
+    LuaEngineAdapter::insert(state, -3);
 
     endGetVarsTable();
 }
@@ -482,14 +483,14 @@ void LuaDataExchanger::pushStackByTable(LuaValueList *list)
 {
     lua_State *state = _context -> getCurrentSession() -> getState();
 
-    lua_newtable(state);
+    LuaEngineAdapter::newTable(state);
 
     lua_Integer index = 1;
     for (LuaValueList::iterator it = list -> begin(); it != list -> end(); ++it)
     {
         LuaValue *item = *it;
         pushStack(item);
-        lua_rawseti(state, -2, index);
+        LuaEngineAdapter::rawSetI(state, -2, index);
 
         index ++;
     }
@@ -499,13 +500,13 @@ void LuaDataExchanger::pushStackByTable(LuaValueMap *map)
 {
     lua_State *state = _context -> getCurrentSession() -> getState();
 
-    lua_newtable(state);
+    LuaEngineAdapter::newTable(state);
 
     for (LuaValueMap::iterator it = map -> begin(); it != map -> end() ; ++it)
     {
         LuaValue *item = it -> second;
         pushStack(item);
-        lua_setfield(state, -2, it -> first.c_str());
+        LuaEngineAdapter::setField(state, -2, it -> first.c_str());
     }
 }
 
@@ -515,28 +516,28 @@ void LuaDataExchanger::doObjectAction(std::string linkId, LuaObjectAction action
     {
         lua_State *state = _context -> getMainSession() -> getState();
 
-        lua_getglobal(state, "_G");
-        if (lua_istable(state, -1))
+        LuaEngineAdapter::getGlobal(state, "_G");
+        if (LuaEngineAdapter::isTable(state, -1))
         {
-            lua_getfield(state, -1, VarsTableName);
-            if (lua_istable(state, -1))
+            LuaEngineAdapter::getField(state, -1, VarsTableName);
+            if (LuaEngineAdapter::isTable(state, -1))
             {
                 //检查对象是否在_vars_表中登记
-                lua_getfield(state, -1, linkId.c_str());
-                if (!lua_isnil(state, -1))
+                LuaEngineAdapter::getField(state, -1, linkId.c_str());
+                if (!LuaEngineAdapter::isNil(state, -1))
                 {
                     //检查_retainVars_表是否已经记录对象
-                    lua_getfield(state, -3, RetainVarsTableName);
-                    if (!lua_istable(state, -1))
+                    LuaEngineAdapter::getField(state, -3, RetainVarsTableName);
+                    if (!LuaEngineAdapter::isTable(state, -1))
                     {
-                        lua_pop(state, 1);
+                        LuaEngineAdapter::pop(state, 1);
 
                         //创建引用表
-                        lua_newtable(state);
+                        LuaEngineAdapter::newTable(state);
 
                         //放入全局变量_G中
-                        lua_pushvalue(state, -1);
-                        lua_setfield(state, -5, RetainVarsTableName);
+                        LuaEngineAdapter::pushValue(state, -1);
+                        LuaEngineAdapter::setField(state, -5, RetainVarsTableName);
                     }
 
                     switch (action)
@@ -545,60 +546,64 @@ void LuaDataExchanger::doObjectAction(std::string linkId, LuaObjectAction action
                         {
                             //保留对象
                             //获取对象
-                            lua_getfield(state, -1, linkId.c_str());
-                            if (lua_isnil(state, -1)) {
-                                lua_pop(state, 1);
+                            LuaEngineAdapter::getField(state, -1, linkId.c_str());
+                            if (LuaEngineAdapter::isNil(state, -1))
+                            {
+                                LuaEngineAdapter::pop(state, 1);
 
-                                lua_newtable(state);
+                                LuaEngineAdapter::newTable(state);
 
                                 //初始化引用次数
-                                lua_pushnumber(state, 0);
-                                lua_setfield(state, -2, "retainCount");
+                                LuaEngineAdapter::pushNumber(state, 0);
+                                LuaEngineAdapter::setField(state, -2, "retainCount");
 
-                                lua_pushvalue(state, -3);
-                                lua_setfield(state, -2, "object");
+                                LuaEngineAdapter::pushValue(state, -3);
+                                LuaEngineAdapter::setField(state, -2, "object");
 
                                 //将对象放入表中
-                                lua_pushvalue(state, -1);
-                                lua_setfield(state, -3, linkId.c_str());
+                                LuaEngineAdapter::pushValue(state, -1);
+                                LuaEngineAdapter::setField(state, -3, linkId.c_str());
                             }
 
                             //引用次数+1
-                            lua_getfield(state, -1, "retainCount");
-                            lua_Integer retainCount = lua_tointeger(state, -1);
-                            lua_pop(state, 1);
+                            LuaEngineAdapter::getField(state, -1, "retainCount");
+                            lua_Integer retainCount = LuaEngineAdapter::toInteger(state, -1);
+                            LuaEngineAdapter::pop(state, 1);
 
-                            lua_pushnumber(state, retainCount + 1);
-                            lua_setfield(state, -2, "retainCount");
+                            LuaEngineAdapter::pushNumber(state, retainCount + 1);
+                            LuaEngineAdapter::setField(state, -2, "retainCount");
 
                             //弹出引用对象
-                            lua_pop(state, 1);
+                            LuaEngineAdapter::pop(state, 1);
                             break;
                         }
                         case LuaObjectActionRelease:
                         {
                             //释放对象
                             //获取对象
-                            lua_getfield(state, -1, linkId.c_str());
-                            if (!lua_isnil(state, -1)) {
+                            LuaEngineAdapter::getField(state, -1, linkId.c_str());
+                            if (!LuaEngineAdapter::isNil(state, -1))
+                            {
                                 //引用次数-1
-                                lua_getfield(state, -1, "retainCount");
-                                lua_Integer retainCount = lua_tointeger(state, -1);
-                                lua_pop(state, 1);
+                                LuaEngineAdapter::getField(state, -1, "retainCount");
+                                lua_Integer retainCount = LuaEngineAdapter::toInteger(state, -1);
+                                LuaEngineAdapter::pop(state, 1);
 
-                                if (retainCount - 1 > 0) {
-                                    lua_pushnumber(state, retainCount - 1);
-                                    lua_setfield(state, -2, "retainCount");
+                                if (retainCount - 1 > 0)
+                                {
+                                    LuaEngineAdapter::pushNumber(state, retainCount - 1);
+                                    LuaEngineAdapter::setField(state, -2, "retainCount");
                                 }
-                                else {
+                                else
+                                {
                                     //retainCount<=0时移除对象引用
-                                    lua_pushnil(state);
-                                    lua_setfield(state, -3, linkId.c_str());
+                                    LuaEngineAdapter::pushNil(state);
+                                    LuaEngineAdapter::setField(state, -3, linkId.c_str());
                                 }
                             }
 
                             //弹出引用对象
-                            lua_pop(state, 1);
+                            LuaEngineAdapter::pop(state, 1);
                             break;
                         }
                         default:
@@ -606,17 +611,17 @@ void LuaDataExchanger::doObjectAction(std::string linkId, LuaObjectAction action
                     }
 
                     //弹出_retainVars_
-                    lua_pop(state, 1);
+                    LuaEngineAdapter::pop(state, 1);
                 }
                 //弹出变量
-                lua_pop(state, 1);
+                LuaEngineAdapter::pop(state, 1);
             }
 
             //弹出_vars_
-            lua_pop(state, 1);
+            LuaEngineAdapter::pop(state, 1);
         }
 
         //弹出_G
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
     }
 }

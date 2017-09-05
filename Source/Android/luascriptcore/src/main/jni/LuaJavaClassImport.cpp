@@ -11,6 +11,7 @@
 #include "LuaJavaConverter.h"
 #include "LuaSession.h"
 #include "LuaDefine.h"
+#include "LuaEngineAdapter.hpp"
 
 using namespace cn::vimfung::luascriptcore::modules::oo;
 using namespace cn::vimfung::luascriptcore;
@@ -84,7 +85,7 @@ static bool _checkObjectSubclassFunc (LuaContext *context,
         jstring moduleName = (jstring)env -> CallStaticObjectMethod(moduleCls, moduleNameMethodId, cls);
         const char *moduleNameCStr = env -> GetStringUTFChars(moduleName, NULL);
 
-        lua_getglobal(context -> getCurrentSession() -> getState(), moduleNameCStr);
+        LuaEngineAdapter::getGlobal(context -> getCurrentSession() -> getState(), moduleNameCStr);
 
         env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
         env -> DeleteLocalRef(moduleName);

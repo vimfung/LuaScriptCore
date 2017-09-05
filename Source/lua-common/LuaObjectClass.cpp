@@ -11,6 +11,7 @@
 #include "LuaValue.h"
 #include "LuaTuple.h"
 #include "LuaSession.h"
+#include "LuaEngineAdapter.hpp"
 
 using namespace cn::vimfung::luascriptcore;
 using namespace cn::vimfung::luascriptcore::modules::oo;
@@ -24,10 +25,10 @@ using namespace cn::vimfung::luascriptcore::modules::oo;
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
     LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
-    if (lua_gettop(state) > 0 && lua_isuserdata(state, 1))
+    if (LuaEngineAdapter::getTop(state) > 0 && LuaEngineAdapter::isUserdata(state, 1))
     {
         LuaArgumentList args;
         session -> parseArguments(args);
@@ -40,20 +41,20 @@ static int objectDestroyHandler (lua_State *state)
         }
 
         //调用实例对象的destroy方法
-        lua_pushvalue(state, 1);
+        LuaEngineAdapter::pushValue(state, 1);
 
-        lua_getfield(state, -1, "destroy");
-        if (lua_isfunction(state, -1))
+        LuaEngineAdapter::getField(state, -1, "destroy");
+        if (LuaEngineAdapter::isFunction(state, -1))
         {
-            lua_pushvalue(state, 1);
-            lua_pcall(state, 1, 0, 0);
+            LuaEngineAdapter::pushValue(state, 1);
+            LuaEngineAdapter::pCall(state, 1, 0, 0);
         }
         else
         {
-            lua_pop(state, 1);
+            LuaEngineAdapter::pop(state, 1);
         }
 
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
         
         for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
         {
@@ -80,12 +81,12 @@ static int objectToStringHandler (lua_State *state)
 {
     std::string desc;
 
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
     LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
-    if (lua_gettop(state) > 0)
+    if (LuaEngineAdapter::getTop(state) > 0)
     {
-        int type = lua_type(state, 1);
+        int type = LuaEngineAdapter::type(state, 1);
 
         //由于加入了实例的super对象，因此需要根据不同类型进行不同输出。since ver 1.3
         switch (type)
@@ -107,30 +108,30 @@ static int objectToStringHandler (lua_State *state)
                     char strbuf[256] = {0};
                     int size = sprintf(strbuf, "[%s object]", objectClass -> getName().c_str());
                     strbuf[size] = '\0';
-
-                    lua_pushstring(state, strbuf);
+                    
+                    LuaEngineAdapter::pushString(state, strbuf);
                 }
                 else
                 {
-                    lua_pushstring(state, desc.c_str());
+                    LuaEngineAdapter::pushString(state, desc.c_str());
                 }
                 break;
             }
             case LUA_TTABLE:
             {
-                lua_pushstring(state, "<SuperClass Type>");
+                LuaEngineAdapter::pushString(state, "<SuperClass Type>");
                 break;
             }
             default:
             {
-                lua_pushstring(state, "<Unknown Type>");
+                LuaEngineAdapter::pushString(state, "<Unknown Type>");
                 break;
             }
         }
     }
     else
     {
-        lua_pushstring(state, "<Unknown Type>");
+        LuaEngineAdapter::pushString(state, "<Unknown Type>");
     }
 
     objectClass -> getContext() -> destorySession(session);
@@ -147,7 +148,7 @@ static int objectToStringHandler (lua_State *state)
  */
 static int objectCreateHandler (lua_State *state)
 {
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(2));
     LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     if (objectClass -> getObjectCreatedHandler() != NULL)
@@ -156,24 +157,24 @@ static int objectCreateHandler (lua_State *state)
     }
 
     //调用实例对象的init方法
-    lua_getfield(state, -1, "init");
-    if (lua_isfunction(state, -1))
+    LuaEngineAdapter::getField(state, -1, "init");
+    if (LuaEngineAdapter::isFunction(state, -1))
     {
-        lua_pushvalue(state, -2);
+        LuaEngineAdapter::pushValue(state, -2);
 
         //将create传入的参数传递给init方法
         //-3 代表有3个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象
-        int paramCount = lua_gettop(state) - 3;
+        int paramCount = LuaEngineAdapter::getTop(state) - 3;
         for (int i = 1; i <= paramCount; i++)
         {
-            lua_pushvalue(state, i);
+            LuaEngineAdapter::pushValue(state, 1);
         }
 
-        lua_pcall(state, paramCount + 1, 0, 0);
+        LuaEngineAdapter::pCall(state, paramCount + 1, 0, 0);
     }
     else
     {
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
     }
 
     objectClass -> getContext() -> destorySession(session);
@@ -189,16 +190,16 @@ static int objectCreateHandler (lua_State *state)
  */
 static int instanceNewIndexHandler (lua_State *state)
 {
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
     LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     //先找到实例对象的元表，向元表添加属性
-    lua_getmetatable(state, 1);
-    if (lua_istable(state, -1))
+    LuaEngineAdapter::getMetatable(state, 1);
+    if (LuaEngineAdapter::isTable(state, -1))
     {
-        lua_pushvalue(state, 2);
-        lua_pushvalue(state, 3);
-        lua_rawset(state, -3);
+        LuaEngineAdapter::pushValue(state, 2);
+        LuaEngineAdapter::pushValue(state, 3);
+        LuaEngineAdapter::rawSet(state, -3);
     }
 
     objectClass -> getContext() -> destorySession(session);
@@ -215,12 +216,12 @@ static int instanceNewIndexHandler (lua_State *state)
  */
 static int subClassHandler (lua_State *state)
 {
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(2));
     LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
-    if (lua_gettop(state) > 0)
+    if (LuaEngineAdapter::getTop(state) > 0)
     {
-        const char *subclassName = luaL_checkstring(state, 1);
+        const char *subclassName = LuaEngineAdapter::checkString(state, 1);
 
         if (objectClass -> getSubClassHandler() != NULL)
         {
@@ -241,33 +242,33 @@ static int subClassHandler (lua_State *state)
  */
 static int subclassOfHandler (lua_State *state)
 {
-    if (lua_gettop(state) == 0)
+    if (LuaEngineAdapter::getTop(state) == 0)
     {
-        lua_pushboolean(state, false);
+        LuaEngineAdapter::pushBoolean(state, false);
         return 1;
     }
 
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(2));
     LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
-    if (lua_type(state, 1) == LUA_TTABLE)
+    if (LuaEngineAdapter::type(state, 1) == LUA_TTABLE)
     {
-        lua_getfield(state, 1, "_nativeClass");
-        if (lua_type(state, -1) == LUA_TLIGHTUSERDATA)
+        LuaEngineAdapter::getField(state, 1, "_nativeClass");
+        if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
         {
-            LuaObjectClass *checkClass = (LuaObjectClass *)lua_touserdata(state, -1);
+            LuaObjectClass *checkClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, -1);
 
             bool flag = objectClass -> subclassOf(checkClass);
-            lua_pushboolean(state, flag);
+            LuaEngineAdapter::pushBoolean(state, flag);
         }
         else
         {
-            lua_pushboolean(state, false);
+            LuaEngineAdapter::pushBoolean(state, false);
         }
     }
     else
     {
-        lua_pushboolean(state, false);
+        LuaEngineAdapter::pushBoolean(state, false);
     }
 
     objectClass -> getContext() -> destorySession(session);
@@ -283,37 +284,37 @@ static int subclassOfHandler (lua_State *state)
  */
 static int instanceOfHandler (lua_State *state)
 {
-    if (lua_gettop(state) < 2)
+    if (LuaEngineAdapter::getTop(state) < 2)
     {
-        lua_pushboolean(state, false);
+        LuaEngineAdapter::pushBoolean(state, false);
         return 1;
     }
 
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(2));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(2));
     LuaSession *session = objectClass -> getContext() -> makeSession(state);
 
     //表示有实例对象传入
-    LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
+    LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::toUserdata(state, 1);
     LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)ref -> value;
 
-    if (lua_type(state, 2) == LUA_TTABLE)
+    if (LuaEngineAdapter::type(state, 2) == LUA_TTABLE)
     {
-        lua_getfield(state, 2, "_nativeClass");
-        if (lua_type(state, -1) == LUA_TLIGHTUSERDATA)
+        LuaEngineAdapter::getField(state, 2, "_nativeClass");
+        if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
         {
-            LuaObjectClass *objectClass = (LuaObjectClass *)lua_topointer(state, -1);
+            LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toPointer(state, -1);
 
             bool flag = objDesc -> instanceOf(objectClass);
-            lua_pushboolean(state, flag);
+            LuaEngineAdapter::pushBoolean(state, flag);
         }
         else
         {
-            lua_pushboolean(state, false);
+            LuaEngineAdapter::pushBoolean(state, false);
         }
     }
     else
     {
-        lua_pushboolean(state, false);
+        LuaEngineAdapter::pushBoolean(state, false);
     }
 
     objectClass -> getContext() -> destorySession(session);
@@ -332,16 +333,16 @@ static int instanceMethodRouteHandler(lua_State *state)
 {
     int returnCount = 0;
 
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    std::string methodName = lua_tostring(state, lua_upvalueindex(2));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
+    std::string methodName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(2));
 
-    if (lua_type(state, 1) != LUA_TUSERDATA)
+    if (LuaEngineAdapter::type(state, 1) != LUA_TUSERDATA)
     {
         std::string errMsg = "call " + methodName + " method error : missing self parameter, please call by instance:methodName(param)";
         objectClass -> getContext() -> raiseException(errMsg);
 
         //回收内存
-        lua_gc(state, LUA_GCCOLLECT, 0);
+        LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
 
         return 0;
     }
@@ -393,16 +394,16 @@ static int instanceMethodRouteHandler(lua_State *state)
  */
 static int instanceSetterRouteHandler (lua_State *state)
 {
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    std::string fieldName = lua_tostring(state, lua_upvalueindex(2));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
+    std::string fieldName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(2));
 
-    if (lua_type(state, 1) != LUA_TUSERDATA)
+    if (LuaEngineAdapter::type(state, 1) != LUA_TUSERDATA)
     {
         std::string errMsg = "call " + fieldName + " method error : missing self parameter, please call by instance:methodName(param)";
         objectClass -> getContext() -> raiseException(errMsg);
 
         //回收内存
-        lua_gc(state, LUA_GCCOLLECT, 0);
+        LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
 
         return 0;
     }
@@ -450,16 +451,16 @@ static int instanceSetterRouteHandler (lua_State *state)
  */
 static int instanceGetterRouteHandler (lua_State *state)
 {
-    LuaObjectClass *objectClass = (LuaObjectClass *)lua_touserdata(state, lua_upvalueindex(1));
-    std::string fieldName = lua_tostring(state, lua_upvalueindex(2));
+    LuaObjectClass *objectClass = (LuaObjectClass *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
+    std::string fieldName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(2));
 
-    if (lua_type(state, 1) != LUA_TUSERDATA)
+    if (LuaEngineAdapter::type(state, 1) != LUA_TUSERDATA)
     {
         std::string errMsg = "call " + fieldName + " method error : missing self parameter, please call by instance:methodName(param)";
         objectClass -> getContext() -> raiseException(errMsg);
 
         //回收内存
-        lua_gc(state, LUA_GCCOLLECT, 0);
+        LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
 
         return 0;
     }
@@ -531,115 +532,115 @@ void LuaObjectClass::onRegister(const std::string &name, LuaContext *context)
     LuaModule::onRegister(name, context);
 
     lua_State *state = context -> getMainSession() -> getState();
-    lua_getglobal(state, name.c_str());
+    LuaEngineAdapter::getGlobal(state, name.c_str());
 
-    if (lua_istable(state, -1))
+    if (LuaEngineAdapter::isTable(state, -1))
     {
         //关联本地类型
-        lua_pushlightuserdata(state, this);
-        lua_setfield(state, -2, "_nativeClass");
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::setField(state, -2, "_nativeClass");
 
         //设置类型名称。since ver 1.3
-        lua_pushstring(state, name.c_str());
-        lua_setfield(state, -2, "name");
+        LuaEngineAdapter::pushString(state, name.c_str());
+        LuaEngineAdapter::setField(state, -2, "name");
 
         //关联索引
-        lua_pushvalue(state, -1);
-        lua_setfield(state, -2, "__index");
+        LuaEngineAdapter::pushValue(state, -1);
+        LuaEngineAdapter::setField(state, -2, "__index");
 
         //创建方法
-        lua_pushlightuserdata(state, context);
-        lua_pushlightuserdata(state, this);
-        lua_pushcclosure(state, objectCreateHandler, 2);
-        lua_setfield(state, -2, "create");
+        LuaEngineAdapter::pushLightUserdata(state, context);
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushCClosure(state, objectCreateHandler, 2);
+        LuaEngineAdapter::setField(state, -2, "create");
 
         //子类化对象方法
-        lua_pushlightuserdata(state, context);
-        lua_pushlightuserdata(state, this);
-        lua_pushcclosure(state, subClassHandler, 2);
-        lua_setfield(state, -2, "subclass");
+        LuaEngineAdapter::pushLightUserdata(state, context);
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushCClosure(state, subClassHandler, 2);
+        LuaEngineAdapter::setField(state, -2, "subclass");
 
         //增加子类判断方法, since ver 1.3
-        lua_pushlightuserdata(state, context);
-        lua_pushlightuserdata(state, this);
-        lua_pushcclosure(state, subclassOfHandler, 2);
-        lua_setfield(state, -2, "subclassOf");
+        LuaEngineAdapter::pushLightUserdata(state, context);
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushCClosure(state, subclassOfHandler, 2);
+        LuaEngineAdapter::setField(state, -2, "subclassOf");
 
         if (_superClass != NULL)
         {
             //存在父类，则直接设置父类为元表
             std::string superClassName = _superClass -> getName();
-            lua_getglobal(state, superClassName.c_str());
-            if (lua_istable(state, -1))
+            LuaEngineAdapter::getGlobal(state, superClassName.c_str());
+            if (LuaEngineAdapter::isTable(state, -1))
             {
                 //关联父类
-                lua_pushvalue(state, -1);
-                lua_setfield(state, -3, "super");
+                LuaEngineAdapter::pushValue(state, -1);
+                LuaEngineAdapter::setField(state, -3, "super");
 
                 //设置父类元表
-                lua_setmetatable(state, -2);
+                LuaEngineAdapter::setMetatable(state, -2);
             }
             else
             {
-                lua_pop(state, 1);
+                LuaEngineAdapter::pop(state, 1);
             }
         }
 
         //创建类实例元表
         std::string metaName = _getMetaClassName(name);
-        luaL_newmetatable(state, metaName.c_str());
+        LuaEngineAdapter::newMetatable(state, metaName.c_str());
 
-        lua_pushlightuserdata(state, this);
-        lua_setfield(state, -2, "_nativeClass");
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::setField(state, -2, "_nativeClass");
 
-        lua_pushvalue(state, -1);
-        lua_setfield(state, -2, "__index");
+        LuaEngineAdapter::pushValue(state, -1);
+        LuaEngineAdapter::setField(state, -2, "__index");
 
-        lua_pushlightuserdata(state, this);
-        lua_pushcclosure(state, objectDestroyHandler, 1);
-        lua_setfield(state, -2, "__gc");
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushCClosure(state, objectDestroyHandler, 1);
+        LuaEngineAdapter::setField(state, 2, "__gc");
 
-        lua_pushlightuserdata(state, this);
-        lua_pushcclosure(state, objectToStringHandler, 1);
-        lua_setfield(state, -2, "__tostring");
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushCClosure(state, objectToStringHandler, 1);
+        LuaEngineAdapter::setField(state, -2, "__tostring");
 
         //给类元表绑定该实例元表
-        lua_getglobal(state, name.c_str());
-        lua_pushvalue(state, -2);
-        lua_setfield(state, -2, "prototype");
-        lua_pop(state, 1);
+        LuaEngineAdapter::getGlobal(state, name.c_str());
+        LuaEngineAdapter::pushValue(state, -2);
+        LuaEngineAdapter::setField(state, -2, "prototype");
+        LuaEngineAdapter::pop(state, 1);
 
         if (_superClass != NULL)
         {
             //获取父级元表
             std::string superClassMetaName = _getMetaClassName(_superClass -> getName());
-            luaL_getmetatable(state, superClassMetaName.c_str());
-            if (lua_istable(state, -1))
+            LuaEngineAdapter::getMetatable(state, superClassMetaName.c_str());
+            if (LuaEngineAdapter::isTable(state, -1))
             {
                 //设置父类访问属性 since ver 1.3
-                lua_pushvalue(state, -1);
-                lua_setfield(state, -3, "super");
+                LuaEngineAdapter::pushValue(state, -1);
+                LuaEngineAdapter::setField(state, -3, "super");
 
                 //设置父类元表
-                lua_setmetatable(state, -2);
+                LuaEngineAdapter::setMetatable(state, -2);
             }
             else
             {
-                lua_pop(state, 1);
+                LuaEngineAdapter::pop(state, 1);
             }
         }
         else
         {
             //Object类需要增加一些特殊方法
             //创建instanceOf方法 since ver 1.3
-            lua_pushlightuserdata(state, context);
-            lua_pushlightuserdata(state, this);
-            lua_pushcclosure(state, instanceOfHandler, 2);
-            lua_setfield(state, -2, "instanceOf");
+            LuaEngineAdapter::pushLightUserdata(state, context);
+            LuaEngineAdapter::pushLightUserdata(state, this);
+            LuaEngineAdapter::pushCClosure(state, instanceOfHandler, 2);
+            LuaEngineAdapter::setField(state, -2, "instanceOf");
         }
     }
 
-    lua_pop(state, 1);
+    LuaEngineAdapter::pop(state, 1);
 }
 
 LuaClassObjectCreatedHandler LuaObjectClass::getObjectCreatedHandler()
@@ -673,17 +674,17 @@ void LuaObjectClass::registerInstanceField(std::string fieldName, LuaInstanceGet
 
     lua_State *state = getContext() -> getMainSession() -> getState();
     std::string metaClassName = _getMetaClassName(getName());
-    luaL_getmetatable(state, metaClassName.c_str());
-    if (lua_istable(state, -1))
+    LuaEngineAdapter::getMetatable(state, metaClassName.c_str());
+    if (LuaEngineAdapter::isTable(state, -1))
     {
         //设置Setter方法
         if (setterHandler != NULL)
         {
-            lua_pushlightuserdata(state, this);
-            lua_pushstring(state, fieldName.c_str());
-            lua_pushcclosure(state, instanceSetterRouteHandler, 2);
+            LuaEngineAdapter::pushLightUserdata(state, this);
+            LuaEngineAdapter::pushString(state, fieldName.c_str());
+            LuaEngineAdapter::pushCClosure(state, instanceSetterRouteHandler, 2);
 
-            lua_setfield(state, -2, setterMethodName.c_str());
+            LuaEngineAdapter::setField(state, -2, setterMethodName.c_str());
 
             _instanceSetterMap[fieldName] = setterHandler;
         }
@@ -691,17 +692,17 @@ void LuaObjectClass::registerInstanceField(std::string fieldName, LuaInstanceGet
         //注册Getter方法
         if (getterHandler != NULL)
         {
-            lua_pushlightuserdata(state, this);
-            lua_pushstring(state, fieldName.c_str());
-            lua_pushcclosure(state, instanceGetterRouteHandler, 2);
+            LuaEngineAdapter::pushLightUserdata(state, this);
+            LuaEngineAdapter::pushString(state, fieldName.c_str());
+            LuaEngineAdapter::pushCClosure(state, instanceGetterRouteHandler, 2);
             
-            lua_setfield(state, -2, fieldName.c_str());
+            LuaEngineAdapter::setField(state, -2, fieldName.c_str());
             
             _instanceGetterMap[fieldName] = getterHandler;
         }
     }
 
-    lua_pop(state, 1);
+    LuaEngineAdapter::pop(state, 1);
 }
 
 LuaObjectClass* LuaObjectClass::getSupuerClass()
@@ -741,18 +742,18 @@ void LuaObjectClass::registerInstanceMethod(
 {
     lua_State *state = getContext() -> getMainSession() -> getState();
     std::string metaClassName = _getMetaClassName(getName());
-    luaL_getmetatable(state, metaClassName.c_str());
-    if (lua_istable(state, -1))
+    LuaEngineAdapter::getMetatable(state, metaClassName.c_str());
+    if (LuaEngineAdapter::isTable(state, -1))
     {
-        lua_pushlightuserdata(state, this);
-        lua_pushstring(state, methodName.c_str());
-        lua_pushcclosure(state, instanceMethodRouteHandler, 2);
-        lua_setfield(state, -2, methodName.c_str());
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushString(state, methodName.c_str());
+        LuaEngineAdapter::pushCClosure(state, instanceMethodRouteHandler, 2);
+        LuaEngineAdapter::setField(state, -2, methodName.c_str());
 
         _instanceMethodMap[methodName] = handler;
     }
 
-    lua_pop(state, 1);
+    LuaEngineAdapter::pop(state, 1);
 }
 
 LuaInstanceMethodHandler LuaObjectClass::getInstanceMethodHandler(std::string methodName)
@@ -793,7 +794,7 @@ void LuaObjectClass::createLuaInstance(LuaObjectInstanceDescriptor *objectDescri
     lua_State *state = getContext() -> getCurrentSession() -> getState();
 
     //先为实例对象在lua中创建内存
-    LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
+    LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::newUserdata(state, sizeof(LuaUserdataRef));
     //创建本地实例对象，赋予lua的内存块并进行保留引用
     ref -> value = objectDescriptor;
 
@@ -801,38 +802,38 @@ void LuaObjectClass::createLuaInstance(LuaObjectInstanceDescriptor *objectDescri
     objectDescriptor -> retain();
 
     //创建一个临时table作为元表，用于在lua上动态添加属性或方法
-    lua_newtable(state);
+    LuaEngineAdapter::newTable(state);
 
-    lua_pushvalue(state, -1);
-    lua_setfield(state, -2, "__index");
+    LuaEngineAdapter::pushValue(state, -1);
+    LuaEngineAdapter::setField(state, -2, "__index");
 
-    lua_pushlightuserdata(state, this);
-    lua_pushcclosure(state, instanceNewIndexHandler, 1);
-    lua_setfield(state, -2, "__newindex");
+    LuaEngineAdapter::pushLightUserdata(state, this);
+    LuaEngineAdapter::pushCClosure(state, instanceNewIndexHandler, 1);
+    LuaEngineAdapter::setField(state, -2, "__newindex");
+    
+    LuaEngineAdapter::pushLightUserdata(state, this);
+    LuaEngineAdapter::pushCClosure(state, objectDestroyHandler, 1);
+    LuaEngineAdapter::setField(state, -2, "__gc");
 
-    lua_pushlightuserdata(state, this);
-    lua_pushcclosure(state, objectDestroyHandler, 1);
-    lua_setfield(state, -2, "__gc");
+    LuaEngineAdapter::pushLightUserdata(state, this);
+    LuaEngineAdapter::pushCClosure(state, objectToStringHandler, 1);
+    LuaEngineAdapter::setField(state, -2, "__tostring");
 
-    lua_pushlightuserdata(state, this);
-    lua_pushcclosure(state, objectToStringHandler, 1);
-    lua_setfield(state, -2, "__tostring");
-
-    lua_pushvalue(state, -1);
-    lua_setmetatable(state, -3);
+    LuaEngineAdapter::pushValue(state, -1);
+    LuaEngineAdapter::setMetatable(state, -3);
 
     std::string metaClassName = _getMetaClassName(getName());
-    luaL_getmetatable(state, metaClassName.c_str());
-    if (lua_istable(state, -1))
+    LuaEngineAdapter::getMetatable(state, metaClassName.c_str());
+    if (LuaEngineAdapter::isTable(state, -1))
     {
-        lua_setmetatable(state, -2);
+        LuaEngineAdapter::setMetatable(state, -2);
     }
     else
     {
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
     }
 
-    lua_pop(state, 1);
+    LuaEngineAdapter::pop(state, 1);
 }
 
 void LuaObjectClass::push(LuaObjectInstanceDescriptor *objectDescriptor)
@@ -843,15 +844,15 @@ void LuaObjectClass::push(LuaObjectInstanceDescriptor *objectDescriptor)
     createLuaInstance(objectDescriptor);
 
     //调用默认init
-    lua_getfield(state, -1, "init");
-    if (lua_isfunction(state, -1))
+    LuaEngineAdapter::getField(state, -1, "init");
+    if (LuaEngineAdapter::isFunction(state, -1))
     {
-        lua_pushvalue(state, -2);
-        lua_pcall(state, 1, 0, 0);
+        LuaEngineAdapter::pushValue(state, -2);
+        LuaEngineAdapter::pCall(state, 1, 0, 0);
     }
     else
     {
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
     }
 }
 

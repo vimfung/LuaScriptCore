@@ -15,6 +15,39 @@
 
 #include "luaconf.h"
 
+#define LUA_PLATFORM_WINDOWS 1
+#define LUA_PLATFORM_OSX 2
+#define LUA_PLATFORM_IOS 3
+#define LUA_PLATFORM_ANDROID 4
+#define LUA_PLATFORM_UNITY_EDITOR 5
+#define LUA_PLATFORM_OTHER 100
+
+#if TARGET_UNITY_EDITOR
+
+//Unity Editor
+#define LUA_PLATFORM LUA_PLATFORM_UNITY_EDITOR
+
+#elif TARGET_OS_IPHONE
+
+// iOS
+#define LUA_PLATFORM LUA_PLATFORM_IOS
+
+#elif TARGET_OS_MAC
+
+// OSX
+#define LUA_PLATFORM LUA_PLATFORM_OSX
+
+#else
+
+#ifdef __ANDROID_API__
+
+//设置为Android平台
+#define LUA_PLATFORM LUA_PLATFORM_ANDROID
+
+#endif
+
+#endif
+
 
 #define LUA_VERSION	"Lua 5.1"
 #define LUA_RELEASE	"Lua 5.1.5"
