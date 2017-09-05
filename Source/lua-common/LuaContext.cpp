@@ -10,6 +10,7 @@
 #include "LuaTuple.h"
 #include "LuaDataExchanger.h"
 #include "LuaSession.h"
+#include "LuaEngineAdapter.hpp"
 #include <map>
 #include <list>
 #include <iostream>
@@ -21,8 +22,8 @@ static int methodRouteHandler(lua_State *state) {
 
     int returnCount = 0;
 
-    LuaContext *context = (LuaContext *)lua_touserdata(state, lua_upvalueindex(1));
-    const char *methodName = lua_tostring(state, lua_upvalueindex(2));
+    LuaContext *context = (LuaContext *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
+    const char *methodName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(2));
 
     LuaMethodHandler handler = context-> getMethodHandler(methodName);
     if (handler != NULL)
@@ -59,13 +60,13 @@ LuaContext::LuaContext()
         : LuaObject()
 {
     _exceptionHandler = NULL;
-    lua_State *state = luaL_newstate();
+    lua_State *state = LuaEngineAdapter::newState();
     _dataExchanger = new LuaDataExchanger(this);
 
-    lua_gc(state, LUA_GCSTOP, 0);
+    LuaEngineAdapter::GC(state, LUA_GCSTOP, 0);
     //加载标准库
-    luaL_openlibs(state);
-    lua_gc(state, LUA_GCRESTART, 0);
+    LuaEngineAdapter::openLibs(state);
+    LuaEngineAdapter::GC(state, LUA_GCRESTART, 0);
 
     _mainSession = new LuaSession(state, this);
     _currentSession = NULL;
@@ -80,7 +81,7 @@ LuaContext::~LuaContext()
         module -> release();
     }
 
-    lua_close(_mainSession -> getState());
+    LuaEngineAdapter::close(_mainSession -> getState());
 }
 
 LuaSession* LuaContext::getMainSession()
@@ -140,30 +141,30 @@ void LuaContext::raiseException (std::string message)
 void LuaContext::addSearchPath(std::string path)
 {
     lua_State *state = _mainSession -> getState();
-    lua_getglobal(state, "package");
-    lua_getfield(state, -1, "path");
+    LuaEngineAdapter::getGlobal(state, "package");
+    LuaEngineAdapter::getField(state, -1, "path");
 
     //取出当前路径，并附加新路径
-    std::string curPath = lua_tostring(state, -1);
+    std::string curPath = LuaEngineAdapter::toString(state, -1);
     path = curPath + ";" + path;
 
-    lua_pop(state, 1);
-    lua_pushstring(state, path.c_str());
-    lua_setfield(state, -2, "path");
-    lua_pop(state, 1);
+    LuaEngineAdapter::pop(state, 1);
+    LuaEngineAdapter::pushString(state, path.c_str());
+    LuaEngineAdapter::setField(state, -2, "path");
+    LuaEngineAdapter::pop(state, 1);
 }
 
 void LuaContext::setGlobal(std::string name, LuaValue *value)
 {
     lua_State *state = _mainSession -> getState();
     value -> push(this);
-    lua_setglobal(state, name.c_str());
+    LuaEngineAdapter::setGlobal(state, name.c_str());
 }
 
 LuaValue* LuaContext::getGlobal(std::string name)
 {
     lua_State *state = _mainSession -> getState();
-    lua_getglobal(state, name.c_str());
+    LuaEngineAdapter::getGlobal(state, name.c_str());
     return LuaValue::ValueByIndex(this, -1);
 }
 
@@ -172,14 +173,14 @@ LuaValue* LuaContext::evalScript(std::string script)
     lua_State *state = _mainSession -> getState();
     LuaValue *retValue = NULL;
 
-    int curTop = lua_gettop(state);
+    int curTop = LuaEngineAdapter::getTop(state);
     int returnCount = 0;
 
-    luaL_loadstring(state, script.c_str());
-    if (lua_pcall(state, 0, LUA_MULTRET, 0) == 0)
+    LuaEngineAdapter::loadString(state, script.c_str());
+    if (LuaEngineAdapter::pCall(state, 0, LUA_MULTRET, 0) == 0)
     {
         //调用成功
-        returnCount = lua_gettop(state) - curTop;
+        returnCount = LuaEngineAdapter::getTop(state) - curTop;
 
         if (returnCount > 1)
         {
@@ -214,7 +215,7 @@ LuaValue* LuaContext::evalScript(std::string script)
     }
 
     //弹出返回值
-    lua_pop(state, returnCount);
+    LuaEngineAdapter::pop(state, returnCount);
 
     if (retValue == NULL)
     {
@@ -222,7 +223,7 @@ LuaValue* LuaContext::evalScript(std::string script)
     }
 
     //释放内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
 
     return retValue;
 }
@@ -232,14 +233,14 @@ LuaValue* LuaContext::evalScriptFromFile(std::string path)
     lua_State *state = _mainSession -> getState();
     LuaValue *retValue = NULL;
 
-    int curTop = lua_gettop(state);
+    int curTop = LuaEngineAdapter::getTop(state);
     int returnCount = 0;
 
-    luaL_loadfile(state, path.c_str());
-    if (lua_pcall(state, 0, LUA_MULTRET, 0) == 0)
+    LuaEngineAdapter::loadFile(state, path.c_str());
+    if (LuaEngineAdapter::pCall(state, 0, LUA_MULTRET, 0) == 0)
     {
         //调用成功
-        returnCount = lua_gettop(state) - curTop;
+        returnCount = LuaEngineAdapter::getTop(state) - curTop;
 
         if (returnCount > 1)
         {
@@ -274,7 +275,7 @@ LuaValue* LuaContext::evalScriptFromFile(std::string path)
     }
 
     //弹出返回值
-    lua_pop(state, returnCount);
+    LuaEngineAdapter::pop(state, returnCount);
 
     if (retValue == NULL)
     {
@@ -282,7 +283,7 @@ LuaValue* LuaContext::evalScriptFromFile(std::string path)
     }
 
     //释放内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
 
     return retValue;
 }
@@ -293,10 +294,10 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
 
     LuaValue *resultValue = NULL;
 
-    int curTop = lua_gettop(state);
+    int curTop = LuaEngineAdapter::getTop(state);
 
-    lua_getglobal(state, methodName.c_str());
-    if (lua_isfunction(state, -1))
+    LuaEngineAdapter::getGlobal(state, methodName.c_str());
+    if (LuaEngineAdapter::isFunction(state, -1))
     {
         int returnCount = 0;
 
@@ -308,10 +309,10 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
             item->push(this);
         }
 
-        if (lua_pcall(state, (int)arguments -> size(), LUA_MULTRET, 0) == 0)
+        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, 0) == 0)
         {
             //调用成功
-            returnCount = lua_gettop(state) - curTop;
+            returnCount = LuaEngineAdapter::getTop(state) - curTop;
             if (returnCount > 1)
             {
                 LuaTuple *tuple = new LuaTuple();
@@ -344,12 +345,12 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
             value -> release();
         }
 
-        lua_pop(state, returnCount);
+        LuaEngineAdapter::pop(state, returnCount);
     }
     else
     {
         //将变量从栈中移除
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
     }
 
     if (resultValue == NULL)
@@ -358,7 +359,7 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
     }
 
     //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
 
     return resultValue;
 }
@@ -371,10 +372,10 @@ void LuaContext::registerMethod(std::string methodName, LuaMethodHandler handler
     {
         _methodMap[methodName] = handler;
 
-        lua_pushlightuserdata(state, this);
-        lua_pushstring(state, methodName.c_str());
-        lua_pushcclosure(state, methodRouteHandler, 2);
-        lua_setglobal(state, methodName.c_str());
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushString(state, methodName.c_str());
+        LuaEngineAdapter::pushCClosure(state, methodRouteHandler, 2);
+        LuaEngineAdapter::setGlobal(state, methodName.c_str());
     }
 }
 
@@ -403,9 +404,9 @@ bool LuaContext::isModuleRegisted(const std::string &moduleName)
 {
     lua_State *state = _mainSession -> getState();
 
-    lua_getglobal(state, moduleName.c_str());
-    bool retValue = lua_isnil(state, -1);
-    lua_pop(state, 1);
+    LuaEngineAdapter::getGlobal(state, moduleName.c_str());
+    bool retValue = LuaEngineAdapter::isNil(state, -1);
+    LuaEngineAdapter::pop(state, 1);
 
     return !retValue;
 }

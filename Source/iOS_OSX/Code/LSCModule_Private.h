@@ -22,6 +22,14 @@ static NSString *const NativeModuleType = @"module";
 @interface LSCModule ()
 
 /**
+ 获取模块名称
+
+ @param cls 模块类型
+ @return 名称
+ */
++ (NSString *)_getModuleNameWithClass:(Class)cls;
+
+/**
  *  获取Lua方法名称，需要过滤冒号后面所有内容以及带With、By、At等
  *
  *  @param name 原始方法

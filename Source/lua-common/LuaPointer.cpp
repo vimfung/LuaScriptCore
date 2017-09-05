@@ -9,6 +9,7 @@
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectEncoder.hpp"
 #include "LuaNativeClass.hpp"
+#include "LuaEngineAdapter.hpp"
 #include "StringUtils.h"
 #include "LuaContext.h"
 #include "LuaSession.h"
@@ -87,5 +88,5 @@ std::string LuaPointer::getLinkId()
 void LuaPointer::push(LuaContext *context)
 {
     lua_State *state = context -> getCurrentSession() -> getState();
-    lua_pushlightuserdata(state, getValue());
+    LuaEngineAdapter::pushLightUserdata(state, getValue());
 }

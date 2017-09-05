@@ -15,6 +15,7 @@
 #import "LSCManagedObjectProtocol.h"
 #import "LSCObjectClass.h"
 #import "LSCEngineAdapter.h"
+#import "LSCModule_Private.h"
 #import <objc/runtime.h>
 
 /**
@@ -99,7 +100,7 @@ static NSString *const ProxyTableName = @"_import_classes_";
         [session.context registerModuleWithClass:cls];
         
         //返回模块类
-        NSString *moduleName = [cls moduleName];
+        NSString *moduleName = [LSCModule _getModuleNameWithClass:cls];
         [LSCEngineAdapter getGlobal:state name:moduleName.UTF8String];
         return 1;
     }

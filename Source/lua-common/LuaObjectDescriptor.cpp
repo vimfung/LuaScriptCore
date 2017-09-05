@@ -8,6 +8,7 @@
 #include "LuaObjectDecoder.hpp"
 #include "LuaContext.h"
 #include "LuaNativeClass.hpp"
+#include "LuaEngineAdapter.hpp"
 #include "StringUtils.h"
 #include "LuaSession.h"
 #include <typeinfo>
@@ -33,7 +34,7 @@ static int objectReferenceGCHandler(lua_State *state)
     using namespace cn::vimfung::luascriptcore;
 
     //释放对象
-    LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
+    LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::toUserdata(state, 1);
     LuaObjectDescriptor *descriptor = (LuaObjectDescriptor *)(ref -> value);
     descriptor -> release();
 
@@ -133,23 +134,24 @@ void LuaObjectDescriptor::push(LuaContext *context)
     lua_State *state = context -> getCurrentSession() -> getState();
 
     //创建userdata
-    LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
+    LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::newUserdata(state, sizeof(LuaUserdataRef));
     ref -> value = this;
     this -> retain();
 
     //设置userdata的元表
-    luaL_getmetatable(state, "_ObjectReference_");
-    if (lua_isnil(state, -1))
+    LuaEngineAdapter::getMetatable(state, "_ObjectReference_");
+    if (LuaEngineAdapter::isNil(state, -1))
     {
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
 
         //尚未注册_ObjectReference,开始注册对象
-        luaL_newmetatable(state, "_ObjectReference_");
+        LuaEngineAdapter::newMetatable(state, "_ObjectReference_");
 
-        lua_pushcfunction(state, objectReferenceGCHandler);
-        lua_setfield(state, -2, "__gc");
+        LuaEngineAdapter::pushCFunction(state, objectReferenceGCHandler);
+        LuaEngineAdapter::setField(state, -2, "__gc");
     }
-    lua_setmetatable(state, -2);
+    
+    LuaEngineAdapter::setMetatable(state, -2);
 }
 
 void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
