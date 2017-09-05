@@ -485,7 +485,7 @@ void LuaDataExchanger::pushStackByTable(LuaValueList *list)
 
     LuaEngineAdapter::newTable(state);
 
-    lua_Integer index = 1;
+    int index = 1;
     for (LuaValueList::iterator it = list -> begin(); it != list -> end(); ++it)
     {
         LuaValue *item = *it;
