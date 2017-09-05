@@ -1,0 +1,97 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '25.0.0'
+
+    defaultConfig {
+        minSdkVersion 13
+        targetSdkVersion 24
+        versionCode 1
+        versionName "1.0"
+
+        ndk {
+            moduleName "LuaScriptCore"
+            stl "stlport_static"
+            ldLibs "log"
+        }
+
+        externalNativeBuild {
+
+            ndkBuild {
+
+                arguments "APP_STL=stlport_static",
+                        "NDK_DEBUG=1",
+                        "APP_PLATFORM=android-13",
+                        "NDK_TOOLCHAIN_VERSION=4.9"
+                cppFlags "-frtti",
+                        "-fexceptions",
+                        "-std=gnu++11",
+                        "-Wno-format-contains-nul",
+                        "-g",
+                        "-Wno-deprecated-declarations",
+                        "-fpermissive"
+
+            }
+
+        }
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            jniDebuggable true
+        }
+    }
+    sourceSets {
+        main {
+
+            jniLibs.srcDirs = []
+            jni.srcDirs "src/main/jni", "../../lua-core/src", "../../lua-common"
+
+        }
+    }
+
+    externalNativeBuild {
+
+        ndkBuild {
+            path "src/main/jni/Android.mk"
+        }
+
+    }
+}
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'LuaScriptCore'
+
+    publishedGroupId = 'com.github.vimfung.luascriptcore'
+    libraryName = 'LuaScriptCore'
+    artifact = 'luascriptcore'
+
+    libraryDescription = 'An easy-to-use Android-Lua bridge'
+
+    siteUrl = 'https://github.com/vimfung/LuaScriptCore'
+    gitUrl = 'https://github.com/vimfung/LuaScriptCore.git'
+
+    libraryVersion = '1.3.5'
+
+    developerId = 'vimfung'
+    developerName = 'Vim Fung'
+    developerEmail = 'vimfung@qq.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    testCompile 'junit:junit:4.12'
+}
+
+apply from: './installv1.gradle'
+apply from: './bintrayv1.gradle'

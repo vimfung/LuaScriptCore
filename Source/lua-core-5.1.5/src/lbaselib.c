@@ -19,7 +19,32 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
+#if LUA_PLATFORM == LUA_PLATFORM_ANDROID
 
+#include <android/log.h>
+
+#elif LUA_PLATFORM == LUA_PLATFORM_UNITY_EDITOR
+
+#include "lunity.h"
+
+#endif
+
+#if LUA_PLATFORM == LUA_PLATFORM_ANDROID
+
+// Androi平台下使用__android_log_print方法进行输出
+#define lua_writestring(s)                                                  \
+  __android_log_print(ANDROID_LOG_INFO, "android_lua", "%s", s)
+
+#elif LUA_PLATFORM == LUA_PLATFORM_UNITY_EDITOR
+
+// Unity编辑器下需要使用该方法进行输出
+#define lua_writestring(s) unityDebug(s)
+
+#else
+
+#define lua_writestring(s) fputs((s), stdout)
+
+#endif
 
 
 /*
@@ -41,11 +66,11 @@ static int luaB_print (lua_State *L) {
     if (s == NULL)
       return luaL_error(L, LUA_QL("tostring") " must return a string to "
                            LUA_QL("print"));
-    if (i>1) fputs("\t", stdout);
-    fputs(s, stdout);
+    if (i>1) lua_writestring("\t");
+    lua_writestring(s);
     lua_pop(L, 1);  /* pop result */
   }
-  fputs("\n", stdout);
+  lua_writestring("\n");
   return 0;
 }
 
