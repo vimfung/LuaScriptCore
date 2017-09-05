@@ -177,10 +177,29 @@ static int ModuleMethodRouteHandler(lua_State *state)
     return @"";
 }
 
-+ (NSString *)moduleName
+//+ (NSString *)moduleName
+//{
+//    NSString *name = NSStringFromClass([self class]);
+//    
+//    //Fixed : 由于Swift中类名带有模块名称，因此需要根据.分割字符串，并取最后一部份为导出类名
+//    NSArray<NSString *> *nameComponents = [name componentsSeparatedByString:@"."];
+//    return nameComponents.lastObject;
+//}
+
++ (NSString *)_getModuleNameWithClass:(Class)cls
 {
-    NSString *name = NSStringFromClass([self class]);
     
+    Class metaCls = objc_getMetaClass(NSStringFromClass(cls).UTF8String);
+    IMP m = class_getMethodImplementation(metaCls, @selector(moduleName));
+    IMP m1 = class_getMethodImplementation(class_getSuperclass(metaCls), @selector(moduleName));
+
+    if (m != NULL && m != m1)
+    {
+        return [cls moduleName];
+    }
+    
+    //将类型名称转换为模块名称
+    NSString *name = NSStringFromClass(cls);
     //Fixed : 由于Swift中类名带有模块名称，因此需要根据.分割字符串，并取最后一部份为导出类名
     NSArray<NSString *> *nameComponents = [name componentsSeparatedByString:@"."];
     return nameComponents.lastObject;
@@ -228,7 +247,8 @@ static int ModuleMethodRouteHandler(lua_State *state)
     }
     
     lua_State *state = context.mainSession.state;
-    NSString *name = [module moduleName];
+    
+    NSString *name = [LSCModule _getModuleNameWithClass:module];
     
     [LSCEngineAdapter getGlobal:state name:name.UTF8String];
     if ([LSCEngineAdapter isNil:state index:-1])
@@ -328,7 +348,7 @@ static int ModuleMethodRouteHandler(lua_State *state)
         return;
     }
     
-    NSString *name = [module moduleName];
+    NSString *name = [LSCModule _getModuleNameWithClass:module];
     
     [LSCEngineAdapter getGlobal:state name:name.UTF8String];
     if ([LSCEngineAdapter isTable:state index:-1])

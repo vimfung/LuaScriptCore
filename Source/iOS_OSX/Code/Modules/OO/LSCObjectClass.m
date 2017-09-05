@@ -36,12 +36,7 @@
 
 + (NSString *)moduleName
 {
-    if (self == [LSCObjectClass class])
-    {
-        return @"Object";
-    }
-    
-    return [super moduleName];
+    return @"Object";
 }
 
 + (void)_regModule:(Class)module context:(LSCContext *)context
@@ -53,7 +48,7 @@
     }
     
     lua_State *state = context.mainSession.state;
-    NSString *name = [module moduleName];
+    NSString *name = [LSCModule _getModuleNameWithClass:module];
     
     [LSCEngineAdapter getGlobal:state name:name.UTF8String];
     if (![LSCEngineAdapter isNil:state index:-1])
@@ -67,7 +62,8 @@
     Class superClass = class_getSuperclass(module);
     if (superClass != [LSCModule class])
     {
-        [LSCEngineAdapter getGlobal:state name:[[superClass moduleName] UTF8String]];
+        NSString *superClassModuleName = [LSCModule _getModuleNameWithClass:superClass];
+        [LSCEngineAdapter getGlobal:state name:[superClassModuleName UTF8String]];
         if ([LSCEngineAdapter isNil:state index:-1])
         {
             //如果父类还没有注册，则进行注册操作
@@ -613,7 +609,8 @@ static int instanceOfHandler (lua_State *state)
     [LSCEngineAdapter pushValue:-1 state:state];
     [LSCEngineAdapter setMetatable:state index:-3];
     
-    NSString *metaClsName = [self _metaClassNameWithClass:[instance.class moduleName]];
+    NSString *classModuleName = [LSCModule _getModuleNameWithClass:instance.class];
+    NSString *metaClsName = [self _metaClassNameWithClass:classModuleName];
     [LSCEngineAdapter getMetatable:state name:metaClsName.UTF8String];
     if ([LSCEngineAdapter isTable:state index:-1])
     {
@@ -690,7 +687,8 @@ static int instanceOfHandler (lua_State *state)
     if (cls != [LSCObjectClass class])
     {
         //存在父类，则直接设置父类为元表
-        [LSCEngineAdapter getGlobal:state name:[[[cls superclass] moduleName] UTF8String]];
+        NSString *superClassModuleName = [LSCModule _getModuleNameWithClass:[cls superclass]];
+        [LSCEngineAdapter getGlobal:state name:[superClassModuleName UTF8String]];
         if ([LSCEngineAdapter isTable:state index:-1])
         {
             //设置父类指向
@@ -777,7 +775,8 @@ static int instanceOfHandler (lua_State *state)
         superClass = [cls superclass];
         
         //获取父级元表
-        NSString *superMetaClassName = [self _metaClassNameWithClass:[superClass moduleName]];
+        NSString *superClassModuleName = [LSCModule _getModuleNameWithClass:superClass];
+        NSString *superMetaClassName = [self _metaClassNameWithClass:superClassModuleName];
         [LSCEngineAdapter getMetatable:state name:superMetaClassName.UTF8String];
         if ([LSCEngineAdapter isTable:state index:-1])
         {

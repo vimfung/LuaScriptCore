@@ -7,7 +7,6 @@
 //
 
 #include "lext.h"
-#include "luaconf.h"
 #include "lstate.h"
 
 #define ispseudo(i)		((i) <= LUA_REGISTRYINDEX)

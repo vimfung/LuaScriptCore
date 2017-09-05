@@ -13,6 +13,7 @@
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectDescriptor.h"
 #include "LuaSession.h"
+#include "LuaEngineAdapter.hpp"
 #include <stdlib.h>
 
 using namespace cn::vimfung::luascriptcore;
@@ -48,7 +49,7 @@ static bool _checkObjectSubclassHandlerFunc (LuaContext *context, LuaClassImport
 
         if (moduleName != NULL)
         {
-            lua_getglobal(context -> getCurrentSession() -> getState(), moduleName);
+            LuaEngineAdapter::getGlobal(context -> getCurrentSession() -> getState(), moduleName);
             return true;
         }
     }
