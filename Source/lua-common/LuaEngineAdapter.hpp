@@ -99,8 +99,6 @@ namespace cn
                  * @param state 状态对象
                  * @param tblIndex Table在栈中位置
                  * @param key 字段名称
-                 *
-                 * @return 执行状态
                  **/
                 static void getField (lua_State *state, int tblIndex, const char *key);
                 
@@ -117,7 +115,6 @@ namespace cn
 
                  @param state 状态对象
                  @param str 字符串
-                 @return 字符串
                  */
                 static void pushString (lua_State *state, const char *str);
                 
@@ -127,7 +124,6 @@ namespace cn
                  @param state 状态对象
                  @param str 字符串
                  @param len 长度
-                 @return 字符串
                  */
                 static void pushString (lua_State *state, const char *str, size_t len);
                 
@@ -356,7 +352,7 @@ namespace cn
                  @param idx Table的栈索引
                  @param n 下标
                  */
-                static void rawSetI(lua_State *state, int idx, lua_Integer n);
+                static void rawSetI(lua_State *state, int idx, int n);
                 
                 /**
                  入栈一个数值
@@ -423,7 +419,6 @@ namespace cn
 
                  @param state 状态对象
                  @param tname 表名
-                 @return 执行结果
                  */
                 static void getMetatable (lua_State *state, const char *tname);
                 
