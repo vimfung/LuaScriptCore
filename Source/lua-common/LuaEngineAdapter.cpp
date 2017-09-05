@@ -196,7 +196,7 @@ int LuaEngineAdapter::setMetatable (lua_State *state, int objindex)
     return lua_setmetatable(state, objindex);
 }
 
-void LuaEngineAdapter::rawSetI (lua_State *state, int idx, lua_Integer n)
+void LuaEngineAdapter::rawSetI (lua_State *state, int idx, int n)
 {
     lua_rawseti(state, idx, n);
 }
