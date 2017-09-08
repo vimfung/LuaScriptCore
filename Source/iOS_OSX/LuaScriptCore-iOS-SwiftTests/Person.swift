@@ -12,31 +12,25 @@ import LuaScriptCore_iOS_Swift
 private var _func : LuaValue? = nil;
 private var _managedFunc : LuaManagedValue? = nil;
 
-class Person: LSCObjectClass {
+class Person: NSObject, LuaExportType {
     
-    var _name : String = "";
+    deinit {
+        print("deinit");
+    }
     
     class func createPerson() -> Person
     {
         return Person();
     }
     
-    func setName(name : String) -> Void
+    var name : String = "";
+    
+    func speak(_ text : String) -> Void
     {
-        _name = name;
+        print("\(name) speak : \(text)");
     }
     
-    func name() -> String
-    {
-        return _name;
-    }
-    
-    func speak(text : String) -> Void
-    {
-        NSLog("%@ speak : %@", _name, text);
-    }
-    
-    class func retainHandler (handler : LSCFunction) -> Void
+    class func retainHandler (_ handler : LSCFunction) -> Void
     {
         _func = LuaValue(functionValue: LuaFunction(rawFunction: handler));
         Env.defaultContext.retainValue(value: _func!);
@@ -59,7 +53,7 @@ class Person: LSCObjectClass {
         }
     }
     
-    class func retainHandler2 (handler : LSCFunction) -> Void
+    class func retainHandler2 (_ handler : LSCFunction) -> Void
     {
         _managedFunc = LuaManagedValue(source: LuaValue(functionValue: LuaFunction(rawFunction: handler)), context: Env.defaultContext);
     }

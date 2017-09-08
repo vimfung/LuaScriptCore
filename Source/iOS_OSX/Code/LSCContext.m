@@ -9,7 +9,6 @@
 #import "LSCContext.h"
 #import "LSCContext_Private.h"
 #import "LSCValue_Private.h"
-#import "LSCModule_Private.h"
 #import "LSCSession_Private.h"
 #import "LSCSession_Private.h"
 #import "LSCTuple.h"
@@ -19,14 +18,25 @@
 
 - (instancetype)init
 {
+    if (self = [self initWithConfig:[LSCContextConfig defaultConfig]])
+    {
+        
+    }
+    
+    return self;
+}
+
+- (instancetype)initWithConfig:(LSCContextConfig *)config
+{
     if (self = [super init])
     {
+        self.config = config;
         self.methodBlocks = [NSMutableDictionary dictionary];
         
         lua_State *state = [LSCEngineAdapter newState];
         
         [LSCEngineAdapter gc:state what:LSCGCTypeStop data:0];
-
+        
         //加载标准库
         [LSCEngineAdapter openLibs:state];
         
@@ -42,7 +52,8 @@
         //初始化数据交换器
         self.dataExchanger = [[LSCDataExchanger alloc] initWithContext:self];
         
-        
+        //初始化类型导出器
+        self.exportsTypeManager = [[LSCExportsTypeManager alloc] initWithContext:self];
     }
     
     return self;
@@ -303,30 +314,6 @@
                 exceptionWithName:@"Unabled register method"
                 reason:@"The method of the specified name already exists!"
                 userInfo:nil];
-    }
-}
-
-- (void)registerModuleWithClass:(Class)moduleClass
-{
-    if ([moduleClass isSubclassOfClass:[LSCModule class]])
-    {
-        [moduleClass _regModule:moduleClass context:self];
-    }
-    else
-    {
-         [self raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module is not subclass of the 'LSCModule' class!", NSStringFromClass(moduleClass)]];
-    }
-}
-
-- (void)unregisterModuleWithClass:(Class)moduleClass
-{
-    if ([moduleClass isSubclassOfClass:[LSCModule class]])
-    {
-        [moduleClass _unregModule:moduleClass context:self];
-    }
-    else
-    {
-        [self raiseExceptionWithMessage:[NSString stringWithFormat:@"The '%@' module is not subclass of the 'LSCModule' class!", NSStringFromClass(moduleClass)]];
     }
 }
 

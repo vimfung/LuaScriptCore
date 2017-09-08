@@ -12,6 +12,7 @@
 #import "LSCValue.h"
 #import "Env.h"
 #import "LSCManagedValue.h"
+#import "NativePerson.h"
 
 static LSCValue *_func = nil;
 static LSCManagedValue *_managedFunc = nil;
@@ -21,6 +22,11 @@ static LSCManagedValue *_managedFunc = nil;
 - (void)speak:(NSString *)content
 {
     NSLog(@"%@ speak:\"%@\"", self.name, content);
+}
+
+- (void)dealloc
+{
+    NSLog(@"person dealloc");
 }
 
 - (LSCTuple *)test
@@ -40,6 +46,11 @@ static LSCManagedValue *_managedFunc = nil;
 + (Person *)createPerson
 {
     return [[Person alloc] init];
+}
+
++ (NativePerson *)createNativePerson
+{
+    return [[NativePerson alloc] init];
 }
 
 + (void)retainHandler:(LSCFunction *)handler

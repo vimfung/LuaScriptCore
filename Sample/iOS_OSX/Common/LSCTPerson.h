@@ -6,9 +6,9 @@
 //  Copyright © 2016年 vimfung. All rights reserved.
 //
 
-#import "LSCObjectClass.h"
+#import "LuaScriptCore.h"
 
-@interface LSCTPerson : LSCObjectClass
+@interface LSCTPerson : NSObject <LSCExportType>
 
 @property (nonatomic, copy) NSString *name;
 

@@ -1,3 +1,5 @@
+nativeType('NativePerson');
+nativeType('Person');
 
 function Resume(func)
     coroutine.resume(func)
@@ -65,8 +67,6 @@ function TestClassImportFunc()
 
     local tfunc = coroutine.create(function()
 
-        local NativePerson = ClassImport('NativePerson'); 
-        local Person = ClassImport('Person'); 
         print(Person, NativePerson); 
         local p = NativePerson.createPerson(); 
         print(p); 
