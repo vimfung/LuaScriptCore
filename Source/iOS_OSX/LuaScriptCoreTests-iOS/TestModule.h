@@ -6,9 +6,10 @@
 //  Copyright © 2016年 vimfung. All rights reserved.
 //
 
-#import "LSCModule.h"
+#import <Foundation/Foundation.h>
+#import "LSCExportType.h"
 
-@interface TestModule : LSCModule
+@interface TestModule : NSObject <LSCExportType>
 
 + (NSString *)test;
 

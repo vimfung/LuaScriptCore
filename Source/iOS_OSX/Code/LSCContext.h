@@ -10,11 +10,20 @@
 #import "LSCTypeDefinied.h"
 
 @class LSCModule;
+@class LSCContextConfig;
 
 /**
  *  Lua上下文对象
  */
 @interface LSCContext : NSObject
+
+/**
+ 初始化上下文对象
+
+ @param config 配置信息
+ @return 上下文对象
+ */
+- (instancetype)initWithConfig:(LSCContextConfig *)config;
 
 /**
  *  发生异常时触发
@@ -100,19 +109,5 @@
  *  @param block      处理过程
  */
 - (void)registerMethodWithName:(NSString *)methodName block:(LSCFunctionHandler)block;
-
-/**
- *  注册模块
- *
- *  @param moduleClass 模块类型，必须继承于LSCModule类
- */
-- (void)registerModuleWithClass:(Class)moduleClass;
-
-/**
- *  注销模块
- *
- *  @param moduleClass 模块类型，必须继承于LSCModule类
- */
-- (void)unregisterModuleWithClass:(Class)moduleClass;
 
 @end

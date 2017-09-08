@@ -9,10 +9,17 @@
 #import "LSCContext.h"
 #import "LSCEngineAdapter.h"
 #import "LSCDataExchanger.h"
+#import "LSCExportsTypeManager.h"
+#import "LSCContextConfig.h"
 
 @class LSCSession;
 
 @interface LSCContext ()
+
+/**
+ 配置信息
+ */
+@property (nonatomic, strong) LSCContextConfig *config;
 
 /**
  *  Lua解析器
@@ -44,6 +51,11 @@
  获取主会话对象
  */
 @property (nonatomic, strong) LSCSession *mainSession;
+
+/**
+ 导出类型管理器
+ */
+@property (nonatomic, strong) LSCExportsTypeManager *exportsTypeManager;
 
 /**
  抛出异常

@@ -268,6 +268,12 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     {
                         hasPushStack = [(id<LSCManagedObjectProtocol>)object pushWithContext:self.context];
                     }
+                    else if ([self.context.exportsTypeManager checkExportsTypeWithObject:object])
+                    {
+                        //为导出类型，让对象与Lua层对象进行关联
+                        [self.context.exportsTypeManager createLuaObjectByObject:object];
+                        hasPushStack = YES;
+                    }
                     
                     if (!hasPushStack)
                     {
@@ -476,6 +482,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                                 
                                 //将对象放入表中
                                 [LSCEngineAdapter pushValue:-1 state:state];
+                                
                                 [LSCEngineAdapter setField:state index:-3 name:objectId.UTF8String];
                             }
                             

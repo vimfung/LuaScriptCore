@@ -16,6 +16,8 @@
 #import "NativePerson.h"
 #import "LSCTuple.h"
 #import "Env.h"
+#import "SubLuaLog.h"
+#import <objc/message.h>
 
 @interface LuaScriptCoreTests_iOS : XCTestCase
 
@@ -94,45 +96,38 @@
 
 - (void)testRegisterModule
 {
-    [self.context registerModuleWithClass:[TestModule class]];
-    LSCValue *resValue = [self.context evalScriptFromString:@"return TestModule.test();"];
+    LSCValue *resValue = [self.context evalScriptFromString:@"nativeType('TestModule'); return TestModule.test();"];
     XCTAssertTrue([[resValue toString] isEqualToString:@"Hello World!"], "result value is not equal 'Hello World!'");
 }
 
 - (void)testRegisterClass
 {
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"local p = Person.createPerson(); print(p); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"nativeType('Person'); function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); p:setName('vim'); --Person.printPersonName(p); p:speak('Hello World!');"];
 }
 
 - (void)testCreateObjectWithParams
 {
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"function Person.prototype:init(value) print(value); end local p = Person.create('xxx'); print(p);"];
+    [self.context evalScriptFromString:@"nativeType('Person'); function Person.prototype:init(value) print(value); end local p = Person.create('xxx'); print(p);"];
 }
 
 - (void)testClassModuleName
 {
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"print(Person.name);"];
+    [self.context evalScriptFromString:@"nativeType('Person'); print(Person.name);"];
 }
 
 - (void)testClassIsSubclassOf
 {
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"print(Person.subclassOf(Object));"];
+    [self.context evalScriptFromString:@"nativeType('Person'); print(Person.subclassOf(Object));"];
 }
 
 - (void)testClassIsInstanceOf
 {
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"local p = Person.create(); print(p:instanceOf(Person)); print(p:instanceOf(Object));"];
+    [self.context evalScriptFromString:@"nativeType('Person'); local p = Person.create(); print(p:instanceOf(Person)); print(p:instanceOf(Object));"];
 }
 
 - (void)testClassMethodInherited
 {
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context evalScriptFromString:@"Person.subclass('ChinesePerson'); function Person.prototype:init () print ('Person init') end function ChinesePerson.prototype:init () self.super.init(self); print ('Chinese init'); end local c = ChinesePerson.create(); print(c);"];
+    [self.context evalScriptFromString:@"print(Object); nativeType('Person'); Person.subclass('ChinesePerson'); function Person.prototype:init () print(self.super); print ('Person init') end function ChinesePerson.prototype:init () self.super.init(self); print ('Chinese init'); end local c = ChinesePerson.create(); print(c); local p = Person.create(); print(p);"];
 }
 
 - (void)testSetGlobalVar
@@ -161,17 +156,12 @@
 
 - (void)testModuleTupleReturnValue
 {
-    [self.context registerModuleWithClass:[TestModule class]];
-    [self.context evalScriptFromString:@"local a,b = TestModule.testTuple(); print(a, b);"];
+    [self.context evalScriptFromString:@"nativeType('TestModule'); local a,b = TestModule.testTuple(); print(a, b);"];
 }
 
 - (void)testClassInstanceTupleReturnValue
 {
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context registerModuleWithClass:[Chinese class]];
-    [self.context registerModuleWithClass:[English class]];
-    [self.context registerModuleWithClass:[America class]];
-    [self.context evalScriptFromString:@"local p = Person.create(); local a,b = p:test(); print(a, b);"];
+    [self.context evalScriptFromString:@"nativeType('Person'); local p = Person.create(); local a,b = p:test(); print(a, b);"];
 }
 
 - (void)testFunctionInvokeReturn
@@ -191,26 +181,18 @@
 
 - (void)testObjProxy
 {
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context registerModuleWithClass:[LSCClassImport class]];
-    [LSCClassImport setInculdesClasses:@[[NativePerson class]] withContext:_context];
-    
-    [self.context evalScriptFromString:@"local Person = ClassImport('NativePerson'); print(Person); local p = Person.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"local Person = nativeType('Person'); print(Person); local p = Person.createNativePerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
 }
 
 - (void)testClassImportAndObjectClass
 {
-    [self.context registerModuleWithClass:[LSCClassImport class]];
-    [LSCClassImport setInculdesClasses:@[[NativePerson class], [Person class]] withContext:_context];
-    
-    [self.context evalScriptFromString:@"local NativePerson = ClassImport('NativePerson'); local Person = ClassImport('Person'); print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"local NativePerson = nativeType('NativePerson'); local Person = nativeType('Person'); print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
 }
 
 - (void)testRetainRelease
 {
-    [self.context registerModuleWithClass:[Person class]];
     
-    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person.retainHandler(test);"];
+    [self.context evalScriptFromString:@"nativeType('Person'); local test = function() print('test func') end; test(); Person.retainHandler(test);"];
     [self.context evalScriptFromString:@"print('-------------1'); Person.callHandler(); Person.releaseHandler();"];
     [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler();"];
 }
@@ -226,20 +208,13 @@
 
 - (void)testRetainRelease_3
 {
-    [self.context registerModuleWithClass:[Person class]];
-    
-    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person.retainHandler2(test);"];
+    [self.context evalScriptFromString:@"nativeType('Person'); local test = function() print('test func') end; test(); Person.retainHandler2(test);"];
     [self.context evalScriptFromString:@"print('-------------1'); Person.callHandler2(); Person.releaseHandler2();"];
     [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler2();"];
 }
 
 - (void)testCoroutine
 {
-    [self.context registerModuleWithClass:[TestModule class]];
-    [self.context registerModuleWithClass:[Person class]];
-    [self.context registerModuleWithClass:[LSCClassImport class]];
-    [LSCClassImport setInculdesClasses:@[[NativePerson class], [Person class]] withContext:_context];
-    
     [self.context registerMethodWithName:@"GetValue" block:^LSCValue *(NSArray<LSCValue *> *arguments) {
         
         LSCValue *value = [LSCValue numberValue:@1024];
@@ -263,16 +238,16 @@
     [self.context evalScriptFromFile:path];
 }
 
+- (void)testNewTypeExporter
+{
+    [self.context evalScriptFromString:@"nativeType('ChildLog'); print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t:setName('vim'); t:printName();"];
+}
+
 - (void)tearDown
 {
     // Put teardown code here. This method is called after the invocation of each test method in the class.
     [super tearDown];
     self.context = nil;
-}
-
-- (void)setFloat:(float)value
-{
-    NSLog(@"---- %f", value);
 }
 
 @end
