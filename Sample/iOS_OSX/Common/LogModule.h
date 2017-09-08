@@ -6,12 +6,12 @@
 //  Copyright © 2016年 vimfung. All rights reserved.
 //
 
-#import "LSCModule.h"
+#import "LuaScriptCore.h"
 
 /**
  *  日志模块
  */
-@interface LogModule : LSCModule
+@interface LogModule : NSObject <LSCExportType>
 
 /**
  *  写入日志

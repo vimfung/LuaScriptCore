@@ -7,6 +7,7 @@
 //
 
 #import "Env.h"
+#import "LSCContextConfig.h"
 
 @implementation Env
 
@@ -17,7 +18,9 @@
     
     dispatch_once(&predicate, ^{
        
-        context = [[LSCContext alloc] init];
+        LSCContextConfig *config = [[LSCContextConfig alloc] init];
+        config.manualImportClassEnabled = YES;
+        context = [[LSCContext alloc] initWithConfig:config];
         
     });
     
