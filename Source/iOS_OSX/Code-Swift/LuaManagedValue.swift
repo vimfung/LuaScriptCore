@@ -9,7 +9,7 @@
 public class LuaManagedValue: NSObject
 {
     var _source : LuaValue?;
-    var _context : LuaContext?;
+    weak var _context : LuaContext?;
     
     public init(source : LuaValue, context : LuaContext)
     {
