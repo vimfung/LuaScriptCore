@@ -813,7 +813,11 @@
                 switch (value.valueType)
                 {
                     case LSCValueTypeNumber:
+                        [signStrRegexp appendString:@"[fdcislqCISLQB@]"];
+                        break;
                     case LSCValueTypeBoolean:
+                        [signStrRegexp appendString:@"[BcislqCISLQfd@]"];
+                        break;
                     case LSCValueTypeInteger:
                         [signStrRegexp appendString:@"[cislqCISLQfdB@]"];
                         break;
