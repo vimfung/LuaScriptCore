@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class LSCExportMethodDescriptor;
+
 /**
  导出类型描述器
  */
@@ -27,6 +29,16 @@
  原生类型
  */
 @property (nonatomic) Class nativeType;
+
+/**
+ 导出类方法
+ */
+@property (nonatomic, strong) NSDictionary<NSString *, NSArray<LSCExportMethodDescriptor *> *> *classMethods;
+
+/**
+ 导出实例方法
+ */
+@property (nonatomic, strong) NSDictionary<NSString *, NSArray<LSCExportMethodDescriptor *> *> *instanceMethods;
 
 /**
  父级类型描述器
