@@ -13,4 +13,6 @@
 
 + (NSString *)test;
 
++ (NSString *)testWithMsg:(NSString *)msg;
+
 @end
