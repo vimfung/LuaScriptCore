@@ -98,11 +98,13 @@
 {
     LSCValue *resValue = [self.context evalScriptFromString:@"nativeType('TestModule'); return TestModule.test();"];
     XCTAssertTrue([[resValue toString] isEqualToString:@"Hello World!"], "result value is not equal 'Hello World!'");
+    resValue = [self.context evalScriptFromString:@"return TestModule.test('abc');"];
+    XCTAssertTrue([[resValue toString] isEqualToString:@"test msg = abc"], "result value is not equal 'Hello World!'");
 }
 
 - (void)testRegisterClass
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); p:setName('vim'); --Person.printPersonName(p); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"nativeType('Person'); function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); print(p); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!'); p:speak(30); p:speak(30, 40);"];
 }
 
 - (void)testCreateObjectWithParams

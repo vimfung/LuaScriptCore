@@ -16,6 +16,11 @@
     return @"Hello World!";
 }
 
++ (NSString *)testWithMsg:(NSString *)msg
+{
+    return [NSString stringWithFormat:@"test msg = %@", msg];
+}
+
 + (LSCTuple *)testTuple
 {
     LSCTuple *tuple = [[LSCTuple alloc] init];

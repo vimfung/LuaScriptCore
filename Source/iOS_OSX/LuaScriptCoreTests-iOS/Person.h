@@ -10,12 +10,15 @@
 #import "LSCExportType.h"
 
 @class NativePerson;
+@class LSCTuple;
 
 @interface Person : NSObject <LSCExportType>
 
 @property (nonatomic, copy) NSString *name;
 
 - (void)speak:(NSString *)content;
+- (void)speakWithAge:(NSInteger)age;
+- (LSCTuple *)test;
 
 + (void)printPersonName:(Person *)person;
 
