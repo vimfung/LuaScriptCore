@@ -13,6 +13,7 @@
 #import "LSCValue.h"
 #import "LSCPointer.h"
 #import "LSCExportTypeDescriptor.h"
+#import "LSCExportMethodDescriptor.h"
 #import "LSCContextConfig.h"
 #import <objc/runtime.h>
 
@@ -367,6 +368,12 @@
         }
         
         //解析方法
+        NSMutableDictionary *methodDict = [typeDescriptor.classMethods mutableCopy];
+        if (!methodDict)
+        {
+            methodDict = [NSMutableDictionary dictionary];
+        }
+        
         unsigned int methodCount = 0;
         Method *methods = class_copyMethodList(metaType, &methodCount);
         for (const Method *m = methods; m < methods + methodCount; m ++)
@@ -381,7 +388,7 @@
                 NSString *luaMethodName = [self _getLuaMethodNameWithSelectorName:selectorName];
                 
                 //判断是否已导出
-                BOOL hasExists = NO;
+                __block BOOL hasExists = NO;
                 [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
                 if (![LSCEngineAdapter isNil:state index:-1])
                 {
@@ -393,14 +400,50 @@
                 {
                     [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
                     [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-                    [LSCEngineAdapter pushString:selectorName.UTF8String state:state];
+                    [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
                     [LSCEngineAdapter pushCClosure:classMethodRouteHandler n:3 state:state];
                     
                     [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
                 }
+                
+                NSMutableArray<LSCExportMethodDescriptor *> *methodList = methodDict[luaMethodName];
+                if (!methodList)
+                {
+                    methodList = [NSMutableArray array];
+                    [methodDict setObject:methodList forKey:luaMethodName];
+                }
+                
+                //获取方法签名
+                NSString *signStr = [self _getMethodSign:*m];
+                
+                hasExists = NO;
+                [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                   
+                    if ([obj.methodSignature isEqualToString:signStr])
+                    {
+                        hasExists = YES;
+                        *stop = YES;
+                    }
+                    
+                }];
+                
+                if (!hasExists)
+                {
+                    LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] init];
+                    methodDesc.methodSignature = signStr;
+                    
+                    NSMethodSignature *sign = [targetTypeDescriptor.nativeType methodSignatureForSelector:selector];
+                    methodDesc.invocation = [NSInvocation invocationWithMethodSignature:sign];
+                    [methodDesc.invocation setSelector:selector];
+                    
+                    [methodList addObject:methodDesc];
+                }
+                
             }
         }
         free(methods);
+        
+        typeDescriptor.classMethods = methodDict;
     }
     
     //导出父级方法
@@ -449,6 +492,12 @@
         }
         
         //解析方法
+        NSMutableDictionary *methodDict = [typeDescriptor.instanceMethods mutableCopy];
+        if (!methodDict)
+        {
+            methodDict = [NSMutableDictionary dictionary];
+        }
+        
         unsigned int methodCount = 0;
         Method *methods = class_copyMethodList(typeDescriptor.nativeType, &methodCount);
         for (const Method *m = methods; m < methods + methodCount; m ++)
@@ -459,18 +508,67 @@
             if (![methodName hasPrefix:@"_"]
                 && ![methodName hasPrefix:@"."]
                 && ![methodName hasPrefix:@"init"]
+                && ![methodName isEqualToString:@"dealloc"]
                 && ![excludesMethodNames containsObject:methodName])
             {
-                [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-                [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-                [LSCEngineAdapter pushString:methodName.UTF8String state:state];
-                [LSCEngineAdapter pushCClosure:instanceMethodRouteHandler n:3 state:state];
-                
                 NSString *luaMethodName = [self _getLuaMethodNameWithSelectorName:methodName];
-                [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
+                
+                //判断是否已导出
+                __block BOOL hasExists = NO;
+                [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
+                if (![LSCEngineAdapter isNil:state index:-1])
+                {
+                    hasExists = YES;
+                }
+                [LSCEngineAdapter pop:state count:1];
+                
+                if (!hasExists)
+                {
+                    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+                    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
+                    [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
+                    [LSCEngineAdapter pushCClosure:instanceMethodRouteHandler n:3 state:state];
+                    
+                    [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
+                }
+                
+                NSMutableArray<LSCExportMethodDescriptor *> *methodList = methodDict[luaMethodName];
+                if (!methodList)
+                {
+                    methodList = [NSMutableArray array];
+                    [methodDict setObject:methodList forKey:luaMethodName];
+                }
+                
+                //获取方法签名
+                NSString *signStr = [self _getMethodSign:*m];
+                
+                hasExists = NO;
+                [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                    
+                    if ([obj.methodSignature isEqualToString:signStr])
+                    {
+                        hasExists = YES;
+                        *stop = YES;
+                    }
+                    
+                }];
+                
+                if (!hasExists)
+                {
+                    LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] init];
+                    methodDesc.methodSignature = signStr;
+                    
+                    NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:selector];
+                    methodDesc.invocation = [NSInvocation invocationWithMethodSignature:sign];
+                    [methodDesc.invocation setSelector:selector];
+                    
+                    [methodList addObject:methodDesc];
+                }
             }
         }
         free(methods);
+        
+        typeDescriptor.instanceMethods = methodDict;
     }
 }
 
@@ -485,6 +583,24 @@
     NSString *luaName = selectorName;
     
     NSRange range = [luaName rangeOfString:@":"];
+    if (range.location != NSNotFound)
+    {
+        luaName = [luaName substringToIndex:range.location];
+    }
+    
+    range = [luaName rangeOfString:@"With"];
+    if (range.location != NSNotFound)
+    {
+        luaName = [luaName substringToIndex:range.location];
+    }
+    
+    range = [luaName rangeOfString:@"At"];
+    if (range.location != NSNotFound)
+    {
+        luaName = [luaName substringToIndex:range.location];
+    }
+    
+    range = [luaName rangeOfString:@"By"];
     if (range.location != NSNotFound)
     {
         luaName = [luaName substringToIndex:range.location];
@@ -668,6 +784,104 @@
     return nil;
 }
 
+/**
+ 获取调用器
+
+ @param arguments 参数列表
+ @param methods 方法列表
+ @param isStatic 是否为类方法
+ @return 调用器对象
+ */
+- (NSInvocation *)_invocationWithArguments:(NSArray *)arguments
+                                   methods:(NSArray<LSCExportMethodDescriptor *> *)methods
+                                  isStatic:(BOOL)isStatic
+{
+    NSInvocation *invocation = nil;
+    if (methods.count > 1)
+    {
+        //进行筛选
+        __block LSCExportMethodDescriptor *targetMethod = nil;
+        
+        int startIndex = isStatic ? 0 : 1;
+        if (arguments.count > startIndex)
+        {
+            //带参数
+            NSMutableString *signStrRegexp = [NSMutableString string];
+            for (int i = startIndex; i < arguments.count; i++)
+            {
+                LSCValue *value = arguments[i];
+                switch (value.valueType)
+                {
+                    case LSCValueTypeNumber:
+                    case LSCValueTypeBoolean:
+                    case LSCValueTypeInteger:
+                        [signStrRegexp appendString:@"[cislqCISLQfdB@]"];
+                        break;
+                    default:
+                        [signStrRegexp appendString:@"@"];
+                        break;
+                }
+            }
+            
+            NSRegularExpression *regExp = [[NSRegularExpression alloc] initWithPattern:signStrRegexp options:0 error:nil];
+            [methods enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+               
+                NSTextCheckingResult *result = [regExp firstMatchInString:obj.methodSignature options:0 range:NSMakeRange(0, obj.methodSignature.length)];
+                if (result)
+                {
+                    targetMethod = obj;
+                    *stop = NO;
+                }
+                
+            }];
+            
+            
+        }
+        else
+        {
+            //不带参数
+            [methods enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                
+                if ([obj.methodSignature isEqualToString:@""])
+                {
+                    targetMethod = obj;
+                    *stop = NO;
+                }
+                
+            }];
+        }
+        
+        return targetMethod.invocation;
+    }
+    else
+    {
+        invocation = methods.firstObject.invocation;
+    }
+    
+    return invocation;
+}
+
+
+/**
+ 获取方法签名
+
+ @param method 方法
+ @return 签名字符串
+ */
+- (NSString *)_getMethodSign:(Method)method
+{
+    NSMutableString *signStr = [NSMutableString string];
+    int argCount = method_getNumberOfArguments(method);
+    for (int i = 2; i < argCount; i++)
+    {
+        char s[256] = {0};
+        method_getArgumentType(method, i, s, 256);
+        [signStr appendString:[NSString stringWithUTF8String:s]];
+    }
+    
+    return signStr;
+}
+
 #pragma mark - C Method
 
 /**
@@ -693,144 +907,154 @@ static int classMethodRouteHandler(lua_State *state)
     LSCExportTypeDescriptor *typeDescriptor = (__bridge LSCExportTypeDescriptor *)ptr;
     
     index = [LSCEngineAdapter upvalueIndex:3];
-    const char *methodNameCStr = [LSCEngineAdapter toString:state
-                                                      index:index];
+    const char *methodNameCStr = [LSCEngineAdapter toString:state index:index];
     NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
-    SEL selector = NSSelectorFromString(methodName);
-    
-    //确定调用方法的Target
-    NSMethodSignature *sign = [typeDescriptor.nativeType methodSignatureForSelector:selector];
-    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
-    [invocation setTarget:typeDescriptor.nativeType];
-    [invocation setSelector:selector];
-    [invocation retainArguments];
     
     LSCSession *callSession = [exporter.context makeSessionWithState:state];
     NSArray *arguments = [callSession parseArguments];
     
+    //筛选方法，对于重载方法需要根据lua传入参数进行筛选
     
-    Method m = class_getClassMethod(typeDescriptor.nativeType, selector);
-    for (int i = 2; i < method_getNumberOfArguments(m); i++)
+    NSArray<LSCExportMethodDescriptor *> *methods = typeDescriptor.classMethods[methodName];
+    NSInvocation *invocation = [exporter _invocationWithArguments:arguments
+                                                          methods:methods
+                                                         isStatic:YES];
+
+    //确定调用方法的Target
+    if (invocation)
     {
-        char *argType = method_copyArgumentType(m, i);
+        [invocation setTarget:typeDescriptor.nativeType];
+        [invocation retainArguments];
         
-        LSCValue *value = nil;
-        if (i - 2 < arguments.count)
+        Method m = class_getClassMethod(typeDescriptor.nativeType, invocation.selector);
+        for (int i = 2; i < method_getNumberOfArguments(m); i++)
         {
-            value = arguments[i-2];
+            char *argType = method_copyArgumentType(m, i);
+            
+            LSCValue *value = nil;
+            if (i - 2 < arguments.count)
+            {
+                value = arguments[i-2];
+            }
+            else
+            {
+                value = [LSCValue nilValue];
+            }
+            
+            if (strcmp(argType, @encode(float)) == 0)
+            {
+                //浮点型数据
+                LSCFloatStruct floatValue = {[value toDouble]};
+                [invocation setArgument:&floatValue atIndex:i];
+            }
+            else if (strcmp(argType, @encode(double)) == 0)
+            {
+                //双精度浮点型
+                double doubleValue = [value toDouble];
+                [invocation setArgument:&doubleValue atIndex:i];
+            }
+            else if (strcmp(argType, @encode(int)) == 0
+                     || strcmp(argType, @encode(unsigned int)) == 0
+                     || strcmp(argType, @encode(long)) == 0
+                     || strcmp(argType, @encode(unsigned long)) == 0
+                     || strcmp(argType, @encode(short)) == 0
+                     || strcmp(argType, @encode(unsigned short)) == 0
+                     || strcmp(argType, @encode(char)) == 0
+                     || strcmp(argType, @encode(unsigned char)) == 0)
+            {
+                //整型
+                NSInteger intValue = [value toDouble];
+                [invocation setArgument:&intValue atIndex:i];
+            }
+            else if (strcmp(argType, @encode(BOOL)) == 0)
+            {
+                //布尔类型
+                BOOL boolValue = [value toBoolean];
+                [invocation setArgument:&boolValue atIndex:i];
+            }
+            else if (strcmp(argType, @encode(id)) == 0)
+            {
+                //对象类型
+                obj = [value toObject];
+                [invocation setArgument:&obj atIndex:i];
+            }
+            
+            free(argType);
+        }
+        
+        [invocation invoke];
+        
+        char *returnType = method_copyReturnType(m);
+        LSCValue *retValue = nil;
+        
+        if (strcmp(returnType, @encode(id)) == 0)
+        {
+            //返回值为对象
+            id __unsafe_unretained retObj = nil;
+            [invocation getReturnValue:&retObj];
+            
+            retValue = [LSCValue objectValue:retObj];
+        }
+        else if (strcmp(returnType, @encode(int)) == 0
+                 || strcmp(returnType, @encode(unsigned int)) == 0
+                 || strcmp(returnType, @encode(long)) == 0
+                 || strcmp(returnType, @encode(unsigned long)) == 0
+                 || strcmp(returnType, @encode(short)) == 0
+                 || strcmp(returnType, @encode(unsigned short)) == 0
+                 || strcmp(returnType, @encode(char)) == 0
+                 || strcmp(returnType, @encode(unsigned char)) == 0)
+        {
+            // i 整型
+            // I 无符号整型
+            // q 长整型
+            // Q 无符号长整型
+            // S 无符号短整型
+            // c 字符型
+            // C 无符号字符型
+            
+            NSInteger intValue = 0;
+            [invocation getReturnValue:&intValue];
+            retValue = [LSCValue integerValue:intValue];
+        }
+        else if (strcmp(returnType, @encode(float)) == 0)
+        {
+            // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
+            LSCFloatStruct floatStruct = {0};
+            [invocation getReturnValue:&floatStruct];
+            retValue = [LSCValue numberValue:@(floatStruct.f)];
+        }
+        else if (strcmp(returnType, @encode(double)) == 0)
+        {
+            // d 双精度浮点型
+            double doubleValue = 0.0;
+            [invocation getReturnValue:&doubleValue];
+            retValue = [LSCValue numberValue:@(doubleValue)];
+        }
+        else if (strcmp(returnType, @encode(BOOL)) == 0)
+        {
+            //B 布尔类型
+            BOOL boolValue = NO;
+            [invocation getReturnValue:&boolValue];
+            retValue = [LSCValue booleanValue:boolValue];
         }
         else
         {
-            value = [LSCValue nilValue];
+            //结构体和其他类型暂时认为和v一样无返回值
+            retValue = nil;
         }
         
-        if (strcmp(argType, @encode(float)) == 0)
-        {
-            //浮点型数据
-            LSCFloatStruct floatValue = {[value toDouble]};
-            [invocation setArgument:&floatValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(double)) == 0)
-        {
-            //双精度浮点型
-            double doubleValue = [value toDouble];
-            [invocation setArgument:&doubleValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(int)) == 0
-                 || strcmp(argType, @encode(unsigned int)) == 0
-                 || strcmp(argType, @encode(long)) == 0
-                 || strcmp(argType, @encode(unsigned long)) == 0
-                 || strcmp(argType, @encode(short)) == 0
-                 || strcmp(argType, @encode(unsigned short)) == 0
-                 || strcmp(argType, @encode(char)) == 0
-                 || strcmp(argType, @encode(unsigned char)) == 0)
-        {
-            //整型
-            NSInteger intValue = [value toDouble];
-            [invocation setArgument:&intValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(BOOL)) == 0)
-        {
-            //布尔类型
-            BOOL boolValue = [value toBoolean];
-            [invocation setArgument:&boolValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(id)) == 0)
-        {
-            //对象类型
-            obj = [value toObject];
-            [invocation setArgument:&obj atIndex:i];
-        }
+        free(returnType);
         
-        free(argType);
-    }
-    
-    [invocation invoke];
-    
-    char *returnType = method_copyReturnType(m);
-    LSCValue *retValue = nil;
-    
-    if (strcmp(returnType, @encode(id)) == 0)
-    {
-        //返回值为对象
-        id __unsafe_unretained retObj = nil;
-        [invocation getReturnValue:&retObj];
-        
-        retValue = [LSCValue objectValue:retObj];
-    }
-    else if (strcmp(returnType, @encode(int)) == 0
-             || strcmp(returnType, @encode(unsigned int)) == 0
-             || strcmp(returnType, @encode(long)) == 0
-             || strcmp(returnType, @encode(unsigned long)) == 0
-             || strcmp(returnType, @encode(short)) == 0
-             || strcmp(returnType, @encode(unsigned short)) == 0
-             || strcmp(returnType, @encode(char)) == 0
-             || strcmp(returnType, @encode(unsigned char)) == 0)
-    {
-        // i 整型
-        // I 无符号整型
-        // q 长整型
-        // Q 无符号长整型
-        // S 无符号短整型
-        // c 字符型
-        // C 无符号字符型
-        
-        NSInteger intValue = 0;
-        [invocation getReturnValue:&intValue];
-        retValue = [LSCValue integerValue:intValue];
-    }
-    else if (strcmp(returnType, @encode(float)) == 0)
-    {
-        // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
-        LSCFloatStruct floatStruct = {0};
-        [invocation getReturnValue:&floatStruct];
-        retValue = [LSCValue numberValue:@(floatStruct.f)];
-    }
-    else if (strcmp(returnType, @encode(double)) == 0)
-    {
-        // d 双精度浮点型
-        double doubleValue = 0.0;
-        [invocation getReturnValue:&doubleValue];
-        retValue = [LSCValue numberValue:@(doubleValue)];
-    }
-    else if (strcmp(returnType, @encode(BOOL)) == 0)
-    {
-        //B 布尔类型
-        BOOL boolValue = NO;
-        [invocation getReturnValue:&boolValue];
-        retValue = [LSCValue booleanValue:boolValue];
+        if (retValue)
+        {
+            retCount = [callSession setReturnValue:retValue];
+        }
     }
     else
     {
-        //结构体和其他类型暂时认为和v一样无返回值
-        retValue = nil;
-    }
-    
-    free(returnType);
-    
-    if (retValue)
-    {
-        retCount = [callSession setReturnValue:retValue];
+        NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
+        [exporter.context raiseExceptionWithMessage:errMsg];
+        return retCount;
     }
     
     return retCount;
@@ -861,7 +1085,6 @@ static int instanceMethodRouteHandler(lua_State *state)
     index = [LSCEngineAdapter upvalueIndex:3];
     const char *methodNameCStr = [LSCEngineAdapter toString:state index:index];
     NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
-    SEL selector = NSSelectorFromString(methodName);
     
     if ([LSCEngineAdapter type:state index:1] != LUA_TUSERDATA)
     {
@@ -875,17 +1098,18 @@ static int instanceMethodRouteHandler(lua_State *state)
     NSArray *arguments = [callSession parseArguments];
     id instance = [arguments[0] toObject];
     
-    NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:selector];
-    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
-    
+    NSArray<LSCExportMethodDescriptor *> *methods = typeDescriptor.instanceMethods[methodName];
+    NSInvocation *invocation = [exporter _invocationWithArguments:arguments
+                                                          methods:methods
+                                                         isStatic:NO];
+
     //获取类实例对象
-    if (instance)
+    if (invocation && instance)
     {
         [invocation setTarget:instance];
-        [invocation setSelector:selector];
         [invocation retainArguments];
         
-        Method m = class_getInstanceMethod(typeDescriptor.nativeType, selector);
+        Method m = class_getInstanceMethod(typeDescriptor.nativeType, invocation.selector);
         for (int i = 2; i < method_getNumberOfArguments(m); i++)
         {
             char *argType = method_copyArgumentType(m, i);
@@ -1010,6 +1234,12 @@ static int instanceMethodRouteHandler(lua_State *state)
             retCount = [callSession setReturnValue:retValue];
         }
         
+    }
+    else
+    {
+        NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
+        [exporter.context raiseExceptionWithMessage:errMsg];
+        return retCount;
     }
     
     return retCount;
