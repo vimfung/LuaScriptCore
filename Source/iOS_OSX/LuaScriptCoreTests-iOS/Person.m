@@ -24,9 +24,14 @@ static LSCManagedValue *_managedFunc = nil;
     NSLog(@"%@ speak:\"%@\"", self.name, content);
 }
 
-- (void)speakWithAge:(NSInteger)age
+- (void)speakWithAge:(BOOL)age
 {
     NSLog(@"%@ %ld years old", self.name, (long)age);
+}
+
+- (void)speakWithPos:(double)pos
+{
+    NSLog(@"%@ pos = %f", self.name, pos);
 }
 
 - (void)dealloc
