@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @class LSCExportMethodDescriptor;
+@class LSCValue;
 
 /**
  导出类型描述器
@@ -52,5 +53,23 @@
  @return YES 表示为指定类型的子类，否则不是
  */
 - (BOOL)subtypeOfType:(LSCExportTypeDescriptor *)typeDescriptor;
+
+/**
+ 通过传入参数列表来获取类方法
+
+ @param name 方法名称
+ @param arguments 传入参数列表
+ @return 类方法描述
+ */
+- (LSCExportMethodDescriptor *)classMethodWithName:(NSString *)name arguments:(NSArray<LSCValue *> *)arguments;
+
+/**
+ 通过传入参数列表来获取实例方法
+
+ @param name 方法名称
+ @param arguments 传入参数列表
+ @return 示例方法描述
+ */
+- (LSCExportMethodDescriptor *)instanceMethodWithName:(NSString *)name arguments:(NSArray<LSCValue *> *)arguments;
 
 @end
