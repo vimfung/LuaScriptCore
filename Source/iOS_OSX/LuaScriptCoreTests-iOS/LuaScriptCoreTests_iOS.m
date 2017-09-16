@@ -104,7 +104,7 @@
 
 - (void)testRegisterClass
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); print(p); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!'); p:speak(30); p:speak(30, 40);"];
+    [self.context evalScriptFromString:@"nativeType('Person'); function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); print(p); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!'); p:speak(true); p:speak(30);"];
 }
 
 - (void)testCreateObjectWithParams
