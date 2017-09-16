@@ -34,6 +34,11 @@
  */
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSString *> *exportTypesMapping;
 
+/**
+ 方法映射表
+ */
+@property (nonatomic, strong) NSMutableDictionary<NSString *,LSCExportMethodDescriptor *> *methodsMapping;
+
 @end
 
 @implementation LSCExportsTypeManager
@@ -47,6 +52,7 @@
         //检测接口
         self.exportTypes = [NSMutableDictionary dictionary];
         self.exportTypesMapping = [NSMutableDictionary dictionary];
+        self.methodsMapping = [NSMutableDictionary dictionary];
         [self _setupExportsTypes];
         
         //创建nativeType接口
@@ -787,82 +793,28 @@
 /**
  获取调用器
 
+ @param methodName 方法名
  @param arguments 参数列表
- @param methods 方法列表
+ @param typeDesc 类型
  @param isStatic 是否为类方法
  @return 调用器对象
  */
-- (NSInvocation *)_invocationWithArguments:(NSArray *)arguments
-                                   methods:(NSArray<LSCExportMethodDescriptor *> *)methods
-                                  isStatic:(BOOL)isStatic
+- (NSInvocation *)_invocationWithMethodName:(NSString *)methodName
+                                  arguments:(NSArray *)arguments
+                                   typeDesc:(LSCExportTypeDescriptor *)typeDesc
+                                   isStatic:(BOOL)isStatic
 {
-    NSInvocation *invocation = nil;
-    if (methods.count > 1)
+    LSCExportMethodDescriptor *methodDesc = nil;
+    if (isStatic)
     {
-        //进行筛选
-        __block LSCExportMethodDescriptor *targetMethod = nil;
-        
-        int startIndex = isStatic ? 0 : 1;
-        if (arguments.count > startIndex)
-        {
-            //带参数
-            NSMutableString *signStrRegexp = [NSMutableString string];
-            for (int i = startIndex; i < arguments.count; i++)
-            {
-                LSCValue *value = arguments[i];
-                switch (value.valueType)
-                {
-                    case LSCValueTypeNumber:
-                        [signStrRegexp appendString:@"[fdcislqCISLQB@]"];
-                        break;
-                    case LSCValueTypeBoolean:
-                        [signStrRegexp appendString:@"[BcislqCISLQfd@]"];
-                        break;
-                    case LSCValueTypeInteger:
-                        [signStrRegexp appendString:@"[cislqCISLQfdB@]"];
-                        break;
-                    default:
-                        [signStrRegexp appendString:@"@"];
-                        break;
-                }
-            }
-            
-            NSRegularExpression *regExp = [[NSRegularExpression alloc] initWithPattern:signStrRegexp options:0 error:nil];
-            [methods enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-               
-                NSTextCheckingResult *result = [regExp firstMatchInString:obj.methodSignature options:0 range:NSMakeRange(0, obj.methodSignature.length)];
-                if (result)
-                {
-                    targetMethod = obj;
-                    *stop = NO;
-                }
-                
-            }];
-            
-            
-        }
-        else
-        {
-            //不带参数
-            [methods enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                
-                if ([obj.methodSignature isEqualToString:@""])
-                {
-                    targetMethod = obj;
-                    *stop = NO;
-                }
-                
-            }];
-        }
-        
-        return targetMethod.invocation;
+        methodDesc = [typeDesc classMethodWithName:methodName arguments:arguments];
     }
     else
     {
-        invocation = methods.firstObject.invocation;
+        methodDesc = [typeDesc instanceMethodWithName:methodName arguments:arguments];
     }
     
-    return invocation;
+    return methodDesc.invocation;
 }
 
 
@@ -918,11 +870,10 @@ static int classMethodRouteHandler(lua_State *state)
     NSArray *arguments = [callSession parseArguments];
     
     //筛选方法，对于重载方法需要根据lua传入参数进行筛选
-    
-    NSArray<LSCExportMethodDescriptor *> *methods = typeDescriptor.classMethods[methodName];
-    NSInvocation *invocation = [exporter _invocationWithArguments:arguments
-                                                          methods:methods
-                                                         isStatic:YES];
+    NSInvocation *invocation = [exporter _invocationWithMethodName:methodName
+                                                         arguments:arguments
+                                                          typeDesc:typeDescriptor
+                                                          isStatic:YES];
 
     //确定调用方法的Target
     if (invocation)
@@ -1102,10 +1053,10 @@ static int instanceMethodRouteHandler(lua_State *state)
     NSArray *arguments = [callSession parseArguments];
     id instance = [arguments[0] toObject];
     
-    NSArray<LSCExportMethodDescriptor *> *methods = typeDescriptor.instanceMethods[methodName];
-    NSInvocation *invocation = [exporter _invocationWithArguments:arguments
-                                                          methods:methods
-                                                         isStatic:NO];
+    NSInvocation *invocation = [exporter _invocationWithMethodName:methodName
+                                                         arguments:arguments
+                                                          typeDesc:typeDescriptor
+                                                          isStatic:NO];
 
     //获取类实例对象
     if (invocation && instance)
