@@ -34,11 +34,14 @@ static int os_pushresult (lua_State *L, int i, const char *filename) {
   }
 }
 
+#if LUA_PLATFORM != LUA_PLATFORM_IOS
 
 static int os_execute (lua_State *L) {
   lua_pushinteger(L, system(luaL_optstring(L, 1, NULL)));
   return 1;
 }
+
+#endif
 
 
 static int os_remove (lua_State *L) {
@@ -221,7 +224,10 @@ static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
   {"date",      os_date},
   {"difftime",  os_difftime},
+#if LUA_PLATFORM != LUA_PLATFORM_IOS
+    //iOS下不允许使用execute命令
   {"execute",   os_execute},
+#endif
   {"exit",      os_exit},
   {"getenv",    os_getenv},
   {"remove",    os_remove},
