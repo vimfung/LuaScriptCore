@@ -22,3 +22,4 @@ FOUNDATION_EXPORT const unsigned char LuaScriptCore_iOS_SwiftVersionString[];
 #import <LuaScriptCore_iOS_Swift/LSCTuple.h>
 #import <LuaScriptCore_iOS_Swift/LSCExportType.h>
 #import <LuaScriptCore_iOS_Swift/LSCContextConfig.h>
+#import <LuaScriptCore_iOS_Swift/LSCManagedValue.h>
