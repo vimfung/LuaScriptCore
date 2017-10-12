@@ -39,12 +39,20 @@
     }];
 }
 
+- (void)testIndependentContext
+{
+    LSCContext *context = [[LSCContext alloc] init];
+    LSCValue *value = [context evalScriptFromString:@"return 4 * 256; "];
+    XCTAssertNotNil(value, "value is nil");
+    NSLog(@"retValue = %@", value);
+}
+
 - (void)testEvalScript
 {
     LSCValue *value = [self.context evalScriptFromString:@"return 4 * 256; "];
     XCTAssertNotNil(value, "value is nil");
     NSLog(@"retValue = %@", value);
-    
+
     value = [self.context evalScriptFromString:@"return 4 * 256, 'aa', 'bb'; "];
     XCTAssertNotNil(value, "value is nil");
     NSLog(@"retValue = %@", value);
