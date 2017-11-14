@@ -17,7 +17,7 @@
 @property (nonatomic, copy) NSString *name;
 
 - (void)speak:(NSString *)content;
-- (void)speakWithAge:(NSInteger)age;
+- (void)speakWithAge:(BOOL)age;
 - (LSCTuple *)test;
 
 + (void)printPersonName:(Person *)person;

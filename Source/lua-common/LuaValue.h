@@ -175,7 +175,7 @@ namespace cn
                  *
                  * @return 整数值
                  */
-                long toInteger();
+                lua_Integer toInteger();
 
                 /**
                  * 转换为字符串

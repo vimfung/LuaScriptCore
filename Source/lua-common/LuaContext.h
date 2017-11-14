@@ -19,6 +19,8 @@ namespace cn
             class LuaModule;
             class LuaDataExchanger;
             class LuaSession;
+            class LuaExportsTypeManager;
+            class LuaExportTypeDescriptor;
 
             /**
              * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。
@@ -56,6 +58,11 @@ namespace cn
                  * 当前会话对象
                  */
                 LuaSession *_currentSession;
+                
+                /**
+                 导出类型管理器
+                 */
+                LuaExportsTypeManager *_exportsTypeManager;
 
             public:
 
@@ -159,32 +166,6 @@ namespace cn
                  */
                 void registerMethod(std::string methodName, LuaMethodHandler handler);
 
-                /**
-                 * 注册模块
-                 *
-                 * @param moduleName 模块名称
-                 * @param module    模块实例对象
-                 */
-                void registerModule(const std::string &moduleName, LuaModule *module);
-
-                /**
-                 * 判断模块是否注册
-                 *
-                 * @param moduleName 模块名称
-                 *
-                 * @return true 已注册, false 尚未注册
-                 */
-                bool isModuleRegisted(const std::string &moduleName);
-
-                /**
-                 * 根据模块名称获取模块对象
-                 *
-                 * @param moduleName 模块名称
-                 *
-                 * @return 模块对象，如果不存在则返回NULL
-                 */
-                LuaModule* getModule(const std::string &moduleName);
-
             public:
 
                 /**
@@ -200,6 +181,13 @@ namespace cn
                  * 获取数据数据交换层
                  */
                 LuaDataExchanger *getDataExchanger();
+                
+                /**
+                 获取导出类型管理器
+                 
+                 @return 导出类型管理器
+                 */
+                LuaExportsTypeManager* getExportsTypeManager();
 
                 /**
                  * 创建会话

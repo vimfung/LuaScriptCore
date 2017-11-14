@@ -13,6 +13,11 @@ namespace cn.vimfung.luascriptcore
 		private LuaObjectReference _objRef;
 
 		/// <summary>
+		/// 原生类型标识
+		/// </summary>
+		private int _nativeTypeId;
+
+		/// <summary>
 		/// 获取对象
 		/// </summary>
 		/// <value>对象</value>
@@ -31,10 +36,8 @@ namespace cn.vimfung.luascriptcore
 		public LuaObjectDescriptor(object obj)
 		{
 			_objRef = new LuaObjectReference(obj);
-			if (obj is LuaBaseObject)
-			{
-				_luaObjectId = (obj as LuaBaseObject).luaObjectId;
-			}
+			_luaObjectId = obj.GetHashCode ().ToString ("x8");
+			_nativeTypeId = LuaExportsTypeManager.defaultManager.getNativeTypeId (obj.GetType ());
 		}
 
 		/// <summary>
@@ -48,6 +51,8 @@ namespace cn.vimfung.luascriptcore
 			_objRef = LuaObjectReference.findObject (objRefId);
 
 			luaObjectId = decoder.readString ();
+
+			_nativeTypeId = decoder.readInt32 ();
 		}
 
 		/// <summary>
@@ -60,6 +65,7 @@ namespace cn.vimfung.luascriptcore
 
 			encoder.writeInt64 (_objRef.referenceId);
 			encoder.writeString (luaObjectId);
+			encoder.writeInt32 (_nativeTypeId);
 
 			//写入自定义数据
 			encoder.writeInt32(1);

@@ -16,6 +16,7 @@ namespace cn {
             class LuaContext;
             class LuaObjectDecoder;
             class LuaObjectDescriptor;
+            class LuaExportTypeDescriptor;
             
             /**
              * 用户数据
@@ -34,6 +35,11 @@ namespace cn {
             {
             private:
 
+                /**
+                 类型描述器
+                 */
+                LuaExportTypeDescriptor *_typeDescriptor;
+                
                 /**
                  * 对象
                  */
@@ -73,13 +79,21 @@ namespace cn {
                  * 初始化对象描述器
                  */
                 LuaObjectDescriptor();
-
+                
                 /**
                  * 初始化对象描述器
                  *
                  * @param object 对象指针
                  */
                 LuaObjectDescriptor(const void *object);
+                
+                /**
+                 初始化
+                 
+                 @param object 对象
+                 @param typeDescriptor 类型描述器
+                 */
+                LuaObjectDescriptor(void *object, LuaExportTypeDescriptor *typeDescriptor);
                 
                 /**
                  * 初始化, 在反序列化对象时会触发该方法
@@ -132,6 +146,13 @@ namespace cn {
                  * @return 对象引用
                  */
                 const void* getObject();
+                
+                /**
+                 获取类型,当该值为NULL时表示非导出类型。
+
+                 @return 类型对象
+                 */
+                LuaExportTypeDescriptor* getTypeDescriptor();
 
             public:
 
