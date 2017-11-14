@@ -8,6 +8,7 @@ using AOT;
 using System.IO;
 using System.Threading;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace cn.vimfung.luascriptcore
 {
@@ -18,8 +19,7 @@ namespace cn.vimfung.luascriptcore
 
 	/// <summary>
 	/// 异常处理器
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+               	/// </summary>
 	public delegate void LuaExceptionHandler(string errMessage);
 
 	/// <summary>
@@ -27,6 +27,30 @@ namespace cn.vimfung.luascriptcore
 	/// </summary>
 	public class LuaContext : LuaBaseObject
 	{
+		/// <summary>
+		/// 排除检测的程序集
+		/// </summary>
+		private static List<Regex> _excludeAssemblyNames = new List<Regex> () {
+			new Regex("^System$", RegexOptions.IgnoreCase),
+			new Regex("^System[.].+", RegexOptions.IgnoreCase),
+			new Regex("^Boo$", RegexOptions.IgnoreCase),
+			new Regex("^Boo[.].+", RegexOptions.IgnoreCase),
+			new Regex("^Unity$", RegexOptions.IgnoreCase),
+			new Regex("^Unity[.].+", RegexOptions.IgnoreCase),
+			new Regex("^ICSharpCode$", RegexOptions.IgnoreCase),
+			new Regex("^ICSharpCode[.].+", RegexOptions.IgnoreCase),
+			new Regex("^UnityEngine$", RegexOptions.IgnoreCase),
+			new Regex("^UnityEngine[.].+", RegexOptions.IgnoreCase),
+			new Regex("^UnityScript$", RegexOptions.IgnoreCase),
+			new Regex("^UnityScript[.].+", RegexOptions.IgnoreCase),
+			new Regex("^Mono$", RegexOptions.IgnoreCase),
+			new Regex("^Mono[.].+", RegexOptions.IgnoreCase),
+			new Regex("^UnityEditor$", RegexOptions.IgnoreCase),
+			new Regex("^UnityEditor[.].+", RegexOptions.IgnoreCase),
+			new Regex("^nunit.framework$", RegexOptions.IgnoreCase),
+			new Regex("^mscorlib$", RegexOptions.IgnoreCase),
+		};
+
 		/// <summary>
 		/// 方法处理器集合
 		/// </summary>
@@ -43,12 +67,79 @@ namespace cn.vimfung.luascriptcore
 		private static Dictionary<int, WeakReference> _contexts;
 
 		/// <summary>
+		/// 注册的类型列表
+		/// </summary>
+		private static List<Type> _regTypes;
+
+		/// <summary>
 		/// 第一次使用LuaContext类时触发
 		/// </summary>
 		static LuaContext()
 		{
 			UNIEnv.setup ();
 			_contexts = new Dictionary<int, WeakReference> ();
+			_regTypes = new List<Type> ();
+
+			//反射所有类型
+			getRegTypes();
+		}
+
+		/// <summary>
+		/// 获取注册的类型
+		/// </summary>
+		static void getRegTypes()
+		{
+			Dictionary<string, Type> types = new Dictionary<string, Type> ();
+
+			Assembly[] assemblys = AppDomain.CurrentDomain.GetAssemblies ();
+			foreach (Assembly assembly in assemblys)
+			{
+				bool needCheck = true;
+				string assemblyName = assembly.GetName().Name;
+				foreach (Regex regex in _excludeAssemblyNames)
+				{
+					if (regex.IsMatch (assemblyName))
+					{
+						needCheck = false;
+						break;
+					}
+				}
+
+				if (needCheck)
+				{
+					foreach (Type t in assembly.GetTypes())
+					{
+						if (t.IsClass && t.GetInterface ("cn.vimfung.luascriptcore.LuaExportType") != null)
+						{
+							types.Add (t.FullName, t);
+						}
+					}
+				}
+			}
+
+			//进行类型排序，让父类放入数组前面
+			while (types.Count > 0)
+			{
+				Type t = types.First ().Value;
+				regType (types, t);
+			}
+		}
+
+		/// <summary>
+		/// 注册类型
+		/// </summary>
+		/// <param name="types">类型集合.</param>
+		/// <param name="t">类型.</param>
+		static void regType(Dictionary<string, Type> types, Type t)
+		{
+			if (t.BaseType != typeof(object) && types.ContainsKey(t.BaseType.FullName))
+			{
+				regType (types, t.BaseType);
+			}
+
+			//记录导出类型
+			_regTypes.Add (t);
+			types.Remove (t.FullName);
 		}
 
 		/// <summary>
@@ -67,20 +158,48 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
+		/// 配置信息
+		/// </summary>
+		private LuaContextConfig _config;
+
+		/// <summary>
+		/// 获取配置信息
+		/// </summary>
+		/// <value>配置信息</value>
+		internal LuaContextConfig config
+		{
+			get
+			{
+				return _config;
+			}
+		}
+
+		/// <summary>
 		/// 创建LuaContext
 		/// </summary>
 		public LuaContext()
+			: this(LuaContextConfig.defaultConfig)
 		{
+			
+		}
+
+		public LuaContext(LuaContextConfig config)
+		{
+			_config = config;
 			_methodHandlers = new Dictionary<string, LuaMethodHandler> ();
 			_nativeObjectId = NativeUtils.createLuaContext ();
 			_contexts.Add (_nativeObjectId, new WeakReference(this));
+
+			//初始化异常消息捕获
+			IntPtr fp = Marshal.GetFunctionPointerForDelegate(new LuaExceptionHandleDelegate(luaException));
+			NativeUtils.setExceptionHandler (_nativeObjectId, fp);
 
 			#if UNITY_ANDROID && !UNITY_EDITOR
 
 			AndroidJavaObject luaCacheDir = getLuaCacheDir ();
 			if (!luaCacheDir.Call<bool> ("exists", new object[0]))
 			{
-				luaCacheDir.Call<bool> ("mkdirs", new object[0]);
+			luaCacheDir.Call<bool> ("mkdirs", new object[0]);
 			}
 
 			addSearchPath (luaCacheDir.Call<string> ("toString", new object[0]));
@@ -92,6 +211,11 @@ namespace cn.vimfung.luascriptcore
 
 			#endif
 
+			//注册类型
+			foreach (Type t in _regTypes)
+			{
+				LuaExportsTypeManager.defaultManager.exportType (t, this);
+			}
 		}
 
 		~LuaContext()
@@ -110,13 +234,17 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
+		/// 异常处理器
+		/// </summary>
+		private LuaExceptionHandler _exceptionHandler;
+
+		/// <summary>
 		/// 异常时触发
 		/// </summary>
 		/// <param name="handler">事件处理器</param>
 		public void onException(LuaExceptionHandler handler)
 		{
-			IntPtr fp = Marshal.GetFunctionPointerForDelegate(handler);
-			NativeUtils.setExceptionHandler (_nativeObjectId, fp);
+			_exceptionHandler = handler;
 		}
 
 		/// <summary>
@@ -333,25 +461,25 @@ namespace cn.vimfung.luascriptcore
 			NativeUtils.registerMethod (_nativeObjectId, methodName, fp);
 		}
 
-		/// <summary>
-		/// 注册模块
-		/// </summary>
-		/// <typeparam name="T">模块类型</typeparam>
-		public void registerModule<T>()
-			where T : LuaModule
-		{
-			LuaModule.register(this, typeof(T));
-		}
-
-		/// <summary>
-		/// 判断模块是否注册
-		/// </summary>
-		/// <returns>true表示已注册,false表示尚未注册</returns>
-		/// <param name="moduleName">模块名称.</param>
-		public bool isModuleRegisted(string moduleName)
-		{
-			return NativeUtils.isModuleRegisted(_nativeObjectId, moduleName);
-		}
+//		/// <summary>
+//		/// 注册模块
+//		/// </summary>
+//		/// <typeparam name="T">模块类型</typeparam>
+//		public void registerModule<T>()
+//			where T : LuaModule
+//		{
+//			LuaModule.register(this, typeof(T));
+//		}
+//
+//		/// <summary>
+//		/// 判断模块是否注册
+//		/// </summary>
+//		/// <returns>true表示已注册,false表示尚未注册</returns>
+//		/// <param name="moduleName">模块名称.</param>
+//		public bool isModuleRegisted(string moduleName)
+//		{
+//			return NativeUtils.isModuleRegisted(_nativeObjectId, moduleName);
+//		}
 
 		/// <summary>
 		/// Lua方法处理器
@@ -552,6 +680,27 @@ namespace cn.vimfung.luascriptcore
 			}
 
 			return IntPtr.Zero;
+		}
+
+		/// <summary>
+		/// Lua方法路由
+		/// </summary>
+		/// <returns>返回值</returns>
+		/// <param name="classId">类标识</param>
+		/// <param name="methodName">方法名称.</param>
+		/// <param name="arguments">参数列表缓冲区.</param>
+		/// <param name="size">参数列表缓冲区大小.</param>
+		[MonoPInvokeCallback (typeof (LuaExceptionHandleDelegate))]
+		private static void luaException (int contextId, string errorMessage)
+		{
+			if (_contexts.ContainsKey (contextId))
+			{
+				LuaContext context = _contexts [contextId].Target as LuaContext;
+				if (context != null && context._exceptionHandler != null)
+				{
+					context._exceptionHandler (errorMessage);
+				}
+			}
 		}
 
 		/// <summary>

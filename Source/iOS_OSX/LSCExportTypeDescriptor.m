@@ -139,9 +139,12 @@
                 if (matchMethods.count > 0)
                 {
                     //选择最匹配的方法
+                    //备选方法
+                    __block LSCExportMethodDescriptor *alternateMethod = nil;
                     [matchMethods enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull methodDesc, NSUInteger idx, BOOL * _Nonnull stop) {
                         
                         BOOL hasMatch = YES;
+                        BOOL hasAlternate = NO;
                         for (int i = 0; i < methodDesc.methodSignature.length; i++)
                         {
                             if (i < signArr.count)
@@ -153,8 +156,9 @@
                                     && ![nativeSign isEqualToString:@"f"]
                                     && ![nativeSign isEqualToString:@"d"])
                                 {
-                                    hasMatch = NO;
-                                    break;
+                                    //不匹配浮点类型，则进行是否为整型类型检测，同时如果匹配则视为备选方案
+                                    hasAlternate = YES;
+                                    luaSign = @"I";
                                 }
                                 
                                 if ([luaSign isEqualToString:@"B"]
@@ -191,15 +195,30 @@
                         
                         if (hasMatch)
                         {
-                            targetMethod = methodDesc;
-                            *stop = YES;
+                            if (hasAlternate)
+                            {
+                                alternateMethod = methodDesc;
+                            }
+                            else
+                            {
+                                targetMethod = methodDesc;
+                                *stop = YES;
+                            }
                         }
                     }];
                     
                     if (!targetMethod)
                     {
-                        //没有最匹配则使用第一个方法
-                        targetMethod = matchMethods.firstObject;
+                        if (alternateMethod)
+                        {
+                            //使用备选方法
+                            targetMethod = alternateMethod;
+                        }
+                        else
+                        {
+                            //没有最匹配则使用第一个方法
+                            targetMethod = matchMethods.firstObject;
+                        }
                     }
                     
                     //设置方法映射
