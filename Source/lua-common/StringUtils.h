@@ -6,6 +6,7 @@
 #define ANDROID_STRINGUTILS_H
 
 #include <string>
+#include <vector>
 
 namespace cn
 {
@@ -30,6 +31,8 @@ namespace cn
                  * @return 替换后的文本内容
                  */
                 static std::string replace (std::string text, std::string str, std::string replacement);
+                
+                
 
                 /**
                  * 格式化字符串
@@ -39,6 +42,17 @@ namespace cn
                  * @return 字符串
                  */
                 static std::string format (const char *format, ...);
+                
+                
+                /**
+                 分割字符串
+
+                 @param text 分割文本字符串
+                 @param delimStr 分隔符
+                 @param repeatedCharIgnored 是否忽视待分割字符串中的重复分隔符，也就是说如果忽视，那么多个连续分隔符将被视为一个分隔符
+                 @return 分割后字符串数组
+                 */
+                static std::vector<std::string> split(std::string text, std::string delimStr, bool repeatedCharIgnored);
             };
         }
     }

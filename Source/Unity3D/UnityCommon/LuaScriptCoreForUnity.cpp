@@ -14,23 +14,22 @@
 #include "LuaObjectManager.h"
 #include "LuaObjectDecoder.hpp"
 #include "lunity.h"
-#include "LuaUnityObjectClass.hpp"
-#include "LuaObjectInstanceDescriptor.h"
-#include "LuaUnityModule.hpp"
 #include "LuaUnityEnv.hpp"
 #include "LuaFunction.h"
 #include "LuaPointer.h"
 #include "LuaTuple.h"
-#include "LuaUnityClassImport.hpp"
+#include "LuaExportsTypeManager.hpp"
+#include "LuaUnityExportTypeDescriptor.hpp"
+#include "LuaUnityExportMethodDescriptor.hpp"
+#include "LuaValue.h"
+#include "LuaObjectDescriptor.h"
+#include "StringUtils.h"
 
 #if defined (__cplusplus)
 extern "C" {
 #endif
     
     using namespace cn::vimfung::luascriptcore;
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-    
-    typedef std::map<int, LuaUnityObjectClass *> LuaClassMap;
         
     /**
      方法指针集合
@@ -95,255 +94,6 @@ extern "C" {
         return NULL;
     }
     
-    
-    /**
-     Lua模块方法处理器
-
-     @param module 模块对象
-     @param methodName 方法名称
-     @param arguments 参数列表
-     @return 返回值
-     */
-    static LuaValue* luaModuleMethodHandler(LuaModule *module, std::string methodName, LuaArgumentList arguments)
-    {
-        LuaUnityModule *unityModule = (LuaUnityModule *)module;
-        LuaModuleMethodHandlerPtr methodPtr = unityModule -> getMethodHandler();
-        
-        if (methodPtr != NULL)
-        {
-            //编码参数列表
-            LuaObjectEncoder *encoder = new LuaObjectEncoder(module -> getContext());
-            encoder -> writeInt32((int)arguments.size());
-            
-            for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); ++it)
-            {
-                LuaValue *value = *it;
-                encoder -> writeObject(value);
-            }
-            
-            //paramsBuffer的内容由C#端进行释放
-            const void *paramsBuffer = encoder -> cloneBuffer();
-            void *returnBuffer = methodPtr(module -> objectId(), methodName.c_str(), paramsBuffer, encoder -> getBufferLength());
-            
-            encoder -> release();
-            
-            LuaValue *retValue = NULL;
-            if (returnBuffer != NULL)
-            {
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(module -> getContext(), returnBuffer);
-                retValue = dynamic_cast<LuaValue *>(decoder -> readObject());
-                decoder -> release();
-                
-                //释放C＃中申请的内存
-                free(returnBuffer);
-            }
-            else
-            {
-                retValue = LuaValue::NilValue();
-            }
-            
-            return retValue;
-        }
-        
-        return NULL;
-    }
-    
-    /**
-     Lua类方法处理器
-     
-     @param module 模块对象
-     @param methodName 方法名称
-     @param arguments 参数列表
-     @return 返回值
-     */
-    static LuaValue* luaClassMethodHandler(LuaModule *module, std::string methodName, LuaArgumentList arguments)
-    {
-        LuaUnityObjectClass *unitObjectClass = (LuaUnityObjectClass *)module;
-        LuaModuleMethodHandlerPtr methodPtr = unitObjectClass -> getClassMethodHandler();
-        if (methodPtr != NULL)
-        {
-            //编码参数列表
-            LuaObjectEncoder *encoder = new LuaObjectEncoder(module -> getContext());
-            encoder -> writeInt32((int)arguments.size());
-            
-            for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); ++it)
-            {
-                LuaValue *value = *it;
-                encoder -> writeObject(value);
-            }
-            
-            //paramsBuffer的内容由C#端进行释放
-            const void *paramsBuffer = encoder -> cloneBuffer();
-            void *returnBuffer = methodPtr(module -> objectId(), methodName.c_str(), paramsBuffer, encoder -> getBufferLength());
-            
-            encoder -> release();
-            
-            LuaValue *retValue = NULL;
-            if (returnBuffer != NULL)
-            {
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(module -> getContext(), returnBuffer);
-                retValue = dynamic_cast<LuaValue *>(decoder -> readObject());
-                decoder -> release();
-                
-                //释放C＃中申请的内存
-                free(returnBuffer);
-            }
-            else
-            {
-                retValue = LuaValue::NilValue();
-            }
-            
-            return retValue;
-        }
-        
-        return NULL;
-    }
-    
-    
-    /**
-     Lua实例方法处理器
-
-     @param instance 实例
-     @param objectClass 对象类型
-     @param methodName 方法名称
-     @param arguments 参数列表
-     @return 返回值
-     */
-    static LuaValue* luaInstanceMethodHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string methodName, LuaArgumentList arguments)
-    {
-        LuaUnityObjectClass *unityObjectClass = (LuaUnityObjectClass *)objectClass;
-
-        LuaInstanceMethodHandlerPtr methodPtr = unityObjectClass -> getInstanceMethodHandler();
-        if (methodPtr != NULL)
-        {
-            //编码参数列表
-            LuaObjectEncoder *encoder = new LuaObjectEncoder(unityObjectClass -> getContext());
-            encoder -> writeInt32((int)arguments.size());
-            
-            for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); ++it)
-            {
-                LuaValue *value = *it;
-                encoder -> writeObject(value);
-            }
-            
-            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance;
-            
-            //paramsBuffer的内容由C#端进行释放
-            const void *paramsBuffer = encoder -> cloneBuffer();
-            void *returnBuffer = methodPtr(objectClass -> objectId(),
-                                           (long long) objDesc -> getObject(),
-                                           methodName.c_str(),
-                                           paramsBuffer,
-                                           encoder -> getBufferLength());
-            
-            encoder -> release();
-            
-            LuaValue *retValue = NULL;
-            if (returnBuffer != NULL)
-            {
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(unityObjectClass -> getContext(), returnBuffer);
-                retValue = dynamic_cast<LuaValue *>(decoder -> readObject());
-                decoder -> release();
-                
-                //释放C＃中申请的内存
-                free(returnBuffer);
-            }
-            else
-            {
-                retValue = LuaValue::NilValue();
-            }
-            
-            return retValue;
-        }
-        
-        return NULL;
-    }
-    
-    
-    /**
-     实例字段获取器
-
-     @param instance 实例
-     @param objectClass 对象类型
-     @param fieldName 字段名
-     @return 字段值
-     */
-    static LuaValue* luaInstanceFieldGetterHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string fieldName)
-    {
-        LuaUnityObjectClass *unityObjectClass = (LuaUnityObjectClass *)objectClass;
-        
-        LuaInstanceFieldGetterHandlerPtr methodHandler = unityObjectClass -> getFieldGetterHandler();
-        if (methodHandler != NULL)
-        {
-            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance;
-            void *returnBuffer = methodHandler (unityObjectClass -> objectId(), (long long) objDesc -> getObject(), fieldName.c_str());
-            
-            LuaValue *retValue = NULL;
-            if (returnBuffer != NULL)
-            {
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(unityObjectClass -> getContext(), returnBuffer);
-                retValue = dynamic_cast<LuaValue *>(decoder -> readObject());
-                decoder -> release();
-                
-                //释放C＃中申请的内存
-                free(returnBuffer);
-            }
-            else
-            {
-                retValue = LuaValue::NilValue();
-            }
-            
-            return retValue;
-        }
-        
-        return NULL;
-    }
-    
-    
-    /**
-     实例字段获取器
-
-     @param instance 实例
-     @param objectClass 对象类型
-     @param fieldName 字段名
-     @param value 字段值
-     */
-    static void luaInstanceFieldSetterHandler (LuaObjectDescriptor *instance, LuaObjectClass *objectClass, std::string fieldName, LuaValue *value)
-    {
-        using namespace cn::vimfung::luascriptcore::modules::oo;
-        
-        LuaUnityObjectClass *unityObjectClass = (LuaUnityObjectClass *)objectClass;
-        
-        LuaInstanceFieldSetterHandlerPtr methodHandler = unityObjectClass -> getFieldSetterHandler();
-        if (methodHandler != NULL)
-        {
-            LuaObjectEncoder *encoder = new LuaObjectEncoder(unityObjectClass -> getContext());
-            if (value != NULL)
-            {
-                encoder -> writeObject(value);
-            }
-            else
-            {
-                LuaValue *nilValue = LuaValue::NilValue();
-                encoder -> writeObject(nilValue);
-                nilValue -> release();
-            }
-            
-            //valueBuf的内容由C#端进行释放
-            const void *valueBuf = encoder -> cloneBuffer();
-            
-            LuaObjectInstanceDescriptor *objDesc = (LuaObjectInstanceDescriptor *)instance;
-            methodHandler (unityObjectClass -> objectId(),
-                           (long long) objDesc -> getObject(),
-                           fieldName.c_str(),
-                           valueBuf,
-                           encoder -> getBufferLength());
-            
-            encoder -> release();
-        }
-    }
-    
-    
     /**
      lua异常处理器
 
@@ -355,7 +105,7 @@ extern "C" {
         LuaExceptionHandlerPtr handlerPtr = _luaExceptionPtrMap[context -> objectId()];
         if (handlerPtr != NULL)
         {
-            handlerPtr (errMessage.c_str());
+            handlerPtr (context -> objectId(), errMessage.c_str());
         }
     }
     
@@ -389,7 +139,6 @@ extern "C" {
         //设置映射类型
         LuaObjectEncoder::setMappingClassType(typeid(LuaValue).name(), "cn.vimfung.luascriptcore.LuaValue");
         LuaObjectEncoder::setMappingClassType(typeid(LuaObjectDescriptor).name(), "cn.vimfung.luascriptcore.LuaObjectDescriptor");
-        LuaObjectEncoder::setMappingClassType(typeid(LuaObjectInstanceDescriptor).name(), "cn.vimfung.luascriptcore.modules.oo.LuaObjectInstanceDescriptor");
         LuaObjectEncoder::setMappingClassType(typeid(LuaFunction).name(), "cn.vimfung.luascriptcore.LuaFunction");
         LuaObjectEncoder::setMappingClassType(typeid(LuaPointer).name(), "cn.vimfung.luascriptcore.LuaPointer");
         LuaObjectEncoder::setMappingClassType(typeid(LuaTuple).name(), "cn.vimfung.luascriptcore.LuaTuple");
@@ -691,187 +440,40 @@ extern "C" {
         }
     }
     
-    /**
-     注册模块
-     
-     @param nativeContextId 本地上下文对象ID
-     @param moduleName 模块名称
-     */
-    int registerModule(int nativeContextId, const char *moduleName, const void *exportsMethodNames, LuaModuleMethodHandlerPtr methodRouteHandler)
+    int registerType(int nativeContextId,
+                     bool lazyImport,
+                     const char *typeName,
+                     const char *parentTypeName,
+                     const void *exportsSetterNames,
+                     const void *exportsGetterNames,
+                     const void *exportsInstanceMethodNames,
+                     const void *exportsClassMethodNames,
+                     LuaInstanceCreateHandlerPtr instanceCreateHandler,
+                     LuaInstanceDestoryHandlerPtr instanceDestroyHandler,
+                     LuaInstanceDescriptionHandlerPtr instanceDescriptionHandler,
+                     LuaInstanceFieldGetterHandlerPtr instanceFieldGetterRouteHandler,
+                     LuaInstanceFieldSetterHandlerPtr instanceFieldSetterRouteHandler,
+                     LuaInstanceMethodHandlerPtr instanceMethodRouteHandler,
+                     LuaModuleMethodHandlerPtr classMethodRouteHandler)
     {
-        LuaUnityModule *module = NULL;
+        using namespace cn::vimfung::luascriptcore;
         
         LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
-        if (context != NULL)
-        {
-            module = new LuaUnityModule();
-            module -> setMethodHandler(methodRouteHandler);
-            context -> registerModule(moduleName, module);
-            
-            if (exportsMethodNames != NULL)
-            {
-                //注册方法
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsMethodNames);
-                int size = decoder -> readInt32();
-                for (int i = 0; i < size; i++)
-                {
-                    std::string methodName = decoder -> readString();
-                    module -> registerMethod(methodName, luaModuleMethodHandler);
-                }
-                decoder -> release();
-            }
-            
-        }
-        
-        return module != NULL ? module -> objectId() : -1;
-    }
-    
-    /**
-     判断模块是否注册
-     
-     @param nativeContextId 本地上下文对象ID
-     @param moduleName 模块名称
-     @return true 表示已注册，false 表示尚未注册。
-     */
-    bool isModuleRegisted(int nativeContextId, const char *moduleName)
-    {
-        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
-        if (context != NULL)
-        {
-            return context -> isModuleRegisted(moduleName);
-        }
-        return false;
-    }
-    
-    /**
-     注册类型
-     
-     @param nativeContextId 本地上下文对象ID
-     @param className 类名称
-     @param superClassName 父类名称
-     @param exportsSetterNames 导出Setter名称列表
-     @param exportsGetterNames 导出Getter名称列表
-     @param exportsInstanceMethodNames 导出实例方法名称列表
-     @param exportsClassMethodNames 导出类方法名称列表
-     @param instanceCreateHandler 实例创建处理回调
-     @param instanceDestroyHandler 实例销毁处理回调
-     @param instanceDescriptionHandler 实例描述处理器回调
-     @param instanceFieldGetterRouteHandler 实例字段获取器路由处理回调
-     @param instanceFieldSetterRouteHandler 实例字段设置器路由回调
-     @param instanceMethodRouteHandler 实例方法路由处理回调
-     @param classMethodRouteHandler 类方法路由处理回调
-     @return 类的本地标识
-     */
-    int registerClass(int nativeContextId,
-                      const char *className,
-                      const char *superClassName,
-                      const void *exportsSetterNames,
-                      const void *exportsGetterNames,
-                      const void *exportsInstanceMethodNames,
-                      const void *exportsClassMethodNames,
-                      LuaInstanceCreateHandlerPtr instanceCreateHandler,
-                      LuaInstanceDestoryHandlerPtr instanceDestroyHandler,
-                      LuaInstanceDescriptionHandlerPtr instanceDescriptionHandler,
-                      LuaInstanceFieldGetterHandlerPtr instanceFieldGetterRouteHandler,
-                      LuaInstanceFieldSetterHandlerPtr instanceFieldSetterRouteHandler,
-                      LuaInstanceMethodHandlerPtr instanceMethodRouteHandler,
-                      LuaModuleMethodHandlerPtr classMethodRouteHandler)
-    {
-        using namespace cn::vimfung::luascriptcore::modules::oo;
-        
-        LuaUnityObjectClass *objectClass = NULL;
-        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        LuaUnityExportTypeDescriptor *typeDescriptor = NULL;
         
         if (context != NULL)
         {
-            LuaObjectClass *superClass = NULL;
-            if (superClassName != NULL)
+            LuaExportTypeDescriptor *parentTypeDescriptor = NULL;
+            if (parentTypeName != NULL)
             {
-                superClass = (LuaObjectClass *)context -> getModule(superClassName);
-            }
-            objectClass = new LuaUnityObjectClass(superClass);
-            objectClass -> setClassMethodHandler(classMethodRouteHandler);
-            objectClass -> setInstanceMethodHandler(instanceMethodRouteHandler);
-            objectClass -> setInstanceDescriptionHandler(instanceDescriptionHandler);
-            objectClass -> setFieldGetterHandler(instanceFieldGetterRouteHandler);
-            objectClass -> setFieldSetterHandler(instanceFieldSetterRouteHandler);
-            objectClass -> setInstanceCreateHandler(instanceCreateHandler);
-            objectClass -> setInstanceDestroyHandler(instanceDestroyHandler);
-            
-            context -> registerModule(className, objectClass);
-            
-            objectClass -> release();
-            
-            std::map<std::string, std::string> fields;
-            if (exportsGetterNames != NULL)
-            {
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsGetterNames);
-                int size = decoder -> readInt32();
-                for (int i = 0; i < size; i++)
-                {
-                    std::string fieldName = decoder -> readString();
-                    fields[fieldName] = "r";
-                }
-                decoder -> release();
-            }
-            if (exportsSetterNames != NULL)
-            {
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsSetterNames);
-                int size = decoder -> readInt32();
-                for (int i = 0; i < size; i++)
-                {
-                    std::string fieldName = decoder -> readString();
-                    std::string value = fields[fieldName];
-                    value = value + "w";
-                    fields[fieldName] = value;
-                }
-                decoder -> release();
+                parentTypeDescriptor = (LuaUnityExportTypeDescriptor *)context -> getExportsTypeManager() -> getExportTypeDescriptor(parentTypeName);
             }
             
-            for (std::map<std::string, std::string>::iterator it = fields.begin(); it != fields.end(); it++)
-            {
-                std::string fieldName = it -> first;
-                std::string access = it -> second;
-                
-                if (access.empty())
-                {
-                    continue;
-                }
-                
-                LuaInstanceGetterHandler getterHandler = NULL;
-                LuaInstanceSetterHandler setterHandler = NULL;
-                
-                if (access == "r")
-                {
-                    getterHandler = luaInstanceFieldGetterHandler;
-                }
-                else if (access == "w")
-                {
-                    setterHandler = luaInstanceFieldSetterHandler;
-                }
-                else
-                {
-                    getterHandler = luaInstanceFieldGetterHandler;
-                    setterHandler = luaInstanceFieldSetterHandler;
-                }
-                
-                objectClass -> registerInstanceField(fieldName, getterHandler, setterHandler);
-            }
-
-            if (exportsInstanceMethodNames != NULL)
-            {
-                //注册实例方法
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsInstanceMethodNames);
-                int size = decoder -> readInt32();
-                for (int i = 0; i < size; i++)
-                {
-                    std::string methodName = decoder -> readString();
-                    objectClass -> registerInstanceMethod(methodName, luaInstanceMethodHandler);
-                }
-                
-                decoder -> release();
-            }
-
+            typeDescriptor = new LuaUnityExportTypeDescriptor(typeName, parentTypeDescriptor);
+            typeDescriptor -> createInstanceHandler = instanceCreateHandler;
+            typeDescriptor -> destroyInstanceHandler = instanceDestroyHandler;
+            typeDescriptor -> instanceDescriptionHandler = instanceDescriptionHandler;
+            
             if (exportsClassMethodNames != NULL)
             {
                 //注册类方法
@@ -880,53 +482,74 @@ extern "C" {
                 for (int i = 0; i < size; i++)
                 {
                     std::string methodName = decoder -> readString();
-                    objectClass -> registerMethod(methodName, luaClassMethodHandler);
+                    //分割方法组成部分
+                    std::vector<std::string> methodComps = StringUtils::split(methodName, "_", false);
+                    LuaUnityExportMethodDescriptor *methodDescriptor = new LuaUnityExportMethodDescriptor(methodComps[0], methodComps[1], classMethodRouteHandler);
+                    typeDescriptor -> addClassMethod(methodComps[0], methodDescriptor);
+                    methodDescriptor -> release();
                 }
                 decoder -> release();
             }
-        
+            
+            if (exportsInstanceMethodNames != NULL)
+            {
+                //注册实例方法
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsInstanceMethodNames);
+                int size = decoder -> readInt32();
+                for (int i = 0; i < size; i++)
+                {
+                    std::string methodName = decoder -> readString();
+                    //分割方法组成部分
+                    std::vector<std::string> methodComps = StringUtils::split(methodName, "_", false);
+                    LuaUnityExportMethodDescriptor *methodDescriptor = new LuaUnityExportMethodDescriptor(methodComps[0], methodComps[1],  instanceMethodRouteHandler);
+                    typeDescriptor -> addInstanceMethod(methodComps[0], methodDescriptor);
+                    methodDescriptor -> release();
+                }
+                decoder -> release();
+            }
+            
+            if (exportsGetterNames != NULL)
+            {
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsGetterNames);
+                int size = decoder -> readInt32();
+                for (int i = 0; i < size; i++)
+                {
+                    std::string fieldName = decoder -> readString();
+                    LuaUnityExportMethodDescriptor *methodDescriptor = new LuaUnityExportMethodDescriptor(fieldName, "", fieldName, instanceFieldGetterRouteHandler);
+                    typeDescriptor -> addInstanceMethod(fieldName, methodDescriptor);
+                    methodDescriptor -> release();
+                }
+                decoder -> release();
+            }
+            
+            if (exportsSetterNames != NULL)
+            {
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsSetterNames);
+                int size = decoder -> readInt32();
+                for (int i = 0; i < size; i++)
+                {
+                    std::string fieldName = decoder -> readString();
+                    
+                    //与iOS中的属性getter和setter方法保持一致, getter直接是属性名称,setter则需要将属性首字母大写并在前面加上set
+                    char upperCStr[2] = {0};
+                    upperCStr[0] = (char)toupper(fieldName[0]);
+                    std::string upperStr = upperCStr;
+                    std::string fieldNameStr = fieldName.c_str() + 1;
+                    std::string setterMethodName = "set" + upperStr + fieldNameStr;
+                    
+                    LuaUnityExportMethodDescriptor *methodDescriptor = new LuaUnityExportMethodDescriptor(setterMethodName, "", fieldName, instanceFieldSetterRouteHandler);
+                    typeDescriptor -> addInstanceMethod(setterMethodName, methodDescriptor);
+                    methodDescriptor -> release();
+                }
+                decoder -> release();
+            }
+
+            context -> getExportsTypeManager() -> exportsType(typeDescriptor, lazyImport);
+            
+            typeDescriptor -> release();
         }
         
-        return objectClass != NULL ? objectClass -> objectId() : -1;
-    }
-    
-    void registerClassImport(int nativeContextId,
-                             const char *className,
-                             LuaCheckObjectSubclassHandlerPtr checkObjectSubclassHandler,
-                             LuaAllowExportsClassHandlerPtr allowExportsClassHandler,
-                             LuaAllExportClassMethodHandlerPtr allExportClassMethods,
-                             LuaAllExportInstanceMethodHandlerPtr allExportInstanceMethods,
-                             LuaAllExportFieldGetterHandlerPtr allExportGetterFields,
-                             LuaAllExportFieldSetterHandlerPtr allExportSetterFields,
-                             LuaCreateNativeObjectHandlerPtr instanceCreateHandler,
-                             LuaNativeClassMethodInvokeHandlerPtr classMethodInvokeHandler,
-                             LuaNativeInstanceMethodInvokeHandlerPtr instanceMethodInvokeHandler,
-                             LuaNativeFieldGetterHandlerPtr fieldGetterHandler,
-                             LuaNativeFieldSetterHandlerPtr fieldSetterHandler)
-    {
-        using namespace cn::vimfung::luascriptcore::modules::oo;
-        
-        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
-        if (context != NULL)
-        {
-            LuaUnityClassImport *classImport = new LuaUnityClassImport();
-            
-            classImport -> setCheckObjectSubclassHandler(checkObjectSubclassHandler);
-            classImport -> setAllowExportsClassHandler(allowExportsClassHandler);
-            classImport -> setAllExportClassMethodHandler(allExportClassMethods);
-            classImport -> setAllExportInstanceMethodHandler(allExportInstanceMethods);
-            classImport -> setAllExportInstanceFieldGetterHandler(allExportGetterFields);
-            classImport -> setAllExportInstanceFieldSetterHandler(allExportSetterFields);
-            classImport -> setCreateObjectHandler(instanceCreateHandler);
-            classImport -> setClassMethodInvokeHandler(classMethodInvokeHandler);
-            classImport -> setInstanceMethodInvokeHandler(instanceMethodInvokeHandler);
-            classImport -> setFieldGetterHandler(fieldGetterHandler);
-            classImport -> setFieldSetterHandler(fieldSetterHandler);
-            
-            context -> registerModule(className, classImport);
-            
-            classImport -> release();
-        }
+        return typeDescriptor != NULL ? typeDescriptor -> objectId() : -1;
     }
     
 #if defined (__cplusplus)

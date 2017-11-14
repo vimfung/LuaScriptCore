@@ -11,6 +11,8 @@
 #include "LuaEngineAdapter.hpp"
 #include "StringUtils.h"
 #include "LuaSession.h"
+#include "LuaExportTypeDescriptor.hpp"
+#include "LuaExportsTypeManager.hpp"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
@@ -54,6 +56,13 @@ LuaObjectDescriptor::LuaObjectDescriptor(const void *object)
     setObject(object);
 }
 
+LuaObjectDescriptor::LuaObjectDescriptor(void *object, LuaExportTypeDescriptor *typeDescriptor)
+{
+    _object = object;
+    _typeDescriptor = typeDescriptor;
+    _linkId = StringUtils::format("%p", this);
+}
+
 LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
     : LuaManagedObject(decoder)
 {
@@ -62,6 +71,13 @@ LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
     setObject(objRef);
 
     _linkId = decoder -> readString();
+    
+    //读取类型
+    int typeId = decoder -> readInt32();
+    if (typeId > 0)
+    {
+        _typeDescriptor = (LuaExportTypeDescriptor *)LuaObject::findObject(typeId);
+    }
     
     //读取用户数据
     int size = decoder -> readInt32();
@@ -100,6 +116,11 @@ const void* LuaObjectDescriptor::getObject()
     return _object;
 }
 
+LuaExportTypeDescriptor* LuaObjectDescriptor::getTypeDescriptor()
+{
+    return _typeDescriptor;
+}
+
 void LuaObjectDescriptor::setUserdata(std::string key, std::string value)
 {
     _userdata[key] = value;
@@ -129,6 +150,13 @@ void LuaObjectDescriptor::push(LuaContext *context)
             //返回，不往下执行
             return;
         }
+    }
+    
+    if (_typeDescriptor != NULL)
+    {
+        //如果为导出类型
+        context -> getExportsTypeManager() -> createLuaObject(this);
+        return;
     }
 
     lua_State *state = context -> getCurrentSession() -> getState();
@@ -161,6 +189,17 @@ void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
     encoder -> writeInt64((long long)_object);
     encoder -> writeString(_linkId);
     
+    //写入类型标识
+    if (_typeDescriptor != NULL)
+    {
+        encoder -> writeInt32(_typeDescriptor -> objectId());
+    }
+    else
+    {
+        encoder -> writeInt32(0);
+    }
+    
+    //写入自定义数据
     encoder -> writeInt32((int)_userdata.size());
     for (LuaObjectDescriptorUserData::iterator it = _userdata.begin(); it != _userdata.end(); ++it)
     {

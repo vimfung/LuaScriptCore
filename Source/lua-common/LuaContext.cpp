@@ -11,6 +11,7 @@
 #include "LuaDataExchanger.h"
 #include "LuaSession.h"
 #include "LuaEngineAdapter.hpp"
+#include "LuaExportsTypeManager.hpp"
 #include <map>
 #include <list>
 #include <iostream>
@@ -70,6 +71,9 @@ LuaContext::LuaContext()
 
     _mainSession = new LuaSession(state, this);
     _currentSession = NULL;
+    
+    //初始化类型导出管理器
+    _exportsTypeManager = new LuaExportsTypeManager(this);
 }
 
 LuaContext::~LuaContext()
@@ -390,36 +394,9 @@ LuaMethodHandler LuaContext::getMethodHandler(std::string methodName)
     return NULL;
 }
 
-void LuaContext::registerModule(const std::string &moduleName, LuaModule *module)
+LuaExportsTypeManager* LuaContext::getExportsTypeManager()
 {
-    if (!this -> isModuleRegisted(moduleName))
-    {
-        module -> retain();
-        module -> onRegister(moduleName, this);
-        _moduleMap[moduleName] = module;
-    }
-}
-
-bool LuaContext::isModuleRegisted(const std::string &moduleName)
-{
-    lua_State *state = _mainSession -> getState();
-
-    LuaEngineAdapter::getGlobal(state, moduleName.c_str());
-    bool retValue = LuaEngineAdapter::isNil(state, -1);
-    LuaEngineAdapter::pop(state, 1);
-
-    return !retValue;
-}
-
-LuaModule* LuaContext::getModule(const std::string &moduleName)
-{
-    LuaModuleMap::iterator it = _moduleMap.find(moduleName);
-    if (it != _moduleMap.end())
-    {
-        return _moduleMap[moduleName];
-    }
-    
-    return NULL;
+    return _exportsTypeManager;
 }
 
 LuaDataExchanger* LuaContext::getDataExchanger()
