@@ -1293,7 +1293,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Sets the target folders and the final framework product.\nTARGET_NAME=${PROJECT_NAME}-iOS-Swift\nFMK_NAME=${PROJECT_NAME}_iOS_Swift\nDEST_LIB_NAME=${FMK_NAME}\n\n# Install dir will be the final output to the framework.\n# The following line create it in the root folder of the current project.\nINSTALL_BASE_DIR=${SRCROOT}/../../Release/iOS-Swift/\nINSTALL_DIR=${INSTALL_BASE_DIR}${DEST_LIB_NAME}.framework/${FMK_NAME}\n\n# Working dir will be deleted after the framework creation.\nWRK_DIR=build\nDEVICE_DIR=${WRK_DIR}/Release-iphoneos/${FMK_NAME}.framework/${FMK_NAME}\nSIMULATOR_DIR=${WRK_DIR}/Release-iphonesimulator/${FMK_NAME}.framework/${FMK_NAME}\n\n# -configuration ${CONFIGURATION}\n# Clean and Building both architectures.\nxcodebuild -project LuaScriptCore.xcodeproj OTHER_CFLAGS=\"-fembed-bitcode\" -arch \"armv7s\" -arch \"armv7\" -arch \"arm64\" -configuration \"Release\" -target \"${TARGET_NAME}\" -sdk iphoneos clean build\nxcodebuild -project LuaScriptCore.xcodeproj OTHER_CFLAGS=\"-fembed-bitcode\" -arch \"i386\" -arch \"x86_64\" -configuration \"Release\" -target \"${TARGET_NAME}\" -sdk iphonesimulator clean build\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_BASE_DIR}\" ]\nthen\nrm -rf \"${INSTALL_BASE_DIR}\"\nfi\n\nmkdir -p \"${INSTALL_BASE_DIR}\"\n\ncp -r \"${WRK_DIR}/Release-iphoneos/${FMK_NAME}.framework\" \"${INSTALL_BASE_DIR}\"\ncp -r \"${WRK_DIR}/Release-iphonesimulator/${FMK_NAME}.framework/Modules/${FMK_NAME}.swiftmodule/\" \"${INSTALL_BASE_DIR}${DEST_LIB_NAME}.framework/Modules/${FMK_NAME}.swiftmodule/\"\n\n# Uses the Lipo Tool to merge both binary files (i386 + armv6/armv7) into one Universal final product.\nlipo -create \"${DEVICE_DIR}\" \"${SIMULATOR_DIR}\" -output \"${INSTALL_DIR}\"\n\nrm -r \"${WRK_DIR}\"\n";
+			shellScript = "# Sets the target folders and the final framework product.\nTARGET_NAME=${PROJECT_NAME}-iOS-Swift\nFMK_NAME=${PROJECT_NAME}_iOS_Swift\nDEST_LIB_NAME=${FMK_NAME}\n\n# Install dir will be the final output to the framework.\n# The following line create it in the root folder of the current project.\nINSTALL_BASE_DIR=${SRCROOT}/../../Release/iOS-Swift/\nINSTALL_DIR=${INSTALL_BASE_DIR}${DEST_LIB_NAME}.framework/${FMK_NAME}\n\n# Working dir will be deleted after the framework creation.\nWRK_DIR=build\nDEVICE_DIR=${WRK_DIR}/Release-iphoneos/${FMK_NAME}.framework/${FMK_NAME}\nSIMULATOR_DIR=${WRK_DIR}/Release-iphonesimulator/${FMK_NAME}.framework/${FMK_NAME}\n\n# -configuration ${CONFIGURATION}\n# Clean and Building both architectures.\nxcodebuild -project LuaScriptCore.xcodeproj OTHER_CFLAGS=\"-fembed-bitcode -DTARGET_OS_IPHONE\" -arch \"armv7s\" -arch \"armv7\" -arch \"arm64\" -configuration \"Release\" -target \"${TARGET_NAME}\" -sdk iphoneos clean build\nxcodebuild -project LuaScriptCore.xcodeproj OTHER_CFLAGS=\"-fembed-bitcode -DTARGET_OS_IPHONE\" -arch \"i386\" -arch \"x86_64\" -configuration \"Release\" -target \"${TARGET_NAME}\" -sdk iphonesimulator clean build\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_BASE_DIR}\" ]\nthen\nrm -rf \"${INSTALL_BASE_DIR}\"\nfi\n\nmkdir -p \"${INSTALL_BASE_DIR}\"\n\ncp -r \"${WRK_DIR}/Release-iphoneos/${FMK_NAME}.framework\" \"${INSTALL_BASE_DIR}\"\ncp -r \"${WRK_DIR}/Release-iphonesimulator/${FMK_NAME}.framework/Modules/${FMK_NAME}.swiftmodule/\" \"${INSTALL_BASE_DIR}${DEST_LIB_NAME}.framework/Modules/${FMK_NAME}.swiftmodule/\"\n\n# Uses the Lipo Tool to merge both binary files (i386 + armv6/armv7) into one Universal final product.\nlipo -create \"${DEVICE_DIR}\" \"${SIMULATOR_DIR}\" -output \"${INSTALL_DIR}\"\n\nrm -r \"${WRK_DIR}\"\n";
 		};
 		7C177C0A1DEFDEC0008C9DF1 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1319,7 +1319,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Sets the target folders and the final framework product.\nTARGET_NAME=${PROJECT_NAME}-iOS\nFMK_NAME=lib${TARGET_NAME}\nDEST_LIB_NAME=lib${PROJECT_NAME}\n\n# Install dir will be the final output to the framework.\n# The following line create it in the root folder of the current project.\nINSTALL_BASE_DIR=${SRCROOT}/../../Release/iOS/\nINSTALL_DIR=${INSTALL_BASE_DIR}${DEST_LIB_NAME}.a\n\n# Working dir will be deleted after the framework creation.\nWRK_DIR=build\nDEVICE_DIR=${WRK_DIR}/Release-iphoneos/${FMK_NAME}.a\nSIMULATOR_DIR=${WRK_DIR}/Release-iphonesimulator/${FMK_NAME}.a\n\n# -configuration ${CONFIGURATION}\n# Clean and Building both architectures.\nxcodebuild -project LuaScriptCore.xcodeproj OTHER_CFLAGS=\"-fembed-bitcode\" -arch \"armv7s\" -arch \"armv7\" -arch \"arm64\" -configuration \"Release\" -target \"${TARGET_NAME}\" -sdk iphoneos clean build\nxcodebuild -project LuaScriptCore.xcodeproj OTHER_CFLAGS=\"-fembed-bitcode\" -arch \"i386\" -arch \"x86_64\" -configuration \"Release\" -target \"${TARGET_NAME}\" -sdk iphonesimulator clean build\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_BASE_DIR}\" ]\nthen\nrm -rf \"${INSTALL_BASE_DIR}\"\nfi\n\nmkdir -p \"${INSTALL_BASE_DIR}include/\"\n\ncp -r \"${WRK_DIR}/Release-iphoneos/include/LuaScriptCore-iOS/\" \"${INSTALL_BASE_DIR}include/\"\n\n# Uses the Lipo Tool to merge both binary files (i386 + armv6/armv7) into one Universal final product.\nlipo -create \"${DEVICE_DIR}\" \"${SIMULATOR_DIR}\" -output \"${INSTALL_DIR}\"\n\nrm -r \"${WRK_DIR}\"\n";
+			shellScript = "# Sets the target folders and the final framework product.\nTARGET_NAME=${PROJECT_NAME}-iOS\nFMK_NAME=lib${TARGET_NAME}\nDEST_LIB_NAME=lib${PROJECT_NAME}\n\n# Install dir will be the final output to the framework.\n# The following line create it in the root folder of the current project.\nINSTALL_BASE_DIR=${SRCROOT}/../../Release/iOS/\nINSTALL_DIR=${INSTALL_BASE_DIR}${DEST_LIB_NAME}.a\n\n# Working dir will be deleted after the framework creation.\nWRK_DIR=build\nDEVICE_DIR=${WRK_DIR}/Release-iphoneos/${FMK_NAME}.a\nSIMULATOR_DIR=${WRK_DIR}/Release-iphonesimulator/${FMK_NAME}.a\n\n# -configuration ${CONFIGURATION}\n# Clean and Building both architectures.\nxcodebuild -project LuaScriptCore.xcodeproj OTHER_CFLAGS=\"-fembed-bitcode -DTARGET_OS_IPHONE\" -arch \"armv7s\" -arch \"armv7\" -arch \"arm64\" -configuration \"Release\" -target \"${TARGET_NAME}\" -sdk iphoneos clean build\nxcodebuild -project LuaScriptCore.xcodeproj OTHER_CFLAGS=\"-fembed-bitcode -DTARGET_OS_IPHONE\" -arch \"i386\" -arch \"x86_64\" -configuration \"Release\" -target \"${TARGET_NAME}\" -sdk iphonesimulator clean build\n\n# Cleaning the oldest.\nif [ -d \"${INSTALL_BASE_DIR}\" ]\nthen\nrm -rf \"${INSTALL_BASE_DIR}\"\nfi\n\nmkdir -p \"${INSTALL_BASE_DIR}include/\"\n\ncp -r \"${WRK_DIR}/Release-iphoneos/include/LuaScriptCore-iOS/\" \"${INSTALL_BASE_DIR}include/\"\n\n# Uses the Lipo Tool to merge both binary files (i386 + armv6/armv7) into one Universal final product.\nlipo -create \"${DEVICE_DIR}\" \"${SIMULATOR_DIR}\" -output \"${INSTALL_DIR}\"\n\nrm -r \"${WRK_DIR}\"\n";
 		};
 		7C6B151A1D6B0BF900489D9E /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1912,10 +1912,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
 				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				OTHER_CFLAGS = "-DTARGET_OS_MAC";
@@ -2047,10 +2044,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				DEAD_CODE_STRIPPING = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_CFLAGS = "-DTARGET_OS_IPHONE";
 				OTHER_LDFLAGS = "-ObjC";

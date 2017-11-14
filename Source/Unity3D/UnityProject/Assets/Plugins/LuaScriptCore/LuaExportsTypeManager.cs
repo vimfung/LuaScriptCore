@@ -1,18 +1,50 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
-using System.Reflection;
+﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using AOT;
+using System.Collections;
+using System.Text;
+using UnityEngine;
 
-namespace cn.vimfung.luascriptcore.modules.oo
+namespace cn.vimfung.luascriptcore
 {
 	/// <summary>
-	/// 面向对象基类
+	/// 导出类型管理器
 	/// </summary>
-	public class LuaObjectClass : LuaModule, ILuaObject
+	internal class LuaExportsTypeManager
 	{
+		/// <summary>
+		/// 默认管理器对象
+		/// </summary>
+		static private LuaExportsTypeManager _manager = new LuaExportsTypeManager();
+
+		/// <summary>
+		/// 获取默认lua导出管理器
+		/// </summary>
+		/// <value>管理器.</value>
+		static internal LuaExportsTypeManager defaultManager
+		{
+			get
+			{
+				return _manager;
+			}
+		}
+
+		/// <summary>
+		/// 基础数据类型映射表
+		/// </summary>
+		static private Dictionary<Type, string> baseTypesMapping = new Dictionary<Type, string> () {
+			{ typeof(Char) , 	"c" },
+			{ typeof(Int16) , 	"s" },
+			{ typeof(UInt16) , 	"S" },
+			{ typeof(Int32) , 	"i" },
+			{ typeof(UInt32) , 	"I" },
+			{ typeof(Int64) , 	"q" },
+			{ typeof(UInt64) , 	"Q" },
+			{ typeof(Boolean) , "B" },
+		}; 
+
 		/// <summary>
 		/// 实例对象集合
 		/// </summary>
@@ -22,6 +54,11 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		/// 导出类型
 		/// </summary>
 		private static Dictionary<int, Type> _exportsClass = new Dictionary<int, Type>();
+
+		/// <summary>
+		/// 导出类型标识映射表
+		/// </summary>
+		private static Dictionary<Type, int> _exportsClassIdMapping = new Dictionary<Type, int>();
 
 		/// <summary>
 		/// 导出类方法集合
@@ -74,43 +111,14 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		private static LuaModuleMethodHandleDelegate _classMethodHandleDelegate;
 
 		/// <summary>
-		/// 获取模块版本
+		/// 导出类型
 		/// </summary>
-		/// <value>版本号.</value>
-		protected static new string _version ()
+		/// <param name="type">类型.</param>
+		/// <param name="context">上下文对象.</param>
+		public void exportType(Type t, LuaContext context)
 		{
-			return "1.0.0";
-		}
-
-		/// <summary>
-		/// 获取模块名称
-		/// </summary>
-		/// <returns>模块名称.</returns>
-		protected static new string _moduleName()
-		{
-			return "Object";
-		}
-
-		/// <summary>
-		/// 注册模块
-		/// </summary>
-		/// <param name="context">Lua上下文对象.</param>
-		/// <param name="moduleName">模块名称.</param>
-		/// <param name="t">类型.</param>
-		protected static new void _register(LuaContext context, string moduleName, Type t)
-		{
-			Type baseType = t.BaseType;
-
-			string superClassName = null;
-			if (baseType != typeof(LuaModule))
-			{
-				superClassName = LuaModule.moduleName (baseType);
-				if (!context.isModuleRegisted(superClassName)) 
-				{
-					//尚未注册父类，进行父类注册
-					LuaModule.register(context, baseType);
-				}
-			}
+			LuaExportTypeConfig typeConfig = LuaExportTypeConfig.Create (t);
+			LuaExportTypeConfig baseTypeConfig = LuaExportTypeConfig.Create (t.BaseType);
 
 			//获取导出的类/实例方法
 			Dictionary<string, MethodInfo> exportClassMethods = new Dictionary<string, MethodInfo> ();
@@ -122,17 +130,50 @@ namespace cn.vimfung.luascriptcore.modules.oo
 			MethodInfo[] methods = t.GetMethods();
 			foreach (MethodInfo m in methods) 
 			{
-				if (m.IsStatic && m.IsPublic)
+				if (m.IsPublic || (m.IsStatic && m.IsPublic))
 				{
-					//静态和公开的方法会导出到Lua
-					exportClassMethodNames.Add (m.Name);
-					exportClassMethods.Add (m.Name, m);
-				} 
-				else if (m.IsPublic)
-				{
-					//实例方法
-					exportInstanceMethodNames.Add(m.Name);
-					exportInstanceMethods.Add (m.Name, m);
+					StringBuilder methodSignature = new StringBuilder();
+					foreach (ParameterInfo paramInfo in m.GetParameters())
+					{
+						Type paramType = paramInfo.ParameterType;
+						if (baseTypesMapping.ContainsKey (paramType))
+						{
+							methodSignature.Append (baseTypesMapping [paramType]);
+						}
+						else
+						{
+							methodSignature.Append ("@");
+						}
+					}
+
+					string methodName = string.Format ("{0}_{1}", m.Name, methodSignature.ToString ());
+
+					if (m.IsStatic && m.IsPublic)
+					{
+						if (typeConfig.excludeExportClassMethodNames != null 
+							&& Array.IndexOf (typeConfig.excludeExportClassMethodNames, m.Name) >= 0)
+						{
+							//为过滤方法
+							continue;
+						}
+
+						//静态和公开的方法会导出到Lua
+						exportClassMethodNames.Add (methodName);
+						exportClassMethods.Add (methodName, m);
+					} 
+					else if (m.IsPublic)
+					{
+						if (typeConfig.excludeExportInstanceMethodNames != null 
+							&& Array.IndexOf (typeConfig.excludeExportInstanceMethodNames, m.Name) >= 0)
+						{
+							//为过滤方法
+							continue;
+						}
+
+						//实例方法
+						exportInstanceMethodNames.Add(methodName);
+						exportInstanceMethods.Add (methodName, m);
+					}
 				}
 			}
 
@@ -144,6 +185,13 @@ namespace cn.vimfung.luascriptcore.modules.oo
 			PropertyInfo[] propertys = t.GetProperties (BindingFlags.Instance | BindingFlags.Public);
 			foreach (PropertyInfo p in propertys) 
 			{
+				if (typeConfig.excludeExportPropertyNames != null 
+					&& Array.IndexOf (typeConfig.excludeExportPropertyNames, p.Name) >= 0)
+				{
+					//在过滤列表中
+					continue;
+				}
+
 				if (p.CanRead)
 				{
 					exportGetterNames.Add (p.Name);
@@ -261,11 +309,12 @@ namespace cn.vimfung.luascriptcore.modules.oo
 			{
 				_classMethodHandleDelegate = new LuaModuleMethodHandleDelegate (_classMethodHandler);
 			}
-
-			int nativeId = NativeUtils.registerClass(
+				
+			int typeId = NativeUtils.registerType (
 				context.objectId, 
-				moduleName, 
-				superClassName,
+				context.config.manualImportClassEnabled,
+				typeConfig.typeName,
+				baseTypeConfig.typeName,
 				exportSetterNamesPtr,
 				exportGetterNamesPtr,
 				exportInstanceMethodNamesPtr,
@@ -279,11 +328,12 @@ namespace cn.vimfung.luascriptcore.modules.oo
 				Marshal.GetFunctionPointerForDelegate(_classMethodHandleDelegate));
 
 			//关联注册模块的注册方法
-			_exportsClass[nativeId] = t;
-			_exportsClassMethods[nativeId] = exportClassMethods;
-			_exportsInstanceMethods[nativeId] = exportInstanceMethods;
-			_exportsFields[nativeId] = exportFields;
-				
+			_exportsClass[typeId] = t;
+			_exportsClassIdMapping [t] = typeId;
+			_exportsClassMethods[typeId] = exportClassMethods;
+			_exportsInstanceMethods[typeId] = exportInstanceMethods;
+			_exportsFields[typeId] = exportFields;
+
 			if (exportSetterNamesPtr != IntPtr.Zero)
 			{
 				Marshal.FreeHGlobal (exportSetterNamesPtr);
@@ -303,12 +353,18 @@ namespace cn.vimfung.luascriptcore.modules.oo
 		}
 
 		/// <summary>
-		/// 获取对象描述器，用于如何转换成Lua对象
+		/// 根据C#类型获取原生类型标识
 		/// </summary>
-		/// <returns>描述器.</returns>
-		public LuaObjectDescriptor getDescriptor()
+		/// <returns>原生类型标识.</returns>
+		/// <param name="type">C#类型.</param>
+		internal int getNativeTypeId(Type type)
 		{
-			return new LuaObjectInstanceDescriptor (this);
+			if (_exportsClassIdMapping.ContainsKey (type))
+			{
+				return _exportsClassIdMapping [type];
+			}
+
+			return 0;
 		}
 
 		/// <summary>
@@ -327,7 +383,7 @@ namespace cn.vimfung.luascriptcore.modules.oo
 				ConstructorInfo ci = t.GetConstructor (Type.EmptyTypes);
 				if (ci != null)
 				{
-					LuaObjectClass instance = ci.Invoke (null) as LuaObjectClass;
+					object instance = ci.Invoke (null);
 					if (instance != null)
 					{
 						LuaObjectReference objRef = new LuaObjectReference (instance);
@@ -396,7 +452,7 @@ namespace cn.vimfung.luascriptcore.modules.oo
 				&& _exportsFields[classId].ContainsKey(fieldName))
 			{
 				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
-				LuaObjectClass instance = objRef.target as LuaObjectClass;
+				object instance = objRef.target;
 				PropertyInfo propertyInfo = _exportsFields[classId][fieldName];
 				if (instance != null && propertyInfo != null && propertyInfo.CanRead)
 				{
@@ -430,7 +486,7 @@ namespace cn.vimfung.luascriptcore.modules.oo
 				&& _exportsFields[classId].ContainsKey(fieldName))
 			{
 				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
-				LuaObjectClass instance = objRef.target as LuaObjectClass;
+				object instance = objRef.target;
 				PropertyInfo propertyInfo = _exportsFields[classId][fieldName];
 				if (instance != null && propertyInfo != null && propertyInfo.CanWrite)
 				{
@@ -459,7 +515,7 @@ namespace cn.vimfung.luascriptcore.modules.oo
 				&& _exportsInstanceMethods[classId].ContainsKey(methodName))
 			{
 				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
-				LuaObjectClass instance = objRef.target as LuaObjectClass;
+				object instance = objRef.target;
 				MethodInfo m = _exportsInstanceMethods[classId][methodName];
 				if (instance != null && m != null)
 				{
@@ -478,7 +534,6 @@ namespace cn.vimfung.luascriptcore.modules.oo
 
 					return retPtr;
 				}
-
 			}
 			return IntPtr.Zero;
 		}
@@ -516,5 +571,355 @@ namespace cn.vimfung.luascriptcore.modules.oo
 
 			return IntPtr.Zero;
 		}
+
+		protected static object getNativeValueForLuaValue(Type t, LuaValue luaValue)
+		{
+			object value = null;
+			if (t == typeof(Int32)
+				|| t == typeof(Int64)
+				|| t == typeof(Int16)
+				|| t == typeof(UInt16)
+				|| t == typeof(UInt32)
+				|| t == typeof(UInt64)) 
+			{
+				value = luaValue.toInteger();
+			} 
+			else if (t == typeof(double)
+				|| t == typeof(float)) 
+			{
+				value = luaValue.toNumber();
+			} 
+			else if (t == typeof(bool))
+			{
+				value = luaValue.toBoolean();
+			}
+			else if (t == typeof(string)) 
+			{
+				value = luaValue.toString();
+			}
+			else if (t.IsArray) 
+			{
+				//数组
+				if (t == typeof(byte[])) 
+				{
+					//二进制数组
+					value = luaValue.toData();
+				}
+				else if (t == typeof(Int32[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<Int32> intArr = new List<Int32> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (item.toInteger ());
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(Int64[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<Int64> intArr = new List<Int64> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (item.toInteger ());
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(Int16[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<Int16> intArr = new List<Int16> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (Convert.ToInt16 (item.toInteger ()));
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(UInt32[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<UInt32> intArr = new List<UInt32> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (Convert.ToUInt32 (item.toInteger ()));
+						}
+						value = intArr.ToArray ();
+					}
+
+				}
+				else if (t == typeof(UInt64[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<UInt64> intArr = new List<UInt64> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (Convert.ToUInt64 (item.toInteger ()));
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(UInt16[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<UInt16> intArr = new List<UInt16> ();
+						foreach (LuaValue item in arr) 
+						{
+							intArr.Add (Convert.ToUInt16 (item.toInteger ()));
+						}
+						value = intArr.ToArray ();
+					}
+				}
+				else if (t == typeof(bool[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null)
+					{
+						List<bool> boolArr = new List<bool> ();
+						foreach (LuaValue item in arr) 
+						{
+							boolArr.Add (Convert.ToBoolean (item.toInteger ()));
+						}
+						value = boolArr.ToArray ();
+					}
+				}
+				else if (t == typeof(double[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null)
+					{
+						List<double> doubleArr = new List<double> ();
+						foreach (LuaValue item in arr) 
+						{
+							doubleArr.Add (item.toNumber ());
+						}
+						value = doubleArr.ToArray ();
+					}
+				}
+				else if (t == typeof(float[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<float> floatArr = new List<float> ();
+						foreach (LuaValue item in arr) 
+						{
+							floatArr.Add ((float)item.toNumber ());
+						}
+						value = floatArr.ToArray ();
+					}
+				}
+				else if (t == typeof(string[]))
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null) 
+					{
+						List<string> floatArr = new List<string> ();
+						foreach (LuaValue item in arr) 
+						{
+							floatArr.Add (item.toString ());
+						}
+						value = floatArr.ToArray ();
+					}
+				}
+				else
+				{
+					List<LuaValue> arr = luaValue.toArray();
+					if (arr != null)
+					{
+						ArrayList objArr = new ArrayList ();
+						foreach (LuaValue item in arr) 
+						{
+							objArr.Add (item.toObject ());
+						}
+						value = objArr.ToArray ();
+					}
+				}
+			}
+			else if (t == typeof(Hashtable)) 
+			{
+				//字典
+				Dictionary<string, LuaValue> map = luaValue.toMap();
+				if (map != null) 
+				{
+					if (t == typeof(Dictionary<string, int>))
+					{
+						Dictionary<string, int> dict = new Dictionary<string, int> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, kv.Value.toInteger ());
+						}
+						value = dict;
+					} 
+					else if (t == typeof(Dictionary<string, int>))
+					{
+						Dictionary<string, int> dict = new Dictionary<string, int> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, kv.Value.toInteger ());
+						}
+						value = dict;
+					} 
+					else if (t == typeof(Dictionary<string, uint>))
+					{
+						Dictionary<string, uint> dict = new Dictionary<string, uint> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, Convert.ToUInt32 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, Int16>))
+					{
+						Dictionary<string, Int16> dict = new Dictionary<string, Int16> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, Convert.ToInt16 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, UInt16>))
+					{
+						Dictionary<string, UInt16> dict = new Dictionary<string, UInt16> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, Convert.ToUInt16 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, Int64>))
+					{
+						Dictionary<string, Int64> dict = new Dictionary<string, Int64> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, Convert.ToInt64 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, UInt64>))
+					{
+						Dictionary<string, UInt64> dict = new Dictionary<string, UInt64> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, Convert.ToUInt64 (kv.Value.toInteger ()));
+						}
+						value = dict;
+					} 
+					else if (t == typeof(Dictionary<string, bool>))
+					{
+						Dictionary<string, bool> dict = new Dictionary<string, bool> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, kv.Value.toBoolean ());
+						}
+						value = dict;
+					} 
+					else if (t == typeof(Dictionary<string, double>)) 
+					{
+						Dictionary<string, double> dict = new Dictionary<string, double> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, kv.Value.toNumber ());
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, float>)) 
+					{
+						Dictionary<string, float> dict = new Dictionary<string, float> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map)
+						{
+							dict.Add (kv.Key, (float)kv.Value.toNumber ());
+						}
+						value = dict;
+					}
+					else if (t == typeof(Dictionary<string, string>))
+					{
+						Dictionary<string, string> dict = new Dictionary<string, string> ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, kv.Value.toString ());
+						}
+						value = dict;
+					}
+					else 
+					{
+						Hashtable dict = new Hashtable ();
+						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						{
+							dict.Add (kv.Key, kv.Value.toObject ());
+						}
+						value = dict;
+					}
+				}
+			}
+			else
+			{
+				value = luaValue.toObject();
+			}
+
+			return value;
+		}
+
+		/// <summary>
+		/// 解析方法的参数列表
+		/// </summary>
+		/// <returns>参数列表</returns>
+		/// <param name="m">方法信息</param>
+		/// <param name="arguments">参数列表数据</param>
+		/// <param name="size">参数列表数据长度</param>
+		protected static ArrayList parseMethodParameters(MethodInfo m, IntPtr arguments, int size)
+		{
+			List<LuaValue> argumentsList = null;
+			if (arguments != IntPtr.Zero) 
+			{
+				//反序列化参数列表
+				LuaObjectDecoder decoder = new LuaObjectDecoder(arguments, size);
+				int argSize = decoder.readInt32 ();
+
+				argumentsList = new List<LuaValue> ();
+				for (int i = 0; i < argSize; i++) {
+
+					LuaValue value = decoder.readObject () as LuaValue;
+					argumentsList.Add (value);
+				}
+			}
+
+			ArrayList argsArr = null;
+			ParameterInfo[] parameters = m.GetParameters ();
+			if (parameters.Length > 0 && argumentsList != null) 
+			{
+				int i = 0;
+				argsArr = new ArrayList ();
+				foreach (ParameterInfo p in parameters) 
+				{
+					if (i >= argumentsList.Count) 
+					{
+						break;
+					}
+
+					object value = getNativeValueForLuaValue(p.ParameterType, argumentsList[i]);
+					argsArr.Add (value);
+
+					i++;
+				}
+			}
+
+			return argsArr;
+		}
 	}
 }
+

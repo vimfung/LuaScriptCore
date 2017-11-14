@@ -72,8 +72,8 @@ function TestClassImportFunc()
 
     local tfunc = coroutine.create(function()
 
-        local NativePerson = ClassImport('NativeData');
-        local Person = ClassImport('Person');
+        local NativePerson = nativeType('NativeData');
+        local Person = nativeType('Person');
         print(Person, NativePerson);
         local p = NativePerson.createPerson();
         print(p);

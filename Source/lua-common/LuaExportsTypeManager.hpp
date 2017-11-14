@@ -1,0 +1,149 @@
+//
+//  LuaExportsTypeManager.hpp
+//  LuaScriptCore
+//
+//  Created by 冯鸿杰 on 2017/9/16.
+//  Copyright © 2017年 冯鸿杰. All rights reserved.
+//
+
+#ifndef LuaExportsTypeManager_hpp
+#define LuaExportsTypeManager_hpp
+
+#include <stdio.h>
+#include <map>
+#include "LuaObject.h"
+#include "lua.hpp"
+
+namespace cn {
+    namespace vimfung {
+        namespace luascriptcore {
+            
+            class LuaContext;
+            class LuaExportTypeDescriptor;
+            class LuaObjectDescriptor;
+            
+            /**
+             导出类型管理器
+             */
+            class LuaExportsTypeManager : public LuaObject
+            {
+            public:
+                
+                /**
+                 初始化
+                 
+                 @param context 上下文对象
+                 */
+                LuaExportsTypeManager(LuaContext *context);
+                
+                /**
+                 销毁对象
+                 */
+                ~LuaExportsTypeManager();
+                
+                /**
+                 获取上下文对象
+                 
+                 @return 上下文对象
+                 */
+                LuaContext *context();
+                
+                /**
+                 获取类型描述
+
+                 @param name 类型名称
+                 @return 类型描述对象
+                 */
+                LuaExportTypeDescriptor* getExportTypeDescriptor(std::string name);
+                
+                /**
+                 导出类型
+                 
+                 @param typeDescriptor 类型描述
+                 @param lazyImport 惰性载入，如果为true时表示底层只标记该类型为导出类型，需要在lua层中使用nativeType来进行类型导出。如果为false时，则表示类型立即导出到lua层。
+                 */
+                void exportsType(LuaExportTypeDescriptor *typeDescriptor, bool lazyImport);
+                
+                /**
+                 根据一个原生对象创建一个Lua对象
+                 
+                 @param objectDescriptor 对象实例
+                 */
+                void createLuaObject(LuaObjectDescriptor *objectDescriptor);
+                
+            public:
+                
+                /**
+                 初始化Lua对象
+                 
+                 @param objectDescriptor 实例对象
+                 */
+                void _initLuaObject(LuaObjectDescriptor *objectDescriptor);
+                
+                /**
+                 将原生对象与Lua对象进行绑定
+                 
+                 @param objectDescriptor 实例对象
+                 */
+                void _bindLuaInstance(LuaObjectDescriptor *objectDescriptor);
+                
+            private:
+                
+                /**
+                 上下文对象
+                 */
+                LuaContext *_context;
+                
+                /**
+                 导出类型
+                 */
+                std::map<std::string, LuaExportTypeDescriptor*> _exportTypes;
+                
+                /**
+                 初始化导出类型
+                 */
+                void _setupExportType();
+                
+                /**
+                 初始化原生类型导出方法
+                 */
+                void _setupNativeTypeMethod();
+                
+                /**
+                 标记指定类型为导出类型
+
+                 @param typeDescriptor 类型
+                 */
+                void _markType(LuaExportTypeDescriptor *typeDescriptor);
+                
+                /**
+                 导出类型
+
+                 @param state 状态
+                 @param typeDescriptor 类型描述
+                 */
+                void _exportsType(lua_State *state, LuaExportTypeDescriptor *typeDescriptor);
+                
+                /**
+                 导出类方法
+
+                 @param state 状态
+                 @param typeDescriptor 类型描述
+                 */
+                void _exportsClassMethods(lua_State *state, LuaExportTypeDescriptor *typeDescriptor);
+                
+                /**
+                 导出实例方法
+
+                 @param state 状态
+                 @param typeDescriptor 类型描述
+                 */
+                void _exportsInstanceMethods(lua_State *state, LuaExportTypeDescriptor *typeDescriptor);
+
+            };
+            
+        }
+    }
+}
+
+#endif /* LuaExportsTypeManager_hpp */
