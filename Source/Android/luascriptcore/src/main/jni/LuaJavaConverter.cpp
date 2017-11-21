@@ -7,8 +7,8 @@
 #include "LuaJavaConverter.h"
 #include "LuaJavaType.h"
 #include "LuaJavaObjectDescriptor.h"
+#include "LuaExportsTypeManager.hpp"
 #include "LuaJavaEnv.h"
-#include "LuaJavaObjectInstanceDescriptor.h"
 #include "LuaObjectManager.h"
 #include "LuaFunction.h"
 #include "LuaContext.h"
@@ -206,23 +206,20 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         if (objDesc == NULL)
         {
             //不存在则创建对象
-            if (env -> IsInstanceOf(object, LuaJavaType::luaObjectClass(env)))
+            jclass objType = env -> GetObjectClass(object);
+            jclass exportTypeCls = LuaJavaType::luaExportTypeClass(env);
+            if (env -> IsAssignableFrom(objType, exportTypeCls))
             {
-                //为LuaObjectClass
-                LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, object, context);
-                if (objectClass != NULL)
-                {
-                    objDesc = new LuaJavaObjectInstanceDescriptor(env, object, objectClass);
-                }
-                else
-                {
-                    objDesc = new LuaJavaObjectDescriptor(env, object);
-                }
+                //为导出类型
+                std::string typeNameString = LuaJavaEnv::getExportTypeName(env, objType);
+                LuaExportTypeDescriptor *typeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor(typeNameString);
+                objDesc = new LuaJavaObjectDescriptor(env, object, typeDescriptor);
             }
             else
             {
                 objDesc = new LuaJavaObjectDescriptor(env, object);
             }
+
             needRelease = true;
         }
 
@@ -442,18 +439,15 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                 if (objDesc == NULL)
                 {
                     //不存在则创建对象
-                    if (env -> IsInstanceOf(obj, LuaJavaType::luaObjectClass(env)))
+                    //判断是否为导出类型
+                    jclass objType = env -> GetObjectClass(obj);
+                    jclass exportTypeCls = LuaJavaType::luaExportTypeClass(env);
+                    if (env -> IsAssignableFrom(objType, exportTypeCls))
                     {
-                        //为LuaObjectClass
-                        LuaJavaObjectClass *objectClass = LuaJavaEnv::getObjectClassByInstance(env, obj, context);
-                        if (objectClass != NULL)
-                        {
-                            objDesc = new LuaJavaObjectInstanceDescriptor(env, obj, objectClass);
-                        }
-                        else
-                        {
-                            objDesc = new LuaJavaObjectDescriptor(env, obj);
-                        }
+                        //为导出类型
+                        std::string typeNameString = LuaJavaEnv::getExportTypeName(env, objType);
+                        LuaExportTypeDescriptor *typeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor(typeNameString);
+                        objDesc = new LuaJavaObjectDescriptor(env, obj, typeDescriptor);
                     }
                     else
                     {
@@ -621,8 +615,7 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
             case LuaValueTypeObject:
             {
                 LuaObjectDescriptor *objDesc = luaValue -> toObject();
-                if (dynamic_cast<LuaJavaObjectDescriptor *>(objDesc) != NULL
-                        || dynamic_cast<LuaJavaObjectInstanceDescriptor *>(objDesc) != NULL)
+                if (dynamic_cast<LuaJavaObjectDescriptor *>(objDesc) != NULL)
                 {
                     //如果为LuaJavaObjectDescriptor则转换为jobject类型
                     retObj = env -> NewLocalRef((jobject)objDesc -> getObject());
@@ -711,8 +704,6 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContex
             default:
                 break;
         }
-
-//        int objectId = LuaObjectManager::SharedInstance() -> putObject(luaValue);
 
         if (luaValue -> getType() == LuaValueTypeNil)
         {
