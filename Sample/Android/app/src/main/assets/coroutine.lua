@@ -47,6 +47,7 @@ function TestClassFunc()
 
         print ("+++++++++++++");
 
+        local Person = nativeType('Person');
         local p = Person.create();
         print (p);
 
@@ -72,8 +73,8 @@ function TestClassImportFunc()
 
     local tfunc = coroutine.create(function()
 
-        local NativePerson = ClassImport('cn.vimfung.luascriptcore.sample.NativeData');
-        local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person');
+        local NativePerson = nativeType('NativePerson');
+        local Person = nativeType('Person');
         print(Person, NativePerson);
         local p = NativePerson.createPerson();
         print(p);

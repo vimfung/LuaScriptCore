@@ -4,6 +4,7 @@
 
 #include "StringUtils.h"
 #include <stdio.h>
+#include <algorithm>
 
 using namespace cn::vimfung::luascriptcore;
 
