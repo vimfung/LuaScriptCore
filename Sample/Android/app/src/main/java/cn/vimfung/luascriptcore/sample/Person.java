@@ -6,17 +6,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import cn.vimfung.luascriptcore.LuaContext;
+import cn.vimfung.luascriptcore.LuaExportType;
+import cn.vimfung.luascriptcore.LuaExportTypeConfig;
 import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaManagedValue;
 import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
-import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
 /**
  * 人类
  * Created by vimfung on 16/10/12.
  */
-public class Person extends LuaObjectClass
+public class Person implements LuaExportType
 {
     public String name;
     public void speak()

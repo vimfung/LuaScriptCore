@@ -2,6 +2,7 @@ package cn.vimfung.luascriptcore;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Path;
 import android.os.Debug;
@@ -19,15 +20,23 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import dalvik.system.DexFile;
 
 import static android.os.Environment.MEDIA_MOUNTED;
 //import java.util.Objects;
@@ -39,6 +48,7 @@ import static android.os.Environment.MEDIA_MOUNTED;
 public class LuaContext extends LuaBaseObject
 {
     private Context _context;
+    private LuaContextConfig _config;
     private LuaExceptionHandler _exceptionHandler;
     private HashMap<String, LuaMethodHandler> _methods;
 
@@ -46,6 +56,80 @@ public class LuaContext extends LuaBaseObject
      * 建立Lua目录标识
      */
     private static boolean _isSetupLuaFolder = false;
+
+    /**
+     * 注册类型
+     */
+    private static ArrayList<Class<? extends LuaExportType>> _regTypes = null;
+
+    /**
+     * 排除类型规则
+     */
+    private static String[] _excludeClassesRules = {
+            "^android[.]support$",
+            "^android[.]support[.].+",
+            "^com[.]android$",
+            "^com[.]android[.].+",
+    };
+
+    /**
+     * 查找导出的类型
+     *
+     * @param context 上下文对象
+     */
+    @SuppressWarnings("unchecked")
+    private static void findRegTypes (Context context)
+    {
+        if (_regTypes == null)
+        {
+            _regTypes = new ArrayList<Class<? extends LuaExportType>>();
+            try
+            {
+                String packageCodePath = context.getPackageCodePath();
+                DexFile df = new DexFile(packageCodePath);
+                for (Enumeration<String> iter = df.entries(); iter.hasMoreElements();)
+                {
+                    String className = iter.nextElement();
+
+                    boolean isExcludeClass = false;
+                    for (String patternStr : _excludeClassesRules)
+                    {
+                        Pattern pattern = Pattern.compile(patternStr);
+                        Matcher matcher = pattern.matcher(className);
+                        if (matcher.matches())
+                        {
+                            //匹配
+                            isExcludeClass = true;
+                            break;
+                        }
+                    }
+
+                    if (!isExcludeClass)
+                    {
+                        try
+                        {
+                            Class type = Class.forName(className);
+                            if (!type.isInterface() && LuaExportType.class.isAssignableFrom(type))
+                            {
+                                //非接口
+                                Log.d("luascriptcore", String.format("Register type %s", type.getName()));
+                                _regTypes.add(type);
+                            }
+                        }
+                        catch (ClassNotFoundException e)
+                        {
+                            Log.d("luascriptcore", e.getMessage());
+                        }
+
+                    }
+                }
+            }
+            catch (IOException e)
+            {
+                Log.d("luascriptcore", e.getMessage());
+            }
+        }
+    }
 
     /**
      * 建立Lua目录结构
@@ -137,23 +221,56 @@ public class LuaContext extends LuaBaseObject
     }
 
     /**
-     * 创建上下文对象
-     * @param nativeId  本地对象标识
+     * 导出类型
      */
-    protected LuaContext(int nativeId)
+    private void exportTypes()
     {
-        super(nativeId);
-
-        this._methods = new HashMap<String, LuaMethodHandler>();
+        for (Class<? extends LuaExportType> t : _regTypes)
+        {
+            LuaExportTypeManager.getDefaultManager().exportType(this, t);
+        }
     }
 
     /**
      * 创建上下文对象
+     * @param nativeId  本地对象标识
+     */
+    protected LuaContext(int nativeId, LuaContextConfig config)
+    {
+        super(nativeId);
+
+        this._config = config;
+        this._methods = new HashMap<String, LuaMethodHandler>();
+
+        //导出类型
+        exportTypes();
+    }
+
+    /**
+     * 创建上下文对象
+     *
+     * @param context 应用上下文
      * @return  上下文对象
      */
+    @SuppressWarnings("unchecked")
     public static LuaContext create(Context context)
     {
-        LuaContext luaContext = LuaNativeUtil.createContext();
+        return create(context, LuaContextConfig.defaultConfig());
+    }
+
+    /**
+     * 创建上下文对象
+     *
+     * @param context  应用上下文对象
+     * @param config  Lua上下文配置
+     * @return Lua上下文对象
+     */
+    public static LuaContext create(Context context, LuaContextConfig config)
+    {
+        //初始化注册类型
+        findRegTypes(context);
+
+        LuaContext luaContext = LuaNativeUtil.createContext(config);
         luaContext._context = context;
 
         File cacheDir = new File (String.format("%s/lua", luaContext.getCacheDir()));
@@ -164,6 +281,15 @@ public class LuaContext extends LuaBaseObject
         luaContext.addSearchPath(cacheDir.toString());
 
         return luaContext;
+    }
+
+    /**
+     * 获取上下文配置
+     * @return 上下文配置信息对象
+     */
+    public LuaContextConfig getConfig()
+    {
+        return _config;
     }
 
     /**
@@ -308,32 +434,32 @@ public class LuaContext extends LuaBaseObject
         }
     }
 
-    /**
-     * 注册模块
-     * @param moduleClass     模块类
-     */
-    public void registerModule(Class<? extends LuaModule> moduleClass)
-    {
-        try
-        {
-            Method regMethod = moduleClass.getMethod("_register", LuaContext.class, moduleClass.getClass());
-            regMethod.invoke(moduleClass, this, moduleClass);
-        }
-        catch (Exception e)
-        {
-//            e.printStackTrace();
-        }
-    }
+//    /**
+//     * 注册模块
+//     * @param moduleClass     模块类
+//     */
+//    public void registerModule(Class<? extends LuaModule> moduleClass)
+//    {
+//        try
+//        {
+//            Method regMethod = moduleClass.getMethod("_register", LuaContext.class, moduleClass.getClass());
+//            regMethod.invoke(moduleClass, this, moduleClass);
+//        }
+//        catch (Exception e)
+//        {
+////            e.printStackTrace();
+//        }
+//    }
 
-    /**
-     * 判断模块是否已经注册
-     * @param moduleName    模块名称
-     * @return  true 模块已注册, 否则尚未注册
-     */
-    public boolean isModuleRegisted(String moduleName)
-    {
-        return LuaNativeUtil.isModuleRegisted(_nativeId, moduleName);
-    }
+//    /**
+//     * 判断模块是否已经注册
+//     * @param moduleName    模块名称
+//     * @return  true 模块已注册, 否则尚未注册
+//     */
+//    public boolean isModuleRegisted(String moduleName)
+//    {
+//        return LuaNativeUtil.isModuleRegisted(_nativeId, moduleName);
+//    }
 
     /**
      * 调用方法

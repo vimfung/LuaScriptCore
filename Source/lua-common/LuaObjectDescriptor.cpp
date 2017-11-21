@@ -44,22 +44,20 @@ static int objectReferenceGCHandler(lua_State *state)
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor()
-        : _object(NULL)
+        : _object(NULL), _typeDescriptor(NULL)
 {
     _linkId = StringUtils::format("%p", this);
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor(const void *object)
+    : _object((void *)object), _typeDescriptor(NULL)
 {
     _linkId = StringUtils::format("%p", this);
-
-    setObject(object);
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor(void *object, LuaExportTypeDescriptor *typeDescriptor)
+    : _object(object), _typeDescriptor(typeDescriptor)
 {
-    _object = object;
-    _typeDescriptor = typeDescriptor;
     _linkId = StringUtils::format("%p", this);
 }
 
