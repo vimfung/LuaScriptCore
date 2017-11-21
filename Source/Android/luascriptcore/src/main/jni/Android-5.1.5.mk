@@ -13,13 +13,10 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/LuaJavaConverter.cpp \
 	$(LOCAL_PATH)/LuaJavaEnv.cpp \
 	$(LOCAL_PATH)/LuaJavaExceptionHandler.cpp \
-	$(LOCAL_PATH)/LuaJavaModule.cpp \
-	$(LOCAL_PATH)/LuaJavaObjectClass.cpp \
 	$(LOCAL_PATH)/LuaJavaObjectDescriptor.cpp \
-	$(LOCAL_PATH)/LuaJavaObjectInstanceDescriptor.cpp \
 	$(LOCAL_PATH)/LuaJavaType.cpp \
-	$(LOCAL_PATH)/LuaJavaClassImport.cpp \
-	$(LOCAL_PATH)/LuaJavaExportClassProxy.cpp \
+	$(LOCAL_PATH)/LuaJavaExportTypeDescriptor.cpp \
+    $(LOCAL_PATH)/LuaJavaExportMethodDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../lua-core-5.1.5/src/lapi.c \
 	$(LOCAL_PATH)/../../../../../lua-core-5.1.5/src/lauxlib.c \
 	$(LOCAL_PATH)/../../../../../lua-core-5.1.5/src/lbaselib.c \
@@ -52,26 +49,24 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/../../../../../lua-core-5.1.5/src/lzio.c \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaContext.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaFunction.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaModule.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaNativeClass.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaNativeClassFactory.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObject.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectClass.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectDecoder.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectEncoder.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectInstanceDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectManager.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaPointer.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaValue.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaTuple.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaClassImport.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaExportClassProxy.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/StringUtils.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaDataExchanger.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaManagedObject.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaSession.cpp \
-	$(LOCAL_PATH)/../../../../../lua-common/LuaEngineAdapter.cpp
+	$(LOCAL_PATH)/../../../../../lua-common/LuaEngineAdapter.cpp \
+	$(LOCAL_PATH)/../../../../../lua-common/LuaExportMethodDescriptor.cpp \
+    $(LOCAL_PATH)/../../../../../lua-common/LuaExportsTypeManager.cpp \
+    $(LOCAL_PATH)/../../../../../lua-common/LuaExportTypeDescriptor.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../lua-core-5.1.5/src

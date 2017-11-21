@@ -7,20 +7,18 @@
 
 #include "LuaContext.h"
 #include "LuaValue.h"
-#include "LuaModule.h"
-#include "LuaJavaModule.h"
 #include "LuaJavaConverter.h"
 #include "LuaObjectManager.h"
 #include "LuaDefine.h"
 #include "LuaJavaEnv.h"
 #include "LuaJavaType.h"
-#include "LuaObjectClass.h"
-#include "LuaJavaObjectClass.h"
 #include "LuaFunction.h"
-#include "LuaJavaClassImport.h"
+#include "LuaJavaExportTypeDescriptor.h"
+#include "LuaJavaExportMethodDescriptor.h"
+#include "LuaExportsTypeManager.hpp"
+#include "StringUtils.h"
 
 using namespace cn::vimfung::luascriptcore;
-using namespace cn::vimfung::luascriptcore::modules::oo;
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 {
@@ -34,10 +32,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
  * Signature: ()Lcn/vimfung/luascriptcore/LuaContext;
  */
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createContext
-        (JNIEnv *env, jclass obj)
+        (JNIEnv *env, jclass obj, jobject config)
 {
     LuaContext *context = new LuaContext();
-    jobject jcontext = LuaJavaEnv::createJavaLuaContext(env, context);
+    jobject jcontext = LuaJavaEnv::createJavaLuaContext(env, context, config);
     context -> release();
 
     return jcontext;
@@ -210,87 +208,6 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseNative
     LuaJavaEnv::releaseObject(env, nativeObjectId);
 }
 
-JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerModule
-        (JNIEnv *env, jclass thiz, jint nativeContextId, jstring moduleName, jclass moduleClass, jobjectArray methods)
-
-{
-    LuaContext *context = (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeContextId);
-    if (context != NULL)
-    {
-        //实例化Module
-        const char *moduleNameCStr = env -> GetStringUTFChars(moduleName, NULL);
-
-        //创建Java模块
-        LuaJavaModule *javaModule = new LuaJavaModule(
-                env,
-                moduleClass,
-                methods);
-        context -> registerModule(moduleNameCStr, javaModule);
-
-        javaModule -> release();
-
-        env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
-
-        return JNI_TRUE;
-    }
-
-    return JNI_FALSE;
-}
-
-JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_isModuleRegisted
-        (JNIEnv *env, jclass thiz, jint nativeContextId, jstring moduleName)
-{
-    LuaContext *context = (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeContextId);
-    if (context != NULL)
-    {
-        const char *modNameCStr = env -> GetStringUTFChars(moduleName, NULL);
-        bool registed = context -> isModuleRegisted(modNameCStr);
-        env -> ReleaseStringUTFChars(moduleName, modNameCStr);
-
-        return (jboolean)registed;
-    }
-
-    return JNI_FALSE;
-}
-
-JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClass
-        (JNIEnv *env, jclass thiz, jobject jcontext, jstring className, jstring superClassName, jclass jobjectClass, jobjectArray fields, jobjectArray instanceMethods, jobjectArray classMethods)
-{
-    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
-    if (context != NULL)
-    {
-        const char *classNameStr = env -> GetStringUTFChars(className, NULL);
-
-        LuaJavaObjectClass *superClass = NULL;
-
-        if (env -> IsSameObject(superClassName, NULL) != JNI_TRUE)
-        {
-            const char *superClassNameCStr = NULL;
-            superClassNameCStr = env -> GetStringUTFChars(superClassName, NULL);
-
-            superClass = (LuaJavaObjectClass *)context -> getModule(superClassNameCStr);
-
-            env -> ReleaseStringUTFChars(superClassName, superClassNameCStr);
-        }
-
-        LuaJavaObjectClass *objectClass = new LuaJavaObjectClass(
-                env,
-                superClass,
-                jobjectClass,
-                fields,
-                instanceMethods,
-                classMethods);
-        context -> registerModule(classNameStr, objectClass);
-
-        objectClass -> release();
-        env -> ReleaseStringUTFChars(className, classNameStr);
-
-        return JNI_TRUE;
-    }
-
-    return JNI_FALSE;
-}
-
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunction
         (JNIEnv *env, jclass thiz, jobject jcontext, jobject func, jobjectArray arguments)
 {
@@ -337,54 +254,6 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunc
     return retObj;
 }
 
-JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_setInculdesClasses(JNIEnv *env, jclass type, jobject jcontext, jstring moduleName, jobject classes)
-{
-    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
-    if (context != NULL)
-    {
-        const char* moduleNameCStr = env -> GetStringUTFChars(moduleName, NULL);
-        LuaJavaClassImport *classImport = (LuaJavaClassImport *)context -> getModule(moduleNameCStr);
-        env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
-
-        if (classImport)
-        {
-            jclass listClass = env -> GetObjectClass(classes);
-            jmethodID sizeMethod = env -> GetMethodID(listClass, "size", "()I");
-            jmethodID getMethod = env -> GetMethodID(listClass, "get", "(I)Ljava/lang/Object;");
-
-            std::list<jclass> exportClassList;
-            int listSize = env -> CallIntMethod(classes, sizeMethod);
-            for (int i = 0; i < listSize; ++i)
-            {
-                jclass cls = (jclass)env -> CallObjectMethod(classes, getMethod, i);
-                exportClassList.push_back((jclass)env -> NewGlobalRef(cls));
-                env -> DeleteLocalRef(cls);
-            }
-
-            classImport -> setExportClassList(exportClassList);
-
-            env -> DeleteLocalRef(listClass);
-        }
-    }
-}
-
-JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerClassImport(JNIEnv *env, jclass type, jobject jcontext, jstring moduleName)
-{
-    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
-    if (context != NULL)
-    {
-        //实例化Module
-        const char *moduleNameCStr = env -> GetStringUTFChars(moduleName, NULL);
-
-        //创建Java模块
-        LuaJavaClassImport *classImport = new LuaJavaClassImport();
-        context -> registerModule(moduleNameCStr, classImport);
-        classImport -> release();
-
-        env -> ReleaseStringUTFChars(moduleName, moduleNameCStr);
-    }
-}
-
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_retainValue(JNIEnv *env, jclass type, jobject jcontext, jobject jvalue)
 {
     LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
@@ -405,4 +274,105 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseValue(
         context -> releaseValue(value);
         value -> release();
     }
+}
+
+JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerType(
+        JNIEnv *env,
+        jclass thiz,
+        jobject jcontext,
+        jboolean lazyImport,
+        jstring typeName,
+        jstring parentTypeName,
+        jclass type,
+        jobjectArray fields,
+        jobjectArray instanceMethods,
+        jobjectArray classMethods)
+{
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
+    {
+        const char *typeNameCStr = env->GetStringUTFChars(typeName, 0);
+        const char *parentTypeNameCStr = env->GetStringUTFChars(parentTypeName, 0);
+
+        LuaExportTypeDescriptor *parentTypeDescriptor = NULL;
+        if (parentTypeNameCStr != NULL)
+        {
+            parentTypeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor(parentTypeNameCStr);
+        }
+
+        std::string typeNameStr = typeNameCStr;
+        LuaJavaExportTypeDescriptor *typeDescriptor = new LuaJavaExportTypeDescriptor(typeNameStr, env, type, parentTypeDescriptor);
+
+        //注册字段
+        int fieldsLen = env -> GetArrayLength(fields);
+        for (int i = 0; i < fieldsLen; ++i)
+        {
+            jstring fieldName = (jstring)env -> GetObjectArrayElement(fields, i);
+            const char *fieldNameCStr = env -> GetStringUTFChars(fieldName, 0);
+
+            std::vector<std::string> fieldComps =  StringUtils::split(fieldNameCStr, "_", false);
+
+            //添加Getter
+            LuaJavaExportMethodDescriptor *getterMethodDescriptor = new LuaJavaExportMethodDescriptor(fieldComps[0], fieldComps[1], LuaJavaMethodTypeGetter);
+            typeDescriptor -> addInstanceMethod(fieldComps[0], getterMethodDescriptor);
+            getterMethodDescriptor -> release();
+
+            //添加Setter
+            //与iOS中的属性getter和setter方法保持一致, getter直接是属性名称,setter则需要将属性首字母大写并在前面加上set
+            char upperCStr[2] = {0};
+            upperCStr[0] = (char)toupper(fieldComps[0][0]);
+            std::string upperStr = upperCStr;
+            std::string fieldNameStr = fieldComps[0].c_str() + 1;
+            std::string setterMethodName = "set" + upperStr + fieldNameStr;
+            LuaJavaExportMethodDescriptor *setterMethodDescriptor = new LuaJavaExportMethodDescriptor(fieldComps[0], fieldComps[1], LuaJavaMethodTypeSetter);
+            typeDescriptor -> addInstanceMethod(setterMethodName, setterMethodDescriptor);
+            setterMethodDescriptor -> release();
+
+            env -> ReleaseStringUTFChars(fieldName, fieldNameCStr);
+        }
+
+        //注册实例方法
+        int instanceMethodsLen = env -> GetArrayLength(instanceMethods);
+        for (int i = 0; i < instanceMethodsLen; ++i)
+        {
+            jstring methodName = (jstring)env -> GetObjectArrayElement(instanceMethods, i);
+            const char *methodNameCStr = env -> GetStringUTFChars(methodName, 0);
+
+            std::vector<std::string> methodComps =  StringUtils::split(methodNameCStr, "_", false);
+
+            LuaJavaExportMethodDescriptor *methodDescriptor = new LuaJavaExportMethodDescriptor(methodComps[0], methodComps[1], LuaJavaMethodTypeInstance);
+            typeDescriptor -> addInstanceMethod(methodComps[0], methodDescriptor);
+            methodDescriptor -> release();
+
+            env -> ReleaseStringUTFChars(methodName, methodNameCStr);
+        }
+
+        //注册类方法
+        int classMethodsLen = env -> GetArrayLength(classMethods);
+        for (int i = 0; i < classMethodsLen; ++i)
+        {
+            jstring methodName = (jstring)env -> GetObjectArrayElement(classMethods, i);
+            const char *methodNameCStr = env -> GetStringUTFChars(methodName, 0);
+
+            std::vector<std::string> methodComps =  StringUtils::split(methodNameCStr, "_", false);
+
+            LuaJavaExportMethodDescriptor *methodDescriptor = new LuaJavaExportMethodDescriptor(methodComps[0], methodComps[1], LuaJavaMethodTypeStatic);
+            typeDescriptor -> addClassMethod(methodComps[0], methodDescriptor);
+            methodDescriptor -> release();
+
+            env -> ReleaseStringUTFChars(methodName, methodNameCStr);
+        }
+
+        // 导出类型
+        context -> getExportsTypeManager() -> exportsType(typeDescriptor, lazyImport);
+
+        typeDescriptor -> release();
+
+        env->ReleaseStringUTFChars(typeName, typeNameCStr);
+        env->ReleaseStringUTFChars(parentTypeName, parentTypeNameCStr);
+
+        return JNI_TRUE;
+    }
+
+    return JNI_FALSE;
 }

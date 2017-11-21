@@ -27,8 +27,6 @@ import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
 import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
-import cn.vimfung.luascriptcore.modules.oo.LuaClassImport;
-import cn.vimfung.luascriptcore.modules.oo.LuaObjectClass;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -140,13 +138,8 @@ public class MainActivity extends AppCompatActivity {
             regModuleBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (!_hasRegModule)
-                    {
-                        _hasRegModule = true;
-                        _luaContext.registerModule(LogModule.class);
-                    }
                     _luaContext.evalScript("LogModule.writeLog('Hello Lua Module!');");
-                    _luaContext.evalScript("LogModule.testObj(LogModule.createObj());");
+                    _luaContext.evalScript("local obj = LogModule.createObj(); print(obj); LogModule.testObj(obj);");
                 }
             });
         }
@@ -158,18 +151,7 @@ public class MainActivity extends AppCompatActivity {
             regClsBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-                if(!_hasRegClass)
-                {
-                    _hasRegClass = true;
-                    _luaContext.registerModule(LogModule.class);
-                    _luaContext.registerModule(Person.class);
-                    _luaContext.registerModule(Chinese.class);
-                    _luaContext.registerModule(English.class);
-                    _luaContext.registerModule(Console.class);
-                }
-
-                _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
+                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
                 }
             });
         }
@@ -180,20 +162,7 @@ public class MainActivity extends AppCompatActivity {
             importNativeClssBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-                    if (!_useClassProxy)
-                    {
-                        _useClassProxy = true;
-                        _luaContext.registerModule(LuaClassImport.class);
-
-                        //设置允许导出的类型
-                        ArrayList<Class> exportsClasses = new ArrayList<Class>();
-                        exportsClasses.add(Person.class);
-                        exportsClasses.add(NativeData.class);
-                        LuaClassImport.setInculdesClasses(_luaContext, exportsClasses);
-                    }
-
-                    _luaContext.evalScript("local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person'); print(Person); local Data = ClassImport('cn.vimfung.luascriptcore.sample.NativeData'); print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
+                    _luaContext.evalScript("local Person = nativeType('Person'); print(Person); local Data = nativeType('NativePerson'); print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
                 }
             });
         }
@@ -204,13 +173,9 @@ public class MainActivity extends AppCompatActivity {
             retainReleaseBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-                    _luaContext.registerModule(Person.class);
-
                     _luaContext.evalScript("local test = function() print('test func') end; test(); Person.retainHandler2(test);");
                     _luaContext.evalScript("print('-------------1'); Person.callHandler2(); Person.releaseHandler2();");
                     _luaContext.evalScript("print('-------------2'); Person.callHandler2();");
-
                 }
             });
         }
@@ -225,16 +190,6 @@ public class MainActivity extends AppCompatActivity {
                     if (!_hasRegCoroutineMethod) {
 
                         _hasRegCoroutineMethod = true;
-
-                        _luaContext.registerModule(LogModule.class);
-                        _luaContext.registerModule(Person.class);
-                        _luaContext.registerModule(LuaClassImport.class);
-
-                        ArrayList<Class> exportsClasses = new ArrayList<Class>();
-                        exportsClasses.add(Person.class);
-                        exportsClasses.add(NativeData.class);
-                        LuaClassImport.setInculdesClasses(_luaContext, exportsClasses);
-
                         _luaContext.registerMethod("GetValue", new LuaMethodHandler() {
                             @Override
                             public LuaValue onExecute(LuaValue[] arguments) {

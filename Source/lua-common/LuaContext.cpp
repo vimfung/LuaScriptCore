@@ -4,7 +4,6 @@
 
 #include "LuaContext.h"
 #include "LuaValue.h"
-#include "LuaModule.h"
 #include "LuaPointer.h"
 #include "LuaFunction.h"
 #include "LuaTuple.h"
@@ -78,13 +77,6 @@ LuaContext::LuaContext()
 
 LuaContext::~LuaContext()
 {
-    //释放模块内存
-    for (LuaModuleMap::iterator it = _moduleMap.begin(); it != _moduleMap.end() ; ++it)
-    {
-        LuaModule *module = it -> second;
-        module -> release();
-    }
-
     LuaEngineAdapter::close(_mainSession -> getState());
 }
 
