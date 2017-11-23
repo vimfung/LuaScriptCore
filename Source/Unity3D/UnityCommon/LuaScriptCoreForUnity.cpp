@@ -9,6 +9,7 @@
 #include "LuaScriptCoreForUnity.h"
 #include <iostream>
 #include <typeinfo>
+#include <ctype.h>
 #include "LuaContext.h"
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectManager.h"

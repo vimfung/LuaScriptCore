@@ -130,31 +130,29 @@ public class Sample : MonoBehaviour {
 
 	public void coroutineButtonClickedHandler ()
 	{
-		LuaContext.currentContext.evalScript ("print('-------------2'); Person.callHandler();");
+		if (!_isCoroutineImport)
+		{
+			_isCoroutineImport = true;
 
-//		if (!_isCoroutineImport)
-//		{
-//			_isCoroutineImport = true;
-//
-//			LuaContext.currentContext.registerMethod ("GetValue", (arguments) =>
-//			{
-//				return new LuaValue (1024);
-//
-//			});
-//
-//			LuaContext.currentContext.registerMethod ("GetPixel", (arguments) =>
-//			{
-//
-//				LuaTuple tuple = new LuaTuple ();
-//				tuple.addRetrunValue (100);
-//				tuple.addRetrunValue (38);
-//				tuple.addRetrunValue (1002);
-//
-//				return new LuaValue (tuple);
-//
-//			});
-//		}
-//
-//		LuaContext.currentContext.evalScriptFromFile ("coroutine.lua");
+			LuaContext.currentContext.registerMethod ("GetValue", (arguments) =>
+			{
+				return new LuaValue (1024);
+
+			});
+
+			LuaContext.currentContext.registerMethod ("GetPixel", (arguments) =>
+			{
+
+				LuaTuple tuple = new LuaTuple ();
+				tuple.addRetrunValue (100);
+				tuple.addRetrunValue (38);
+				tuple.addRetrunValue (1002);
+
+				return new LuaValue (tuple);
+
+			});
+		}
+
+		LuaContext.currentContext.evalScriptFromFile ("coroutine.lua");
 	}
 }
