@@ -67,8 +67,8 @@
       <file leaf-file-name="Android.mk" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/../../Source/Android/luascriptcore/src/main/jni/Android.mk">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="375">
-              <caret line="25" column="25" selection-start-line="25" selection-start-column="25" selection-end-line="25" selection-end-column="25" />
+            <state relative-caret-position="1140">
+              <caret line="76" column="61" selection-start-line="76" selection-start-column="61" selection-end-line="76" selection-end-column="61" />
               <folding />
             </state>
           </provider>
@@ -2814,12 +2814,6 @@
         </subPane>
       </pane>
       <pane id="Scratches" />
-      <pane id="AndroidView">
-        <subPane />
-      </pane>
-      <pane id="PackagesPane">
-        <subPane />
-      </pane>
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -2828,7 +2822,23 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Android" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="luascriptcore" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
+      </pane>
+      <pane id="AndroidView">
+        <subPane />
+      </pane>
+      <pane id="PackagesPane">
+        <subPane />
       </pane>
     </panes>
   </component>
@@ -3311,9 +3321,9 @@
     <editor active="false" />
     <layout>
       <window_info id="Nl-Palette" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Build Variants" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.37620103" sideWeight="0.6130952" order="3" side_tool="true" content_ui="tabs" />
+      <window_info id="Build Variants" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31855136" sideWeight="0.61924684" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33639947" sideWeight="0.5558019" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33771354" sideWeight="0.70362157" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3718791" sideWeight="0.6999261" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Properties" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -3326,13 +3336,12 @@
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Image Layers" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3521682" sideWeight="0.45824096" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3521682" sideWeight="0.45824096" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.37450722" sideWeight="0.50480413" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Captures" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24963072" sideWeight="0.4927798" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33771354" sideWeight="0.2963784" order="10" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.37620103" sideWeight="0.38690478" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39421815" sideWeight="0.4390244" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3718791" sideWeight="0.30007392" order="10" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.31855136" sideWeight="0.38075313" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.17944899" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Theme Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -3343,6 +3352,7 @@
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32791728" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39421815" sideWeight="0.4390244" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -3398,9 +3408,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-39">
           <caret line="9" column="36" selection-start-line="9" selection-start-column="36" selection-end-line="9" selection-end-column="36" />
-          <folding>
-            <element signature="imports" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -3423,18 +3430,10 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
           <caret line="6" column="13" selection-start-line="6" selection-start-column="13" selection-end-line="6" selection-end-column="13" />
-          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../Source/Android/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaModule.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1275">
-          <caret line="255" column="23" selection-start-line="255" selection-start-column="23" selection-end-line="255" selection-end-column="23" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../../Source/Android/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaModule.java" />
     <entry file="file://$PROJECT_DIR$/../../Source/Android/luascriptcore/src/main/jni/LuaJavaExceptionHandler.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -3446,9 +3445,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="390">
           <caret line="32" column="20" selection-start-line="32" selection-start-column="20" selection-end-line="32" selection-end-column="20" />
-          <folding>
-            <element signature="e#220#238#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -3456,7 +3452,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="197">
           <caret line="104" column="27" selection-start-line="104" selection-start-column="27" selection-end-line="104" selection-end-column="27" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3464,7 +3459,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="327">
           <caret line="1318" column="0" selection-start-line="1318" selection-start-column="0" selection-end-line="1318" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3472,7 +3466,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="159">
           <caret line="967" column="0" selection-start-line="967" selection-start-column="0" selection-end-line="967" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3480,7 +3473,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="339">
           <caret line="738" column="0" selection-start-line="738" selection-start-column="0" selection-end-line="738" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3488,7 +3480,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="174">
           <caret line="101" column="0" selection-start-line="101" selection-start-column="0" selection-end-line="101" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3496,7 +3487,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
           <caret line="224" column="0" selection-start-line="224" selection-start-column="0" selection-end-line="224" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3504,7 +3494,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="144">
           <caret line="634" column="0" selection-start-line="634" selection-start-column="0" selection-end-line="634" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3512,7 +3501,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="50">
           <caret line="378" column="17" selection-start-line="378" selection-start-column="17" selection-end-line="378" selection-end-column="17" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3520,7 +3508,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
           <caret line="6" column="30" selection-start-line="6" selection-start-column="17" selection-end-line="6" selection-end-column="30" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3528,7 +3515,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-606">
           <caret line="33" column="18" selection-start-line="33" selection-start-column="18" selection-end-line="33" selection-end-column="18" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3536,7 +3522,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-723">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3544,7 +3529,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="387">
           <caret line="160" column="53" selection-start-line="160" selection-start-column="53" selection-end-line="160" selection-end-column="53" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3552,7 +3536,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="84">
           <caret line="459" column="43" selection-start-line="459" selection-start-column="43" selection-end-line="459" selection-end-column="43" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3560,7 +3543,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="252">
           <caret line="345" column="46" selection-start-line="345" selection-start-column="46" selection-end-line="345" selection-end-column="46" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3568,7 +3550,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="204">
           <caret line="820" column="18" selection-start-line="820" selection-start-column="18" selection-end-line="820" selection-end-column="18" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3576,7 +3557,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-514">
           <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3584,7 +3564,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="237">
           <caret line="226" column="6" selection-start-line="226" selection-start-column="6" selection-end-line="226" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3592,28 +3571,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="240">
           <caret line="22" column="32" selection-start-line="22" selection-start-column="32" selection-end-line="22" selection-end-column="32" />
-          <folding>
-            <element signature="e#691#692#0" expanded="false" />
-            <element signature="e#726#727#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../../Source/Android/luascriptcore/src/main/java/cn/vimfung/luascriptcore/modules/oo/LuaObjectClass.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="705">
-          <caret line="229" column="13" selection-start-line="229" selection-start-column="13" selection-end-line="229" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../../Source/Android/luascriptcore/src/main/java/cn/vimfung/luascriptcore/modules/oo/LuaObjectClass.java" />
     <entry file="file://$PROJECT_DIR$/../../Source/Android/luascriptcore/src/main/jni/LuaJavaConverter.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-907">
           <caret line="632" column="26" selection-start-line="632" selection-start-column="26" selection-end-line="632" selection-end-column="26" />
-          <folding>
-            <element signature="e#37#56#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -3621,7 +3586,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="159">
           <caret line="80" column="34" selection-start-line="80" selection-start-column="34" selection-end-line="80" selection-end-column="34" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3629,7 +3593,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="249">
           <caret line="374" column="22" selection-start-line="374" selection-start-column="22" selection-end-line="374" selection-end-column="22" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3637,7 +3600,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="750">
           <caret line="80" column="0" selection-start-line="80" selection-start-column="0" selection-end-line="80" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3645,7 +3607,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="324">
           <caret line="135" column="51" selection-start-line="135" selection-start-column="51" selection-end-line="135" selection-end-column="51" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3653,7 +3614,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="521">
           <caret line="60" column="28" selection-start-line="60" selection-start-column="4" selection-end-line="60" selection-end-column="28" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3661,7 +3621,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="267">
           <caret line="27" column="10" selection-start-line="27" selection-start-column="10" selection-end-line="27" selection-end-column="10" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3669,7 +3628,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1500">
           <caret line="111" column="33" selection-start-line="111" selection-start-column="33" selection-end-line="111" selection-end-column="33" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3677,7 +3635,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="234">
           <caret line="142" column="4" selection-start-line="142" selection-start-column="4" selection-end-line="142" selection-end-column="4" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3685,7 +3642,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="312">
           <caret line="348" column="5" selection-start-line="348" selection-start-column="5" selection-end-line="348" selection-end-column="5" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3693,7 +3649,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="420">
           <caret line="38" column="21" selection-start-line="38" selection-start-column="21" selection-end-line="38" selection-end-column="21" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3701,7 +3656,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="236">
           <caret line="273" column="13" selection-start-line="273" selection-start-column="13" selection-end-line="273" selection-end-column="13" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3709,9 +3663,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="147">
           <caret line="12" column="1" selection-start-line="12" selection-start-column="1" selection-end-line="12" selection-end-column="1" />
-          <folding>
-            <element signature="e#40#80#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -3719,9 +3670,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="387">
           <caret line="166" column="53" selection-start-line="166" selection-start-column="53" selection-end-line="166" selection-end-column="53" />
-          <folding>
-            <element signature="e#40#64#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -3729,7 +3677,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="207">
           <caret line="322" column="52" selection-start-line="322" selection-start-column="52" selection-end-line="322" selection-end-column="52" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3737,7 +3684,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="105">
           <caret line="10" column="45" selection-start-line="10" selection-start-column="33" selection-end-line="10" selection-end-column="45" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3745,10 +3691,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="210">
           <caret line="18" column="47" selection-start-line="18" selection-start-column="47" selection-end-line="18" selection-end-column="47" />
-          <folding>
-            <element signature="e#577#578#0" expanded="false" />
-            <element signature="e#604#605#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -3756,7 +3698,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="90">
           <caret line="18" column="3" selection-start-line="18" selection-start-column="3" selection-end-line="18" selection-end-column="3" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3772,7 +3713,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2235">
           <caret line="209" column="59" selection-start-line="209" selection-start-column="59" selection-end-line="209" selection-end-column="59" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3780,14 +3720,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="225">
           <caret line="64" column="55" selection-start-line="64" selection-start-column="55" selection-end-line="64" selection-end-column="55" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/../../Source/Android/luascriptcore/src/main/jni/Android.mk">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="25" column="25" selection-start-line="25" selection-start-column="25" selection-end-line="25" selection-end-column="25" />
+        <state relative-caret-position="1140">
+          <caret line="76" column="61" selection-start-line="76" selection-start-column="61" selection-end-line="76" selection-end-column="61" />
           <folding />
         </state>
       </provider>

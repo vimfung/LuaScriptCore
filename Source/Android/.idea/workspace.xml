@@ -53,22 +53,29 @@
       <file leaf-file-name="LuaExportType.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaExportType.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
-              <caret line="16" column="57" selection-start-line="16" selection-start-column="57" selection-end-line="16" selection-end-column="57" />
+            <state relative-caret-position="0">
+              <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="LuaContext.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="LuaContext.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaContext.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="345">
-              <caret line="54" column="9" selection-start-line="54" selection-start-column="9" selection-end-line="54" selection-end-column="9" />
-              <folding>
-                <element signature="e#5403#5404#0" expanded="true" />
-                <element signature="e#5433#5434#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="60">
+              <caret line="54" column="7" selection-start-line="54" selection-start-column="7" selection-end-line="54" selection-end-column="7" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="compile.gradle" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/luascriptcore/compile.gradle">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="330">
+              <caret line="22" column="48" selection-start-line="22" selection-start-column="35" selection-end-line="22" selection-end-column="48" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -76,10 +83,11 @@
       <file leaf-file-name="LuaNativeUtil.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaNativeUtil.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
+            <state relative-caret-position="180">
               <caret line="15" column="44" selection-start-line="15" selection-start-column="44" selection-end-line="15" selection-end-column="44" />
               <folding>
-                <element signature="imports" expanded="true" />
+                <element signature="e#329#330#0" expanded="false" />
+                <element signature="e#400#401#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -1969,6 +1977,27 @@
     </navigator>
     <panes>
       <pane id="Scratches" />
+      <pane id="AndroidView">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Android" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Android" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Gradle Scripts" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidBuildScriptsGroupNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -2181,101 +2210,6 @@
             <PATH_ELEMENT>
               <option name="myItemId" value="jni" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
-      <pane id="PackagesPane" />
-      <pane id="AndroidView">
-        <subPane>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Gradle Scripts" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidBuildScriptsGroupNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="luascriptcore" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="luascriptcore" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cpp" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidJniFolderNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="luascriptcore" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="cpp" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidJniFolderNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="jni" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.NativeAndroidSourceDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="luascriptcore" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidSourceTypeNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="luascriptcore" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidSourceTypeNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="luascriptcore" />
-              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidPsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
@@ -2591,8 +2525,8 @@
     <editor active="true" />
     <layout>
       <window_info id="Nl-Palette" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.306894" sideWeight="0.38229376" order="3" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.34691197" sideWeight="0.57301706" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.306894" sideWeight="0.39156628" order="3" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3455979" sideWeight="0.57301706" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.41130093" sideWeight="0.56634545" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Properties" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -2611,7 +2545,7 @@
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.34691197" sideWeight="0.43217197" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Captures" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24943651" sideWeight="0.49215686" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25361368" sideWeight="0.13828996" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.306894" sideWeight="0.61770624" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.306894" sideWeight="0.6084337" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Theme Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
@@ -2647,13 +2581,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../lua-core-5.1.5/src/lunity.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="213">
-          <caret line="15" column="0" selection-start-line="15" selection-start-column="0" selection-end-line="15" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../lua-core-5.1.5/src/lunity.c">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="150">
@@ -2734,13 +2661,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/../lua-common/LuaClassImport.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-120">
-          <caret line="374" column="52" selection-start-line="374" selection-start-column="52" selection-end-line="374" selection-end-column="52" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/../lua-common/LuaClassImport.cpp" />
     <entry file="file://$PROJECT_DIR$/../lua-core-5.1.5/src/ldump.c">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -2843,40 +2764,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/jni/LuaJavaModule.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="12" column="66" selection-start-line="12" selection-start-column="66" selection-end-line="12" selection-end-column="66" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/jni/LuaJavaObjectClass.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/jni/LuaJavaModule.h" />
+    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/jni/LuaJavaObjectClass.h" />
     <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/jni/LuaJavaConverter.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="169">
           <caret line="623" column="28" selection-start-line="623" selection-start-column="28" selection-end-line="623" selection-end-column="28" />
-          <folding>
-            <element signature="e#37#56#0" expanded="false" />
-            <marker date="1510713744000" expanded="true" signature="411:665" ph="{...}" />
-            <marker date="1510713744000" expanded="true" signature="19570:26440" ph="{...}" />
-            <marker date="1510713744000" expanded="true" signature="26554:30103" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/luascriptcore/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15">
-          <caret line="1" column="17" selection-start-line="1" selection-start-column="17" selection-end-line="1" selection-end-column="17" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2884,7 +2777,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="156">
           <caret line="157" column="0" selection-start-line="157" selection-start-column="0" selection-end-line="157" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2892,7 +2784,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="156">
           <caret line="350" column="0" selection-start-line="350" selection-start-column="0" selection-end-line="350" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2900,7 +2791,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="156">
           <caret line="868" column="0" selection-start-line="868" selection-start-column="0" selection-end-line="868" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2908,17 +2798,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="870">
           <caret line="58" column="48" selection-start-line="58" selection-start-column="48" selection-end-line="58" selection-end-column="48" />
-          <folding>
-            <element signature="e#37#61#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/luascriptcore/compile.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="360">
-          <caret line="31" column="54" selection-start-line="31" selection-start-column="54" selection-end-line="31" selection-end-column="54" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2926,9 +2805,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="330">
           <caret line="22" column="30" selection-start-line="22" selection-start-column="30" selection-end-line="22" selection-end-column="30" />
-          <folding>
-            <element signature="e#38#74#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -2936,9 +2812,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="195">
           <caret line="312" column="18" selection-start-line="312" selection-start-column="18" selection-end-line="312" selection-end-column="18" />
-          <folding>
-            <element signature="e#135#173#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -2952,51 +2825,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaModule.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="246">
-          <caret line="46" column="21" selection-start-line="46" selection-start-column="21" selection-end-line="46" selection-end-column="21" />
-          <folding>
-            <marker date="1510717978000" expanded="false" signature="1199:1207" ph="&lt;~&gt;" />
-            <marker date="1510717978000" expanded="false" signature="1411:1419" ph="&lt;~&gt;" />
-            <marker date="1510717978000" expanded="false" signature="2981:2997" ph="&lt;~&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/modules/oo/LuaObjectClass.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2460">
-          <caret line="164" column="33" selection-start-line="164" selection-start-column="33" selection-end-line="164" selection-end-column="33" />
-          <folding>
-            <marker date="1510717956000" expanded="false" signature="1584:1591" ph="&lt;~&gt;" />
-            <marker date="1510717956000" expanded="false" signature="1656:1664" ph="&lt;~&gt;" />
-            <marker date="1510717956000" expanded="false" signature="1730:1738" ph="&lt;~&gt;" />
-            <marker date="1510717956000" expanded="false" signature="1807:1815" ph="&lt;~&gt;" />
-            <marker date="1510717956000" expanded="false" signature="6011:6027" ph="&lt;~&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/modules/oo/LuaClassImport.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="210">
-          <caret line="14" column="5" selection-start-line="14" selection-start-column="5" selection-end-line="14" selection-end-column="5" />
-          <folding>
-            <marker date="1510717950000" expanded="false" signature="1729:1745" ph="&lt;~&gt;" />
-            <marker date="1510717950000" expanded="false" signature="2900:2916" ph="&lt;~&gt;" />
-            <marker date="1510717950000" expanded="false" signature="4176:4184" ph="&lt;~&gt;" />
-            <marker date="1510717950000" expanded="false" signature="4971:4979" ph="&lt;~&gt;" />
-            <marker date="1510717950000" expanded="false" signature="5761:5769" ph="&lt;~&gt;" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaModule.java" />
+    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/modules/oo/LuaObjectClass.java" />
+    <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/modules/oo/LuaClassImport.java" />
     <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/jni/Android.mk">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-633">
           <caret line="8" column="11" selection-start-line="8" selection-start-column="11" selection-end-line="8" selection-end-column="11" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3004,7 +2839,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="151">
           <caret line="56" column="26" selection-start-line="56" selection-start-column="26" selection-end-line="56" selection-end-column="26" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3012,7 +2846,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="351">
           <caret line="188" column="86" selection-start-line="188" selection-start-column="86" selection-end-line="188" selection-end-column="86" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -3036,8 +2869,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaExportType.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="16" column="57" selection-start-line="16" selection-start-column="57" selection-end-line="16" selection-end-column="57" />
+        <state relative-caret-position="0">
+          <caret line="10" column="0" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -3047,30 +2880,52 @@
         <state relative-caret-position="225">
           <caret line="15" column="7" selection-start-line="15" selection-start-column="7" selection-end-line="15" selection-end-column="7" />
           <folding>
-            <element signature="e#476#477#0" expanded="true" />
-            <element signature="e#506#507#0" expanded="true" />
+            <element signature="e#476#477#0" expanded="false" />
+            <element signature="e#506#507#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaNativeUtil.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
+        <state relative-caret-position="180">
           <caret line="15" column="44" selection-start-line="15" selection-start-column="44" selection-end-line="15" selection-end-column="44" />
           <folding>
-            <element signature="imports" expanded="true" />
+            <element signature="e#329#330#0" expanded="false" />
+            <element signature="e#400#401#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/luascriptcore/compile-5.1.5.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/luascriptcore/build.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="17" selection-start-line="1" selection-start-column="17" selection-end-line="1" selection-end-column="17" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/luascriptcore/src/main/java/cn/vimfung/luascriptcore/LuaContext.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="345">
-          <caret line="54" column="9" selection-start-line="54" selection-start-column="9" selection-end-line="54" selection-end-column="9" />
-          <folding>
-            <element signature="e#5403#5404#0" expanded="true" />
-            <element signature="e#5433#5434#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="60">
+          <caret line="54" column="7" selection-start-line="54" selection-start-column="7" selection-end-line="54" selection-end-column="7" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/luascriptcore/compile.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="330">
+          <caret line="22" column="48" selection-start-line="22" selection-start-column="35" selection-end-line="22" selection-end-column="48" />
+          <folding />
         </state>
       </provider>
     </entry>
