@@ -21,5 +21,6 @@ FOUNDATION_EXPORT const unsigned char LuaScriptCore_OSX_SwiftVersionString[];
 #import <LuaScriptCore_OSX_Swift/LSCPointer.h>
 #import <LuaScriptCore_OSX_Swift/LSCTuple.h>
 #import <LuaScriptCore_OSX_Swift/LSCExportType.h>
+#import <LuaScriptCore_OSX_Swift/LSCExportTypeAnnotation.h>
 #import <LuaScriptCore_OSX_Swift/LSCContextConfig.h>
 #import <LuaScriptCore_OSX_Swift/LSCManagedValue.h>

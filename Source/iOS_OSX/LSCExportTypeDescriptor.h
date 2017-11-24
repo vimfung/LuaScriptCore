@@ -19,17 +19,17 @@
 /**
  类型名称
  */
-@property (nonatomic, copy) NSString *typeName;
+@property (nonatomic, copy, readonly) NSString *typeName;
 
 /**
  原型类型名称
  */
-@property (nonatomic, copy) NSString *prototypeTypeName;
+@property (nonatomic, copy, readonly) NSString *prototypeTypeName;
 
 /**
  原生类型
  */
-@property (nonatomic) Class nativeType;
+@property (nonatomic, readonly) Class nativeType;
 
 /**
  导出类方法
@@ -45,6 +45,24 @@
  父级类型描述器
  */
 @property (nonatomic, weak) LSCExportTypeDescriptor *parentTypeDescriptor;
+
+/**
+ Object类型描述
+
+ @return 类型描述
+ */
++ (LSCExportTypeDescriptor *)objectTypeDescriptor;
+
+/**
+ 初始化
+ 
+ @param typeName 类型名称
+ @param nativeType 原生类型
+ @param parentTypeDescriptor 父级类型描述
+ @return 类型描述
+ */
+- (instancetype)initWithTypeName:(NSString *)typeName
+                      nativeType:(Class)nativeType;
 
 /**
  是否为指定类型的子类型

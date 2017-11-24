@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "LSCExportType.h"
+#import "LSCExportTypeAnnotation.h"
 
 @class NativePerson;
 @class LSCTuple;

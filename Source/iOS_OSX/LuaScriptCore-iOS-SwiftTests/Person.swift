@@ -12,31 +12,35 @@ import LuaScriptCore_iOS_Swift
 private var _func : LuaValue? = nil;
 private var _managedFunc : LuaManagedValue? = nil;
 
-class Person: NSObject, LuaExportType {
+class Person: NSObject, LuaExportType, LuaExportTypeAnnotation {
     
     deinit {
         print("deinit");
     }
     
-    class func createPerson() -> Person
+    static func typeName() -> String! {
+        return "Person";
+    }
+    
+    @objc class func createPerson() -> Person
     {
         return Person();
     }
     
-    var name : String = "";
+    @objc var name : String = "";
     
-    func speak(_ text : String) -> Void
+    @objc func speak(_ text : String) -> Void
     {
         print("\(name) speak : \(text)");
     }
     
-    class func retainHandler (_ handler : LSCFunction) -> Void
+    @objc class func retainHandler (_ handler : LSCFunction) -> Void
     {
         _func = LuaValue(functionValue: LuaFunction(rawFunction: handler));
         Env.defaultContext.retainValue(value: _func!);
     }
     
-    class func releaseHandler ()
+    @objc class func releaseHandler ()
     {
         if (_func != nil)
         {
@@ -45,7 +49,7 @@ class Person: NSObject, LuaExportType {
         }
     }
     
-    class func callHandler ()
+    @objc class func callHandler ()
     {
         if _func != nil
         {
@@ -53,17 +57,17 @@ class Person: NSObject, LuaExportType {
         }
     }
     
-    class func retainHandler2 (_ handler : LSCFunction) -> Void
+    @objc class func retainHandler2 (_ handler : LSCFunction) -> Void
     {
         _managedFunc = LuaManagedValue(source: LuaValue(functionValue: LuaFunction(rawFunction: handler)), context: Env.defaultContext);
     }
     
-    class func releaseHandler2 ()
+    @objc class func releaseHandler2 ()
     {
         _managedFunc = nil;
     }
     
-    class func callHandler2 ()
+    @objc class func callHandler2 ()
     {
         if _managedFunc != nil
         {

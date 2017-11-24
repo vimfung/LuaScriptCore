@@ -18,19 +18,8 @@
 
 - (instancetype)init
 {
-    if (self = [self initWithConfig:[LSCContextConfig defaultConfig]])
-    {
-        
-    }
-    
-    return self;
-}
-
-- (instancetype)initWithConfig:(LSCContextConfig *)config
-{
     if (self = [super init])
     {
-        self.config = config;
         self.methodBlocks = [NSMutableDictionary dictionary];
         
         lua_State *state = [LSCEngineAdapter newState];
