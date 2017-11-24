@@ -10,21 +10,10 @@
 #import "LSCEngineAdapter.h"
 #import "LSCDataExchanger.h"
 #import "LSCExportsTypeManager.h"
-#import "LSCContextConfig.h"
 
 @class LSCSession;
 
 @interface LSCContext ()
-
-/**
- 配置信息
- */
-@property (nonatomic, strong) LSCContextConfig *config;
-
-/**
- *  Lua解析器
- */
-//@property(nonatomic) lua_State *state;
 
 /**
  *  异常处理器

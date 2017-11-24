@@ -241,6 +241,11 @@
     lua_rawset(state, index);
 }
 
++ (int)rawGet:(lua_State *)state index:(int)index
+{
+    return lua_rawget(state, index);
+}
+
 + (int)type:(lua_State *)state index:(int)index
 {
     return lua_type(state, index);
