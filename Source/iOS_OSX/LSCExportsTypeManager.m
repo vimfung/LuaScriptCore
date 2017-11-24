@@ -14,7 +14,7 @@
 #import "LSCPointer.h"
 #import "LSCExportTypeDescriptor.h"
 #import "LSCExportMethodDescriptor.h"
-#import "LSCContextConfig.h"
+#import "LSCExportTypeAnnotation.h"
 #import <objc/runtime.h>
 
 @interface LSCExportsTypeManager ()
@@ -55,8 +55,8 @@
         self.methodsMapping = [NSMutableDictionary dictionary];
         [self _setupExportsTypes];
         
-        //创建nativeType接口
-        [self _setupNativeTypeMethod];
+        //设置环境
+        [self _setupExportEnv];
     }
     
     return self;
@@ -80,11 +80,6 @@
     {
         lua_State *state = self.context.currentSession.state;
         [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
-        if ([LSCEngineAdapter isNil:state index:-1])
-        {
-            //导入类型
-            [self _prepareExportsTypeWithDescriptor:typeDescriptor];
-        }
         [LSCEngineAdapter pop:state count:1];
         
         [self _initLuaObjectWithObject:object type:typeDescriptor];
@@ -94,67 +89,67 @@
 #pragma mark - Private
 
 /**
+ 设置导出环境
+ */
+- (void)_setupExportEnv
+{
+    //为_G设置元表，用于监听其对象的获取，从而找出哪些是导出类型
+    lua_State *state = self.context.currentSession.state;
+    [LSCEngineAdapter getGlobal:state name:"_G"];
+    
+    if (![LSCEngineAdapter isTable:state index:-1])
+    {
+        [self.context raiseExceptionWithMessage:@"Invalid '_G' object，setup the exporter fail."];
+        [LSCEngineAdapter pop:state count:1];
+        return;
+    }
+    
+    //创建_G元表
+    [LSCEngineAdapter newTable:state];
+    
+    //监听__index元方法
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+    [LSCEngineAdapter pushCClosure:globalIndexMetaMethodHandler n:1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__index"];
+    
+    //绑定为_G元表
+    [LSCEngineAdapter setMetatable:state index:-2];
+    
+    [LSCEngineAdapter pop:state count:1];
+}
+
+/**
  初始化导出类型
  */
 - (void)_setupExportsTypes
 {
-    //建立一个基类Object的描述
-    LSCExportTypeDescriptor *objTypeDescriptor = [[LSCExportTypeDescriptor alloc] init];
-    objTypeDescriptor.typeName = @"Object";
-    objTypeDescriptor.prototypeTypeName = [self _prototypeClassNameWithTypeName:objTypeDescriptor.typeName];
-    [self.exportTypes setObject:objTypeDescriptor forKey:objTypeDescriptor.typeName];
-    [self _prepareExportsTypeWithDescriptor:objTypeDescriptor];
+    //注册基类Object
+    LSCExportTypeDescriptor *objectTypeDescriptor = [LSCExportTypeDescriptor objectTypeDescriptor];
+    [self.exportTypes setObject:objectTypeDescriptor forKey:objectTypeDescriptor.typeName];
     
     //反射所有类型,并找出所有导出类型
-    int numClasses;
-    Class *classes = NULL;
+    uint numClasses;
     
-    classes = NULL;
-    numClasses = objc_getClassList(NULL, 0);
+    Class *classList = objc_copyClassList(&numClasses);
     
-    if (numClasses > 0)
+    for (int i = 0; i < numClasses; i++)
     {
-        classes = (__unsafe_unretained Class *)malloc(sizeof(Class) * numClasses);
-        numClasses = objc_getClassList(classes, numClasses);
-        for (int i = 0; i < numClasses; i++)
-        {
-            Class cls = classes[i];
-            
-            if (class_getClassMethod(cls, @selector(conformsToProtocol:))
-                && [cls conformsToProtocol:@protocol(LSCExportType)])
-            {
-                LSCExportTypeDescriptor *typeDescriptor = [[LSCExportTypeDescriptor alloc] init];
-                typeDescriptor.typeName = [self _typeNameWithClass:cls];
-                typeDescriptor.prototypeTypeName = [self _prototypeClassNameWithTypeName:typeDescriptor.typeName];
-                typeDescriptor.nativeType = cls;
-                
-                [self.exportTypes setObject:typeDescriptor
-                                     forKey:typeDescriptor.typeName];
-                [self.exportTypesMapping setObject:typeDescriptor.typeName
-                                            forKey:NSStringFromClass(cls)];
-                
-                if (!self.context.config.manualImportClassEnabled)
-                {
-                    //导入类型
-                    [self _prepareExportsTypeWithDescriptor:typeDescriptor];
-                }
-            }
-        }
+        Class cls = *(classList + i);
         
-        free(classes);
-    }
-}
+        if (class_getClassMethod(cls, @selector(conformsToProtocol:))
+            && [cls conformsToProtocol:@protocol(LSCExportType)])
+        {
+            LSCExportTypeDescriptor *typeDescriptor = [[LSCExportTypeDescriptor alloc] initWithTypeName:[self _typeNameWithClass:cls]
+                                                                                             nativeType:cls];
 
-/**
- 创建原生类型方法
- */
-- (void)_setupNativeTypeMethod
-{
-    lua_State *state = self.context.mainSession.state;
+            [self.exportTypes setObject:typeDescriptor
+                                 forKey:typeDescriptor.typeName];
+            [self.exportTypesMapping setObject:typeDescriptor.typeName
+                                        forKey:NSStringFromClass(cls)];
+        }
+    }
     
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushCClosure:importNativeTypeHandler n:1 state:state];
-    [LSCEngineAdapter setGlobal:state name:"nativeType"];
+    free(classList);
 }
 
 /**
@@ -165,28 +160,13 @@
 - (void)_prepareExportsTypeWithDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
 {
     lua_State *state = self.context.mainSession.state;
-    
-    //检测是否已经存在
-    [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
-    if (![LSCEngineAdapter isNil:state index:-1])
-    {
-        [LSCEngineAdapter pop:state count:1];
-        
-        NSString *msg = [NSString stringWithFormat:@"The '%@' type of the specified name already exists!", typeDescriptor.typeName];
-        [self.context raiseExceptionWithMessage:msg];
-        return;
-    }
-    
+
     //判断父类是否为导出类型
     LSCExportTypeDescriptor *parentTypeDescriptor = [self _findParentTypeDescriptorWithTypeDescriptor:typeDescriptor];
     if (parentTypeDescriptor)
     {
+        //导入父级类型
         [LSCEngineAdapter getGlobal:state name:parentTypeDescriptor.typeName.UTF8String];
-        if ([LSCEngineAdapter isNil:state index:-1])
-        {
-            //如果父类还没有注册，则进行注册操作
-            [self _prepareExportsTypeWithDescriptor:parentTypeDescriptor];
-        }
         [LSCEngineAdapter pop:state count:1];
     }
     
@@ -366,11 +346,16 @@
 {
     if (targetTypeDescriptor.nativeType != NULL)
     {
-        Class metaType = objc_getMetaClass(NSStringFromClass(targetTypeDescriptor.nativeType).UTF8String);
         NSArray *excludesMethodNames = nil;
-        if (class_respondsToSelector(targetTypeDescriptor.nativeType, @selector(excludeExportClassMethods)))
+        Class metaType = objc_getMetaClass(NSStringFromClass(targetTypeDescriptor.nativeType).UTF8String);
+        
+        //先判断是否有实现注解的排除类方法
+        if (class_conformsToProtocol(targetTypeDescriptor.nativeType, @protocol(LSCExportTypeAnnotation)))
         {
-            excludesMethodNames = [targetTypeDescriptor.nativeType excludeExportClassMethods];
+            if (class_respondsToSelector(targetTypeDescriptor.nativeType, @selector(excludeExportClassMethods)))
+            {
+                excludesMethodNames = [targetTypeDescriptor.nativeType excludeExportClassMethods];
+            }
         }
         
         //解析方法
@@ -490,11 +475,15 @@
     if (typeDescriptor.nativeType != NULL)
     {
         //注册实例方法
-        Class metaType = objc_getMetaClass(NSStringFromClass(typeDescriptor.nativeType).UTF8String);
+        //先判断是否有注解排除实例方法
         NSArray *excludesMethodNames = nil;
-        if (class_respondsToSelector(metaType, @selector(excludeExportInstanceMethods)))
+        if (class_conformsToProtocol(typeDescriptor.nativeType, @protocol(LSCExportTypeAnnotation)))
         {
-            excludesMethodNames = [typeDescriptor.nativeType excludeExportInstanceMethods];
+            Class metaType = objc_getMetaClass(NSStringFromClass(typeDescriptor.nativeType).UTF8String);
+            if (class_respondsToSelector(metaType, @selector(excludeExportInstanceMethods)))
+            {
+                excludesMethodNames = [typeDescriptor.nativeType excludeExportInstanceMethods];
+            }
         }
         
         //解析方法
@@ -625,10 +614,15 @@
 {
     NSString *name = nil;
     
-    Class metaCls = objc_getMetaClass(NSStringFromClass(cls).UTF8String);
-    if (class_respondsToSelector(metaCls, @selector(typeName)))
+    //先判断类型是否有进行注解，注：此处必须使用class_conformsToProtocol方法判断，可以具体到指定类型是否实现协议
+    //如果使用conformsToProtocol的objc方法则会检测父类是否使用协议，不符合注解规则
+    if (class_conformsToProtocol(cls, @protocol(LSCExportTypeAnnotation)))
     {
-        name = [cls typeName];
+        if ([self _declareClassMethodResponderToSelector:@selector(typeName) withClass:cls])
+        {
+            //当前方法实现为
+            name = [(id<LSCExportTypeAnnotation>)cls typeName];
+        }
     }
     
     if (!name)
@@ -732,18 +726,6 @@
 }
 
 /**
- 获取原型类名称
- 
- @param typeName 类型名称
- @return 原型类名称
- */
-- (NSString *)_prototypeClassNameWithTypeName:(NSString *)typeName
-{
-    return [NSString stringWithFormat:@"_%@_PROTOTYPE_", typeName];
-}
-
-
-/**
  查找父级类型描述
 
  @param typeDescriptor 类型描述
@@ -836,6 +818,33 @@
     }
     
     return signStr;
+}
+
+
+/**
+ 判断指定类型是否有定义指定类方法
+
+ @param selector 方法名称
+ @param class 类型
+ @return YES 表示有实现， NO 表示没有
+ */
+- (BOOL)_declareClassMethodResponderToSelector:(SEL)selector withClass:(Class)class
+{
+    Class metaCls = objc_getMetaClass(NSStringFromClass(class).UTF8String);
+    
+    uint count = 0;
+    Method *methodList = class_copyMethodList(metaCls, &count);
+    for (int i = 0; i < count; i++)
+    {
+        if (method_getName(*(methodList + i)) == selector)
+        {
+            return YES;
+        }
+    }
+    
+    free(methodList);
+    
+    return NO;
 }
 
 #pragma mark - C Method
@@ -1440,10 +1449,8 @@ static int subClassHandler (lua_State *state)
     LSCSession *session = [exporter.context makeSessionWithState:state];
     
     //构建子类型描述
-    LSCExportTypeDescriptor *subTypeDescriptor = [[LSCExportTypeDescriptor alloc] init];
-    subTypeDescriptor.typeName = [NSString stringWithUTF8String:[LSCEngineAdapter checkString:state index:1]];
-    subTypeDescriptor.prototypeTypeName = [exporter _prototypeClassNameWithTypeName:subTypeDescriptor.typeName];
-    subTypeDescriptor.nativeType = typeDescriptor.nativeType;   //将父类的原生类型赋值给子类
+    NSString *typeName = [NSString stringWithUTF8String:[LSCEngineAdapter checkString:state index:1]];
+    LSCExportTypeDescriptor *subTypeDescriptor = [[LSCExportTypeDescriptor alloc] initWithTypeName:typeName nativeType:typeDescriptor.nativeType];
     subTypeDescriptor.parentTypeDescriptor = typeDescriptor;
     [exporter.exportTypes setObject:subTypeDescriptor forKey:subTypeDescriptor.typeName];
     
@@ -1554,42 +1561,34 @@ static int instanceOfHandler (lua_State *state)
 }
 
 /**
- 导入原生类型处理
+ 全局对象的index元方法处理
 
  @param state 状态
- @return 参数数量
+ @return 返回参数数量
  */
-static int importNativeTypeHandler(lua_State *state)
+static int globalIndexMetaMethodHandler(lua_State *state)
 {
-    if ([LSCEngineAdapter getTop:state] > 0)
+    LSCExportsTypeManager *exportsTypeManager = [LSCEngineAdapter toPointer:state index:[LSCEngineAdapter upvalueIndex:1]];
+    
+    //获取key
+    NSString *key = [NSString stringWithUTF8String:[LSCEngineAdapter toString:state index:2]];
+    
+    [LSCEngineAdapter rawGet:state index:1];
+    if ([LSCEngineAdapter isNil:state index:-1])
     {
-        int index = [LSCEngineAdapter upvalueIndex:1];
-        const void *ptr = [LSCEngineAdapter toPointer:state index:index];
-        LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
-        
-        NSString *typeName = [NSString stringWithUTF8String:[LSCEngineAdapter checkString:state index:1]];
-        [LSCEngineAdapter getGlobal:state name:typeName.UTF8String];
-        if ([LSCEngineAdapter isNil:state index:-1])
+        //检测是否该key是否为导出类型
+        LSCExportTypeDescriptor *typeDescriptor = exportsTypeManager.exportTypes[key];
+        if (typeDescriptor)
         {
+            //为导出类型
             [LSCEngineAdapter pop:state count:1];
             
-            //导入类型
-            LSCExportTypeDescriptor *typeDescriptor = exporter.exportTypes[typeName];
-            if (typeDescriptor)
-            {
-                [exporter _prepareExportsTypeWithDescriptor:typeDescriptor];
-                //重新获取
-                [LSCEngineAdapter getGlobal:state name:typeName.UTF8String];
-            }
-            else
-            {
-                [LSCEngineAdapter pushNil:state];
-            }
+            [exportsTypeManager _prepareExportsTypeWithDescriptor:typeDescriptor];
+            
+            //重新获取
+            [LSCEngineAdapter pushString:key.UTF8String state:state];
+            [LSCEngineAdapter rawGet:state index:1];
         }
-    }
-    else
-    {
-        [LSCEngineAdapter pushNil:state];
     }
     
     return 1;

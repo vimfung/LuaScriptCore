@@ -45,8 +45,6 @@ typedef NS_ENUM(NSUInteger, LSCGCType) {
  */
 + (lua_State *)newState;
 
-
-
 /**
  关闭状态
 
@@ -419,6 +417,16 @@ typedef NS_ENUM(NSUInteger, LSCGCType) {
  @param index table对象位置索引
  */
 + (void)rawSet:(lua_State *)state index:(int)index;
+
+
+/**
+ 获取表数据的源操作，不出发index元方法
+
+ @param state 状态
+ @param index table对象位置索引
+ @return 数量
+ */
++ (int)rawGet:(lua_State *)state index:(int)index;
 
 /**
  获取栈中指定位置类型

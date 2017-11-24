@@ -1,6 +1,3 @@
-nativeType('NativePerson');
-nativeType('Person');
-
 function Resume(func)
     coroutine.resume(func)
 end

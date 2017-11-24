@@ -380,7 +380,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
  @param state 状态
  @param block 操作行为
  */
-- (void)doActionInVarsTableWithState:(lua_State *)state block:(void (^)())block
+- (void)doActionInVarsTableWithState:(lua_State *)state block:(void (^)(void))block
 {
     [LSCEngineAdapter getGlobal:state name:"_G"];
     if (![LSCEngineAdapter isTable:state index:-1])
