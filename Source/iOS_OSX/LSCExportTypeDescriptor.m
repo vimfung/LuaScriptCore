@@ -13,6 +13,21 @@
 @interface LSCExportTypeDescriptor ()
 
 /**
+ 类型名称
+ */
+@property (nonatomic, copy) NSString *typeName;
+
+/**
+ 原型类型名称
+ */
+@property (nonatomic, copy) NSString *prototypeTypeName;
+
+/**
+ 原生类型
+ */
+@property (nonatomic) Class nativeType;
+
+/**
  方法映射表
  */
 @property (nonatomic, strong) NSMutableDictionary<NSString *,LSCExportMethodDescriptor *> *methodsMapping;
@@ -21,11 +36,32 @@
 
 @implementation LSCExportTypeDescriptor
 
++ (LSCExportTypeDescriptor *)objectTypeDescriptor
+{
+    LSCExportTypeDescriptor *objectTypeDesc = [[LSCExportTypeDescriptor alloc] init];
+    objectTypeDesc.typeName = @"Object";
+    objectTypeDesc.prototypeTypeName = [objectTypeDesc _prototypeClassNameWithTypeName:objectTypeDesc.typeName];
+    
+    return objectTypeDesc;
+}
+
 - (instancetype)init
 {
     if (self = [super init])
     {
         self.methodsMapping = [NSMutableDictionary dictionary];
+    }
+    return self;
+}
+
+- (instancetype)initWithTypeName:(NSString *)typeName
+                      nativeType:(Class)nativeType
+{
+    if (self = [self init])
+    {
+        self.typeName = typeName;
+        self.prototypeTypeName = [self _prototypeClassNameWithTypeName:typeName];
+        self.nativeType = nativeType;
     }
     return self;
 }
@@ -59,6 +95,16 @@
 
 #pragma mark - Private
 
+/**
+ 获取原型类名称
+ 
+ @param typeName 类型名称
+ @return 原型类名称
+ */
+- (NSString *)_prototypeClassNameWithTypeName:(NSString *)typeName
+{
+    return [NSString stringWithFormat:@"_%@_PROTOTYPE_", typeName];
+}
 
 /**
  获取方法

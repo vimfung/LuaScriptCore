@@ -9,21 +9,10 @@
 #import <Foundation/Foundation.h>
 #import "LSCTypeDefinied.h"
 
-@class LSCModule;
-@class LSCContextConfig;
-
 /**
  *  Lua上下文对象
  */
 @interface LSCContext : NSObject
-
-/**
- 初始化上下文对象
-
- @param config 配置信息
- @return 上下文对象
- */
-- (instancetype)initWithConfig:(LSCContextConfig *)config;
 
 /**
  *  发生异常时触发

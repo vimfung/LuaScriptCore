@@ -39,12 +39,21 @@
     }];
 }
 
+- (void)testGlobalVar
+{
+    NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
+    NSString *path = [bundle pathForResource:@"Test1" ofType:@"lua"];
+    [self.context evalScriptFromFile:path];
+}
+
 - (void)testIndependentContext
 {
     LSCContext *context = [[LSCContext alloc] init];
     LSCValue *value = [context evalScriptFromString:@"return 4 * 256; "];
     XCTAssertNotNil(value, "value is nil");
     NSLog(@"retValue = %@", value);
+    
+    [context evalScriptFromString:@""];
 }
 
 - (void)testEvalScript
@@ -104,7 +113,7 @@
 
 - (void)testRegisterModule
 {
-    LSCValue *resValue = [self.context evalScriptFromString:@"nativeType('TestModule'); return TestModule.test();"];
+    LSCValue *resValue = [self.context evalScriptFromString:@"return TestModule.test();"];
     XCTAssertTrue([[resValue toString] isEqualToString:@"Hello World!"], "result value is not equal 'Hello World!'");
     resValue = [self.context evalScriptFromString:@"return TestModule.test('abc');"];
     XCTAssertTrue([[resValue toString] isEqualToString:@"test msg = abc"], "result value is not equal 'Hello World!'");
@@ -112,32 +121,32 @@
 
 - (void)testRegisterClass
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); print(p); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!'); p:speak(true); p:speak(30);"];
+    [self.context evalScriptFromString:@"function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); print(p); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!'); p:speak(true); p:speak(30); p:test();"];
 }
 
 - (void)testCreateObjectWithParams
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); function Person.prototype:init(value) print(value); end local p = Person.create('xxx'); print(p);"];
+    [self.context evalScriptFromString:@"function Person.prototype:init(value) print(value); end local p = Person.create('xxx'); print(p);"];
 }
 
 - (void)testClassModuleName
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); print(Person.name);"];
+    [self.context evalScriptFromString:@"print(Person.name);"];
 }
 
 - (void)testClassIsSubclassOf
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); print(Person.subclassOf(Object));"];
+    [self.context evalScriptFromString:@"print(Person.subclassOf(Object));"];
 }
 
 - (void)testClassIsInstanceOf
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); local p = Person.create(); print(p:instanceOf(Person)); print(p:instanceOf(Object));"];
+    [self.context evalScriptFromString:@"local p = Person.create(); print(p:instanceOf(Person)); print(p:instanceOf(Object));"];
 }
 
 - (void)testClassMethodInherited
 {
-    [self.context evalScriptFromString:@"print(Object); nativeType('Person'); Person.subclass('ChinesePerson'); function Person.prototype:init () print(self.super); print ('Person init') end function ChinesePerson.prototype:init () self.super.init(self); print ('Chinese init'); end local c = ChinesePerson.create(); print(c); local p = Person.create(); print(p);"];
+    [self.context evalScriptFromString:@"print(Object); Person.subclass('ChinesePerson'); function Person.prototype:init () print(self.super); print ('Person init') end function ChinesePerson.prototype:init () self.super.init(self); print ('Chinese init'); end local c = ChinesePerson.create(); print(c); local p = Person.create(); print(p);"];
 }
 
 - (void)testSetGlobalVar
@@ -166,12 +175,12 @@
 
 - (void)testModuleTupleReturnValue
 {
-    [self.context evalScriptFromString:@"nativeType('TestModule'); local a,b = TestModule.testTuple(); print(a, b);"];
+    [self.context evalScriptFromString:@"local a,b = TestModule.testTuple(); print(a, b);"];
 }
 
 - (void)testClassInstanceTupleReturnValue
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); local p = Person.create(); local a,b = p:test(); print(a, b);"];
+    [self.context evalScriptFromString:@"local p = Person.create(); local a,b = p:test(); print(a, b);"];
 }
 
 - (void)testFunctionInvokeReturn
@@ -191,18 +200,18 @@
 
 - (void)testObjProxy
 {
-    [self.context evalScriptFromString:@"local Person = nativeType('Person'); print(Person); local p = Person.createNativePerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"print(Person); local p = Person.createNativePerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
 }
 
 - (void)testClassImportAndObjectClass
 {
-    [self.context evalScriptFromString:@"local NativePerson = nativeType('NativePerson'); local Person = nativeType('Person'); print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
 }
 
 - (void)testRetainRelease
 {
     
-    [self.context evalScriptFromString:@"nativeType('Person'); local test = function() print('test func') end; test(); Person.retainHandler(test);"];
+    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person.retainHandler(test);"];
     [self.context evalScriptFromString:@"print('-------------1'); Person.callHandler(); Person.releaseHandler();"];
     [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler();"];
 }
@@ -218,7 +227,7 @@
 
 - (void)testRetainRelease_3
 {
-    [self.context evalScriptFromString:@"nativeType('Person'); local test = function() print('test func') end; test(); Person.retainHandler2(test);"];
+    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person.retainHandler2(test);"];
     [self.context evalScriptFromString:@"print('-------------1'); Person.callHandler2(); Person.releaseHandler2();"];
     [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler2();"];
 }
@@ -250,7 +259,7 @@
 
 - (void)testNewTypeExporter
 {
-    [self.context evalScriptFromString:@"nativeType('ChildLog'); print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t:setName('vim'); t:printName();"];
+    [self.context evalScriptFromString:@"print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t:setName('vim'); t:printName();"];
 }
 
 - (void)tearDown

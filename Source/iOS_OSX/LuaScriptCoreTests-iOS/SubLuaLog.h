@@ -7,8 +7,9 @@
 //
 
 #import "LuaLog.h"
+#import "LSCExportTypeAnnotation.h"
 
-@interface SubLuaLog : LuaLog
+@interface SubLuaLog : LuaLog <LSCExportTypeAnnotation>
 
 @property (nonatomic, copy) NSString *name;
 
