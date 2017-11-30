@@ -47,8 +47,8 @@ function TestClassFunc()
         p = Person.createPerson();
         print (p);
 
-        p:setName("vim");
-        print (p:name());
+        p.name = "vim";
+        print (p.name);
 
         Person.printPersonName(p);
 
@@ -67,7 +67,7 @@ function TestClassImportFunc()
         print(Person, NativePerson); 
         local p = NativePerson.createPerson(); 
         print(p); 
-        p:setName('abc'); 
+        p.name = "abc"
         p:speak('Hello World!');
 
         coroutine.yield()
