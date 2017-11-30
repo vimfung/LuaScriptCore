@@ -31,6 +31,13 @@
 + (NSArray<NSString *> *)excludeExportClassMethods;
 
 /**
+ 被排除的属性，被排除的方法无法导出到Lua中
+
+ @return 属性列表
+ */
++ (NSArray<NSString *> *)excludeProperties;
+
+/**
  被排除的实例方法，被排除的方法无法导出到Lua中
  
  @return 方法列表
