@@ -13,17 +13,9 @@ public class LuaContext: NSObject
     var rawContext : LSCContext;
     
     /// 初始化LuaContext
-    ///
-    /// - Parameter config: 配置信息
-    public init (config : LuaContextConfig)
+    public override init ()
     {
-        self.rawContext = LSCContext(config: config);
-    }
-    
-    /// 初始化LuaContext
-    public override convenience init()
-    {
-        self.init(config: LuaContextConfig.default());
+        self.rawContext = LSCContext();
     }
     
     /// 添加搜索路径，对于不在应用主Bundle根目录的lua脚本如果需要require时，则需要指定其搜索路径。

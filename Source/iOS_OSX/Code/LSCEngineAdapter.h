@@ -424,9 +424,8 @@ typedef NS_ENUM(NSUInteger, LSCGCType) {
 
  @param state 状态
  @param index table对象位置索引
- @return 数量
  */
-+ (int)rawGet:(lua_State *)state index:(int)index;
++ (void)rawGet:(lua_State *)state index:(int)index;
 
 /**
  获取栈中指定位置类型

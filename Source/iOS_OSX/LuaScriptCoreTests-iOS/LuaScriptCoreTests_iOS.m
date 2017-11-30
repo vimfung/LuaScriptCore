@@ -121,7 +121,7 @@
 
 - (void)testRegisterClass
 {
-    [self.context evalScriptFromString:@"function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); print(p); p:setName('vim'); Person.printPersonName(p); p:speak('Hello World!'); p:speak(true); p:speak(30); p:test();"];
+    [self.context evalScriptFromString:@"function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); print(p); p.name = 'vim'; Person.printPersonName(p); p:speak('Hello World!'); p:speak(true); p:speak(30); p:test();"];
 }
 
 - (void)testCreateObjectWithParams
@@ -200,12 +200,12 @@
 
 - (void)testObjProxy
 {
-    [self.context evalScriptFromString:@"print(Person); local p = Person.createNativePerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"print(Person); local p = Person.createNativePerson(); print(p); p.name = 'abc'; p:speak('Hello World!');"];
 }
 
 - (void)testClassImportAndObjectClass
 {
-    [self.context evalScriptFromString:@"print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p:setName('abc'); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p.name = 'abc'; p:speak('Hello World!');"];
 }
 
 - (void)testRetainRelease
@@ -259,7 +259,7 @@
 
 - (void)testNewTypeExporter
 {
-    [self.context evalScriptFromString:@"print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t:setName('vim'); t:printName();"];
+    [self.context evalScriptFromString:@"print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t.name = 'vim'; t:printName();"];
 }
 
 - (void)tearDown

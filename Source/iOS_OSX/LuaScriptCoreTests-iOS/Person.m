@@ -19,6 +19,15 @@ static LSCManagedValue *_managedFunc = nil;
 
 @implementation Person
 
+- (instancetype)init
+{
+    if (self = [super init])
+    {
+        self.name = @"vimfung";
+    }
+    return self;
+}
+
 - (void)speak:(NSString *)content
 {
     NSLog(@"%@ speak:\"%@\"", self.name, content);
