@@ -37,7 +37,7 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
     
     func testClassImport()
     {
-        _ = _context?.evalScript(script: "print(Person); local p = Person.createPerson(); print(p); p:setName('vim'); p:speak('Hello World!');");
+        _ = _context?.evalScript(script: "print(Person); local p = Person.createPerson(); print(p); p.name = 'vim'; p:speak('Hello World!');");
     }
     
     func testRetainAndRelease()

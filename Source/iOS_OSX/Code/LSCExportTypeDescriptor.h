@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @class LSCExportMethodDescriptor;
+@class LSCExportPropertyDescriptor;
 @class LSCValue;
 
 /**
@@ -42,6 +43,11 @@
 @property (nonatomic, strong) NSDictionary<NSString *, NSArray<LSCExportMethodDescriptor *> *> *instanceMethods;
 
 /**
+ 导出属性集合
+ */
+@property (nonatomic, strong) NSMutableDictionary<NSString *, LSCExportPropertyDescriptor *> *properties;
+
+/**
  父级类型描述器
  */
 @property (nonatomic, weak) LSCExportTypeDescriptor *parentTypeDescriptor;
@@ -58,7 +64,6 @@
  
  @param typeName 类型名称
  @param nativeType 原生类型
- @param parentTypeDescriptor 父级类型描述
  @return 类型描述
  */
 - (instancetype)initWithTypeName:(NSString *)typeName

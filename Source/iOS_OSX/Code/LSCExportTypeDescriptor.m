@@ -9,6 +9,7 @@
 #import "LSCExportTypeDescriptor.h"
 #import "LSCValue.h"
 #import "LSCExportMethodDescriptor.h"
+#import "LSCExportPropertyDescriptor.h"
 
 @interface LSCExportTypeDescriptor ()
 

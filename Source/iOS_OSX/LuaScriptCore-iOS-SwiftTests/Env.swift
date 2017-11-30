@@ -15,9 +15,7 @@ class Env : NSObject
     
     class func setupContext () -> LuaContext
     {
-        let _config = LuaContextConfig();
-        _config.manualImportClassEnabled = true;
-        let _context : LuaContext = LuaContext(config: _config);
+        let _context : LuaContext = LuaContext();
         return _context;
     }
 }
