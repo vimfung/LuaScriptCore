@@ -155,7 +155,7 @@
  */
 - (void)_prepareExportsTypeWithDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
 {
-    lua_State *state = self.context.mainSession.state;
+    lua_State *state = self.context.currentSession.state;
 
     //判断父类是否为导出类型
     LSCExportTypeDescriptor *parentTypeDescriptor = [self _findParentTypeDescriptorWithTypeDescriptor:typeDescriptor];
@@ -965,7 +965,7 @@
 
 
 /**
- 获取实例属性描述
+ 获取实例属性描述，注：该方法除了返回属性描述对象的同时，也会在堆栈中放入父类链中对应属性的值。要
 
  @param session 会话
  @param typeDescriptor 类型描述
@@ -985,19 +985,28 @@
         
         if ([LSCEngineAdapter isNil:state index:-1])
         {
-            //不存在
-            [LSCEngineAdapter pop:state count:1];
+            [LSCEngineAdapter pop:state count:2];
             
+            //不存在
             LSCExportPropertyDescriptor *propertyDescriptor = [typeDescriptor.properties objectForKey:propertyName];
-            if (!propertyDescriptor)
+            if (!propertyDescriptor && typeDescriptor.parentTypeDescriptor)
             {
-                //是否存在父类，递归进行
+                //递归父类
                 propertyDescriptor = [self _instancePropertyWithSession:session
                                                          typeDescriptor:typeDescriptor.parentTypeDescriptor
                                                            propertyName:propertyName];
             }
+            else
+            {
+                [LSCEngineAdapter pushNil:state];
+            }
             
             return propertyDescriptor;
+        }
+        else
+        {
+            //pop prototype class
+            [LSCEngineAdapter remove:state index:-2];
         }
     }
     
@@ -1216,8 +1225,9 @@ static int classMethodRouteHandler(lua_State *state)
     {
         NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
         [exporter.context raiseExceptionWithMessage:errMsg];
-        return retCount;
     }
+    
+    [exporter.context destroySession:callSession];
     
     return retCount;
 }
@@ -1236,7 +1246,7 @@ static int instanceMethodRouteHandler(lua_State *state)
     int index = [LSCEngineAdapter upvalueIndex:1];
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
-    
+
     index = [LSCEngineAdapter upvalueIndex:2];
     ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportTypeDescriptor *typeDescriptor = (__bridge LSCExportTypeDescriptor *)ptr;
@@ -1279,8 +1289,9 @@ static int instanceMethodRouteHandler(lua_State *state)
     {
         NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
         [exporter.context raiseExceptionWithMessage:errMsg];
-        return retCount;
     }
+    
+    [exporter.context destroySession:callSession];
     
     return retCount;
 }
@@ -1313,7 +1324,7 @@ static int objectCreateHandler (lua_State *state)
     
     [exporter _initLuaObjectWithObject:instance type:typeDescriptor];
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return 1;
 }
@@ -1368,7 +1379,8 @@ static int instanceNewIndexHandler (lua_State *state)
             [LSCEngineAdapter rawSet:state index:-3];
         }
     }
-    session = nil;
+    
+    [exporter.context destroySession:session];
     
     return 0;
 }
@@ -1424,7 +1436,7 @@ static int instanceIndexHandler(lua_State *state)
         }
     }
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return retValueCount;
 }
@@ -1466,7 +1478,7 @@ static int objectDestroyHandler (lua_State *state)
         CFBridgingRelease(ref -> value);
     }
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return 0;
 }
@@ -1504,7 +1516,7 @@ static int classToStringHandler (lua_State *state)
         [LSCEngineAdapter pushNil:state];
     }
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return 1;
 }
@@ -1541,7 +1553,7 @@ static int prototypeToStringHandler (lua_State *state)
         [LSCEngineAdapter pushNil:state];
     }
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return 1;
 }
@@ -1579,7 +1591,7 @@ static int objectToStringHandler (lua_State *state)
         [LSCEngineAdapter pushNil:state];
     }
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return 1;
 }
@@ -1617,7 +1629,7 @@ static int subClassHandler (lua_State *state)
     
     [exporter _exportsType:subTypeDescriptor state:state];
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return 0;
 }
@@ -1644,6 +1656,7 @@ static int subclassOfHandler (lua_State *state)
     ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportTypeDescriptor *typeDescriptor = (__bridge LSCExportTypeDescriptor *)ptr;
     
+    BOOL flag = NO;
     LSCSession *session = [exporter.context makeSessionWithState:state];
     
     if ([LSCEngineAdapter type:state index:1] == LUA_TTABLE)
@@ -1652,17 +1665,13 @@ static int subclassOfHandler (lua_State *state)
         if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
         {
             LSCExportTypeDescriptor *checkTypeDescriptor = (__bridge LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
-        
-            BOOL flag = [typeDescriptor subtypeOfType:checkTypeDescriptor];
-            [LSCEngineAdapter pushBoolean:flag state:state];
-            
-            return 1;
+            flag = [typeDescriptor subtypeOfType:checkTypeDescriptor];
         }
     }
     
-    [LSCEngineAdapter pushBoolean:NO state:state];
+    [LSCEngineAdapter pushBoolean:flag state:state];
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return 1;
 }
@@ -1685,6 +1694,7 @@ static int instanceOfHandler (lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
 
+    BOOL flag = NO;
     LSCSession *session = [exporter.context makeSessionWithState:state];
     
     //获取实例类型
@@ -1704,20 +1714,16 @@ static int instanceOfHandler (lua_State *state)
             if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
             {
                 LSCExportTypeDescriptor *checkTypeDescriptor = (__bridge LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
-                BOOL flag = [typeDescriptor subtypeOfType:checkTypeDescriptor];
-                
-                [LSCEngineAdapter pushBoolean:flag state:state];
-                
-                return 1;
+                flag = [typeDescriptor subtypeOfType:checkTypeDescriptor];
             }
         }
     }
     
     
-    [LSCEngineAdapter pushBoolean:NO state:state];
+    [LSCEngineAdapter pushBoolean:flag state:state];
     
-    session = nil;
-    
+    [exporter.context destroySession:session];
+
     return 1;
 }
 
@@ -1754,7 +1760,7 @@ static int globalIndexMetaMethodHandler(lua_State *state)
         }
     }
     
-    session = nil;
+    [exporter.context destroySession:session];
     
     return 1;
 }

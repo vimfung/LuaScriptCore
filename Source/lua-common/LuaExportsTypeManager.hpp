@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <map>
+#include <string>
 #include "LuaObject.h"
 #include "lua.hpp"
 
@@ -21,6 +22,8 @@ namespace cn {
             class LuaContext;
             class LuaExportTypeDescriptor;
             class LuaObjectDescriptor;
+            class LuaExportPropertyDescriptor;
+            class LuaSession;
             
             /**
              导出类型管理器
@@ -60,9 +63,8 @@ namespace cn {
                  导出类型
                  
                  @param typeDescriptor 类型描述
-                 @param lazyImport 惰性载入，如果为true时表示底层只标记该类型为导出类型，需要在lua层中使用nativeType来进行类型导出。如果为false时，则表示类型立即导出到lua层。
                  */
-                void exportsType(LuaExportTypeDescriptor *typeDescriptor, bool lazyImport);
+                void exportsType(LuaExportTypeDescriptor *typeDescriptor);
                 
                 /**
                  根据一个原生对象创建一个Lua对象
@@ -87,6 +89,27 @@ namespace cn {
                  */
                 void _bindLuaInstance(LuaObjectDescriptor *objectDescriptor);
                 
+                /**
+                 准备导出类型
+                 
+                 @param state 状态
+                 @param typeDescriptor 类型描述
+                 */
+                void _prepareExportsType(lua_State *state, LuaExportTypeDescriptor *typeDescriptor);
+                
+                
+                /**
+                 获取实例属性
+
+                 @param session 会话
+                 @param typeDescriptor 类型
+                 @param propertyName 属性名称
+                 @return 属性描述对象
+                 */
+                LuaExportPropertyDescriptor* _getInstanceProperty(LuaSession *session,
+                                                                  LuaExportTypeDescriptor *typeDescriptor,
+                                                                  std::string propertyName);
+                
             private:
                 
                 /**
@@ -105,16 +128,9 @@ namespace cn {
                 void _setupExportType();
                 
                 /**
-                 初始化原生类型导出方法
+                 初始化导出环境
                  */
-                void _setupNativeTypeMethod();
-                
-                /**
-                 标记指定类型为导出类型
-
-                 @param typeDescriptor 类型
-                 */
-                void _markType(LuaExportTypeDescriptor *typeDescriptor);
+                void _setupExportEnv();
                 
                 /**
                  导出类型

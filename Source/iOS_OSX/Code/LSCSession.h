@@ -16,6 +16,11 @@
 @interface LSCSession : NSObject
 
 /**
+ 前一个会话
+ */
+@property (nonatomic, weak) LSCSession *prevSession;
+
+/**
  解析并获取参数
 
  @return 参数集合
