@@ -434,7 +434,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
 {
     if (objectId)
     {
-        lua_State *state = self.context.mainSession.state;
+        lua_State *state = self.context.currentSession.state;
         
         [LSCEngineAdapter getGlobal:state name:"_G"];
         if ([LSCEngineAdapter isTable:state index:-1])

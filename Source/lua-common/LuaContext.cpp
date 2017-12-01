@@ -97,22 +97,18 @@ LuaSession* LuaContext::getCurrentSession()
 
 LuaSession* LuaContext::makeSession(lua_State *state)
 {
-    if (_mainSession -> getState() != state)
-    {
-        LuaSession *session = new LuaSession(state, this);
-        _currentSession = session;
+    LuaSession *session = new LuaSession(state, this);
+    session -> prevSession = _currentSession;
+    _currentSession = session;
 
-        return session;
-    }
-
-    return _mainSession;
+    return getCurrentSession();
 }
 
 void LuaContext::destorySession(LuaSession *session)
 {
     if (_currentSession == session)
     {
-        _currentSession = NULL;
+        _currentSession = _currentSession -> prevSession;
     }
 
     if (_mainSession != session)
@@ -136,7 +132,7 @@ void LuaContext::raiseException (std::string message)
 
 void LuaContext::addSearchPath(std::string path)
 {
-    lua_State *state = _mainSession -> getState();
+    lua_State *state = getCurrentSession() -> getState();
     LuaEngineAdapter::getGlobal(state, "package");
     LuaEngineAdapter::getField(state, -1, "path");
 
@@ -152,21 +148,21 @@ void LuaContext::addSearchPath(std::string path)
 
 void LuaContext::setGlobal(std::string name, LuaValue *value)
 {
-    lua_State *state = _mainSession -> getState();
+    lua_State *state = getCurrentSession() -> getState();
     value -> push(this);
     LuaEngineAdapter::setGlobal(state, name.c_str());
 }
 
 LuaValue* LuaContext::getGlobal(std::string name)
 {
-    lua_State *state = _mainSession -> getState();
+    lua_State *state = getCurrentSession() -> getState();
     LuaEngineAdapter::getGlobal(state, name.c_str());
     return LuaValue::ValueByIndex(this, -1);
 }
 
 LuaValue* LuaContext::evalScript(std::string script)
 {
-    lua_State *state = _mainSession -> getState();
+    lua_State *state = getCurrentSession() -> getState();
     LuaValue *retValue = NULL;
 
     int curTop = LuaEngineAdapter::getTop(state);
@@ -226,7 +222,7 @@ LuaValue* LuaContext::evalScript(std::string script)
 
 LuaValue* LuaContext::evalScriptFromFile(std::string path)
 {
-    lua_State *state = _mainSession -> getState();
+    lua_State *state = getCurrentSession() -> getState();
     LuaValue *retValue = NULL;
 
     int curTop = LuaEngineAdapter::getTop(state);
@@ -362,7 +358,7 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
 
 void LuaContext::registerMethod(std::string methodName, LuaMethodHandler handler)
 {
-    lua_State *state = _mainSession -> getState();
+    lua_State *state = getCurrentSession() -> getState();
     LuaMethodMap::iterator it =  _methodMap.find(methodName);
     if (it == _methodMap.end())
     {

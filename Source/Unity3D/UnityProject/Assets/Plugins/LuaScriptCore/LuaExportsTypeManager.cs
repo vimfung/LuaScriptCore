@@ -117,8 +117,8 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="context">上下文对象.</param>
 		public void exportType(Type t, LuaContext context)
 		{
-			LuaExportTypeConfig typeConfig = LuaExportTypeConfig.Create (t);
-			LuaExportTypeConfig baseTypeConfig = LuaExportTypeConfig.Create (t.BaseType);
+			LuaExportTypeAnnotation typeAnnotation = Attribute.GetCustomAttribute (t, typeof(LuaExportTypeAnnotation), false) as LuaExportTypeAnnotation;
+			LuaExportTypeAnnotation baseTypeAnnotation = Attribute.GetCustomAttribute (t.BaseType, typeof(LuaExportTypeAnnotation), false) as LuaExportTypeAnnotation;
 
 			//获取导出的类/实例方法
 			Dictionary<string, MethodInfo> exportClassMethods = new Dictionary<string, MethodInfo> ();
@@ -150,8 +150,9 @@ namespace cn.vimfung.luascriptcore
 
 					if (m.IsStatic && m.IsPublic)
 					{
-						if (typeConfig.excludeExportClassMethodNames != null 
-							&& Array.IndexOf (typeConfig.excludeExportClassMethodNames, m.Name) >= 0)
+						if (typeAnnotation != null
+							&& typeAnnotation.excludeExportClassMethodNames != null 
+							&& Array.IndexOf (typeAnnotation.excludeExportClassMethodNames, m.Name) >= 0)
 						{
 							//为过滤方法
 							continue;
@@ -163,8 +164,9 @@ namespace cn.vimfung.luascriptcore
 					} 
 					else if (m.IsPublic)
 					{
-						if (typeConfig.excludeExportInstanceMethodNames != null 
-							&& Array.IndexOf (typeConfig.excludeExportInstanceMethodNames, m.Name) >= 0)
+						if (typeAnnotation != null &&
+							typeAnnotation.excludeExportInstanceMethodNames != null 
+							&& Array.IndexOf (typeAnnotation.excludeExportInstanceMethodNames, m.Name) >= 0)
 						{
 							//为过滤方法
 							continue;
@@ -179,59 +181,47 @@ namespace cn.vimfung.luascriptcore
 
 			//获取导出的字段
 			Dictionary<string, PropertyInfo> exportFields = new Dictionary<string, PropertyInfo> ();
-			List<string> exportSetterNames = new List<string> ();
-			List<string> exportGetterNames = new List<string> ();
+			List<string> exportPropertyNames = new List<string> ();
 
 			PropertyInfo[] propertys = t.GetProperties (BindingFlags.Instance | BindingFlags.Public);
 			foreach (PropertyInfo p in propertys) 
 			{
-				if (typeConfig.excludeExportPropertyNames != null 
-					&& Array.IndexOf (typeConfig.excludeExportPropertyNames, p.Name) >= 0)
+				if (typeAnnotation != null 
+					&& typeAnnotation.excludeExportPropertyNames != null 
+					&& Array.IndexOf (typeAnnotation.excludeExportPropertyNames, p.Name) >= 0)
 				{
 					//在过滤列表中
 					continue;
 				}
 
+				StringBuilder actStringBuilder = new StringBuilder ();
 				if (p.CanRead)
 				{
-					exportGetterNames.Add (p.Name);
+					actStringBuilder.Append ("r");
 				}
 				if (p.CanWrite)
 				{
-					exportSetterNames.Add (p.Name);
+					actStringBuilder.Append ("w");
 				}
+
+				exportPropertyNames.Add(string.Format("{0}_{1}", p.Name, actStringBuilder.ToString()));
 				exportFields.Add (p.Name, p);
 			}
 
 			//创建导出的字段数据
-			IntPtr exportSetterNamesPtr = IntPtr.Zero;
-			if (exportSetterNames.Count > 0)
+			IntPtr exportPropertyNamesPtr = IntPtr.Zero;
+			if (exportPropertyNames.Count > 0)
 			{
 				LuaObjectEncoder fieldEncoder = new LuaObjectEncoder ();
-				fieldEncoder.writeInt32 (exportSetterNames.Count);
-				foreach (string name in exportSetterNames) 
+				fieldEncoder.writeInt32 (exportPropertyNames.Count);
+				foreach (string name in exportPropertyNames) 
 				{
 					fieldEncoder.writeString (name);
 				}
 
 				byte[] fieldNameBytes = fieldEncoder.bytes;
-				exportSetterNamesPtr = Marshal.AllocHGlobal (fieldNameBytes.Length); 
-				Marshal.Copy (fieldNameBytes, 0, exportSetterNamesPtr, fieldNameBytes.Length);
-			}
-
-			IntPtr exportGetterNamesPtr = IntPtr.Zero;
-			if (exportGetterNames.Count > 0)
-			{
-				LuaObjectEncoder fieldEncoder = new LuaObjectEncoder ();
-				fieldEncoder.writeInt32 (exportGetterNames.Count);
-				foreach (string name in exportGetterNames) 
-				{
-					fieldEncoder.writeString (name);
-				}
-
-				byte[] fieldNameBytes = fieldEncoder.bytes;
-				exportGetterNamesPtr = Marshal.AllocHGlobal (fieldNameBytes.Length); 
-				Marshal.Copy (fieldNameBytes, 0, exportGetterNamesPtr, fieldNameBytes.Length);
+				exportPropertyNamesPtr = Marshal.AllocHGlobal (fieldNameBytes.Length); 
+				Marshal.Copy (fieldNameBytes, 0, exportPropertyNamesPtr, fieldNameBytes.Length);
 			}
 
 
@@ -309,14 +299,24 @@ namespace cn.vimfung.luascriptcore
 			{
 				_classMethodHandleDelegate = new LuaModuleMethodHandleDelegate (_classMethodHandler);
 			}
+
+			string typeName = t.Name;
+			if (typeAnnotation != null && typeAnnotation.typeName != null)
+			{
+				typeName = typeAnnotation.typeName;
+			}
+
+			string baseTypeName = t.BaseType.Name;
+			if (baseTypeAnnotation != null && baseTypeAnnotation.typeName != null)
+			{
+				baseTypeName = baseTypeAnnotation.typeName;
+			}
 				
 			int typeId = NativeUtils.registerType (
 				context.objectId, 
-				context.config.manualImportClassEnabled,
-				typeConfig.typeName,
-				baseTypeConfig.typeName,
-				exportSetterNamesPtr,
-				exportGetterNamesPtr,
+				typeName,
+				baseTypeName,
+				exportPropertyNamesPtr,
 				exportInstanceMethodNamesPtr,
 				exportClassMethodNamesPtr,
 				Marshal.GetFunctionPointerForDelegate(_createInstanceDelegate),
@@ -334,13 +334,9 @@ namespace cn.vimfung.luascriptcore
 			_exportsInstanceMethods[typeId] = exportInstanceMethods;
 			_exportsFields[typeId] = exportFields;
 
-			if (exportSetterNamesPtr != IntPtr.Zero)
+			if (exportPropertyNamesPtr != IntPtr.Zero)
 			{
-				Marshal.FreeHGlobal (exportSetterNamesPtr);
-			}
-			if (exportGetterNamesPtr != IntPtr.Zero)
-			{
-				Marshal.FreeHGlobal (exportGetterNamesPtr);
+				Marshal.FreeHGlobal (exportPropertyNamesPtr);
 			}
 			if (exportInstanceMethodNamesPtr != IntPtr.Zero)
 			{

@@ -267,26 +267,23 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">本地上下文标识.</param>
 		/// <param name="lazyImport">是否进行懒加载</param>
 		/// <param name="typeName">类型名称.</param>
-		/// <param name="parentTypeName">Parent type name.</param>
-		/// <param name="exportsSetterNames">Exports setter names.</param>
-		/// <param name="exportsGetterNames">Exports getter names.</param>
-		/// <param name="exportsInstanceMethodNames">Exports instance method names.</param>
-		/// <param name="xportsClassMethodNames">Xports class method names.</param>
-		/// <param name="instanceCreateHandler">Instance create handler.</param>
-		/// <param name="instanceDestroyHandler">Instance destroy handler.</param>
-		/// <param name="instanceDescriptionHandler">Instance description handler.</param>
-		/// <param name="instanceFieldGetterRouteHandler">Instance field getter route handler.</param>
-		/// <param name="instanceFieldSetterRouteHandler">Instance field setter route handler.</param>
-		/// <param name="instanceMethodRouteHandler">Instance method route handler.</param>
-		/// <param name="classMethodRouteHandler">Class method route handler.</param>
+		/// <param name="parentTypeName">父类名称.</param>
+		/// <param name="exportsPropertyNames">导出属性名称列表</param>
+		/// <param name="exportsInstanceMethodNames">导出实例方法名称列表.</param>
+		/// <param name="xportsClassMethodNames">导出类方法名称列表.</param>
+		/// <param name="instanceCreateHandler">创建实例处理器.</param>
+		/// <param name="instanceDestroyHandler">销毁实例处理器.</param>
+		/// <param name="instanceDescriptionHandler">实例描述处理器.</param>
+		/// <param name="instanceFieldGetterRouteHandler">实例字段Getter处理器.</param>
+		/// <param name="instanceFieldSetterRouteHandler">实例字段Setter处理器.</param>
+		/// <param name="instanceMethodRouteHandler">实例方法处理器.</param>
+		/// <param name="classMethodRouteHandler">类方法处理器.</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
 		internal extern static int registerType(
 			int nativeContextId,
-			bool lazyImport,
 			string typeName,
 			string parentTypeName,
-			IntPtr exportsSetterNames,
-			IntPtr exportsGetterNames,
+			IntPtr exportsPropertyNames,
 			IntPtr exportsInstanceMethodNames,
 			IntPtr exportsClassMethodNames,
 			IntPtr instanceCreateHandler,
@@ -672,26 +669,23 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">本地上下文标识.</param>
 		/// <param name="lazyImport">是否进行懒加载</param>
 		/// <param name="typeName">类型名称.</param>
-		/// <param name="parentTypeName">Parent type name.</param>
-		/// <param name="exportsSetterNames">Exports setter names.</param>
-		/// <param name="exportsGetterNames">Exports getter names.</param>
-		/// <param name="exportsInstanceMethodNames">Exports instance method names.</param>
-		/// <param name="xportsClassMethodNames">Xports class method names.</param>
-		/// <param name="instanceCreateHandler">Instance create handler.</param>
-		/// <param name="instanceDestroyHandler">Instance destroy handler.</param>
-		/// <param name="instanceDescriptionHandler">Instance description handler.</param>
-		/// <param name="instanceFieldGetterRouteHandler">Instance field getter route handler.</param>
-		/// <param name="instanceFieldSetterRouteHandler">Instance field setter route handler.</param>
-		/// <param name="instanceMethodRouteHandler">Instance method route handler.</param>
-		/// <param name="classMethodRouteHandler">Class method route handler.</param>
+		/// <param name="parentTypeName">父类名称.</param>
+		/// <param name="exportsPropertyNames">导出属性名称列表</param>
+		/// <param name="exportsInstanceMethodNames">导出实例方法名称列表.</param>
+		/// <param name="xportsClassMethodNames">导出类方法名称列表.</param>
+		/// <param name="instanceCreateHandler">创建实例处理器.</param>
+		/// <param name="instanceDestroyHandler">销毁实例处理器.</param>
+		/// <param name="instanceDescriptionHandler">实例描述处理器.</param>
+		/// <param name="instanceFieldGetterRouteHandler">实例字段Getter处理器.</param>
+		/// <param name="instanceFieldSetterRouteHandler">实例字段Setter处理器.</param>
+		/// <param name="instanceMethodRouteHandler">实例方法处理器.</param>
+		/// <param name="classMethodRouteHandler">类方法处理器.</param>
 		[DllImport("__Internal")]
 		internal extern static int registerType(
 			int nativeContextId,
-			bool lazyImport,
 			string typeName,
 			string parentTypeName,
-			IntPtr exportsSetterNames,
-			IntPtr exportsGetterNames,
+			IntPtr exportsPropertyNames,
 			IntPtr exportsInstanceMethodNames,
 			IntPtr exportsClassMethodNames,
 			IntPtr instanceCreateHandler,

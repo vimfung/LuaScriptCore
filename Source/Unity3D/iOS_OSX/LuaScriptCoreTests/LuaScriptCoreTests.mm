@@ -66,7 +66,7 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
 {
     using namespace cn::vimfung::luascriptcore;
     
-    
+    i
 //
 //    void *result = NULL;
 ////    evalScript(navId, "print('Hello World!');", (const void **)&result);

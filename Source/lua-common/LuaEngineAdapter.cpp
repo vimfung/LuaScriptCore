@@ -246,6 +246,11 @@ void LuaEngineAdapter::rawSet (lua_State *state, int idx)
     lua_rawset(state, idx);
 }
 
+void LuaEngineAdapter::rawGet(lua_State *state, int index)
+{
+    lua_rawget(state, index);
+}
+
 const char* LuaEngineAdapter::checkString (lua_State *state, int idx)
 {
     return luaL_checkstring(state, idx);

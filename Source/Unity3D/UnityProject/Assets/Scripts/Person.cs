@@ -5,11 +5,6 @@ using cn.vimfung.luascriptcore;
 
 public class Person : LuaExportType 
 {
-	internal static string typeName = "Person";
-	internal static string[] excludeExportClassMethodNames = new string[] { };
-	internal static string[] excludeExportInstanceMethodsNames = new string[] { };
-	internal static string[] excludeExportPropertyNames = new string[] { };
-
 	private string _name;
 	public string name
 	{
