@@ -22,8 +22,6 @@ typedef enum : unsigned int
     LuaUnityExportMethodTypeUnknown = 0,    //未知
     LuaUnityExportMethodTypeClass = 1,      //类方法
     LuaUnityExportMethodTypeInstance = 2,   //实例方法
-    LuaUnityExportMethodTypeGetter = 3,     //Getter方法
-    LuaUnityExportMethodTypeSetter = 4,     //Setter方法
 } LuaUnityExportMethodType;
 
 /**
@@ -51,26 +49,6 @@ public:
      */
     LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, LuaInstanceMethodHandlerPtr handler);
     
-    /**
-     初始化
-     
-     @param name 方法名称
-     @param methodSignature 方法签名
-     @param fieldName 字段名称
-     @param handler  Getter处理器
-     */
-    LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, std::string fieldName, LuaInstanceFieldGetterHandlerPtr handler);
-    
-    /**
-     初始化
-     
-     @param name 方法名称
-     @param methodSignature 方法签名
-     @param fieldName 字段名称
-     @param handler  Setter处理器
-     */
-    LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, std::string fieldName, LuaInstanceFieldSetterHandlerPtr handler);
-    
 public:
     
     /**
@@ -90,11 +68,6 @@ private:
     LuaUnityExportMethodType _methodType;
     
     /**
-     字段名称
-     */
-    std::string _fieldName;
-    
-    /**
      实例方法处理器
      */
     LuaModuleMethodHandlerPtr _classMethodHandler;
@@ -103,16 +76,6 @@ private:
      实例方法处理器
      */
     LuaInstanceMethodHandlerPtr _instanceMethodHandler;
-    
-    /**
-     Getter处理器
-     */
-    LuaInstanceFieldGetterHandlerPtr _fieldGetterMethodHandler;
-    
-    /**
-     Setter处理器
-     */
-    LuaInstanceFieldSetterHandlerPtr _fieldSetterMethodHandler;
     
 private:
     
@@ -134,24 +97,6 @@ private:
      @return 返回值
      */
     LuaValue* invokeInstanceMethod(LuaSession *session, LuaArgumentList arguments);
-    
-    /**
-     调用Getter方法
-
-     @param session 会话
-     @param arguments 参数列表
-     @return 返回值
-     */
-    LuaValue* invokeGetterMethod(LuaSession *session, LuaArgumentList arguments);
-    
-    /**
-     调用Setter方法
-
-     @param session 会话
-     @param arguments 参数列表
-     @return 返回值
-     */
-    LuaValue* invokeSetterMethod(LuaSession *session, LuaArgumentList arguments);
 };
 
 #endif /* LuaUnityExportClassMethodDescriptor_hpp */

@@ -514,7 +514,7 @@ void LuaDataExchanger::doObjectAction(std::string linkId, LuaObjectAction action
 {
     if (!linkId.empty())
     {
-        lua_State *state = _context -> getMainSession() -> getState();
+        lua_State *state = _context -> getCurrentSession() -> getState();
 
         LuaEngineAdapter::getGlobal(state, "_G");
         if (LuaEngineAdapter::isTable(state, -1))
