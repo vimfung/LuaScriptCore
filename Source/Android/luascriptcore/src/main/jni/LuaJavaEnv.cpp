@@ -180,13 +180,13 @@ void LuaJavaEnv::resetEnv(JNIEnv *env)
     }
 }
 
-jobject LuaJavaEnv::createJavaLuaContext(JNIEnv *env, LuaContext *context, jobject config)
+jobject LuaJavaEnv::createJavaLuaContext(JNIEnv *env, LuaContext *context)
 {
     static jclass contextClass = LuaJavaType::contextClass(env);
-    static jmethodID initMethodId = env -> GetMethodID(contextClass, "<init>", "(ILcn/vimfung/luascriptcore/LuaContextConfig;)V");
+    static jmethodID initMethodId = env -> GetMethodID(contextClass, "<init>", "(I)V");
 
     int nativeId = LuaObjectManager::SharedInstance() -> putObject(context);
-    jobject jcontext = env -> NewObject(contextClass, initMethodId, nativeId, config);
+    jobject jcontext = env -> NewObject(contextClass, initMethodId, nativeId);
 
     _javaObjectMap[context -> objectId()] = env -> NewWeakGlobalRef(jcontext);
 

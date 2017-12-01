@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
             regClsBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person:setName('vimfung'); print(person:name()); person:speak(); person:walk();");
+                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
                 }
             });
         }
@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
             importNativeClssBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("local Person = nativeType('Person'); print(Person); local Data = nativeType('NativePerson'); print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p:setName('vimfung'); print(p:name()); p:speak(); Person.printPersonName(p);");
+                    _luaContext.evalScript("print(Person); local Data = NativePerson; print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p.name = 'vim'; print(p.name); p:speak(); Person.printPersonName(p);");
                 }
             });
         }
