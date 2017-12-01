@@ -26,13 +26,6 @@ LuaValue* LuaJavaExportMethodDescriptor::invoke(LuaSession *session, LuaArgument
         case LuaJavaMethodTypeInstance:
             //实例方法
             return invokeInstanceMethod(session, arguments);
-        case LuaJavaMethodTypeGetter:
-            //Getter
-            return invokeGetterMethod(session, arguments);
-        case LuaJavaMethodTypeSetter:
-            //Setter
-            invokeSetterMethod(session, arguments);
-            break;
     }
 
     return NULL;
@@ -118,64 +111,4 @@ LuaValue* LuaJavaExportMethodDescriptor::invokeInstanceMethod(LuaSession *sessio
     LuaJavaEnv::resetEnv(env);
 
     return returnValue;
-}
-
-LuaValue* LuaJavaExportMethodDescriptor::invokeGetterMethod(LuaSession *session, LuaArgumentList arguments)
-{
-    LuaContext *context = session -> getContext();
-
-    JNIEnv *env = LuaJavaEnv::getEnv();
-
-    jobject jExportTypeManager = LuaJavaEnv::getExportTypeManager(env);
-    jmethodID invokeMethodId = env -> GetMethodID(LuaJavaType::exportTypeManagerClass(env), "getterMethodRoute", "(Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/Object;Ljava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;");
-
-    jobject jContext = LuaJavaEnv::getJavaLuaContext(env, context);
-
-    std::string fieldNameString = StringUtils::format("%s_%s", name().c_str(), methodSignature().c_str());
-    jstring methodName = env -> NewStringUTF(fieldNameString.c_str());
-
-    LuaArgumentList::iterator it = arguments.begin();
-    LuaJavaObjectDescriptor *objectDescriptor = (LuaJavaObjectDescriptor *)((*it) -> toObject());
-
-
-    LuaJavaExportTypeDescriptor *javaTypeDescriptor = (LuaJavaExportTypeDescriptor *)typeDescriptor;
-    jobject jReturnValue = env -> CallObjectMethod(jExportTypeManager, invokeMethodId, jContext, objectDescriptor -> getJavaObject(), methodName);
-
-    env -> DeleteLocalRef(methodName);
-
-    LuaValue *returnValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, jReturnValue);
-
-    LuaJavaEnv::resetEnv(env);
-
-    return returnValue;
-}
-
-void LuaJavaExportMethodDescriptor::invokeSetterMethod(LuaSession *session, LuaArgumentList arguments)
-{
-    LuaContext *context = session -> getContext();
-
-    JNIEnv *env = LuaJavaEnv::getEnv();
-
-    jobject jExportTypeManager = LuaJavaEnv::getExportTypeManager(env);
-    jmethodID invokeMethodId = env -> GetMethodID(LuaJavaType::exportTypeManagerClass(env), "setterMethodRoute", "(Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/Object;Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
-
-    jobject jContext = LuaJavaEnv::getJavaLuaContext(env, context);
-
-    std::string fieldNameString = StringUtils::format("%s_%s", name().c_str(), methodSignature().c_str());
-    jstring methodName = env -> NewStringUTF(fieldNameString.c_str());
-
-    LuaArgumentList::iterator it = arguments.begin();
-    LuaJavaObjectDescriptor *objectDescriptor = (LuaJavaObjectDescriptor *)((*it) -> toObject());
-
-    it++;
-    jobject jLuaValue = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, *it);
-
-
-    LuaJavaExportTypeDescriptor *javaTypeDescriptor = (LuaJavaExportTypeDescriptor *)typeDescriptor;
-    env -> CallVoidMethod(jExportTypeManager, invokeMethodId, jContext, objectDescriptor -> getJavaObject(), methodName, jLuaValue);
-
-    env -> DeleteLocalRef(jLuaValue);
-    env -> DeleteLocalRef(methodName);
-
-    LuaJavaEnv::resetEnv(env);
 }

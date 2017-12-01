@@ -14,7 +14,7 @@ extern "C" {
  * Signature: ()Lcn/vimfung/luascriptcore/LuaContext;
  */
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createContext
-  (JNIEnv *, jclass, jobject);
+  (JNIEnv *, jclass);
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
@@ -103,7 +103,7 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseValue
         (JNIEnv *, jclass, jobject, jobject);
 
 JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerType
-        (JNIEnv *, jclass, jobject, jboolean, jstring, jstring, jclass, jobjectArray, jobjectArray, jobjectArray);
+        (JNIEnv *, jclass, jobject, jstring, jstring, jclass, jobjectArray, jobjectArray, jobjectArray);
 
 #ifdef __cplusplus
 }

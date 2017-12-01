@@ -48,7 +48,6 @@ import static android.os.Environment.MEDIA_MOUNTED;
 public class LuaContext extends LuaBaseObject
 {
     private Context _context;
-    private LuaContextConfig _config;
     private LuaExceptionHandler _exceptionHandler;
     private HashMap<String, LuaMethodHandler> _methods;
 
@@ -235,11 +234,10 @@ public class LuaContext extends LuaBaseObject
      * 创建上下文对象
      * @param nativeId  本地对象标识
      */
-    protected LuaContext(int nativeId, LuaContextConfig config)
+    protected LuaContext(int nativeId)
     {
         super(nativeId);
 
-        this._config = config;
         this._methods = new HashMap<String, LuaMethodHandler>();
 
         //导出类型
@@ -249,28 +247,15 @@ public class LuaContext extends LuaBaseObject
     /**
      * 创建上下文对象
      *
-     * @param context 应用上下文
-     * @return  上下文对象
-     */
-    @SuppressWarnings("unchecked")
-    public static LuaContext create(Context context)
-    {
-        return create(context, LuaContextConfig.defaultConfig());
-    }
-
-    /**
-     * 创建上下文对象
-     *
      * @param context  应用上下文对象
-     * @param config  Lua上下文配置
      * @return Lua上下文对象
      */
-    public static LuaContext create(Context context, LuaContextConfig config)
+    public static LuaContext create(Context context)
     {
         //初始化注册类型
         findRegTypes(context);
 
-        LuaContext luaContext = LuaNativeUtil.createContext(config);
+        LuaContext luaContext = LuaNativeUtil.createContext();
         luaContext._context = context;
 
         File cacheDir = new File (String.format("%s/lua", luaContext.getCacheDir()));
@@ -281,15 +266,6 @@ public class LuaContext extends LuaBaseObject
         luaContext.addSearchPath(cacheDir.toString());
 
         return luaContext;
-    }
-
-    /**
-     * 获取上下文配置
-     * @return 上下文配置信息对象
-     */
-    public LuaContextConfig getConfig()
-    {
-        return _config;
     }
 
     /**

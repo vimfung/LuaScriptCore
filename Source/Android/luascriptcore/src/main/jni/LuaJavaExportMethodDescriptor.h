@@ -21,8 +21,6 @@ enum LuaJavaMethodType
     LuaJavaMethodTypeUnknown = 0,    //未知
     LuaJavaMethodTypeStatic = 1,     //类方法
     LuaJavaMethodTypeInstance = 2,   //实例方法
-    LuaJavaMethodTypeGetter = 3,     //Getter
-    LuaJavaMethodTypeSetter = 4,     //Setter
 };
 
 /**
@@ -78,24 +76,6 @@ private:
      * @return 返回值
      */
     LuaValue* invokeInstanceMethod(LuaSession *session, LuaArgumentList arguments);
-
-    /**
-     * 调用Getter方法
-     *
-     * @param session 会话
-     * @param arguments 参数列表
-     *
-     * @return 返回值
-     */
-    LuaValue* invokeGetterMethod(LuaSession *session, LuaArgumentList arguments);
-
-    /**
-     * 调用Setter方法
-     *
-     * @param session 会话
-     * @param arguments 参数列表
-     */
-    void invokeSetterMethod(LuaSession *session, LuaArgumentList arguments);
 };
 
 
