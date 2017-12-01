@@ -13,6 +13,7 @@ LOCAL_SRC_FILES := \
     $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityEnv.cpp \
     $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityExportTypeDescriptor.cpp \
     $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityExportMethodDescriptor.cpp \
+    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityExportPropertyDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-core/src/lapi.c \
 	$(LOCAL_PATH)/../../../../../../lua-core/src/lauxlib.c \
 	$(LOCAL_PATH)/../../../../../../lua-core/src/lbaselib.c \
@@ -67,7 +68,8 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaEngineAdapter.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportTypeDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportMethodDescriptor.cpp \
-	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportsTypeManager.cpp
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportsTypeManager.cpp \
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportPropertyDescriptor.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../../lua-core/src
