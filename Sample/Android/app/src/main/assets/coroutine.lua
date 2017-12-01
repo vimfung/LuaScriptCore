@@ -47,7 +47,6 @@ function TestClassFunc()
 
         print ("+++++++++++++");
 
-        local Person = nativeType('Person');
         local p = Person.create();
         print (p);
 
@@ -56,8 +55,8 @@ function TestClassFunc()
         p = Person.createPerson();
         print (p);
 
-        p:setName("vim");
-        print (p:name());
+        p.name = "vim";
+        print (p.name);
 
         Person.printPersonName(p);
 
@@ -73,12 +72,12 @@ function TestClassImportFunc()
 
     local tfunc = coroutine.create(function()
 
-        local NativePerson = nativeType('NativePerson');
-        local Person = nativeType('Person');
+        print ("-------------");
+
         print(Person, NativePerson);
         local p = NativePerson.createPerson();
         print(p);
-        p:setName('abc');
+        p.name = "abc";
         p:speak();
 
         coroutine.yield()

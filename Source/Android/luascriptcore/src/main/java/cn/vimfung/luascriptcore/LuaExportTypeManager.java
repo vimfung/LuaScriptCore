@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 
@@ -427,6 +428,7 @@ class LuaExportTypeManager
         }
 
         //获取导出属性、方法
+        HashSet<String> exportFieldSet = new HashSet<>();
         HashMap<String, Field> exportFields = new HashMap<>();
         HashMap<String, Method> exportClassMethods = new HashMap<>();
         HashMap<String, Method> exportInstanceMethods = new HashMap<>();
@@ -476,8 +478,8 @@ class LuaExportTypeManager
                 }
             }
 
-            String signature = getTypeSignature(field.getType());
-            exportFields.put(String.format("%s_%s", fieldName, signature), field);
+            exportFieldSet.add(String.format("%s_rw", fieldName));
+            exportFields.put(fieldName, field);
         }
 
         //导出实例方法
@@ -593,11 +595,10 @@ class LuaExportTypeManager
 
         String[] exportClassMethodsArr = exportClassMethods.keySet().toArray(new String[0]);
         String[] exportInstanceMethodsArr = exportInstanceMethods.keySet().toArray(new String[0]);
-        String[] exportFieldArr = exportFields.keySet().toArray(new String[0]);
+        String[] exportFieldArr = exportFieldSet.toArray(new String[0]);
 
         if (LuaNativeUtil.registerType(
                 context,
-                context.getConfig().manualImportClassEnabled,
                 typeName,
                 baseTypeName,
                 t,
