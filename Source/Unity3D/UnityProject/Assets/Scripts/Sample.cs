@@ -118,7 +118,7 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void importClassButtonClickedHandler ()
 	{
-		LuaContext.currentContext.evalScript ("print(Person, NativeData); local d = NativeData.create(); d.dataId = 'xxx'; print(d.dataId); local p = NativeData.createPerson(); print(p); p.name='xxxx'; p = Person.printPerson(p); print(p); print(p.name);");
+		LuaContext.currentContext.evalScript ("print(Person, NativePerson); local d = NativePerson.create(); d.dataId = 'xxx'; print(d.dataId); local p = NativePerson.createPerson(); print(p); p.name='xxxx'; p = Person.printPerson(p); print(p); print(p.name);");
 	}
 
 	public void retainAndReleaseButtonClickedHandler ()
