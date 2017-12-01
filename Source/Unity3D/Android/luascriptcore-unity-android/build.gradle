@@ -14,7 +14,7 @@ android {
 
         ndk {
             moduleName "LuaScriptCore-Unity-Android"
-            stl "stlport_static"
+            stl "gnustl_static"
             ldLibs "log"
         }
 
