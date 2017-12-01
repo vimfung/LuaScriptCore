@@ -26,7 +26,7 @@ public class LuaNativeUtil
      *
      * @param config 上下文配置
      */
-    public static native LuaContext createContext (LuaContextConfig config);
+    public static native LuaContext createContext ();
 
     /**
      * 添加搜索路径, 对于需要引用不同目录下的lua文件,需要设置其搜索路径,否则会导致无法找到脚本而运行出错
@@ -167,7 +167,6 @@ public class LuaNativeUtil
     /**
      * 注册类型
      * @param context               上下文对象
-     * @param lazyImport            惰性加载标识，标识注册无法直接在lua使用，需要调用nativeType方法来导入类型
      * @param typeName              导出类型名称
      * @param parentTypeName        导出类型的父类名称
      * @param type                  导出类型
@@ -178,7 +177,6 @@ public class LuaNativeUtil
      */
     public static native boolean registerType (
             LuaContext context,
-            boolean lazyImport,
             String typeName,
             String parentTypeName,
             Class type,

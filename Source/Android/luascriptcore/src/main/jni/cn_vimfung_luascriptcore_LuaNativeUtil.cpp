@@ -15,6 +15,7 @@
 #include "LuaFunction.h"
 #include "LuaJavaExportTypeDescriptor.h"
 #include "LuaJavaExportMethodDescriptor.h"
+#include "LuaJavaExportPropertyDescriptor.h"
 #include "LuaExportsTypeManager.hpp"
 #include "StringUtils.h"
 
@@ -32,10 +33,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
  * Signature: ()Lcn/vimfung/luascriptcore/LuaContext;
  */
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createContext
-        (JNIEnv *env, jclass obj, jobject config)
+        (JNIEnv *env, jclass obj)
 {
     LuaContext *context = new LuaContext();
-    jobject jcontext = LuaJavaEnv::createJavaLuaContext(env, context, config);
+    jobject jcontext = LuaJavaEnv::createJavaLuaContext(env, context);
     context -> release();
 
     return jcontext;
@@ -280,7 +281,6 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
         JNIEnv *env,
         jclass thiz,
         jobject jcontext,
-        jboolean lazyImport,
         jstring typeName,
         jstring parentTypeName,
         jclass type,
@@ -312,21 +312,26 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
 
             std::vector<std::string> fieldComps =  StringUtils::split(fieldNameCStr, "_", false);
 
-            //添加Getter
-            LuaJavaExportMethodDescriptor *getterMethodDescriptor = new LuaJavaExportMethodDescriptor(fieldComps[0], fieldComps[1], LuaJavaMethodTypeGetter);
-            typeDescriptor -> addInstanceMethod(fieldComps[0], getterMethodDescriptor);
-            getterMethodDescriptor -> release();
+            bool canRead = false;
+            bool canWrite = false;
 
-            //添加Setter
-            //与iOS中的属性getter和setter方法保持一致, getter直接是属性名称,setter则需要将属性首字母大写并在前面加上set
-            char upperCStr[2] = {0};
-            upperCStr[0] = (char)toupper(fieldComps[0][0]);
-            std::string upperStr = upperCStr;
-            std::string fieldNameStr = fieldComps[0].c_str() + 1;
-            std::string setterMethodName = "set" + upperStr + fieldNameStr;
-            LuaJavaExportMethodDescriptor *setterMethodDescriptor = new LuaJavaExportMethodDescriptor(fieldComps[0], fieldComps[1], LuaJavaMethodTypeSetter);
-            typeDescriptor -> addInstanceMethod(setterMethodName, setterMethodDescriptor);
-            setterMethodDescriptor -> release();
+            if (fieldComps[1] == "r")
+            {
+                canRead = true;
+            }
+            else if (fieldComps[1] == "w")
+            {
+                canWrite = true;
+            }
+            else
+            {
+                canRead = true;
+                canWrite = true;
+            }
+
+            LuaJavaExportPropertyDescriptor *propertyDescriptor = new LuaJavaExportPropertyDescriptor(fieldComps[0], canRead, canWrite);
+            typeDescriptor -> addProperty(propertyDescriptor -> name(), propertyDescriptor);
+            propertyDescriptor -> release();
 
             env -> ReleaseStringUTFChars(fieldName, fieldNameCStr);
         }
@@ -364,7 +369,7 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
         }
 
         // 导出类型
-        context -> getExportsTypeManager() -> exportsType(typeDescriptor, lazyImport);
+        context -> getExportsTypeManager() -> exportsType(typeDescriptor);
 
         typeDescriptor -> release();
 

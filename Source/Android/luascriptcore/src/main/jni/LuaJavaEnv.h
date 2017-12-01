@@ -59,7 +59,7 @@ public:
      *
      * @return Java中的LuaContext对象
      */
-    static jobject createJavaLuaContext(JNIEnv *env, LuaContext *context, jobject config);
+    static jobject createJavaLuaContext(JNIEnv *env, LuaContext *context);
 
     /**
      * 获取Java中的LuaContext对象

@@ -12,7 +12,7 @@ android {
 
         ndk {
             moduleName "LuaScriptCore"
-            stl "stlport_static"
+            stl "gnustl_static"
             ldLibs "log"
         }
 
@@ -20,7 +20,7 @@ android {
 
             ndkBuild {
 
-                arguments "APP_STL=stlport_static",
+                arguments "APP_STL=gnustl_static",
                         "NDK_DEBUG=1",
                         "APP_PLATFORM=android-13",
                         "NDK_TOOLCHAIN_VERSION=4.9"
@@ -50,7 +50,6 @@ android {
         main {
 
             jniLibs.srcDirs = []
-//            jni.srcDirs "src/main/jni", "../../lua-core/src", "../../lua-common"
             jni.srcDirs "src/main/jni", "../../lua-core-5.1.5/src", "../../lua-common"
 
         }
@@ -59,7 +58,6 @@ android {
     externalNativeBuild {
 
         ndkBuild {
-//            path "src/main/jni/Android.mk"
             path "src/main/jni/Android-5.1.5.mk"
         }
 

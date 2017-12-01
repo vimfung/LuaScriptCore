@@ -17,6 +17,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/LuaJavaType.cpp \
 	$(LOCAL_PATH)/LuaJavaExportTypeDescriptor.cpp \
     $(LOCAL_PATH)/LuaJavaExportMethodDescriptor.cpp \
+    $(LOCAL_PATH)/LuaJavaExportPropertyDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../lua-core-5.1.5/src/lapi.c \
 	$(LOCAL_PATH)/../../../../../lua-core-5.1.5/src/lauxlib.c \
 	$(LOCAL_PATH)/../../../../../lua-core-5.1.5/src/lbaselib.c \
@@ -67,6 +68,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaExportMethodDescriptor.cpp \
     $(LOCAL_PATH)/../../../../../lua-common/LuaExportsTypeManager.cpp \
     $(LOCAL_PATH)/../../../../../lua-common/LuaExportTypeDescriptor.cpp \
+    $(LOCAL_PATH)/../../../../../lua-common/LuaExportPropertyDescriptor.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../lua-core-5.1.5/src
