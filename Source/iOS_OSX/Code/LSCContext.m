@@ -87,12 +87,12 @@
 - (void)setGlobalWithValue:(LSCValue *)value forName:(NSString *)name
 {
     [value pushWithContext:self];
-    [LSCEngineAdapter setGlobal:self.mainSession.state name:name.UTF8String];
+    [LSCEngineAdapter setGlobal:self.currentSession.state name:name.UTF8String];
 }
 
 - (LSCValue *)getGlobalForName:(NSString *)name
 {
-    [LSCEngineAdapter getGlobal:self.mainSession.state name:name.UTF8String];
+    [LSCEngineAdapter getGlobal:self.currentSession.state name:name.UTF8String];
     return [LSCValue valueWithContext:self atIndex:-1];
 }
 
@@ -108,7 +108,7 @@
 
 - (LSCValue *)evalScriptFromString:(NSString *)string
 {
-    lua_State *state = self.mainSession.state;
+    lua_State *state = self.currentSession.state;
     
     LSCValue *returnValue = nil;
     int curTop = [LSCEngineAdapter getTop:state];
@@ -174,7 +174,7 @@
         path = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] resourcePath], path];
     }
     
-    lua_State *state = self.mainSession.state;
+    lua_State *state = self.currentSession.state;
     
     LSCValue *retValue = nil;
     int curTop = [LSCEngineAdapter getTop:state];
@@ -290,7 +290,7 @@
 - (void)registerMethodWithName:(NSString *)methodName
                          block:(LSCFunctionHandler)block
 {
-    lua_State *state = self.mainSession.state;
+    lua_State *state = self.currentSession.state;
     
     if (![self.methodBlocks objectForKey:methodName])
     {
@@ -314,15 +314,20 @@
 
 - (LSCSession *)makeSessionWithState:(lua_State *)state;
 {
-    if (self.mainSession.state != state)
-    {
-        LSCSession *session = [[LSCSession alloc] initWithState:state context:self];
-        self.currentSession = session;
-        
-        return session;
-    }
+    LSCSession *session = [[LSCSession alloc] initWithState:state context:self];
+    session.prevSession = _currentSession;
     
-    return self.mainSession;
+    self.currentSession = session;
+    
+    return session;
+}
+
+- (void)destroySession:(LSCSession *)session
+{
+    if (_currentSession == session)
+    {
+        self.currentSession = session.prevSession;
+    }
 }
 
 - (void)raiseExceptionWithMessage:(NSString *)message
@@ -357,6 +362,8 @@ static int cfuncRouteHandler(lua_State *state)
         {
             count = [session setReturnValue:retValue];
         }
+        
+        [context destroySession:session];
     }
     
     return count;
@@ -369,7 +376,7 @@ static int cfuncRouteHandler(lua_State *state)
  */
 - (void)setSearchPath:(NSString *)path
 {
-    lua_State *state = self.mainSession.state;
+    lua_State *state = self.currentSession.state;
     
     [LSCEngineAdapter getGlobal:state name:"package"];
     [LSCEngineAdapter getField:state index:-1 name:"path"];

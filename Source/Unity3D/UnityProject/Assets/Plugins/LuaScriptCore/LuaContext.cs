@@ -158,34 +158,10 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
-		/// 配置信息
-		/// </summary>
-		private LuaContextConfig _config;
-
-		/// <summary>
-		/// 获取配置信息
-		/// </summary>
-		/// <value>配置信息</value>
-		internal LuaContextConfig config
-		{
-			get
-			{
-				return _config;
-			}
-		}
-
-		/// <summary>
-		/// 创建LuaContext
+		/// 初始化上下文
 		/// </summary>
 		public LuaContext()
-			: this(LuaContextConfig.defaultConfig)
 		{
-			
-		}
-
-		public LuaContext(LuaContextConfig config)
-		{
-			_config = config;
 			_methodHandlers = new Dictionary<string, LuaMethodHandler> ();
 			_nativeObjectId = NativeUtils.createLuaContext ();
 			_contexts.Add (_nativeObjectId, new WeakReference(this));

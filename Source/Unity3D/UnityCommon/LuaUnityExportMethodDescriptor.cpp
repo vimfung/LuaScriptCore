@@ -26,20 +26,6 @@ LuaUnityExportMethodDescriptor::LuaUnityExportMethodDescriptor(std::string name,
     _instanceMethodHandler = handler;
 }
 
-LuaUnityExportMethodDescriptor::LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, std::string fieldName, LuaInstanceFieldGetterHandlerPtr handler) : LuaExportMethodDescriptor(name, methodSignature)
-{
-    _methodType = LuaUnityExportMethodTypeGetter;
-    _fieldGetterMethodHandler = handler;
-    _fieldName = fieldName;
-}
-
-LuaUnityExportMethodDescriptor::LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, std::string fieldName, LuaInstanceFieldSetterHandlerPtr handler) : LuaExportMethodDescriptor(name, methodSignature)
-{
-    _methodType = LuaUnityExportMethodTypeSetter;
-    _fieldSetterMethodHandler = handler;
-    _fieldName = fieldName;
-}
-
 LuaValue* LuaUnityExportMethodDescriptor::invoke(LuaSession *session, LuaArgumentList arguments)
 {
     switch (_methodType)
@@ -48,10 +34,6 @@ LuaValue* LuaUnityExportMethodDescriptor::invoke(LuaSession *session, LuaArgumen
             return invokeClassMethod(session, arguments);
         case LuaUnityExportMethodTypeInstance:
             return invokeInstanceMethod(session, arguments);
-        case LuaUnityExportMethodTypeGetter:
-            return invokeGetterMethod(session, arguments);
-        case LuaUnityExportMethodTypeSetter:
-            return invokeSetterMethod(session, arguments);
         default:
             return NULL;
     }
@@ -144,72 +126,6 @@ LuaValue* LuaUnityExportMethodDescriptor::invokeInstanceMethod(LuaSession *sessi
         }
         
         return retValue;
-    }
-    
-    return NULL;
-}
-
-LuaValue* LuaUnityExportMethodDescriptor::invokeGetterMethod(LuaSession *session, LuaArgumentList arguments)
-{
-    if (_fieldGetterMethodHandler != NULL)
-    {
-        LuaArgumentList::iterator it = arguments.begin();
-        LuaObjectDescriptor *instance = (*it) -> toObject();
-        
-        void *returnBuffer = _fieldGetterMethodHandler (typeDescriptor -> objectId(), (long long) instance -> getObject(), _fieldName.c_str());
-        
-        LuaValue *retValue = NULL;
-        if (returnBuffer != NULL)
-        {
-            LuaObjectDecoder *decoder = new LuaObjectDecoder(session -> getContext(), returnBuffer);
-            retValue = dynamic_cast<LuaValue *>(decoder -> readObject());
-            decoder -> release();
-            
-            //释放C＃中申请的内存
-            free(returnBuffer);
-        }
-        else
-        {
-            retValue = LuaValue::NilValue();
-        }
-        
-        return retValue;
-    }
-    
-    return NULL;
-}
-
-LuaValue* LuaUnityExportMethodDescriptor::invokeSetterMethod(LuaSession *session, LuaArgumentList arguments)
-{
-    if (_fieldSetterMethodHandler != NULL)
-    {
-        LuaArgumentList::iterator it = arguments.begin();
-        LuaObjectDescriptor *instance = (*it) -> toObject();
-        ++it;
-        
-        LuaValue *value = *it;
-        LuaObjectEncoder *encoder = new LuaObjectEncoder(session -> getContext());
-        if (value != NULL)
-        {
-            encoder -> writeObject(value);
-        }
-        else
-        {
-            LuaValue *nilValue = LuaValue::NilValue();
-            encoder -> writeObject(nilValue);
-            nilValue -> release();
-        }
-        
-        //valueBuf的内容由C#端进行释放
-        const void *valueBuf = encoder -> cloneBuffer();
-        
-        _fieldSetterMethodHandler (typeDescriptor -> objectId(),
-                                   (long long) instance -> getObject(),
-                                   _fieldName.c_str(),
-                                   valueBuf,
-                                   encoder -> getBufferLength());
-        
-        encoder -> release();
     }
     
     return NULL;

@@ -39,6 +39,11 @@
     }];
 }
 
+- (void)testCustomProperty
+{
+    [self.context evalScriptFromString:@"local p = Person.createPerson();  p.intValue = 111; print('intValue', p.intValue);"];
+}
+
 - (void)testGlobalVar
 {
     NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];

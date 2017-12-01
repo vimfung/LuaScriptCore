@@ -8,6 +8,7 @@
 
 #include "LuaExportTypeDescriptor.hpp"
 #include "LuaExportMethodDescriptor.hpp"
+#include "LuaExportPropertyDescriptor.hpp"
 #include "StringUtils.h"
 #include "LuaSession.h"
 #include "LuaObjectDescriptor.h"
@@ -99,6 +100,13 @@ void LuaExportTypeDescriptor::addInstanceMethod(std::string methodName, LuaExpor
     _instanceMethods[methodName] = methods;
 }
 
+void LuaExportTypeDescriptor::addProperty(std::string propertyName, LuaExportPropertyDescriptor *propertyDescriptor)
+{
+    propertyDescriptor -> retain();
+    propertyDescriptor -> typeDescriptor = this;
+    _properties[propertyName] = propertyDescriptor;
+}
+
 std::list<std::string> LuaExportTypeDescriptor::classMethodNameList()
 {
     std::list<std::string> nameList;
@@ -131,6 +139,11 @@ LuaExportMethodDescriptor* LuaExportTypeDescriptor::getClassMethod(std::string m
 LuaExportMethodDescriptor* LuaExportTypeDescriptor::getInstanceMethod(std::string methodName, LuaArgumentList arguments)
 {
     return filterMethod(methodName, arguments, false);
+}
+
+LuaExportPropertyDescriptor* LuaExportTypeDescriptor::getProperty(std::string propertyName)
+{
+    return _properties[propertyName];
 }
 
 LuaObjectDescriptor* LuaExportTypeDescriptor::createInstance(LuaSession *session)

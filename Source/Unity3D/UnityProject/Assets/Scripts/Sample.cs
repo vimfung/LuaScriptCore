@@ -92,7 +92,7 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void registerModuleButtonClickedHandler()
 	{
-		LuaContext.currentContext.evalScript ("LogModule.writeLog('Hello World!'); LogModule.writeLog(1024); local a = LogModule.test({1,2,3,4}); print(a);");
+		LuaContext.currentContext.evalScript ("print(LogModule);LogModule.writeLog('Hello World!'); LogModule.writeLog(1024); local a = LogModule.test({1,2,3,4}); print(a);");
 	}
 
 	/// <summary>
@@ -100,7 +100,7 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void registerClassButtonClickedHandler()
 	{
-		LuaContext.currentContext.evalScript ("function Person.prototype:init() print('Person create'); end; local p = Person.createPerson(); print(p); p:setName('xxxx'); p:speak(); print(Person.printPerson(p));");
+		LuaContext.currentContext.evalScript ("function Person.prototype:init() print('Person create'); end; local p = Person.createPerson(); print(p); p.name='xxxx'; p:speak(); p.intValue = 111; print('intValue', p.intValue); print(Person.printPerson(p));");
 	}
 
 	/// <summary>
@@ -118,7 +118,7 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void importClassButtonClickedHandler ()
 	{
-		LuaContext.currentContext.evalScript ("local Person = nativeType('Person'); local NativeData = nativeType('NativeData'); print(Person, NativeData); local d = NativeData.create(); d:setDataId('xxx'); print(d:dataId()); local p = NativeData.createPerson(); print(p); p:setName('xxxx'); p = Person.printPerson(p); print(p); print(p:name());");
+		LuaContext.currentContext.evalScript ("print(Person, NativeData); local d = NativeData.create(); d.dataId = 'xxx'; print(d.dataId); local p = NativeData.createPerson(); print(p); p.name='xxxx'; p = Person.printPerson(p); print(p); print(p.name);");
 	}
 
 	public void retainAndReleaseButtonClickedHandler ()

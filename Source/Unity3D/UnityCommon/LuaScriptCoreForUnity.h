@@ -169,11 +169,9 @@ extern "C" {
      注册类型
 
      @param nativeContextId 本地上下文对象ID
-     @param lazyImport 惰性加载
      @param typeName 类名称
      @param parentTypeName 父类名称
-     @param exportsSetterNames 导出Setter名称列表
-     @param exportsGetterNames 导出Getter名称列表
+     @param exportsPropertyNames 导出属性名称列表,元素组成形式:propertyname_[rw|r]
      @param exportsInstanceMethodNames 导出实例方法名称列表
      @param exportsClassMethodNames 导出类方法名称列表
      @param instanceCreateHandler 实例创建处理回调
@@ -186,11 +184,9 @@ extern "C" {
      @return 类的本地标识
      */
     LuaScriptCoreApi extern int registerType(int nativeContextId,
-                                             bool lazyImport,
                                              const char *typeName,
                                              const char *parentTypeName,
-                                             const void *exportsSetterNames,
-                                             const void *exportsGetterNames,
+                                             const void *exportsPropertyNames,
                                              const void *exportsInstanceMethodNames,
                                              const void *exportsClassMethodNames,
                                              LuaInstanceCreateHandlerPtr instanceCreateHandler,

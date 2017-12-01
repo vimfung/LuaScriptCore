@@ -355,6 +355,14 @@ namespace cn
                 static void rawSetI(lua_State *state, int idx, int n);
                 
                 /**
+                 获取表数据的源操作，不出发index元方法
+                 
+                 @param state 状态
+                 @param index table对象位置索引
+                 */
+                static void rawGet(lua_State *state, int index);
+                
+                /**
                  入栈一个数值
 
                  @param state 状态对象

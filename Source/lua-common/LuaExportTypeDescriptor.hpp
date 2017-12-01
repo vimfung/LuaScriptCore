@@ -21,12 +21,14 @@ namespace cn {
         namespace luascriptcore {
             
             class LuaExportMethodDescriptor;
+            class LuaExportPropertyDescriptor;
             class LuaObjectDescriptor;
             class LuaSession;
             
             typedef std::list<LuaExportMethodDescriptor *> MethodList;
             typedef std::map<std::string, MethodList> MethodMap;
             typedef std::map<std::string, LuaExportMethodDescriptor *> MappingMethodMap;
+            typedef std::map<std::string, LuaExportPropertyDescriptor *> PropertyMap;
             
             /**
              Lua类型描述
@@ -108,6 +110,14 @@ namespace cn {
                 void addInstanceMethod(std::string methodName, LuaExportMethodDescriptor *methodDescriptor);
                 
                 /**
+                 添加属性
+                 
+                 @param propertyName 属性名称
+                 @param propertyDescriptor 属性描述对象
+                 */
+                void addProperty(std::string propertyName, LuaExportPropertyDescriptor *propertyDescriptor);
+                
+                /**
                  获取类方法
 
                  @param methodName 方法名称
@@ -124,6 +134,14 @@ namespace cn {
                  @return 方法描述
                  */
                 LuaExportMethodDescriptor* getInstanceMethod(std::string methodName, LuaArgumentList arguments);
+                
+                /**
+                 获取属性
+                 
+                 @param propertyName 属性名称
+                 @return 属性对象
+                 */
+                LuaExportPropertyDescriptor* getProperty(std::string propertyName);
                 
             public:
                 
@@ -173,6 +191,11 @@ namespace cn {
                  实例方法集合
                  */
                 MethodMap _instanceMethods;
+                
+                /**
+                 属性集合
+                 */
+                PropertyMap _properties;
                 
                 /**
                  父类型描述

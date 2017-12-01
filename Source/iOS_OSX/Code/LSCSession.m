@@ -12,9 +12,6 @@
 #import "LSCTuple_Private.h"
 #import "LSCEngineAdapter.h"
 
-static LSCSession *_curSession = nil;
-static LSCSession *_mainSession = nil;
-
 @implementation LSCSession
 
 - (instancetype)initWithState:(lua_State *)state context:(LSCContext *)context

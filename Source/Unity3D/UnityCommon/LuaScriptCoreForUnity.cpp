@@ -10,6 +10,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <ctype.h>
+#include <vector>
 #include "LuaContext.h"
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectManager.h"
@@ -22,6 +23,7 @@
 #include "LuaExportsTypeManager.hpp"
 #include "LuaUnityExportTypeDescriptor.hpp"
 #include "LuaUnityExportMethodDescriptor.hpp"
+#include "LuaUnityExportPropertyDescriptor.hpp"
 #include "LuaValue.h"
 #include "LuaObjectDescriptor.h"
 #include "StringUtils.h"
@@ -442,11 +444,9 @@ extern "C" {
     }
     
     int registerType(int nativeContextId,
-                     bool lazyImport,
                      const char *typeName,
                      const char *parentTypeName,
-                     const void *exportsSetterNames,
-                     const void *exportsGetterNames,
+                     const void *exportsPropertyNames,
                      const void *exportsInstanceMethodNames,
                      const void *exportsClassMethodNames,
                      LuaInstanceCreateHandlerPtr instanceCreateHandler,
@@ -509,43 +509,40 @@ extern "C" {
                 decoder -> release();
             }
             
-            if (exportsGetterNames != NULL)
+            if (exportsPropertyNames != NULL)
             {
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsGetterNames);
+                //注册属性
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsPropertyNames);
                 int size = decoder -> readInt32();
                 for (int i = 0; i < size; i++)
                 {
                     std::string fieldName = decoder -> readString();
-                    LuaUnityExportMethodDescriptor *methodDescriptor = new LuaUnityExportMethodDescriptor(fieldName, "", fieldName, instanceFieldGetterRouteHandler);
-                    typeDescriptor -> addInstanceMethod(fieldName, methodDescriptor);
-                    methodDescriptor -> release();
-                }
-                decoder -> release();
-            }
-            
-            if (exportsSetterNames != NULL)
-            {
-                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, exportsSetterNames);
-                int size = decoder -> readInt32();
-                for (int i = 0; i < size; i++)
-                {
-                    std::string fieldName = decoder -> readString();
+                    std::vector<std::string> fieldNameComps = StringUtils::split(fieldName, "_", false);
                     
-                    //与iOS中的属性getter和setter方法保持一致, getter直接是属性名称,setter则需要将属性首字母大写并在前面加上set
-                    char upperCStr[2] = {0};
-                    upperCStr[0] = (char)toupper(fieldName[0]);
-                    std::string upperStr = upperCStr;
-                    std::string fieldNameStr = fieldName.c_str() + 1;
-                    std::string setterMethodName = "set" + upperStr + fieldNameStr;
+                    bool canRead = false;
+                    bool canWrite = false;
+                    if (fieldNameComps[1] == "r")
+                    {
+                        canRead = true;
+                    }
+                    else if (fieldNameComps[1] == "w")
+                    {
+                        canWrite = true;
+                    }
+                    else
+                    {
+                        canRead = true;
+                        canWrite = true;
+                    }
                     
-                    LuaUnityExportMethodDescriptor *methodDescriptor = new LuaUnityExportMethodDescriptor(setterMethodName, "", fieldName, instanceFieldSetterRouteHandler);
-                    typeDescriptor -> addInstanceMethod(setterMethodName, methodDescriptor);
-                    methodDescriptor -> release();
+                    LuaUnityExportPropertyDescriptor *propertyDescriptor = new LuaUnityExportPropertyDescriptor(fieldNameComps[0], canRead, canWrite, instanceFieldGetterRouteHandler, instanceFieldSetterRouteHandler);
+                    typeDescriptor -> addProperty(propertyDescriptor -> name(), propertyDescriptor);
+                    propertyDescriptor -> release();
                 }
                 decoder -> release();
             }
 
-            context -> getExportsTypeManager() -> exportsType(typeDescriptor, lazyImport);
+            context -> getExportsTypeManager() -> exportsType(typeDescriptor);
             
             typeDescriptor -> release();
         }

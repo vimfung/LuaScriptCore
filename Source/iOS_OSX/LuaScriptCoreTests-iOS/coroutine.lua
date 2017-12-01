@@ -78,7 +78,7 @@ function TestClassImportFunc()
 
 end
 
-Test();
-TestModuleFunc();
+--Test();
+--TestModuleFunc();
 TestClassFunc();
-TestClassImportFunc();
+--TestClassImportFunc();
