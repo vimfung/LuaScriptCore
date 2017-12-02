@@ -5,6 +5,13 @@
 #include "StringUtils.h"
 #include <stdio.h>
 
+#if _WINDOWS
+
+#include <stdarg.h>
+
+#endif
+
+
 using namespace cn::vimfung::luascriptcore;
 
 std::string StringUtils::replace (std::string text, std::string str, std::string replacement)
