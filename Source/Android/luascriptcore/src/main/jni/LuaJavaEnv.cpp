@@ -11,8 +11,6 @@
 #include "LuaObjectDescriptor.h"
 #include "LuaJavaType.h"
 #include "LuaJavaConverter.h"
-#include "LuaJavaModule.h"
-#include "LuaJavaObjectClass.h"
 #include "LuaValue.h"
 #include "LuaContext.h"
 #include "LuaDefine.h"
@@ -304,13 +302,6 @@ std::string LuaJavaEnv::getJavaClassNameByInstance(JNIEnv *env, jobject instance
     return className;
 }
 
-LuaJavaObjectClass* LuaJavaEnv::getObjectClassByInstance(JNIEnv *env, jobject instance, LuaContext *context)
-{
-    std::string className = getJavaClassNameByInstance(env, instance);
-    LuaModule *module = context -> getModule((const std::string)className);
-    return dynamic_cast<LuaJavaObjectClass *>(module);
-}
-
 cn::vimfung::luascriptcore::LuaExceptionHandler LuaJavaEnv::getExceptionhandler()
 {
     return _luaExceptionHandler;
@@ -342,4 +333,28 @@ std::string LuaJavaEnv::getJavaClassName(JNIEnv *env, jclass cls, bool simpleNam
     env -> DeleteLocalRef(className);
 
     return name;
+}
+
+std::string LuaJavaEnv::getExportTypeName(JNIEnv *env, jclass cls)
+{
+    jobject jExportManager = getExportTypeManager(env);
+
+    jmethodID  getExportTypeNameMethodId = env -> GetMethodID(LuaJavaType::exportTypeManagerClass(env), "getExportTypeName", "(Ljava/lang/Class;)Ljava/lang/String;");
+    jstring typeName = (jstring)env -> CallObjectMethod(jExportManager, getExportTypeNameMethodId, cls);
+    const char* typeNameCStr = env -> GetStringUTFChars(typeName, 0);
+
+    std::string typeNameString = typeNameCStr;
+
+    env -> ReleaseStringUTFChars(typeName, typeNameCStr);
+    env -> DeleteLocalRef(typeName);
+
+    return typeNameString;
+}
+
+jobject LuaJavaEnv::getExportTypeManager(JNIEnv *env)
+{
+    jclass exportTypeManagerCls = LuaJavaType::exportTypeManagerClass(env);
+
+    jmethodID defaultManagerMethodId = env -> GetStaticMethodID(exportTypeManagerCls, "getDefaultManager", "()Lcn/vimfung/luascriptcore/LuaExportTypeManager;");
+    return env -> CallStaticObjectMethod(exportTypeManagerCls, defaultManagerMethodId);
 }

@@ -7,20 +7,13 @@
 //
 
 #import "LSCContext.h"
-#import "lauxlib.h"
-#import "lua.h"
-#import "luaconf.h"
-#import "lualib.h"
+#import "LSCEngineAdapter.h"
 #import "LSCDataExchanger.h"
+#import "LSCExportsTypeManager.h"
 
 @class LSCSession;
 
 @interface LSCContext ()
-
-/**
- *  Lua解析器
- */
-//@property(nonatomic) lua_State *state;
 
 /**
  *  异常处理器
@@ -41,12 +34,17 @@
  获取当前会话，每次与Lua进行交互都会产生一个会话，该会话在交互结束后销毁.
  借助该会话可以解析Lua传递的参数，并且可以给Lua设置返回值
  */
-@property (nonatomic, weak) LSCSession *currentSession;
+@property (nonatomic, strong) LSCSession *currentSession;
 
 /**
  获取主会话对象
  */
 @property (nonatomic, strong) LSCSession *mainSession;
+
+/**
+ 导出类型管理器
+ */
+@property (nonatomic, strong) LSCExportsTypeManager *exportsTypeManager;
 
 /**
  抛出异常
@@ -61,5 +59,12 @@
  @param state 状态
  */
 - (LSCSession *)makeSessionWithState:(lua_State *)state;
+
+/**
+ 销毁会话
+
+ @param session 会话对象
+ */
+- (void)destroySession:(LSCSession *)session;
 
 @end

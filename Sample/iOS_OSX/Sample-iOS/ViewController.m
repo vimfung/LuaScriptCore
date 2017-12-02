@@ -140,12 +140,6 @@
  */
 - (IBAction)registerModuleClickedHandler:(id)sender
 {
-    if (!self.hasRegModule)
-    {
-        self.hasRegModule = YES;
-        [self.context registerModuleWithClass:[LogModule class]];
-    }
-    
     [self.context evalScriptFromString:@"LogModule.writeLog('Hello Lua Module!');"];
 }
 
@@ -157,12 +151,6 @@
  */
 - (IBAction)registerClassClickedHandler:(id)sender
 {
-    if (!self.hasRegClass)
-    {
-        self.hasRegClass = YES;
-        [self.context registerModuleWithClass:[LSCTPerson class]];
-    }
-
     [self.context evalScriptFromFile:@"test.lua"];
 }
 
@@ -174,14 +162,7 @@
  */
 - (IBAction)importNativeClassClickedHandler:(id)sender
 {
-    if (!self.hasImportClass)
-    {
-        self.hasImportClass = YES;
-        [self.context registerModuleWithClass:[LSCClassImport class]];
-        [LSCClassImport setInculdesClasses:@[LSCTPerson.class, LSCTNativeData.class] withContext:self.context];
-    }
-    
-    [self.context evalScriptFromString:@"local Data = ClassImport('LSCTNativeData'); print(Data); local d = Data.create(); print(d); d:setDataId('xxxx'); print(d:dataId()); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
+    [self.context evalScriptFromString:@"local Data = nativeType('LSCTNativeData'); print(Data); local d = Data.create(); print(d); d:setDataId('xxxx'); print(d:dataId()); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
 }
 
 @end

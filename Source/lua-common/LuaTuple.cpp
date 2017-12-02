@@ -8,7 +8,6 @@
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectDecoder.hpp"
 #include <typeinfo>
-#include "lunity.h"
 
 using namespace cn::vimfung::luascriptcore;
 

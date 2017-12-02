@@ -166,36 +166,12 @@ extern "C" {
     
     
     /**
-     注册模块
-
-     @param nativeContextId 本地上下文对象ID
-     @param moduleName 模块名称
-     @param exportsMethodNames 导出方法名称列表
-     @param methodRouteHandler 方法路由处理回调
-     
-     @return 模块的本地标识 
-     */
-    LuaScriptCoreApi extern int registerModule(int nativeContextId, const char *moduleName, const void *exportsMethodNames, LuaModuleMethodHandlerPtr methodRouteHandler);
-    
-    
-    /**
-     判断模块是否注册
-
-     @param nativeContextId 本地上下文对象ID
-     @param moduleName 模块名称
-     @return true 表示已注册，false 表示尚未注册。
-     */
-    LuaScriptCoreApi extern bool isModuleRegisted(int nativeContextId, const char *moduleName);
-    
-    
-    /**
      注册类型
 
      @param nativeContextId 本地上下文对象ID
-     @param className 类名称
-     @param superClassName 父类名称
-     @param exportsSetterNames 导出Setter名称列表
-     @param exportsGetterNames 导出Getter名称列表
+     @param typeName 类名称
+     @param parentTypeName 父类名称
+     @param exportsPropertyNames 导出属性名称列表,元素组成形式:propertyname_[rw|r]
      @param exportsInstanceMethodNames 导出实例方法名称列表
      @param exportsClassMethodNames 导出类方法名称列表
      @param instanceCreateHandler 实例创建处理回调
@@ -207,51 +183,20 @@ extern "C" {
      @param classMethodRouteHandler 类方法路由处理回调
      @return 类的本地标识
      */
-    LuaScriptCoreApi extern int registerClass(int nativeContextId,
-                                              const char *className,
-                                              const char *superClassName,
-                                              const void *exportsSetterNames,
-                                              const void *exportsGetterNames,
-                                              const void *exportsInstanceMethodNames,
-                                              const void *exportsClassMethodNames,
-                                              LuaInstanceCreateHandlerPtr instanceCreateHandler,
-                                              LuaInstanceDestoryHandlerPtr instanceDestroyHandler,
-                                              LuaInstanceDescriptionHandlerPtr instanceDescriptionHandler,
-                                              LuaInstanceFieldGetterHandlerPtr instanceFieldGetterRouteHandler,
-                                              LuaInstanceFieldSetterHandlerPtr instanceFieldSetterRouteHandler,
-                                              LuaInstanceMethodHandlerPtr instanceMethodRouteHandler,
-                                              LuaModuleMethodHandlerPtr classMethodRouteHandler);
+    LuaScriptCoreApi extern int registerType(int nativeContextId,
+                                             const char *typeName,
+                                             const char *parentTypeName,
+                                             const void *exportsPropertyNames,
+                                             const void *exportsInstanceMethodNames,
+                                             const void *exportsClassMethodNames,
+                                             LuaInstanceCreateHandlerPtr instanceCreateHandler,
+                                             LuaInstanceDestoryHandlerPtr instanceDestroyHandler,
+                                             LuaInstanceDescriptionHandlerPtr instanceDescriptionHandler,
+                                             LuaInstanceFieldGetterHandlerPtr instanceFieldGetterRouteHandler,
+                                             LuaInstanceFieldSetterHandlerPtr instanceFieldSetterRouteHandler,
+                                             LuaInstanceMethodHandlerPtr instanceMethodRouteHandler,
+                                             LuaModuleMethodHandlerPtr classMethodRouteHandler);
     
-    /**
-     注册导出类型
-
-     @param nativeContextId 上下文标识
-     @param className 类名
-     @param checkObjectSubclassHandler 检测对象是否为LuaObjectClass子类
-     @param allowExportsClassHandler 是否允许导出类型处理器
-     @param allExportClassMethods 导出所有类方法
-     @param allExportInstanceMethods 导出所有实例方法
-     @param allExportGetterFields 导出所有字段的Getter
-     @param allExportSetterFields 导出所有字段的Setter
-     @param instanceCreateHandler 实例对象实例方法
-     @param classMethodInvokeHandler 类方法调用处理
-     @param instanceMethodInvokeHandler 实例方法调用
-     @param fieldGetterHandler 字段获取器
-     @param fieldSetterHandler 字段设置器
-     */
-    LuaScriptCoreApi extern void registerClassImport(int nativeContextId,
-                                                    const char *className,
-                                                    LuaCheckObjectSubclassHandlerPtr checkObjectSubclassHandler,
-                                                    LuaAllowExportsClassHandlerPtr allowExportsClassHandler,
-                                                    LuaAllExportClassMethodHandlerPtr allExportClassMethods,
-                                                    LuaAllExportInstanceMethodHandlerPtr allExportInstanceMethods,
-                                                    LuaAllExportFieldGetterHandlerPtr allExportGetterFields,
-                                                    LuaAllExportFieldSetterHandlerPtr allExportSetterFields,
-                                                    LuaCreateNativeObjectHandlerPtr instanceCreateHandler,
-                                                    LuaNativeClassMethodInvokeHandlerPtr classMethodInvokeHandler,
-                                                    LuaNativeInstanceMethodInvokeHandlerPtr instanceMethodInvokeHandler,
-                                                    LuaNativeFieldGetterHandlerPtr fieldGetterHandler,
-                                                    LuaNativeFieldSetterHandlerPtr fieldSetterHandler);
 #if defined (__cplusplus)
 }
 #endif

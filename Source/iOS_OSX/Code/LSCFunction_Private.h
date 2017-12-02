@@ -7,7 +7,7 @@
 //
 
 #import "LSCFunction.h"
-#import "lua.h"
+#import "LSCEngineAdapter.h"
 #import "LSCManagedObjectProtocol.h"
 
 @class LSCContext;

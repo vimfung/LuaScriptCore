@@ -6,12 +6,10 @@
 #define ANDROID_LUAJAVAENV_H
 
 #include <jni.h>
+#include <LuaValue.h>
 #include "LuaDefined.h"
 
 using namespace cn::vimfung::luascriptcore;
-
-class LuaJavaObjectClass;
-class LuaJavaModule;
 
 namespace cn {
     namespace vimfung {
@@ -57,6 +55,7 @@ public:
      *
      * @param env JNI环境
      * @param context 上下文对象
+     * @param config 上下文配置
      *
      * @return Java中的LuaContext对象
      */
@@ -125,17 +124,6 @@ public:
     static std::string getJavaClassNameByInstance(JNIEnv *env, jobject instance);
 
     /**
-     * 根据实例获取类型
-     *
-     * @param env JNI环境
-     * @param instance 实例对象
-     * @param context 上下文对象
-     *
-     * @return 类型
-     */
-    static LuaJavaObjectClass* getObjectClassByInstance(JNIEnv *env, jobject instance, LuaContext *context);
-
-    /**
      * 获取异常处理方法
      *
      * @return Lua异常处理器
@@ -152,6 +140,25 @@ public:
      * @return 类型名称
      */
     static std::string getJavaClassName(JNIEnv *env, jclass cls, bool simpleName);
+
+    /**
+     * 获取导出类型名称
+     *
+     * @param env JNI环境
+     * @param cls 类型
+     *
+     * @return 导出类型名称
+     */
+    static std::string getExportTypeName(JNIEnv *env, jclass cls);
+
+    /**
+     * 获取导出类型管理器
+     *
+     * @param env JNI环境
+     *
+     * @return 导出类型管理器
+     */
+    static jobject getExportTypeManager(JNIEnv *env);
 };
 
 
