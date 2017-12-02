@@ -346,7 +346,7 @@ void LuaValue::push(LuaContext *context)
     context -> getDataExchanger() -> pushStack(this);
 }
 
-long LuaValue::toInteger()
+lua_Integer LuaValue::toInteger()
 {
     if (_type == LuaValueTypeInteger)
     {

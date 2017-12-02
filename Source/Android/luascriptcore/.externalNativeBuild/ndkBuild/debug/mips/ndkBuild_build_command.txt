@@ -4,7 +4,7 @@ NDK_PROJECT_PATH=null
 APP_BUILD_SCRIPT=/Users/vimfung/Documents/project/LuaScriptCore/Source/Android/luascriptcore/src/main/jni/Android.mk
 APP_ABI=mips
 NDK_ALL_ABIS=mips
-NDEBUG=1
+NDK_DEBUG=1
 APP_PLATFORM=android-13
 NDK_OUT=/Users/vimfung/Documents/project/LuaScriptCore/Source/Android/luascriptcore/build/intermediates/ndkBuild/debug/obj
 NDK_LIBS_OUT=/Users/vimfung/Documents/project/LuaScriptCore/Source/Android/luascriptcore/build/intermediates/ndkBuild/debug/lib
@@ -15,12 +15,13 @@ APP_CPPFLAGS+="-Wno-format-contains-nul"
 APP_CPPFLAGS+="-g"
 APP_CPPFLAGS+="-Wno-deprecated-declarations"
 APP_CPPFLAGS+="-fpermissive"
-APP_STL=stlport_static
+APP_STL=gnustl_static
 NDK_DEBUG=1
 APP_PLATFORM=android-13
 NDK_TOOLCHAIN_VERSION=4.9
 APP_SHORT_COMMANDS=false
 LOCAL_SHORT_COMMANDS=false
+-B
 -n
 jvmArgs : 
 

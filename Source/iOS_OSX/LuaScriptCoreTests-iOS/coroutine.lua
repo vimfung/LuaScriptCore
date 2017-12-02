@@ -1,4 +1,3 @@
-
 function Resume(func)
     coroutine.resume(func)
 end
@@ -48,8 +47,8 @@ function TestClassFunc()
         p = Person.createPerson();
         print (p);
 
-        p:setName("vim");
-        print (p:name());
+        p.name = "vim";
+        print (p.name);
 
         Person.printPersonName(p);
 
@@ -65,12 +64,10 @@ function TestClassImportFunc()
 
     local tfunc = coroutine.create(function()
 
-        local NativePerson = ClassImport('NativePerson'); 
-        local Person = ClassImport('Person'); 
         print(Person, NativePerson); 
         local p = NativePerson.createPerson(); 
         print(p); 
-        p:setName('abc'); 
+        p.name = "abc"
         p:speak('Hello World!');
 
         coroutine.yield()
@@ -81,7 +78,7 @@ function TestClassImportFunc()
 
 end
 
-Test();
-TestModuleFunc();
+--Test();
+--TestModuleFunc();
 TestClassFunc();
-TestClassImportFunc();
+--TestClassImportFunc();

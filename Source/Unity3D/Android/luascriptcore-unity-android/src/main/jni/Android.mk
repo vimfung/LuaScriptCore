@@ -11,11 +11,9 @@ LOCAL_LDLIBS := \
 LOCAL_SRC_FILES := \
     $(LOCAL_PATH)/../../../../../UnityCommon/LuaScriptCoreForUnity.cpp \
     $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityEnv.cpp \
-    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityModule.cpp \
-    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityObjectClass.cpp \
-    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityClassImport.cpp \
-    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityClassObjectDescriptor.cpp \
-    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityExportClassProxy.cpp \
+    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityExportTypeDescriptor.cpp \
+    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityExportMethodDescriptor.cpp \
+    $(LOCAL_PATH)/../../../../../UnityCommon/LuaUnityExportPropertyDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-core/src/lapi.c \
 	$(LOCAL_PATH)/../../../../../../lua-core/src/lauxlib.c \
 	$(LOCAL_PATH)/../../../../../../lua-core/src/lbaselib.c \
@@ -53,25 +51,25 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/../../../../../../lua-core/src/lzio.c \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaContext.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaFunction.cpp \
-	$(LOCAL_PATH)/../../../../../../lua-common/LuaModule.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaNativeClass.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaNativeClassFactory.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaObject.cpp \
-	$(LOCAL_PATH)/../../../../../../lua-common/LuaObjectClass.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaObjectDecoder.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaObjectDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaObjectEncoder.cpp \
-	$(LOCAL_PATH)/../../../../../../lua-common/LuaObjectInstanceDescriptor.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaObjectManager.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaPointer.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaValue.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaTuple.cpp \
-	$(LOCAL_PATH)/../../../../../../lua-common/LuaClassImport.cpp \
-	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportClassProxy.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/StringUtils.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaDataExchanger.cpp \
 	$(LOCAL_PATH)/../../../../../../lua-common/LuaManagedObject.cpp \
-	$(LOCAL_PATH)/../../../../../../lua-common/LuaSession.cpp
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaSession.cpp \
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaEngineAdapter.cpp \
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportTypeDescriptor.cpp \
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportMethodDescriptor.cpp \
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportsTypeManager.cpp \
+	$(LOCAL_PATH)/../../../../../../lua-common/LuaExportPropertyDescriptor.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../../lua-core/src

@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using AOT;
 using System;
 using System.Collections.Generic;
-using cn.vimfung.luascriptcore.modules.oo;
 
 public class UNIEnv : object 
 {

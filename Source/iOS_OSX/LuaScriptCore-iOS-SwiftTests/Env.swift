@@ -9,14 +9,13 @@
 import Foundation
 import LuaScriptCore_iOS_Swift
 
-private let _context : LuaContext = LuaContext()
 class Env : NSObject
 {
-    class var defaultContext : LuaContext
+    static let defaultContext = setupContext();
+    
+    class func setupContext () -> LuaContext
     {
-        get
-        {
-            return _context;
-        }
+        let _context : LuaContext = LuaContext();
+        return _context;
     }
 }

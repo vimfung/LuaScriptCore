@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
-using cn.vimfung.luascriptcore.modules.oo;
 using System.CodeDom;
 using cn.vimfung.luascriptcore;
 
-public class Person : LuaObjectClass 
+public class Person : LuaExportType 
 {
 	private string _name;
 	public string name
