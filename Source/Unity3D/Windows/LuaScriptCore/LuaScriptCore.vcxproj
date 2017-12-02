@@ -82,21 +82,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\lua-common\LuaClassImport.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaContext.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaDataExchanger.cpp" />
-    <ClCompile Include="..\..\..\lua-common\LuaExportClassProxy.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaEngineAdapter.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaExportMethodDescriptor.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaExportPropertyDescriptor.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaExportsTypeManager.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaExportTypeDescriptor.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaFunction.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaManagedObject.cpp" />
-    <ClCompile Include="..\..\..\lua-common\LuaModule.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaNativeClass.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaNativeClassFactory.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObject.cpp" />
-    <ClCompile Include="..\..\..\lua-common\LuaObjectClass.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectDecoder.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectDescriptor.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectEncoder.cpp" />
-    <ClCompile Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectManager.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaPointer.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaSession.cpp" />
@@ -138,31 +138,29 @@
     <ClCompile Include="..\..\..\lua-core\src\lvm.c" />
     <ClCompile Include="..\..\..\lua-core\src\lzio.c" />
     <ClCompile Include="..\..\UnityCommon\LuaScriptCoreForUnity.cpp" />
-    <ClCompile Include="..\..\UnityCommon\LuaUnityClassImport.cpp" />
-    <ClCompile Include="..\..\UnityCommon\LuaUnityClassObjectDescriptor.cpp" />
     <ClCompile Include="..\..\UnityCommon\LuaUnityEnv.cpp" />
-    <ClCompile Include="..\..\UnityCommon\LuaUnityExportClassProxy.cpp" />
-    <ClCompile Include="..\..\UnityCommon\LuaUnityModule.cpp" />
-    <ClCompile Include="..\..\UnityCommon\LuaUnityObjectClass.cpp" />
+    <ClCompile Include="..\..\UnityCommon\LuaUnityExportMethodDescriptor.cpp" />
+    <ClCompile Include="..\..\UnityCommon\LuaUnityExportPropertyDescriptor.cpp" />
+    <ClCompile Include="..\..\UnityCommon\LuaUnityExportTypeDescriptor.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\lua-common\LuaClassImport.h" />
     <ClInclude Include="..\..\..\lua-common\LuaContext.h" />
     <ClInclude Include="..\..\..\lua-common\LuaDataExchanger.h" />
     <ClInclude Include="..\..\..\lua-common\LuaDefined.h" />
-    <ClInclude Include="..\..\..\lua-common\LuaExportClassProxy.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaEngineAdapter.hpp" />
+    <ClInclude Include="..\..\..\lua-common\LuaExportMethodDescriptor.hpp" />
+    <ClInclude Include="..\..\..\lua-common\LuaExportPropertyDescriptor.hpp" />
+    <ClInclude Include="..\..\..\lua-common\LuaExportsTypeManager.hpp" />
+    <ClInclude Include="..\..\..\lua-common\LuaExportTypeDescriptor.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaFunction.h" />
     <ClInclude Include="..\..\..\lua-common\LuaManagedObject.h" />
-    <ClInclude Include="..\..\..\lua-common\LuaModule.h" />
     <ClInclude Include="..\..\..\lua-common\LuaNativeClass.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaNativeClassFactory.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaObject.h" />
-    <ClInclude Include="..\..\..\lua-common\LuaObjectClass.h" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectDecoder.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectDescriptor.h" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectEncoder.hpp" />
-    <ClInclude Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.h" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectManager.h" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectSerializationTypes.h" />
     <ClInclude Include="..\..\..\lua-common\LuaPointer.h" />
@@ -198,13 +196,11 @@
     <ClInclude Include="..\..\..\lua-core\src\lvm.h" />
     <ClInclude Include="..\..\..\lua-core\src\lzio.h" />
     <ClInclude Include="..\..\UnityCommon\LuaScriptCoreForUnity.h" />
-    <ClInclude Include="..\..\UnityCommon\LuaUnityClassImport.hpp" />
-    <ClInclude Include="..\..\UnityCommon\LuaUnityClassObjectDescriptor.hpp" />
     <ClInclude Include="..\..\UnityCommon\LuaUnityDefined.h" />
     <ClInclude Include="..\..\UnityCommon\LuaUnityEnv.hpp" />
-    <ClInclude Include="..\..\UnityCommon\LuaUnityExportClassProxy.hpp" />
-    <ClInclude Include="..\..\UnityCommon\LuaUnityModule.hpp" />
-    <ClInclude Include="..\..\UnityCommon\LuaUnityObjectClass.hpp" />
+    <ClInclude Include="..\..\UnityCommon\LuaUnityExportMethodDescriptor.hpp" />
+    <ClInclude Include="..\..\UnityCommon\LuaUnityExportPropertyDescriptor.hpp" />
+    <ClInclude Include="..\..\UnityCommon\LuaUnityExportTypeDescriptor.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
