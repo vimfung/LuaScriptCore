@@ -55,8 +55,8 @@ function TestClassFunc()
         p = Person.createPerson();
         print (p);
 
-        p:setName("vim");
-        print (p:name());
+        p.name = "vim";
+        print (p.name);
 
         Person.printPersonName(p);
 
@@ -72,12 +72,12 @@ function TestClassImportFunc()
 
     local tfunc = coroutine.create(function()
 
-        local NativePerson = ClassImport('cn.vimfung.luascriptcore.sample.NativeData');
-        local Person = ClassImport('cn.vimfung.luascriptcore.sample.Person');
+        print ("-------------");
+
         print(Person, NativePerson);
         local p = NativePerson.createPerson();
         print(p);
-        p:setName('abc');
+        p.name = "abc";
         p:speak();
 
         coroutine.yield()

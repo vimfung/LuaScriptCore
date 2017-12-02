@@ -3,10 +3,10 @@ using System.Collections;
 using cn.vimfung.luascriptcore;
 using UnityEngine.SceneManagement;
 using System.Collections.Generic;
-using cn.vimfung.luascriptcore.modules.oo;
 using System.CodeDom;
 using System;
 using System.Reflection;
+using AssemblyCSharp;
 
 public class Sample : MonoBehaviour {
 
@@ -14,21 +14,6 @@ public class Sample : MonoBehaviour {
 	/// 是否注册方法
 	/// </summary>
 	private bool _isRegMethod = false;
-
-	/// <summary>
-	/// 是否注册模块
-	/// </summary>
-	private bool _isRegModule = false;
-
-	/// <summary>
-	/// 是否注册类型
-	/// </summary>
-	private bool _isRegClass = false;
-
-	/// <summary>
-	/// 是否导入类型
-	/// </summary>
-	private bool _isClassImport = false;
 
 	private bool _isCoroutineImport = false;
 
@@ -107,13 +92,7 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void registerModuleButtonClickedHandler()
 	{
-		if (!_isRegModule)
-		{
-			_isRegModule = true;
-			LuaContext.currentContext.registerModule<LogModule> ();
-		}
-
-		LuaContext.currentContext.evalScript ("LogModule.writeLog('Hello World!'); local a = LogModule.test({1,2,3,4}); print(a);");
+		LuaContext.currentContext.evalScript ("print(LogModule);LogModule.writeLog('Hello World!'); LogModule.writeLog(1024); local a = LogModule.test({1,2,3,4}); print(a);");
 	}
 
 	/// <summary>
@@ -121,12 +100,7 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void registerClassButtonClickedHandler()
 	{
-		if (!_isRegClass)
-		{
-			_isRegClass = true;
-			LuaContext.currentContext.registerModule<Person> ();
-		}
-		LuaContext.currentContext.evalScript ("function Person.prototype:init() print('Person create'); end; local p = Person.createPerson(); print(p); p:setName('xxxx'); p:speak(); print(Person.printPerson(p));");
+		LuaContext.currentContext.evalScript ("function Person.prototype:init() print('Person create'); end; local p = Person.createPerson(); print(p); p.name='xxxx'; p:speak(); p.intValue = 111; print('intValue', p.intValue); print(Person.printPerson(p));");
 	}
 
 	/// <summary>
@@ -144,20 +118,11 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void importClassButtonClickedHandler ()
 	{
-		if (!_isClassImport)
-		{
-			_isClassImport = true;
-			LuaContext.currentContext.registerModule<LuaClassImport> ();
-			LuaClassImport.setIncludesClasses (LuaContext.currentContext, new List<Type> (){ typeof(Person), typeof(NativeData) });
-		}
-
-		LuaContext.currentContext.evalScript ("local Person = ClassImport('Person'); local NativeData = ClassImport('NativeData'); print(Person, NativeData); local d = NativeData.create(); d:setDataId('xxx'); print(d:dataId()); local p = NativeData.createPerson(); print(p); p:setName('xxxx'); p = Person.printPerson(p); print(p); print(p:name());");
+		LuaContext.currentContext.evalScript ("print(Person, NativePerson); local d = NativePerson.create(); d.dataId = 'xxx'; print(d.dataId); local p = NativePerson.createPerson(); print(p); p.name='xxxx'; p = Person.printPerson(p); print(p); print(p.name);");
 	}
 
 	public void retainAndReleaseButtonClickedHandler ()
 	{
-		LuaContext.currentContext.registerModule<Person> ();
-
 		LuaContext.currentContext.evalScript ("local test = function() print('test func') end; test(); Person.retainHandler(test);");
 		LuaContext.currentContext.evalScript ("print('-------------1'); Person.callHandler(); Person.releaseHandler();");
 		LuaContext.currentContext.evalScript ("print('-------------2'); Person.callHandler();");
@@ -168,12 +133,6 @@ public class Sample : MonoBehaviour {
 		if (!_isCoroutineImport)
 		{
 			_isCoroutineImport = true;
-
-			LuaContext.currentContext.registerModule<Person> ();
-			LuaContext.currentContext.registerModule<LogModule> ();
-			LuaContext.currentContext.registerModule<LuaClassImport> ();
-
-			LuaClassImport.setIncludesClasses (LuaContext.currentContext, new List<Type> (){ typeof(Person), typeof(NativeData) });
 
 			LuaContext.currentContext.registerMethod ("GetValue", (arguments) =>
 			{

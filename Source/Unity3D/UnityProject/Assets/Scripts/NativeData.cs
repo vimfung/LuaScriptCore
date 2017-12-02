@@ -1,7 +1,8 @@
 ﻿using System;
+using cn.vimfung.luascriptcore;
 
-
-public class NativeData
+[LuaExportTypeAnnotation(typeName="NativePerson")]
+public class NativeData : LuaExportType
 {
 	public NativeData ()
 	{

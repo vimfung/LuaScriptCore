@@ -55,6 +55,11 @@ namespace cn {
                  * @return 上下文对象
                  */
                 LuaContext* getContext();
+                
+                /**
+                 上一个会话
+                 */
+                LuaSession* prevSession;
 
             public:
 

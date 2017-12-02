@@ -8,10 +8,6 @@
 
 #import "LSCValue.h"
 #import "LSCSession_Private.h"
-#import "lauxlib.h"
-#import "lua.h"
-#import "luaconf.h"
-#import "lualib.h"
 
 @interface LSCValue ()
 

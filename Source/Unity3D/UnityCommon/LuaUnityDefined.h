@@ -71,7 +71,7 @@ extern "C" {
     /**
      Lua异常处理器
      */
-    typedef void (*LuaExceptionHandlerPtr) (const void *);
+    typedef void (*LuaExceptionHandlerPtr) (int contextId, const void *);
     
     /**
      检测是否为LuaObjectClass子类

@@ -7,8 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "LuaScriptCore.h"
 
-@interface LSCTNativeData : NSObject
+@interface LSCTNativeData : NSObject <LSCExportType>
 
 @property (nonatomic, copy) NSString *dataId;
 

@@ -7,10 +7,11 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "LSCExportType.h"
 
 @class Person;
 
-@interface NativePerson : NSObject
+@interface NativePerson : NSObject <LSCExportType>
 
 @property (nonatomic, copy) NSString *name;
 

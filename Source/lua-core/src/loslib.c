@@ -136,7 +136,7 @@ static time_t l_checktime (lua_State *L, int arg) {
 /* }================================================================== */
 
 
-
+#if LUA_PLATFORM != LUA_PLATFORM_IOS
 
 static int os_execute (lua_State *L) {
   const char *cmd = luaL_optstring(L, 1, NULL);
@@ -148,6 +148,8 @@ static int os_execute (lua_State *L) {
     return 1;
   }
 }
+
+#endif
 
 
 static int os_remove (lua_State *L) {
@@ -381,7 +383,12 @@ static const luaL_Reg syslib[] = {
   {"clock",     os_clock},
   {"date",      os_date},
   {"difftime",  os_difftime},
+    
+#if LUA_PLATFORM != LUA_PLATFORM_IOS
+    //iOS中不允许使用execute
   {"execute",   os_execute},
+#endif
+    
   {"exit",      os_exit},
   {"getenv",    os_getenv},
   {"remove",    os_remove},

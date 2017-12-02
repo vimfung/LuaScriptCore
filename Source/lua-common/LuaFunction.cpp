@@ -15,6 +15,7 @@
 #include "StringUtils.h"
 #include "LuaDataExchanger.h"
 #include "LuaSession.h"
+#include "LuaEngineAdapter.hpp"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
@@ -84,10 +85,10 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
     LuaValue *retValue = NULL;
 
     //记录栈顶位置，用于计算返回值数量
-    int top = lua_gettop(state);
+    int top = LuaEngineAdapter::getTop(state);
     _context -> getDataExchanger() -> getLuaObject(this);
 
-    if (lua_isfunction(state, -1))
+    if (LuaEngineAdapter::isFunction(state, -1))
     {
         int returnCount = 0;
 
@@ -98,10 +99,10 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
             item->push(_context);
         }
 
-        if (lua_pcall(state, (int)arguments -> size(), LUA_MULTRET, 0) == 0)
+        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, 0) == 0)
         {
             //调用成功
-            returnCount = lua_gettop(state) - top;
+            returnCount = LuaEngineAdapter::getTop(state) - top;
             if (returnCount > 1)
             {
                 LuaTuple *tuple = new LuaTuple();
@@ -135,12 +136,12 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
         }
 
         //弹出返回值
-        lua_pop(state, returnCount);
+        LuaEngineAdapter::pop(state, returnCount);
     }
     else
     {
         //弹出function
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
     }
 
 
@@ -150,7 +151,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
     }
 
     //回收内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
 
     return retValue;
 }

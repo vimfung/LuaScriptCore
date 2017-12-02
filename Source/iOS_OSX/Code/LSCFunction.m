@@ -42,10 +42,10 @@
     __weak LSCFunction *theFunc = self;
     lua_State *state = self.context.currentSession.state;
     
-    int top = lua_gettop(state);
+    int top = [LSCEngineAdapter getTop:state];
     [self.context.dataExchanger getLuaObject:self];
     
-    if (lua_isfunction(state, -1))
+    if ([LSCEngineAdapter isFunction:state index:-1])
     {
         int returnCount = 0;
         
@@ -55,9 +55,9 @@
             
         }];
         
-        if (lua_pcall(state, (int)arguments.count, LUA_MULTRET, 0) == 0)
+        if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:0] == 0)
         {
-            returnCount = lua_gettop(state) - top;
+            returnCount = [LSCEngineAdapter getTop:state] - top;
             if (returnCount > 1)
             {
                 LSCTuple *tuple = [[LSCTuple alloc] init];
@@ -84,12 +84,12 @@
         }
         
         //弹出返回值
-        lua_pop(state, returnCount);
+        [LSCEngineAdapter pop:state count:returnCount];
     }
     else
     {
         //弹出func
-        lua_pop(state, 1);
+        [LSCEngineAdapter pop:state count:1];
     }
 
     if (!retValue)
@@ -98,7 +98,7 @@
     }
     
     //释放内存
-    lua_gc(state, LUA_GCCOLLECT, 0);
+    [LSCEngineAdapter gc:state what:LSCGCTypeCollect data:0];
     
     return retValue;
 }
