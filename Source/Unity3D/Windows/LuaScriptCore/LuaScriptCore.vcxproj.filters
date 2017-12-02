@@ -138,9 +138,6 @@
     <ClCompile Include="..\..\..\lua-core\src\lzio.c">
       <Filter>Source Files\lua-core</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\lua-common\LuaObjectClass.cpp">
-      <Filter>Source Files\lua-common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\lua-common\LuaObjectDecoder.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
@@ -165,9 +162,6 @@
     <ClCompile Include="..\..\..\lua-common\LuaFunction.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\lua-common\LuaModule.cpp">
-      <Filter>Source Files\lua-common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\lua-common\LuaNativeClass.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
@@ -183,35 +177,11 @@
     <ClCompile Include="..\..\UnityCommon\LuaUnityEnv.cpp">
       <Filter>Source Files\UnityCommon</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\UnityCommon\LuaUnityModule.cpp">
-      <Filter>Source Files\UnityCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\UnityCommon\LuaUnityObjectClass.cpp">
-      <Filter>Source Files\UnityCommon</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\lua-common\LuaTuple.cpp">
-      <Filter>Source Files\lua-common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.cpp">
-      <Filter>Source Files\lua-common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\lua-common\LuaClassImport.cpp">
-      <Filter>Source Files\lua-common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\lua-common\LuaExportClassProxy.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\lua-common\StringUtils.cpp">
       <Filter>Source Files\lua-common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\UnityCommon\LuaUnityClassImport.cpp">
-      <Filter>Source Files\UnityCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\UnityCommon\LuaUnityClassObjectDescriptor.cpp">
-      <Filter>Source Files\UnityCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\UnityCommon\LuaUnityExportClassProxy.cpp">
-      <Filter>Source Files\UnityCommon</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\lua-common\LuaDataExchanger.cpp">
       <Filter>Source Files\lua-common</Filter>
@@ -220,6 +190,30 @@
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\lua-common\LuaSession.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityExportMethodDescriptor.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityExportPropertyDescriptor.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\UnityCommon\LuaUnityExportTypeDescriptor.cpp">
+      <Filter>Source Files\UnityCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaExportMethodDescriptor.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaExportPropertyDescriptor.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaExportsTypeManager.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaExportTypeDescriptor.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaEngineAdapter.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
   </ItemGroup>
@@ -329,9 +323,6 @@
     <ClInclude Include="..\..\..\lua-common\LuaFunction.h">
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\lua-common\LuaModule.h">
-      <Filter>Header Files\lua-common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaNativeClass.hpp">
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
@@ -339,9 +330,6 @@
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaObject.h">
-      <Filter>Header Files\lua-common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\lua-common\LuaObjectClass.h">
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaObjectDecoder.hpp">
@@ -359,35 +347,11 @@
     <ClInclude Include="..\..\UnityCommon\LuaUnityEnv.hpp">
       <Filter>Header Files\UnityCommon</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\UnityCommon\LuaUnityModule.hpp">
-      <Filter>Header Files\UnityCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\UnityCommon\LuaUnityObjectClass.hpp">
-      <Filter>Header Files\UnityCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\lua-common\LuaObjectInstanceDescriptor.h">
-      <Filter>Header Files\lua-common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaTuple.h">
-      <Filter>Header Files\lua-common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\lua-common\LuaClassImport.h">
-      <Filter>Header Files\lua-common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\lua-common\LuaExportClassProxy.h">
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\StringUtils.h">
       <Filter>Header Files\lua-common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\UnityCommon\LuaUnityClassImport.hpp">
-      <Filter>Header Files\UnityCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\UnityCommon\LuaUnityClassObjectDescriptor.hpp">
-      <Filter>Header Files\UnityCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\UnityCommon\LuaUnityExportClassProxy.hpp">
-      <Filter>Header Files\UnityCommon</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaDataExchanger.h">
       <Filter>Header Files\lua-common</Filter>
@@ -396,6 +360,30 @@
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaSession.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaExportMethodDescriptor.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaExportPropertyDescriptor.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaExportsTypeManager.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaExportTypeDescriptor.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityExportMethodDescriptor.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityExportPropertyDescriptor.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\UnityCommon\LuaUnityExportTypeDescriptor.hpp">
+      <Filter>Header Files\UnityCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaEngineAdapter.hpp">
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
   </ItemGroup>
