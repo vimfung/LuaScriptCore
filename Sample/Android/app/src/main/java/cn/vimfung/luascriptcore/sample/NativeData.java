@@ -2,11 +2,14 @@ package cn.vimfung.luascriptcore.sample;
 
 import java.util.HashMap;
 
+import cn.vimfung.luascriptcore.LuaExportType;
+import cn.vimfung.luascriptcore.LuaExportTypeConfig;
+
 /**
  * Created by vimfung on 2017/4/17.
  */
-
-public class NativeData
+@LuaExportTypeConfig(typeName = "NativePerson")
+public class NativeData implements LuaExportType
 {
     public String dataId;
     private HashMap<String, String> _data = new HashMap<String, String>();

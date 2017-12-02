@@ -103,6 +103,20 @@ jclass LuaJavaType::stringClass(JNIEnv *env)
     return jStringCls;
 }
 
+jclass LuaJavaType::shortClass(JNIEnv *env)
+{
+    static jclass jShortCls = NULL;
+
+    if (jShortCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("java/lang/Short");
+        jShortCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jShortCls;
+}
+
 jclass LuaJavaType::integerClass(JNIEnv *env)
 {
     static jclass jIntegerCls = NULL;
@@ -129,6 +143,34 @@ jclass LuaJavaType::doubleClass(JNIEnv *env)
     }
 
     return jDoubleCls;
+}
+
+jclass LuaJavaType::floatClass(JNIEnv *env)
+{
+    static jclass jFloatCls = NULL;
+
+    if (jFloatCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("java/lang/Float");
+        jFloatCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jFloatCls;
+}
+
+jclass LuaJavaType::longClass(JNIEnv *env)
+{
+    static jclass jLongCls = NULL;
+
+    if (jLongCls == NULL)
+    {
+        jclass tmpClass = env -> FindClass("java/lang/Long");
+        jLongCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jLongCls;
 }
 
 jclass LuaJavaType::booleanClass(JNIEnv *env)
@@ -283,4 +325,32 @@ jclass LuaJavaType::tupleClass(JNIEnv *env)
     }
 
     return jTuple;
+}
+
+jclass LuaJavaType::exportTypeManagerClass(JNIEnv *env)
+{
+    static jclass jExportTypeManagerCls = NULL;
+
+    if (jExportTypeManagerCls == NULL)
+    {
+        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaExportTypeManager");
+        jExportTypeManagerCls = (jclass)env -> NewGlobalRef(jTempClass);
+        env -> DeleteLocalRef(jTempClass);
+    }
+
+    return jExportTypeManagerCls;
+}
+
+jclass LuaJavaType::luaExportTypeClass(JNIEnv *env)
+{
+    static jclass jExportTypeCls = NULL;
+
+    if (jExportTypeCls == NULL)
+    {
+        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaExportType");
+        jExportTypeCls = (jclass)env -> NewGlobalRef(jTempClass);
+        env -> DeleteLocalRef(jTempClass);
+    }
+
+    return jExportTypeCls;
 }

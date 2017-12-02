@@ -5,6 +5,7 @@
 #ifndef ANDROID_LUAJAVATYPE_H
 #define ANDROID_LUAJAVATYPE_H
 
+#include <string>
 #include "jni.h"
 
 /**
@@ -78,6 +79,15 @@ public:
     static jclass stringClass(JNIEnv *env);
 
     /**
+     * 获取Short类型
+     *
+     * @param env JNI环境
+     *
+     * @return Short类型
+     */
+    static jclass shortClass(JNIEnv *env);
+
+    /**
      * 获取Integer类
      *
      * @param env JNI环境
@@ -94,6 +104,24 @@ public:
      * @return Double类型
      */
     static jclass doubleClass(JNIEnv *env);
+
+    /**
+     * 获取Float类型
+     *
+     * @param env JNI环境
+     *
+     * @return Float类型
+     */
+    static jclass floatClass(JNIEnv *env);
+
+    /**
+     * 获取Long类型
+     *
+     * @param env JNI环境
+     *
+     * @return Long类型
+     */
+    static jclass longClass(JNIEnv *env);
 
     /**
      * 获取Boolean类
@@ -193,6 +221,24 @@ public:
      * @return LuaTuple类型
      */
     static jclass tupleClass(JNIEnv *env);
+
+    /**
+     * 获取LuaExportTypeManager类型
+     *
+     * @param env JNI环境
+     *
+     * @return LuaExportTypeManager类型
+     */
+    static jclass exportTypeManagerClass(JNIEnv *env);
+
+    /**
+     * 获取LuaExportType类型
+     *
+     * @param env JNI环境
+     *
+     * @return LuaExportType类型
+     */
+    static jclass luaExportTypeClass(JNIEnv *env);
 };
 
 

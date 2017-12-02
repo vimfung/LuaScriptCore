@@ -8,8 +8,11 @@
 #include "LuaObjectDecoder.hpp"
 #include "LuaContext.h"
 #include "LuaNativeClass.hpp"
+#include "LuaEngineAdapter.hpp"
 #include "StringUtils.h"
 #include "LuaSession.h"
+#include "LuaExportTypeDescriptor.hpp"
+#include "LuaExportsTypeManager.hpp"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
@@ -33,7 +36,7 @@ static int objectReferenceGCHandler(lua_State *state)
     using namespace cn::vimfung::luascriptcore;
 
     //释放对象
-    LuaUserdataRef ref = (LuaUserdataRef)lua_touserdata(state, 1);
+    LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::toUserdata(state, 1);
     LuaObjectDescriptor *descriptor = (LuaObjectDescriptor *)(ref -> value);
     descriptor -> release();
 
@@ -41,16 +44,21 @@ static int objectReferenceGCHandler(lua_State *state)
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor()
-        : _object(NULL)
+        : _object(NULL), _typeDescriptor(NULL)
 {
     _linkId = StringUtils::format("%p", this);
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor(const void *object)
+    : _object((void *)object), _typeDescriptor(NULL)
 {
     _linkId = StringUtils::format("%p", this);
+}
 
-    setObject(object);
+LuaObjectDescriptor::LuaObjectDescriptor(void *object, LuaExportTypeDescriptor *typeDescriptor)
+    : _object(object), _typeDescriptor(typeDescriptor)
+{
+    _linkId = StringUtils::format("%p", this);
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
@@ -61,6 +69,13 @@ LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
     setObject(objRef);
 
     _linkId = decoder -> readString();
+    
+    //读取类型
+    int typeId = decoder -> readInt32();
+    if (typeId > 0)
+    {
+        _typeDescriptor = (LuaExportTypeDescriptor *)LuaObject::findObject(typeId);
+    }
     
     //读取用户数据
     int size = decoder -> readInt32();
@@ -99,6 +114,11 @@ const void* LuaObjectDescriptor::getObject()
     return _object;
 }
 
+LuaExportTypeDescriptor* LuaObjectDescriptor::getTypeDescriptor()
+{
+    return _typeDescriptor;
+}
+
 void LuaObjectDescriptor::setUserdata(std::string key, std::string value)
 {
     _userdata[key] = value;
@@ -129,27 +149,35 @@ void LuaObjectDescriptor::push(LuaContext *context)
             return;
         }
     }
+    
+    if (_typeDescriptor != NULL)
+    {
+        //如果为导出类型
+        context -> getExportsTypeManager() -> createLuaObject(this);
+        return;
+    }
 
     lua_State *state = context -> getCurrentSession() -> getState();
 
     //创建userdata
-    LuaUserdataRef ref = (LuaUserdataRef)lua_newuserdata(state, sizeof(LuaUserdataRef));
+    LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::newUserdata(state, sizeof(LuaUserdataRef));
     ref -> value = this;
     this -> retain();
 
     //设置userdata的元表
-    luaL_getmetatable(state, "_ObjectReference_");
-    if (lua_isnil(state, -1))
+    LuaEngineAdapter::getMetatable(state, "_ObjectReference_");
+    if (LuaEngineAdapter::isNil(state, -1))
     {
-        lua_pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);
 
         //尚未注册_ObjectReference,开始注册对象
-        luaL_newmetatable(state, "_ObjectReference_");
+        LuaEngineAdapter::newMetatable(state, "_ObjectReference_");
 
-        lua_pushcfunction(state, objectReferenceGCHandler);
-        lua_setfield(state, -2, "__gc");
+        LuaEngineAdapter::pushCFunction(state, objectReferenceGCHandler);
+        LuaEngineAdapter::setField(state, -2, "__gc");
     }
-    lua_setmetatable(state, -2);
+    
+    LuaEngineAdapter::setMetatable(state, -2);
 }
 
 void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
@@ -159,6 +187,17 @@ void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
     encoder -> writeInt64((long long)_object);
     encoder -> writeString(_linkId);
     
+    //写入类型标识
+    if (_typeDescriptor != NULL)
+    {
+        encoder -> writeInt32(_typeDescriptor -> objectId());
+    }
+    else
+    {
+        encoder -> writeInt32(0);
+    }
+    
+    //写入自定义数据
     encoder -> writeInt32((int)_userdata.size());
     for (LuaObjectDescriptorUserData::iterator it = _userdata.begin(); it != _userdata.end(); ++it)
     {

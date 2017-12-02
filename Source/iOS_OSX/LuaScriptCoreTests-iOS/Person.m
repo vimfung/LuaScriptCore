@@ -12,15 +12,40 @@
 #import "LSCValue.h"
 #import "Env.h"
 #import "LSCManagedValue.h"
+#import "NativePerson.h"
 
 static LSCValue *_func = nil;
 static LSCManagedValue *_managedFunc = nil;
 
 @implementation Person
 
+- (instancetype)init
+{
+    if (self = [super init])
+    {
+        self.name = @"vimfung";
+    }
+    return self;
+}
+
 - (void)speak:(NSString *)content
 {
     NSLog(@"%@ speak:\"%@\"", self.name, content);
+}
+
+- (void)speakWithAge:(BOOL)age
+{
+    NSLog(@"%@ %ld years old", self.name, (long)age);
+}
+
+- (void)speakWithPos:(int)pos
+{
+    NSLog(@"%@ pos = %d", self.name, pos);
+}
+
+- (void)dealloc
+{
+    NSLog(@"person dealloc");
 }
 
 - (LSCTuple *)test
@@ -40,6 +65,11 @@ static LSCManagedValue *_managedFunc = nil;
 + (Person *)createPerson
 {
     return [[Person alloc] init];
+}
+
++ (NativePerson *)createNativePerson
+{
+    return [[NativePerson alloc] init];
 }
 
 + (void)retainHandler:(LSCFunction *)handler

@@ -13,8 +13,6 @@
 #import "LSCDataExchanger_Private.h"
 #import "LSCPointer.h"
 #import "LSCTuple_Private.h"
-#import "lauxlib.h"
-#import "lua.h"
 #import "LSCManagedObjectProtocol.h"
 
 @interface LSCValue ()

@@ -5,6 +5,7 @@
 #include "LuaSession.h"
 #include "LuaValue.h"
 #include "LuaTuple.h"
+#include "LuaEngineAdapter.hpp"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -16,7 +17,7 @@ LuaSession::LuaSession(lua_State *state, LuaContext *context)
 
 LuaSession::~LuaSession()
 {
-    lua_gc(_state, LUA_GCCOLLECT, 0);
+    LuaEngineAdapter::GC(_state, LUA_GCCOLLECT, 0);
 }
 
 lua_State* LuaSession::getState()
@@ -31,7 +32,7 @@ LuaContext* LuaSession::getContext()
 
 void LuaSession::parseArguments(LuaArgumentList &argumentList)
 {
-    int top = lua_gettop(_state);
+    int top = LuaEngineAdapter::getTop(_state);
     if (top >= 1)
     {
         for (int i = 1; i <= top; i++)
@@ -60,7 +61,7 @@ int LuaSession::setReturnValue(LuaValue *value)
     }
     else
     {
-        lua_pushnil(_state);
+        LuaEngineAdapter::pushNil(_state);
     }
 
     return count;

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using UnityEngine;
-using cn.vimfung.luascriptcore.modules.oo;
 
 namespace cn.vimfung.luascriptcore
 {
