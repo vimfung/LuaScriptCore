@@ -135,6 +135,24 @@ local obj = LuaType.create();
 print (obj);
 ```
 
+# 如何使用
+
+## iOS / OS X 平台
+
+关于iOS／OS X平台下如何使用LuaScriptCore，请参考《[iOS/OS X平台文档](https://github.com/vimfung/LuaScriptCore/wiki/iOS-OS-X%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3)》
+
+## Android 平台
+
+关于Android平台下如何使用LuaScriptCore，请参考《[Android平台文档](https://github.com/vimfung/LuaScriptCore/wiki/Android-%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3)》
+
+## Unity3D
+
+关于Unity3D下如何使用LuaScriptCore，请参考《[Unity3D集成使用文档](https://github.com/vimfung/LuaScriptCore/wiki/Unity3D%E9%9B%86%E6%88%90%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3)》
+
+# 注意
+
+目前源码中不带有任何平台的Release库，在运行Sample时需要从[Relases](https://github.com/vimfung/LuaScriptCore/releases)页签中下载最新版本的库并放入Sample项目后运行。
+
 # 最近更新
 
 ## Release 2.0.0 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/2.0.0)
@@ -308,24 +326,6 @@ obj.test("Hello World");
 4. 修复在Lua协程操作时访问异常问题。
 
 ## [更多更新历史](https://github.com/vimfung/LuaScriptCore/wiki/%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2)
-
-# 如何使用
-
-## iOS / OS X 平台
-
-关于iOS／OS X平台下如何使用LuaScriptCore，请参考《[iOS/OS X平台文档](https://github.com/vimfung/LuaScriptCore/wiki/iOS-OS-X%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3)》
-
-## Android 平台
-
-关于Android平台下如何使用LuaScriptCore，请参考《[Android平台文档](https://github.com/vimfung/LuaScriptCore/wiki/Android-%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3)》
-
-## Unity3D
-
-关于Unity3D下如何使用LuaScriptCore，请参考《[Unity3D集成使用文档](https://github.com/vimfung/LuaScriptCore/wiki/Unity3D%E9%9B%86%E6%88%90%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3)》
-
-# 注意
-
-目前源码中不带有任何平台的Release库，在运行Sample时需要从[Relases](https://github.com/vimfung/LuaScriptCore/releases)页签中下载最新版本的库并放入Sample项目后运行。
 
 # 建议&支持
 
