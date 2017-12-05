@@ -139,11 +139,11 @@ print (obj);
 
 ## iOS / OS X 平台
 
-关于iOS／OS X平台下如何使用LuaScriptCore，请参考《[iOS/OS X平台文档](https://github.com/vimfung/LuaScriptCore/wiki/iOS-OS-X%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3)》
+关于iOS／OS X平台下如何使用LuaScriptCore，请参考《[iOS/OS X集成使用文档](https://github.com/vimfung/LuaScriptCore/wiki/iOS&OS-X%E9%9B%86%E6%88%90%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3)》
 
 ## Android 平台
 
-关于Android平台下如何使用LuaScriptCore，请参考《[Android平台文档](https://github.com/vimfung/LuaScriptCore/wiki/Android-%E5%B9%B3%E5%8F%B0%E6%96%87%E6%A1%A3)》
+关于Android平台下如何使用LuaScriptCore，请参考《[Android集成使用文档](https://github.com/vimfung/LuaScriptCore/wiki/Android%E9%9B%86%E6%88%90%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3)》
 
 ## Unity3D
 
