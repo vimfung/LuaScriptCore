@@ -20,6 +20,10 @@ FOUNDATION_EXPORT const unsigned char LuaScriptCore_OSX_SwiftVersionString[];
 #import <LuaScriptCore_OSX_Swift/LSCFunction.h>
 #import <LuaScriptCore_OSX_Swift/LSCPointer.h>
 #import <LuaScriptCore_OSX_Swift/LSCTuple.h>
+#import <LuaScriptCore_OSX_Swift/LSCManagedValue.h>
+
 #import <LuaScriptCore_OSX_Swift/LSCExportType.h>
 #import <LuaScriptCore_OSX_Swift/LSCExportTypeAnnotation.h>
-#import <LuaScriptCore_OSX_Swift/LSCManagedValue.h>
+#import <LuaScriptCore_OSX_Swift/LSCExportTypeDescriptor.h>
+#import <LuaScriptCore_OSX_Swift/LSCExportMethodDescriptor.h>
+#import <LuaScriptCore_OSX_Swift/LSCExportPropertyDescriptor.h>

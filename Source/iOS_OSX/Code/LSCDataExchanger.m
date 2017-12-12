@@ -15,6 +15,7 @@
 #import "LSCTuple_Private.h"
 #import "LSCManagedObjectProtocol.h"
 #import "LSCEngineAdapter.h"
+#import "LSCExportTypeDescriptor.h"
 
 /**
  Lua对象行为
@@ -148,13 +149,13 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             {
                 case LSCValueTypeObject:
                     [self retainLuaObject:[(LSCValue *)nativeObject toObject]];
-                    break;
+                    return;
                 case LSCValueTypePtr:
                     [self retainLuaObject:[(LSCValue *)nativeObject toPointer]];
-                    break;
+                    return;
                 case LSCValueTypeFunction:
                     [self retainLuaObject:[(LSCValue *)nativeObject toFunction]];
-                    break;
+                    return;
                 default:
                     break;
             }
@@ -184,13 +185,13 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             {
                 case LSCValueTypeObject:
                     [self releaseLuaObject:[(LSCValue *)nativeObject toObject]];
-                    break;
+                    return;
                 case LSCValueTypePtr:
                     [self releaseLuaObject:[(LSCValue *)nativeObject toPointer]];
-                    break;
+                    return;
                 case LSCValueTypeFunction:
                     [self releaseLuaObject:[(LSCValue *)nativeObject toFunction]];
-                    break;
+                    return;
                 default:
                     break;
             }
@@ -596,54 +597,71 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         }
         case LUA_TTABLE:
         {
-            NSMutableDictionary *dictValue = [NSMutableDictionary dictionary];
-            NSMutableArray *arrayValue = [NSMutableArray array];
-            
-            [LSCEngineAdapter pushNil:state];
-            while ([LSCEngineAdapter next:state index:index])
+            //判断是否为类型
+            [LSCEngineAdapter getField:state index:index name:"_nativeType"];
+            if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
             {
-                LSCValue *value = [self valueByStackIndex:-1];
-                LSCValue *key = [self valueByStackIndex:-2];
-                
-                if (arrayValue)
-                {
-                    if (key.valueType != LSCValueTypeNumber)
-                    {
-                        //非数组对象，释放数组
-                        arrayValue = nil;
-                    }
-                    else if (key.valueType == LSCValueTypeNumber)
-                    {
-                        NSInteger index = [[key toNumber] integerValue];
-                        if (index <= 0)
-                        {
-                            //非数组对象，释放数组
-                            arrayValue = nil;
-                        }
-                        else if (index - 1 != arrayValue.count)
-                        {
-                            //非数组对象，释放数组
-                            arrayValue = nil;
-                        }
-                        else
-                        {
-                            [arrayValue addObject:[value toObject]];
-                        }
-                    }
-                }
-                
-                [dictValue setObject:[value toObject] forKey:[key toString]];
+                //为导出类型
+                LSCExportTypeDescriptor *typeDescriptor = (LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
+                value = [LSCValue typeValue:typeDescriptor];
                 
                 [LSCEngineAdapter pop:state count:1];
             }
-            
-            if (arrayValue)
-            {
-                value = [LSCValue arrayValue:arrayValue];
-            }
             else
             {
-                value = [LSCValue dictionaryValue:dictValue];
+                //出棧之前结果
+                [LSCEngineAdapter pop:state count:1];
+                
+                //为Table数据
+                NSMutableDictionary *dictValue = [NSMutableDictionary dictionary];
+                NSMutableArray *arrayValue = [NSMutableArray array];
+                
+                [LSCEngineAdapter pushNil:state];
+                while ([LSCEngineAdapter next:state index:index])
+                {
+                    LSCValue *value = [self valueByStackIndex:-1];
+                    LSCValue *key = [self valueByStackIndex:-2];
+                    
+                    if (arrayValue)
+                    {
+                        if (key.valueType != LSCValueTypeNumber)
+                        {
+                            //非数组对象，释放数组
+                            arrayValue = nil;
+                        }
+                        else if (key.valueType == LSCValueTypeNumber)
+                        {
+                            NSInteger index = [[key toNumber] integerValue];
+                            if (index <= 0)
+                            {
+                                //非数组对象，释放数组
+                                arrayValue = nil;
+                            }
+                            else if (index - 1 != arrayValue.count)
+                            {
+                                //非数组对象，释放数组
+                                arrayValue = nil;
+                            }
+                            else
+                            {
+                                [arrayValue addObject:[value toObject]];
+                            }
+                        }
+                    }
+                    
+                    [dictValue setObject:[value toObject] forKey:[key toString]];
+                    
+                    [LSCEngineAdapter pop:state count:1];
+                }
+                
+                if (arrayValue)
+                {
+                    value = [LSCValue arrayValue:arrayValue];
+                }
+                else
+                {
+                    value = [LSCValue dictionaryValue:dictValue];
+                }
             }
             
             break;

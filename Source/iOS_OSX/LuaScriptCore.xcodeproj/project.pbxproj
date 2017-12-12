@@ -321,6 +321,18 @@
 		7C83F3EE1ECD498400177720 /* Chinese.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3ED1ECD498400177720 /* Chinese.m */; };
 		7C83F3F11ECD499600177720 /* English.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3F01ECD499600177720 /* English.m */; };
 		7C83F3F41ECD49BB00177720 /* America.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3F31ECD49BB00177720 /* America.m */; };
+		7C8D53A01FD7DD5600C76F49 /* LSCExportTypeDescriptor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2A21FCFBA52000F58BF /* LSCExportTypeDescriptor.h */; };
+		7C8D53A11FD7DD5600C76F49 /* LSCExportMethodDescriptor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2AC1FCFBA5F000F58BF /* LSCExportMethodDescriptor.h */; };
+		7C8D53A21FD7DD5600C76F49 /* LSCExportPropertyDescriptor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2AA1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h */; };
+		7C8D53A31FD7E0A400C76F49 /* LSCExportTypeDescriptor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2A21FCFBA52000F58BF /* LSCExportTypeDescriptor.h */; };
+		7C8D53A41FD7E0A400C76F49 /* LSCExportMethodDescriptor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2AC1FCFBA5F000F58BF /* LSCExportMethodDescriptor.h */; };
+		7C8D53A51FD7E0A400C76F49 /* LSCExportPropertyDescriptor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2AA1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h */; };
+		7C8D53A71FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8D53A61FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift */; };
+		7C8D53A81FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8D53A61FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift */; };
+		7C8D53AA1FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8D53A91FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift */; };
+		7C8D53AB1FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8D53A91FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift */; };
+		7C8D53AD1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8D53AC1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift */; };
+		7C8D53AE1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8D53AC1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift */; };
 		7C8EA2661FCFAD56000F58BF /* LSCTuple_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2631FCFAD55000F58BF /* LSCTuple_Private.h */; };
 		7C8EA2671FCFAD56000F58BF /* LSCTuple_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2631FCFAD55000F58BF /* LSCTuple_Private.h */; };
 		7C8EA2681FCFAD56000F58BF /* LSCTuple.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2641FCFAD55000F58BF /* LSCTuple.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -367,20 +379,20 @@
 		7C8EA29F1FCFBA45000F58BF /* LSCExportsTypeManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA29B1FCFBA45000F58BF /* LSCExportsTypeManager.m */; };
 		7C8EA2A01FCFBA45000F58BF /* LSCExportsTypeManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA29B1FCFBA45000F58BF /* LSCExportsTypeManager.m */; };
 		7C8EA2A11FCFBA45000F58BF /* LSCExportsTypeManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA29B1FCFBA45000F58BF /* LSCExportsTypeManager.m */; };
-		7C8EA2A41FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2A21FCFBA52000F58BF /* LSCExportTypeDescriptor.h */; };
-		7C8EA2A51FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2A21FCFBA52000F58BF /* LSCExportTypeDescriptor.h */; };
+		7C8EA2A41FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2A21FCFBA52000F58BF /* LSCExportTypeDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		7C8EA2A51FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2A21FCFBA52000F58BF /* LSCExportTypeDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7C8EA2A61FCFBA52000F58BF /* LSCExportTypeDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2A31FCFBA52000F58BF /* LSCExportTypeDescriptor.m */; };
 		7C8EA2A71FCFBA52000F58BF /* LSCExportTypeDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2A31FCFBA52000F58BF /* LSCExportTypeDescriptor.m */; };
 		7C8EA2A81FCFBA52000F58BF /* LSCExportTypeDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2A31FCFBA52000F58BF /* LSCExportTypeDescriptor.m */; };
 		7C8EA2A91FCFBA52000F58BF /* LSCExportTypeDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2A31FCFBA52000F58BF /* LSCExportTypeDescriptor.m */; };
-		7C8EA2AE1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2AA1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h */; };
-		7C8EA2AF1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2AA1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h */; };
+		7C8EA2AE1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2AA1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		7C8EA2AF1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2AA1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7C8EA2B01FCFBA5F000F58BF /* LSCExportMethodDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2AB1FCFBA5F000F58BF /* LSCExportMethodDescriptor.m */; };
 		7C8EA2B11FCFBA5F000F58BF /* LSCExportMethodDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2AB1FCFBA5F000F58BF /* LSCExportMethodDescriptor.m */; };
 		7C8EA2B21FCFBA5F000F58BF /* LSCExportMethodDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2AB1FCFBA5F000F58BF /* LSCExportMethodDescriptor.m */; };
 		7C8EA2B31FCFBA5F000F58BF /* LSCExportMethodDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2AB1FCFBA5F000F58BF /* LSCExportMethodDescriptor.m */; };
-		7C8EA2B41FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2AC1FCFBA5F000F58BF /* LSCExportMethodDescriptor.h */; };
-		7C8EA2B51FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2AC1FCFBA5F000F58BF /* LSCExportMethodDescriptor.h */; };
+		7C8EA2B41FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2AC1FCFBA5F000F58BF /* LSCExportMethodDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		7C8EA2B51FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C8EA2AC1FCFBA5F000F58BF /* LSCExportMethodDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		7C8EA2B61FCFBA5F000F58BF /* LSCExportPropertyDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2AD1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.m */; };
 		7C8EA2B71FCFBA5F000F58BF /* LSCExportPropertyDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2AD1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.m */; };
 		7C8EA2B81FCFBA5F000F58BF /* LSCExportPropertyDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C8EA2AD1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.m */; };
@@ -442,6 +454,9 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
+				7C8D53A31FD7E0A400C76F49 /* LSCExportTypeDescriptor.h in CopyFiles */,
+				7C8D53A41FD7E0A400C76F49 /* LSCExportMethodDescriptor.h in CopyFiles */,
+				7C8D53A51FD7E0A400C76F49 /* LSCExportPropertyDescriptor.h in CopyFiles */,
 				7C8EA2C01FCFBB06000F58BF /* LSCExportType.h in CopyFiles */,
 				7C8EA2C11FCFBB06000F58BF /* LSCExportTypeAnnotation.h in CopyFiles */,
 				7C8EA2BF1FCFBB00000F58BF /* LSCManagedValue.h in CopyFiles */,
@@ -461,6 +476,9 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
+				7C8D53A01FD7DD5600C76F49 /* LSCExportTypeDescriptor.h in CopyFiles */,
+				7C8D53A11FD7DD5600C76F49 /* LSCExportMethodDescriptor.h in CopyFiles */,
+				7C8D53A21FD7DD5600C76F49 /* LSCExportPropertyDescriptor.h in CopyFiles */,
 				7C8EA2BC1FCFBAB1000F58BF /* LSCExportType.h in CopyFiles */,
 				7C8EA2BD1FCFBAB1000F58BF /* LSCExportTypeAnnotation.h in CopyFiles */,
 				7C8EA2BB1FCFBAAA000F58BF /* LSCManagedValue.h in CopyFiles */,
@@ -591,6 +609,9 @@
 		7C83F3F21ECD49BB00177720 /* America.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = America.h; sourceTree = "<group>"; };
 		7C83F3F31ECD49BB00177720 /* America.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = America.m; sourceTree = "<group>"; };
 		7C8C2D511D38C0C0009345EB /* libLuaScriptCore-iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-iOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C8D53A61FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuaExportTypeDescriptor.swift; sourceTree = "<group>"; };
+		7C8D53A91FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuaExportMethodDescriptor.swift; sourceTree = "<group>"; };
+		7C8D53AC1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuaExportPropertyDescriptor.swift; sourceTree = "<group>"; };
 		7C8EA2631FCFAD55000F58BF /* LSCTuple_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCTuple_Private.h; path = Code/LSCTuple_Private.h; sourceTree = "<group>"; };
 		7C8EA2641FCFAD55000F58BF /* LSCTuple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCTuple.h; path = Code/LSCTuple.h; sourceTree = "<group>"; };
 		7C8EA2651FCFAD56000F58BF /* LSCTuple.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCTuple.m; path = Code/LSCTuple.m; sourceTree = "<group>"; };
@@ -700,6 +721,9 @@
 				7C1AED271ED55635000B11B3 /* LuaManagedValue.swift */,
 				7CE5F5C91F623F2C00AE09BF /* LuaExportType.swift */,
 				7C25E3451FC809EB005E0322 /* LuaExportTypeAnnotation.swift */,
+				7C8D53A61FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift */,
+				7C8D53A91FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift */,
+				7C8D53AC1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift */,
 			);
 			name = "LuaScriptCore-Swift";
 			path = "Code-Swift";
@@ -911,6 +935,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C8EA2AF1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */,
+				7C8EA2B51FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */,
+				7C8EA2A51FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */,
 				7C8EA2801FCFAD99000F58BF /* LSCManagedValue.h in Headers */,
 				7C8EA2991FCFBA11000F58BF /* LSCExportTypeAnnotation.h in Headers */,
 				7C8EA2961FCFBA02000F58BF /* LSCExportType.h in Headers */,
@@ -932,12 +959,10 @@
 				7C177BFE1DEFDE50008C9DF1 /* lundump.h in Headers */,
 				7C8EA2781FCFAD6F000F58BF /* LSCDataExchanger.h in Headers */,
 				7C177BDB1DEFDE50008C9DF1 /* lfunc.h in Headers */,
-				7C8EA2AF1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */,
 				7C177BE81DEFDE50008C9DF1 /* lobject.h in Headers */,
 				7C177C031DEFDE50008C9DF1 /* lzio.h in Headers */,
 				7C177BF21DEFDE50008C9DF1 /* lstring.h in Headers */,
 				7C177BF01DEFDE50008C9DF1 /* lstate.h in Headers */,
-				7C8EA2B51FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */,
 				7C177BBB1DEFDE49008C9DF1 /* LSCValue_Private.h in Headers */,
 				7C177BD31DEFDE50008C9DF1 /* lctype.h in Headers */,
 				7C177BFC1DEFDE50008C9DF1 /* lualib.h in Headers */,
@@ -953,7 +978,6 @@
 				7C177BE21DEFDE50008C9DF1 /* llimits.h in Headers */,
 				7C177BC61DEFDE49008C9DF1 /* LSCManagedObjectProtocol.h in Headers */,
 				7C177C011DEFDE50008C9DF1 /* lvm.h in Headers */,
-				7C8EA2A51FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */,
 				7C177BD81DEFDE50008C9DF1 /* ldo.h in Headers */,
 				7C177BB81DEFDE49008C9DF1 /* LSCContext_Private.h in Headers */,
 				7C177BD01DEFDE50008C9DF1 /* lcode.h in Headers */,
@@ -969,6 +993,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C8EA2AE1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */,
+				7C8EA2B41FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */,
+				7C8EA2A41FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */,
 				7C8EA27F1FCFAD99000F58BF /* LSCManagedValue.h in Headers */,
 				7C8EA2981FCFBA11000F58BF /* LSCExportTypeAnnotation.h in Headers */,
 				7C8EA2951FCFBA02000F58BF /* LSCExportType.h in Headers */,
@@ -990,12 +1017,10 @@
 				7C238EFB1DEED39A009CB024 /* lapi.h in Headers */,
 				7C8EA2771FCFAD6F000F58BF /* LSCDataExchanger.h in Headers */,
 				7C238F321DEED39A009CB024 /* lvm.h in Headers */,
-				7C8EA2AE1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */,
 				7C238F291DEED39A009CB024 /* ltm.h in Headers */,
 				7C238F231DEED39A009CB024 /* lstring.h in Headers */,
 				7C238F1E1DEED39A009CB024 /* lparser.h in Headers */,
 				7C238F2D1DEED39A009CB024 /* lualib.h in Headers */,
-				7C8EA2B41FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */,
 				7C238F2B1DEED39A009CB024 /* lua.hpp in Headers */,
 				7C238F381DEED3A1009CB024 /* LSCValue_Private.h in Headers */,
 				7C238F351DEED3A1009CB024 /* LSCContext_Private.h in Headers */,
@@ -1011,7 +1036,6 @@
 				7C238F0C1DEED39A009CB024 /* lfunc.h in Headers */,
 				7C238F071DEED39A009CB024 /* ldebug.h in Headers */,
 				7C238F131DEED39A009CB024 /* llimits.h in Headers */,
-				7C8EA2A41FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */,
 				7C238F2C1DEED39A009CB024 /* luaconf.h in Headers */,
 				7C238F091DEED39A009CB024 /* ldo.h in Headers */,
 				7C238F161DEED39A009CB024 /* lmem.h in Headers */,
@@ -1361,6 +1385,7 @@
 				7C177BFF1DEFDE50008C9DF1 /* lutf8lib.c in Sources */,
 				7C177BB31DEFDE0F008C9DF1 /* LuaFunction.swift in Sources */,
 				7C177BCD1DEFDE50008C9DF1 /* lbaselib.c in Sources */,
+				7C8D53A81FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift in Sources */,
 				7C177BDA1DEFDE50008C9DF1 /* lfunc.c in Sources */,
 				7C1AED291ED55635000B11B3 /* LuaManagedValue.swift in Sources */,
 				7C177C021DEFDE50008C9DF1 /* lzio.c in Sources */,
@@ -1386,6 +1411,7 @@
 				7C8EA2931FCFADB5000F58BF /* LSCEngineAdapter.m in Sources */,
 				7C177BF11DEFDE50008C9DF1 /* lstring.c in Sources */,
 				7C177BF71DEFDE50008C9DF1 /* ltm.c in Sources */,
+				7C8D53AE1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift in Sources */,
 				7C177BE01DEFDE50008C9DF1 /* llex.c in Sources */,
 				7C177BB51DEFDE0F008C9DF1 /* LuaPointer.swift in Sources */,
 				7C177C001DEFDE50008C9DF1 /* lvm.c in Sources */,
@@ -1393,6 +1419,7 @@
 				7C177BBD1DEFDE49008C9DF1 /* LSCValue.m in Sources */,
 				7C177BD51DEFDE50008C9DF1 /* ldebug.c in Sources */,
 				7C8EA2A11FCFBA45000F58BF /* LSCExportsTypeManager.m in Sources */,
+				7C8D53AB1FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift in Sources */,
 				7C177BB11DEFDE0F008C9DF1 /* LuaContext.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1422,6 +1449,7 @@
 				7C25E3461FC809EB005E0322 /* LuaExportTypeAnnotation.swift in Sources */,
 				7C238F2E1DEED39A009CB024 /* lundump.c in Sources */,
 				7C238F1C1DEED39A009CB024 /* loslib.c in Sources */,
+				7C8D53A71FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift in Sources */,
 				7C177BB41DEFDE0F008C9DF1 /* LuaPointer.swift in Sources */,
 				7C1AED281ED55635000B11B3 /* LuaManagedValue.swift in Sources */,
 				7C238EFE1DEED39A009CB024 /* lbaselib.c in Sources */,
@@ -1447,6 +1475,7 @@
 				7C8EA2921FCFADB5000F58BF /* LSCEngineAdapter.m in Sources */,
 				7C238F371DEED3A1009CB024 /* LSCContext.m in Sources */,
 				7C177BB01DEFDE0F008C9DF1 /* LuaContext.swift in Sources */,
+				7C8D53AD1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift in Sources */,
 				7C238F111DEED39A009CB024 /* llex.c in Sources */,
 				7C238F001DEED39A009CB024 /* lcode.c in Sources */,
 				7C238F081DEED39A009CB024 /* ldo.c in Sources */,
@@ -1454,6 +1483,7 @@
 				7C177BB61DEFDE0F008C9DF1 /* LuaValue.swift in Sources */,
 				7C177BB21DEFDE0F008C9DF1 /* LuaFunction.swift in Sources */,
 				7C8EA2A01FCFBA45000F58BF /* LSCExportsTypeManager.m in Sources */,
+				7C8D53AA1FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift in Sources */,
 				7C238F0A1DEED39A009CB024 /* ldump.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

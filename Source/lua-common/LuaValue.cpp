@@ -15,6 +15,8 @@
 #include "LuaTuple.h"
 #include "LuaNativeClass.hpp"
 #include "LuaDataExchanger.h"
+#include "LuaExportTypeDescriptor.hpp"
+#include "LuaExportsTypeManager.hpp"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -126,6 +128,15 @@ LuaValue::LuaValue (LuaTuple *value)
     _hasManagedObject = false;
 }
 
+LuaValue::LuaValue (LuaExportTypeDescriptor *value)
+{
+    _type = LuaValueTypeClass;
+
+    value -> retain();
+    _value = (void *)value;
+    _hasManagedObject = false;
+}
+
 LuaValue::LuaValue(LuaObjectDecoder *decoder)
     : LuaObject(decoder)
 {
@@ -203,6 +214,18 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
             _value = decoder -> readObject();
             break;
         }
+        case LuaValueTypeClass:
+        {
+            //类型名称
+            std::string typeName = decoder -> readString();
+            LuaExportTypeDescriptor *typeDescriptor = decoder -> getContext() -> getExportsTypeManager() -> getExportTypeDescriptor(typeName);
+            if (typeDescriptor != NULL)
+            {
+                typeDescriptor -> retain();
+                _value = typeDescriptor;
+            }
+            break;
+        }
         default:
             _value = NULL;
             break;
@@ -245,7 +268,11 @@ LuaValue::~LuaValue()
                 }
             }
         }
-        else if (_type == LuaValueTypePtr || _type == LuaValueTypeObject || _type == LuaValueTypeFunction || _type == LuaValueTypeTuple)
+        else if (_type == LuaValueTypePtr
+                 || _type == LuaValueTypeObject
+                 || _type == LuaValueTypeFunction
+                 || _type == LuaValueTypeTuple
+                 || _type == LuaValueTypeClass)
         {
             ((LuaObject *)_value) -> release();
         }
@@ -253,7 +280,8 @@ LuaValue::~LuaValue()
         if (_type != LuaValueTypePtr
             && _type != LuaValueTypeObject
             && _type != LuaValueTypeFunction
-            && _type != LuaValueTypeTuple)
+            && _type != LuaValueTypeTuple
+            && _type != LuaValueTypeClass)
         {
             delete (char *)_value;
         }
@@ -456,6 +484,16 @@ LuaTuple* LuaValue::toTuple()
     return NULL;
 }
 
+LuaExportTypeDescriptor* LuaValue::toType()
+{
+    if (_type == LuaValueTypeClass)
+    {
+        return (LuaExportTypeDescriptor *)_value;
+    }
+
+    return NULL;
+}
+
 LuaObjectDescriptor* LuaValue::toObject()
 {
     if (_type == LuaValueTypeObject)
@@ -550,6 +588,18 @@ void LuaValue::serialization (LuaObjectEncoder *encoder)
         {
             encoder -> writeObject(toPointer());
             break;
+        }
+        case LuaValueTypeClass:
+        {
+            LuaExportTypeDescriptor *typeDescriptor = toType();
+            if (typeDescriptor != NULL)
+            {
+                encoder -> writeString(typeDescriptor -> typeName());
+            }
+            else
+            {
+                encoder -> writeString("");
+            }
         }
         default:
             break;

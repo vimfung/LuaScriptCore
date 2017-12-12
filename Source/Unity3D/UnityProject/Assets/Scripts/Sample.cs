@@ -108,6 +108,11 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void globalValueButtonClickedHandler ()
 	{
+		LuaValue urlValue = LuaContext.currentContext.getGlobal ("url");
+		Debug.LogFormat ("url = {0}", urlValue.toString ());
+
+		LuaContext.currentContext.callMethod("printUrl", new List<LuaValue>(new LuaValue[] {urlValue}));
+
 		LuaContext.currentContext.setGlobal ("testVar", new LuaValue ("abc"));
 		LuaValue retValue = LuaContext.currentContext.getGlobal ("testVar");
 		Debug.Log (string.Format ("retValue = {0}", retValue.toString()));

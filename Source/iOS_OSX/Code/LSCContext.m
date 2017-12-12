@@ -14,6 +14,11 @@
 #import "LSCTuple.h"
 #import <objc/runtime.h>
 
+/**
+ 捕获Lua异常处理器名称
+ */
+static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandler";
+
 @implementation LSCContext
 
 - (instancetype)init
@@ -43,6 +48,18 @@
         
         //初始化类型导出器
         self.exportsTypeManager = [[LSCExportsTypeManager alloc] initWithContext:self];
+        
+        //注册错误捕获方法
+        __weak typeof(self) weakSelf = self;
+        [self registerMethodWithName:LSCCacheLuaExceptionHandlerName block:^LSCValue *(NSArray<LSCValue *> *arguments) {
+            
+            if (arguments.count > 0)
+            {
+                [weakSelf raiseExceptionWithMessage:[arguments[0] toString]];
+            }
+            return nil;
+            
+        }];
     }
     
     return self;
@@ -109,13 +126,14 @@
 - (LSCValue *)evalScriptFromString:(NSString *)string
 {
     lua_State *state = self.currentSession.state;
-    
+
     LSCValue *returnValue = nil;
+    int errFuncIndex = [self catchLuaException];
     int curTop = [LSCEngineAdapter getTop:state];
     int returnCount = 0;
     
     [LSCEngineAdapter loadString:state string:string.UTF8String];
-    if ([LSCEngineAdapter pCall:state nargs:0 nresults:LUA_MULTRET errfunc:0] == 0)
+    if ([LSCEngineAdapter pCall:state nargs:0 nresults:LUA_MULTRET errfunc:errFuncIndex] == 0)
     {
         //调用成功
         returnCount = [LSCEngineAdapter getTop:state] - curTop;
@@ -175,13 +193,14 @@
     }
     
     lua_State *state = self.currentSession.state;
-    
+
     LSCValue *retValue = nil;
+    int errFuncIndex = [self catchLuaException];
     int curTop = [LSCEngineAdapter getTop:state];
     int returnCount = 0;
     
     [LSCEngineAdapter loadFile:state path:path.UTF8String];
-    if ([LSCEngineAdapter pCall:state nargs:0 nresults:LUA_MULTRET errfunc:0] == 0)
+    if ([LSCEngineAdapter pCall:state nargs:0 nresults:LUA_MULTRET errfunc:errFuncIndex] == 0)
     {
         //调用成功
         returnCount = [LSCEngineAdapter getTop:state] - curTop;
@@ -230,6 +249,7 @@
     
     LSCValue *resultValue = nil;
     
+    int errFuncIndex = [self catchLuaException];
     int curTop = [LSCEngineAdapter getTop:state];
     
     [LSCEngineAdapter getGlobal:state name:methodName.UTF8String];
@@ -245,7 +265,7 @@
              
          }];
         
-        if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:0] == 0)
+        if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:errFuncIndex] == 0)
         {
             //调用成功
             returnCount = [LSCEngineAdapter getTop:state] - curTop;
@@ -278,7 +298,7 @@
     else
     {
         //将变量从栈中移除
-        [LSCEngineAdapter pop:state count:1];
+        [LSCEngineAdapter pop:state count:2];
     }
     
     //内存回收
@@ -338,37 +358,6 @@
     }
 }
 
-static int cfuncRouteHandler(lua_State *state)
-{
-    //fixed: 修复Lua中在协程调用方法时无法正确解析问题, 使用LSCCallSession解决问题 2017-7-3
-    int count = 0;
-    
-    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
-                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
-    
-    const char *methodNameCStr = [LSCEngineAdapter toString:state
-                                                      index:[LSCEngineAdapter upvalueIndex:2]];
-    NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
-
-    LSCFunctionHandler handler = context.methodBlocks[methodName];
-    if (handler)
-    {
-        LSCSession *session = [context makeSessionWithState:state];
-        NSArray *arguments = [session parseArguments];
-        
-        LSCValue *retValue = handler(arguments);
-        
-        if (retValue)
-        {
-            count = [session setReturnValue:retValue];
-        }
-        
-        [context destroySession:session];
-    }
-    
-    return count;
-}
-
 /**
  *  设置搜索路径，避免脚本中的require无法找到文件
  *
@@ -390,6 +379,65 @@ static int cfuncRouteHandler(lua_State *state)
     [LSCEngineAdapter pushString:curPath.UTF8String state:state];
     [LSCEngineAdapter setField:state index:-2 name:"path"];
     [LSCEngineAdapter pop:state count:1];
+}
+
+
+/**
+ 捕获Lua异常
+
+ @return 异常方法在堆栈中的位置
+ */
+- (int)catchLuaException
+{
+    lua_State *state = self.currentSession.state;
+    [LSCEngineAdapter getGlobal:state name:LSCCacheLuaExceptionHandlerName.UTF8String];
+    if ([LSCEngineAdapter isFunction:state index:-1])
+    {
+        return [LSCEngineAdapter getTop:state];
+    }
+    
+    [LSCEngineAdapter pop:state count:1];
+   
+    return 0;
+}
+
+#pragma mark - c func
+
+/**
+ C方法路由处理器
+
+ @param state 状态
+ @return 参数数量
+ */
+static int cfuncRouteHandler(lua_State *state)
+{
+    //fixed: 修复Lua中在协程调用方法时无法正确解析问题, 使用LSCCallSession解决问题 2017-7-3
+    int count = 0;
+    
+    LSCContext *context = (__bridge LSCContext *)[LSCEngineAdapter toPointer:state
+                                                                       index:[LSCEngineAdapter upvalueIndex:1]];
+    
+    const char *methodNameCStr = [LSCEngineAdapter toString:state
+                                                      index:[LSCEngineAdapter upvalueIndex:2]];
+    NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
+    
+    LSCFunctionHandler handler = context.methodBlocks[methodName];
+    if (handler)
+    {
+        LSCSession *session = [context makeSessionWithState:state];
+        NSArray *arguments = [session parseArguments];
+        
+        LSCValue *retValue = handler(arguments);
+        
+        if (retValue)
+        {
+            count = [session setReturnValue:retValue];
+        }
+        
+        [context destroySession:session];
+    }
+    
+    return count;
 }
 
 @end
