@@ -36,6 +36,7 @@ namespace cn
                 LuaValueTypeData = 9,
                 LuaValueTypeFunction = 10,
                 LuaValueTypeTuple = 11,
+                LuaValueTypeClass = 12
             };
 
             /**

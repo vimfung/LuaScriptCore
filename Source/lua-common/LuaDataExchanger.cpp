@@ -14,6 +14,7 @@
 #include "LuaObjectDescriptor.h"
 #include "LuaSession.h"
 #include "LuaEngineAdapter.hpp"
+#include "LuaExportTypeDescriptor.hpp"
 #include <iostream>
 #include <sstream>
 
@@ -82,76 +83,92 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
         }
         case LUA_TTABLE:
         {
-            LuaValueMap dictValue;
-            LuaValueList arrayValue;
-            bool isArray = true;
-
-            LuaEngineAdapter::pushNil(state);
-            while (LuaEngineAdapter::next(state, stackIndex))
+            //判断是否为类型
+            LuaEngineAdapter::getField(state, stackIndex, "_nativeType");
+            if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
             {
-                LuaValue *item = getValue(-1);
-                LuaValue *key = getValue(-2);
-
-                if (isArray)
-                {
-                    if (key -> getType() != LuaValueTypeNumber)
-                    {
-                        //非数组对象，释放数组
-                        isArray = false;
-                    }
-                    else if (key -> getType() == LuaValueTypeNumber)
-                    {
-                        int arrayIndex = (int)key->toNumber();
-                        if (arrayIndex <= 0)
-                        {
-                            //非数组对象，释放数组
-                            isArray = false;
-                        }
-                        else if (arrayIndex - 1 != arrayValue.size())
-                        {
-                            //非数组对象，释放数组
-                            isArray = false;
-                        }
-                        else
-                        {
-                            arrayValue.push_back(item);
-                        }
-                    }
-                }
-
-                switch (key -> getType())
-                {
-                    case LuaValueTypeNumber:
-                    {
-                        std::ostringstream out;
-                        out << key->toNumber();
-                        dictValue[out.str()] = item;
-                        break;
-                    }
-                    case LuaValueTypeString:
-                        dictValue[key->toString()] = item;
-                        break;
-                    default:
-                        if (!isArray)
-                        {
-                            //如果并非是数组而且key也不是指定类型，则对item进行释放，避免造成内存泄露
-                            item -> release();
-                        }
-                        break;
-                }
-
-                key->release();
+                //为导出类型
+                LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+                value = new LuaValue(typeDescriptor);
 
                 LuaEngineAdapter::pop(state, 1);
             }
-
-            if (isArray)
-            {
-                value = LuaValue::ArrayValue(arrayValue);
-            }
             else
             {
-                value = LuaValue::DictonaryValue(dictValue);
+                //出栈前一结果
+                LuaEngineAdapter::pop(state, 1);
+
+                LuaValueMap dictValue;
+                LuaValueList arrayValue;
+                bool isArray = true;
+
+                LuaEngineAdapter::pushNil(state);
+                while (LuaEngineAdapter::next(state, stackIndex))
+                {
+                    LuaValue *item = getValue(-1);
+                    LuaValue *key = getValue(-2);
+
+                    if (isArray)
+                    {
+                        if (key -> getType() != LuaValueTypeNumber)
+                        {
+                            //非数组对象，释放数组
+                            isArray = false;
+                        }
+                        else if (key -> getType() == LuaValueTypeNumber)
+                        {
+                            int arrayIndex = (int)key->toNumber();
+                            if (arrayIndex <= 0)
+                            {
+                                //非数组对象，释放数组
+                                isArray = false;
+                            }
+                            else if (arrayIndex - 1 != arrayValue.size())
+                            {
+                                //非数组对象，释放数组
+                                isArray = false;
+                            }
+                            else
+                            {
+                                arrayValue.push_back(item);
+                            }
+                        }
+                    }
+
+                    switch (key -> getType())
+                    {
+                        case LuaValueTypeNumber:
+                        {
+                            std::ostringstream out;
+                            out << key->toNumber();
+                            dictValue[out.str()] = item;
+                            break;
+                        }
+                        case LuaValueTypeString:
+                            dictValue[key->toString()] = item;
+                            break;
+                        default:
+                            if (!isArray)
+                            {
+                                //如果并非是数组而且key也不是指定类型，则对item进行释放，避免造成内存泄露
+                                item -> release();
+                            }
+                            break;
+                    }
+
+                    key->release();
+
+                    LuaEngineAdapter::pop(state, 1);
+                }
+
+                if (isArray)
+                {
+                    value = LuaValue::ArrayValue(arrayValue);
+                }
+                else
+                {
+                    value = LuaValue::DictonaryValue(dictValue);
+                }
             }
 
             break;
@@ -347,13 +364,13 @@ void LuaDataExchanger::retainLuaObject(LuaObject *object)
             {
                 case LuaValueTypeObject:
                     retainLuaObject(value -> toObject());
-                    break;
+                    return;
                 case LuaValueTypePtr:
                     retainLuaObject(value -> toPointer());
-                    break;
+                    return;
                 case LuaValueTypeFunction:
                     retainLuaObject(value -> toFunction());
-                    break;
+                    return;
                 default:
                     break;
             }
@@ -386,13 +403,13 @@ void LuaDataExchanger::releaseLuaObject(LuaObject *object)
             {
                 case LuaValueTypeObject:
                     releaseLuaObject(value -> toObject());
-                    break;
+                    return;
                 case LuaValueTypePtr:
                     releaseLuaObject(value -> toPointer());
-                    break;
+                    return;
                 case LuaValueTypeFunction:
                     releaseLuaObject(value -> toFunction());
-                    break;
+                    return;
                 default:
                     break;
             }

@@ -42,6 +42,7 @@
     LSCExportTypeDescriptor *objectTypeDesc = [[LSCExportTypeDescriptor alloc] init];
     objectTypeDesc.typeName = @"Object";
     objectTypeDesc.prototypeTypeName = [objectTypeDesc _prototypeClassNameWithTypeName:objectTypeDesc.typeName];
+    objectTypeDesc.nativeType = [NSObject class];
     
     return objectTypeDesc;
 }

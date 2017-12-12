@@ -434,92 +434,38 @@ namespace cn.vimfung.luascriptcore
         [DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static void releaseObject(int objectId);
 
-        /// <summary>
-		/// 注册模块
+		/// <summary>
+		/// 注册类型
 		/// </summary>
-		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
-		/// <param name="moduleName">模块名称</param>
-		/// <param name="exportsMethodNames">导出方法名称列表.</param>
-		/// <param name="methodRouteHandler">方法路由处理器，所有的方法都会由此方法来回调</param>
-		/// <returns>模块的本地标识</returns>
-		[DllImport("LuaScriptCore-Unity-Win64")]
-        internal extern static int registerModule(int nativeContextId, string moduleName, IntPtr exportsMethodNames, IntPtr methodRouteHandler);
-
-        /// <summary>
-        /// 判断模块是否注册
-        /// </summary>
-        /// <returns>true表示注册，false表示尚未注册</returns>
-        /// <param name="nativeContextId">Lua上下文对象的本地标识</param>
-        /// <param name="moduleName">模块名称</param>
-        [DllImport("LuaScriptCore-Unity-Win64")]
-        internal extern static bool isModuleRegisted(int nativeContextId, string moduleName);
-
-        /// <summary>
-        /// 注册类型
-        /// </summary>
-        /// <returns>类标识</returns>
-        /// <param name="nativeContextId">原生上下文标识</param>
-        /// <param name="className">类名</param>
-        /// <param name="superClassName">父类名称</param>
-        /// <param name="exportsSetterNames">导出Setter名称列表.</param>
-        /// <param name="exportsGetterNames">导出Getter名称列表.</param>
-        /// <param name="exportsInstanceMethodNames">导出实例方法名称列表</param>
-        /// <param name="exportsClassMethodNames">导出类方法名称列表</param>
-        /// <param name="instanceCreateHandler">实例创建处理器</param>
-        /// <param name="instanceDestroyHandler">实例销毁处理器</param>
-        /// <param name="instanceDescriptionHandler">实例描述处理器</param>
-        /// <param name="fieldGetterHandler">字段获取器.</param>
-        /// <param name="fieldSetterHandler">字段设置器.</param>
-        /// <param name="instanceMethodRouteHandler">实例方法处理器.</param>
-        /// <param name="classMethodRouteHandler">类方法处理器.</param>
-        [DllImport("LuaScriptCore-Unity-Win64")]
-        internal extern static int registerClass(
-            int nativeContextId,
-            string className,
-            string superClassName,
-            IntPtr exportsSetterNames,
-            IntPtr exportsGetterNames,
-            IntPtr exportsInstanceMethodNames,
-            IntPtr exportsClassMethodNames,
-            IntPtr instanceCreateHandler,
-            IntPtr instanceDestroyHandler,
-            IntPtr instanceDescriptionHandler,
-            IntPtr fieldGetterHandler,
-            IntPtr fieldSetterHandler,
-            IntPtr instanceMethodRouteHandler,
-            IntPtr classMethodRouteHandler);
-
-        /// <summary>
-		/// 注册ClassImport
-		/// </summary>
-		/// <param name="nativeContextId">上下文对象标识.</param>
-		/// <param name="className">类名.</param>
-		/// <param name="allowExportsClassHandler">是否允许导出类型处理器.</param>
-		/// <param name="exportsClassHandler">导出类型处理器.</param>
-		/// <param name="allExportClassMethods">获取所有导出的类方法处理器.</param>
-		/// <param name="allExportInstanceMethods">获取所有导出的实例方法处理器</param>
-		/// <param name="allExportGetterFields">获取所有导出的获取权限字段处理器.</param>
-		/// <param name="allExportSetterFields">获取所有导出的设置权限字段处理器</param>
+		/// <returns>The type.</returns>
+		/// <param name="nativeContextId">本地上下文标识.</param>
+		/// <param name="typeName">类型名称.</param>
+		/// <param name="parentTypeName">父类名称.</param>
+		/// <param name="exportsPropertyNames">导出属性名称列表</param>
+		/// <param name="exportsInstanceMethodNames">导出实例方法名称列表.</param>
+		/// <param name="xportsClassMethodNames">导出类方法名称列表.</param>
 		/// <param name="instanceCreateHandler">创建实例处理器.</param>
-		/// <param name="classMethodInvokeHandler">类方法调用处理器.</param>
-		/// <param name="instanceMethodInvokeHandler">实例方法调用处理器.</param>
-		/// <param name="fieldGetterHandler">获取字段处理器.</param>
-		/// <param name="fieldSetterHandler">获取字段处理器.</param>
+		/// <param name="instanceDestroyHandler">销毁实例处理器.</param>
+		/// <param name="instanceDescriptionHandler">实例描述处理器.</param>
+		/// <param name="instanceFieldGetterRouteHandler">实例字段Getter处理器.</param>
+		/// <param name="instanceFieldSetterRouteHandler">实例字段Setter处理器.</param>
+		/// <param name="instanceMethodRouteHandler">实例方法处理器.</param>
+		/// <param name="classMethodRouteHandler">类方法处理器.</param>
 		[DllImport("LuaScriptCore-Unity-Win64")]
-        internal extern static void registerClassImport(
-            int nativeContextId,
-            string className,
-            IntPtr checkObjectSubclassHandler,
-            IntPtr allowExportsClassHandler,
-            IntPtr allExportClassMethods,
-            IntPtr allExportInstanceMethods,
-            IntPtr allExportGetterFields,
-            IntPtr allExportSetterFields,
-            IntPtr instanceCreateHandler,
-            IntPtr classMethodInvokeHandler,
-            IntPtr instanceMethodInvokeHandler,
-            IntPtr fieldGetterHandler,
-            IntPtr fieldSetterHandler);
+		internal extern static int registerType(
+			int nativeContextId,
+			string typeName,
+			string parentTypeName,
+			IntPtr exportsPropertyNames,
+			IntPtr exportsInstanceMethodNames,
+			IntPtr exportsClassMethodNames,
+			IntPtr instanceCreateHandler,
+			IntPtr instanceDestroyHandler,
+			IntPtr instanceDescriptionHandler,
+			IntPtr instanceFieldGetterRouteHandler,
+			IntPtr instanceFieldSetterRouteHandler,
+			IntPtr instanceMethodRouteHandler,
+			IntPtr classMethodRouteHandler);
 
         /// <summary>
         /// 保留LuaValue的对象

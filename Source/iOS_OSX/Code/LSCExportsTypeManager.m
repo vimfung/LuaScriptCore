@@ -345,7 +345,7 @@
                   targetType:(LSCExportTypeDescriptor *)targetTypeDescriptor
                        state:(lua_State *)state
 {
-    if (targetTypeDescriptor.nativeType != NULL)
+    if (targetTypeDescriptor.nativeType != NULL && targetTypeDescriptor.nativeType != [NSObject class])
     {
         NSArray *excludesMethodNames = nil;
         Class metaType = objc_getMetaClass(NSStringFromClass(targetTypeDescriptor.nativeType).UTF8String);
@@ -358,6 +358,8 @@
                 excludesMethodNames = [targetTypeDescriptor.nativeType excludeExportClassMethods];
             }
         }
+        
+        NSArray *builtInExcludeMethodNames = @[];
         
         //解析方法
         NSMutableDictionary *methodDict = [typeDescriptor.classMethods mutableCopy];
@@ -375,6 +377,7 @@
             NSString *selectorName = NSStringFromSelector(selector);
             if (![selectorName hasPrefix:@"_"]
                 && ![selectorName hasPrefix:@"."]
+                && ![builtInExcludeMethodNames containsObject:selectorName]
                 && ![excludesMethodNames containsObject:selectorName])
             {
                 NSString *luaMethodName = [self _getLuaMethodNameWithSelectorName:selectorName];
@@ -476,7 +479,7 @@
                                       state:(lua_State *)state
 {
     NSMutableArray *propertySelectorList = nil;
-    if (typeDescriptor.nativeType != NULL)
+    if (typeDescriptor.nativeType != NULL && typeDescriptor.nativeType != [NSObject class])
     {
         propertySelectorList = [NSMutableArray array];
         
@@ -500,21 +503,6 @@
         {
             objc_property_t property = *(properties + i);
             NSString *propertyName = [NSString stringWithUTF8String:property_getName(property)];
-            
-            if ([propertyName isEqualToString:@"hash"]
-                || [propertyName isEqualToString:@"superclass"]
-                || [propertyName isEqualToString:@"description"]
-                || [propertyName isEqualToString:@"debugDescription"])
-            {
-                continue;
-            }
-            
-            if ([excludesPropertyNames containsObject:propertyName])
-            {
-                continue;
-            }
-            
-            LSCExportPropertyDescriptor *propertyDescriptor = [[LSCExportPropertyDescriptor alloc] initWithName:propertyName];
             
             //获取属性特性
             BOOL readonly = NO;
@@ -548,17 +536,35 @@
             }
             if (!setterName)
             {
-                setterName = [NSString stringWithFormat:@"set%@:", propertyName.capitalizedString];
+                setterName = [NSString stringWithFormat:@"set%@%@:",
+                              [propertyName.capitalizedString substringToIndex:1],
+                              [propertyName substringFromIndex:1]];
             }
             
             if (!readonly)
             {
-                [propertySelectorList addObject:getterName];
-                propertyDescriptor.getterSelector = NSSelectorFromString(getterName);
+                [propertySelectorList addObject:setterName];
+            }
+            [propertySelectorList addObject:getterName];
+            
+            if ([propertyName hasPrefix:@"_"]
+                || [propertyName isEqualToString:@"hash"]
+                || [propertyName isEqualToString:@"superclass"]
+                || [propertyName isEqualToString:@"description"]
+                || [propertyName isEqualToString:@"debugDescription"]
+                || [excludesPropertyNames containsObject:propertyName])
+            {
+                continue;
             }
             
-            [propertySelectorList addObject:setterName];
-            propertyDescriptor.setterSelector = NSSelectorFromString(setterName);
+            //生成导出属性
+            LSCExportPropertyDescriptor *propertyDescriptor = [[LSCExportPropertyDescriptor alloc] initWithName:propertyName];
+            
+            if (!readonly)
+            {
+                propertyDescriptor.setterSelector = NSSelectorFromString(setterName);
+            }
+            propertyDescriptor.getterSelector = NSSelectorFromString(getterName);
             
             [propertiesDict setObject:propertyDescriptor forKey:propertyDescriptor.name];
         }
@@ -582,7 +588,7 @@
            propertySelectorList:(NSArray<NSString *> *)propertySelectorList
                           state:(lua_State *)state
 {
-    if (typeDescriptor.nativeType != NULL)
+    if (typeDescriptor.nativeType != NULL && typeDescriptor.nativeType != [NSObject class])
     {
         //注册实例方法
         //先判断是否有注解排除实例方法
@@ -594,6 +600,8 @@
                 excludesMethodNames = [typeDescriptor.nativeType excludeExportInstanceMethods];
             }
         }
+        
+        NSArray *buildInExcludeMethodNames = @[];
         
         //解析方法
         NSMutableDictionary *methodDict = [typeDescriptor.instanceMethods mutableCopy];
@@ -613,6 +621,7 @@
                 && ![methodName hasPrefix:@"."]
                 && ![methodName hasPrefix:@"init"]
                 && ![methodName isEqualToString:@"dealloc"]
+                && ![buildInExcludeMethodNames containsObject:methodName]
                 && ![propertySelectorList containsObject:methodName]
                 && ![excludesMethodNames containsObject:methodName])
             {
@@ -756,6 +765,7 @@
 - (void)_initLuaObjectWithObject:(id)object type:(LSCExportTypeDescriptor *)typeDescriptor;
 {
     lua_State *state = self.context.currentSession.state;
+    int errFuncIndex = [self.context catchLuaException];
     
     [self _attachLuaInstanceWithNativeObject:object type:typeDescriptor];
     
@@ -767,18 +777,20 @@
         [LSCEngineAdapter pushValue:-2 state:state];
         
         //将create传入的参数传递给init方法
-        //-3 代表有3个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象
-        int paramCount = [LSCEngineAdapter getTop:state] - 3;
+        //-4 代表有4个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象，异常捕获方法
+        int paramCount = [LSCEngineAdapter getTop:state] - 4;
         for (int i = 1; i <= paramCount; i++)
         {
             [LSCEngineAdapter pushValue:i state:state];
         }
         
-        [LSCEngineAdapter pCall:state nargs:paramCount + 1 nresults:0 errfunc:0];
+        
+        [LSCEngineAdapter pCall:state nargs:paramCount + 1 nresults:0 errfunc:errFuncIndex];
     }
     else
     {
-        [LSCEngineAdapter pop:state count:1];
+        [LSCEngineAdapter pop:state count:1];       //出栈init方法
+        [LSCEngineAdapter remove:state index:-2];   //出栈异常捕获方法
     }
 }
 
@@ -793,10 +805,10 @@
 {
     lua_State *state = self.context.currentSession.state;
     
+    //先为实例对象在lua中创建内存
+    LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
     if (nativeObject)
     {
-        //先为实例对象在lua中创建内存
-        LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
         //创建本地实例对象，赋予lua的内存块并进行保留引用
         ref -> value = (void *)CFBridgingRetain(nativeObject);
     }
@@ -965,17 +977,18 @@
 
 
 /**
- 获取实例属性描述，注：该方法除了返回属性描述对象的同时，也会在堆栈中放入父类链中对应属性的值。要
+ 查找实例导出属性描述
 
  @param session 会话
  @param typeDescriptor 类型描述
  @param propertyName 属性名称
  @return 属性描述对象
  */
-- (LSCExportPropertyDescriptor *)_instancePropertyWithSession:(LSCSession *)session
-                                               typeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
-                                                 propertyName:(NSString *)propertyName
+- (LSCExportPropertyDescriptor *)_findInstancePropertyWithSession:(LSCSession *)session
+                                                   typeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
+                                                     propertyName:(NSString *)propertyName
 {
+    LSCExportPropertyDescriptor *propertyDescriptor = nil;
     lua_State *state = session.state;
     if (typeDescriptor)
     {
@@ -985,32 +998,95 @@
         
         if ([LSCEngineAdapter isNil:state index:-1])
         {
+            //不存在
+            propertyDescriptor = [typeDescriptor.properties objectForKey:propertyName];
+            if (!propertyDescriptor)
+            {
+                if (typeDescriptor.parentTypeDescriptor)
+                {
+                    //递归父类
+                    propertyDescriptor = [self _findInstancePropertyWithSession:session
+                                                                 typeDescriptor:typeDescriptor.parentTypeDescriptor
+                                                                   propertyName:propertyName];
+                }
+            }
+        }
+        
+        [LSCEngineAdapter pop:state count:2];
+    }
+    
+    return propertyDescriptor;
+}
+
+/**
+ 获取实例属性描述
+
+ @param session 会话
+ @param instance 实例对象
+ @param typeDescriptor 类型描述
+ @param propertyName 属性名称
+ 
+ @return 返回值数量
+ */
+- (int)_instancePropertyWithSession:(LSCSession *)session
+                           instance:(id)instance
+                     typeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
+                       propertyName:(NSString *)propertyName
+{
+    int retValueCount = 1;
+    lua_State *state = session.state;
+    if (typeDescriptor)
+    {
+        [LSCEngineAdapter getMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
+        [LSCEngineAdapter pushString:propertyName.UTF8String state:state];
+        [LSCEngineAdapter rawGet:state index:-2];
+
+        if ([LSCEngineAdapter isNil:state index:-1])
+        {
             [LSCEngineAdapter pop:state count:2];
             
             //不存在
             LSCExportPropertyDescriptor *propertyDescriptor = [typeDescriptor.properties objectForKey:propertyName];
-            if (!propertyDescriptor && typeDescriptor.parentTypeDescriptor)
+            if (!propertyDescriptor)
             {
-                //递归父类
-                propertyDescriptor = [self _instancePropertyWithSession:session
-                                                         typeDescriptor:typeDescriptor.parentTypeDescriptor
-                                                           propertyName:propertyName];
+                if (typeDescriptor.parentTypeDescriptor)
+                {
+                    //递归父类
+                    retValueCount = [self _instancePropertyWithSession:session
+                                                              instance:instance
+                                                        typeDescriptor:typeDescriptor.parentTypeDescriptor
+                                                          propertyName:propertyName];
+                }
+                else
+                {
+                    [LSCEngineAdapter pushNil:state];
+                }
             }
             else
             {
-                [LSCEngineAdapter pushNil:state];
+                if (propertyDescriptor.getterSelector)
+                {
+                    NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:propertyDescriptor.getterSelector];
+                    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
+                    invocation.selector = propertyDescriptor.getterSelector;
+                    
+                    LSCValue *retValue = [self _invokeMethodWithInstance:instance
+                                                          typeDescriptor:typeDescriptor
+                                                              invocation:invocation
+                                                               arguments:nil];
+                    retValueCount = [session setReturnValue:retValue];
+                }
+                else
+                {
+                    [LSCEngineAdapter pushNil:state];
+                }
             }
-            
-            return propertyDescriptor;
         }
-        else
-        {
-            //pop prototype class
-            [LSCEngineAdapter remove:state index:-2];
-        }
+        
+        [LSCEngineAdapter remove:state index:-1-retValueCount];
     }
     
-    return nil;
+    return retValueCount;
 }
 
 
@@ -1346,9 +1422,9 @@ static int instanceNewIndexHandler (lua_State *state)
     NSArray *arguments = [session parseArguments];
     
     //检测是否存在类型属性
-    LSCExportPropertyDescriptor *propertyDescriptor = [exporter _instancePropertyWithSession:session
-                                                                              typeDescriptor:typeDescriptor
-                                                                                propertyName:[(LSCValue *)arguments[1] toString]];
+    LSCExportPropertyDescriptor *propertyDescriptor = [exporter _findInstancePropertyWithSession:session
+                                                                                  typeDescriptor:typeDescriptor
+                                                                                    propertyName:[(LSCValue *)arguments[1] toString]];
     if (propertyDescriptor)
     {
         //调用对象属性
@@ -1407,33 +1483,15 @@ static int instanceIndexHandler(lua_State *state)
     [LSCEngineAdapter getMetatable:state index:1];
     [LSCEngineAdapter pushValue:2 state:state];
     [LSCEngineAdapter rawGet:state index:-2];
-    
+
     if ([LSCEngineAdapter isNil:state index:-1])
     {
         [LSCEngineAdapter pop:state count:1];
         
-        LSCExportPropertyDescriptor *propertyDescriptor = [exporter _instancePropertyWithSession:session
-                                                                                  typeDescriptor:typeDescriptor
-                                                                                    propertyName:key];
-        if (propertyDescriptor)
-        {
-            if (propertyDescriptor.getterSelector)
-            {
-                NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:propertyDescriptor.getterSelector];
-                NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
-                invocation.selector = propertyDescriptor.getterSelector;
-
-                LSCValue *retValue = [exporter _invokeMethodWithInstance:instance
-                                                          typeDescriptor:typeDescriptor
-                                                              invocation:invocation
-                                                               arguments:nil];
-                retValueCount = [session setReturnValue:retValue];
-            }
-            else
-            {
-                [LSCEngineAdapter pushNil:state];
-            }
-        }
+        retValueCount = [exporter _instancePropertyWithSession:session
+                                                      instance:instance
+                                                typeDescriptor:typeDescriptor
+                                                  propertyName:key];
     }
     
     [exporter.context destroySession:session];
@@ -1461,18 +1519,20 @@ static int objectDestroyHandler (lua_State *state)
         //如果为userdata类型，则进行释放
         LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
         
+        int errFuncIndex = [exporter.context catchLuaException];
+        
         [LSCEngineAdapter pushValue:1 state:state];
         [LSCEngineAdapter getField:state index:-1 name:"destroy"];
         if ([LSCEngineAdapter isFunction:state index:-1])
         {
             [LSCEngineAdapter pushValue:1 state:state];
-            [LSCEngineAdapter pCall:state nargs:1 nresults:0 errfunc:0];
+            [LSCEngineAdapter pCall:state nargs:1 nresults:0 errfunc:errFuncIndex];
+            [LSCEngineAdapter pop:state count:1];
         }
         else
         {
-            [LSCEngineAdapter pop:state count:1];
+            [LSCEngineAdapter pop:state count:3]; //出栈方法、实例对象和异常捕获方法
         }
-        [LSCEngineAdapter pop:state count:1];
         
         //释放内存
         CFBridgingRelease(ref -> value);
@@ -1583,7 +1643,9 @@ static int objectToStringHandler (lua_State *state)
     
     if (typeDescriptor)
     {
-        [LSCEngineAdapter pushString:[[NSString stringWithFormat:@"[%@ object]", typeDescriptor.typeName] UTF8String] state:state];
+        NSString *desc = [NSString stringWithFormat:@"[%@ object<%p>]",
+                          typeDescriptor.typeName, [LSCEngineAdapter toPointer:state index:1]];
+        [LSCEngineAdapter pushString:[desc UTF8String] state:state];
     }
     else
     {

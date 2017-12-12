@@ -20,6 +20,7 @@
 /// - Data: 二进制数组类型
 /// - Function: 方法类型
 /// - Tuple: 元组
+/// - Class: 类型
 public enum LuaValueType : Int
 {
     case Nil = 0
@@ -34,6 +35,7 @@ public enum LuaValueType : Int
     case Data = 9
     case Function = 10
     case Tuple = 11
+    case Class = 12
 }
 
 
@@ -128,6 +130,15 @@ public class LuaValue: NSObject
         _rawValue = LSCValue.tupleValue(tupleValue._rawTuple);
     }
     
+    
+    /// 初始化
+    ///
+    /// - Parameter typeValue: 类型描述
+    public init(typeValue : LuaExportTypeDescriptor)
+    {
+        _rawValue = LSCValue.typeValue(typeValue);
+    }
+    
     /// 初始化
     ///
     /// - Parameter objectValue: 对象
@@ -135,6 +146,8 @@ public class LuaValue: NSObject
     {
         _rawValue = LSCValue.objectValue(objectValue);
     }
+    
+    
     
     /// 初始化
     ///
@@ -240,6 +253,16 @@ public class LuaValue: NSObject
         get
         {
             return LuaPointer(rawPointer: _rawValue.toPointer());
+        }
+    }
+    
+    
+    /// 转换为类型描述
+    public var typeValue : LuaExportTypeDescriptor
+    {
+        get
+        {
+            return _rawValue.toType();
         }
     }
     
