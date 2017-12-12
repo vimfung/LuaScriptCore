@@ -67,4 +67,11 @@
  */
 - (void)destroySession:(LSCSession *)session;
 
+/**
+ 捕获Lua异常
+ 
+ @return 异常方法在堆栈中的位置
+ */
+- (int)catchLuaException;
+
 @end

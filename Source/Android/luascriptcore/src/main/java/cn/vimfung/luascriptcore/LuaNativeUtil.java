@@ -24,7 +24,7 @@ public class LuaNativeUtil
     /**
      * 创建Lua上下文对象
      *
-     * @param config 上下文配置
+     * @return Lua上下文对象
      */
     public static native LuaContext createContext ();
 

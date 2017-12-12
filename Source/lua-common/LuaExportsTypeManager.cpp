@@ -18,7 +18,6 @@
 #include "LuaObjectDescriptor.h"
 #include "StringUtils.h"
 
-
 using namespace cn::vimfung::luascriptcore;
 
 /**
@@ -132,10 +131,8 @@ static int subclassOfHandler (lua_State *state)
  */
 static int classToStringHandler (lua_State *state)
 {
-    std::string desc;
-    
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-    LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
+//    LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
     
     LuaContext *context = manager -> context();
     LuaSession *session = context -> makeSession(state);
@@ -147,7 +144,7 @@ static int classToStringHandler (lua_State *state)
         curType = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
     }
     
-    if (typeDescriptor != NULL)
+    if (curType != NULL)
     {
         std::string descStr = StringUtils::format("[%s type]", curType -> typeName().c_str());
         LuaEngineAdapter::pushString(state, descStr.c_str());
@@ -183,22 +180,24 @@ static int objectDestroyHandler (lua_State *state)
         
         LuaObjectDescriptor *objDesc = args[0] -> toObject();
         objDesc -> getTypeDescriptor() -> destroyInstance(session, objDesc);
-        
+
+        int errFuncIndex = manager -> context() -> catchException();
+
         //调用实例对象的destroy方法
         LuaEngineAdapter::pushValue(state, 1);
-        
+
         LuaEngineAdapter::getField(state, -1, "destroy");
         if (LuaEngineAdapter::isFunction(state, -1))
         {
             LuaEngineAdapter::pushValue(state, 1);
-            LuaEngineAdapter::pCall(state, 1, 0, 0);
+            LuaEngineAdapter::pCall(state, 1, 0, errFuncIndex);
+
+            LuaEngineAdapter::pop(state, 1);
         }
         else
         {
-            LuaEngineAdapter::pop(state, 1);
+            LuaEngineAdapter::pop(state, 3);
         }
-        
-        LuaEngineAdapter::pop(state, 1);
         
         //释放实例对象
         objDesc -> release();
@@ -273,7 +272,7 @@ static int objectToStringHandler (lua_State *state)
     
     if (typeDescriptor)
     {
-        std::string descStr = StringUtils::format("[%s object]", typeDescriptor -> typeName().c_str());
+        std::string descStr = StringUtils::format("[%s object<%p>]", typeDescriptor -> typeName().c_str(), LuaEngineAdapter::toPointer(state, 1));
         LuaEngineAdapter::pushString(state, descStr.c_str());
     }
     else
@@ -457,7 +456,7 @@ static int instanceNewIndexHandler (lua_State *state)
     session -> parseArguments(arguments);
     
     //检测是否存在类型属性
-    LuaExportPropertyDescriptor *propertyDescriptor = manager -> _getInstanceProperty(session,
+    LuaExportPropertyDescriptor *propertyDescriptor = manager -> _findInstanceProperty(session,
                                                                                       instance -> getTypeDescriptor(),
                                                                                       arguments[1] -> toString());
     if (propertyDescriptor != NULL)
@@ -545,13 +544,7 @@ static int instanceIndexHandler(lua_State *state)
     if (LuaEngineAdapter::isNil(state, -1))
     {
         LuaEngineAdapter::pop(state, 1);
-        
-        LuaExportPropertyDescriptor *propertyDescriptor = exporter -> _getInstanceProperty(session, instance -> getTypeDescriptor(), key);
-        if (propertyDescriptor != NULL)
-        {
-            LuaValue *retValue = propertyDescriptor -> invokeGetter(session, instance);
-            retValueCount = session -> setReturnValue(retValue);
-        }
+        retValueCount = exporter -> _getInstancePropertyValue(session, instance, instance -> getTypeDescriptor(), key);
     }
     
     exporter -> context() -> destorySession(session);
@@ -637,7 +630,7 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
     
     //导出声明的类方法
     _exportsClassMethods(state, typeDescriptor);
-    
+
     //添加创建对象方法
     LuaEngineAdapter::pushLightUserdata(state, (void *)this);
     LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
@@ -878,7 +871,8 @@ void LuaExportsTypeManager::createLuaObject(LuaObjectDescriptor *objectDescripto
 void LuaExportsTypeManager::_initLuaObject(LuaObjectDescriptor *objectDescriptor)
 {
     lua_State *state = _context -> getCurrentSession() -> getState();
-    
+    int errFuncIndex = _context -> catchException();
+
     _bindLuaInstance(objectDescriptor);
     
     //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
@@ -889,29 +883,31 @@ void LuaExportsTypeManager::_initLuaObject(LuaObjectDescriptor *objectDescriptor
         LuaEngineAdapter::pushValue(state, -2);
         
         //将create传入的参数传递给init方法
-        //-3 代表有3个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象
-        int paramCount = LuaEngineAdapter::getTop(state) - 3;
+        //-4 代表有4个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象, 错误捕获方法
+        int paramCount = LuaEngineAdapter::getTop(state) - 4;
         for (int i = 1; i <= paramCount; i++)
         {
             LuaEngineAdapter::pushValue(state, i);
         }
         
-        LuaEngineAdapter::pCall(state, paramCount + 1, 0, 0);
+        LuaEngineAdapter::pCall(state, paramCount + 1, 0, errFuncIndex);
     }
     else
     {
-        LuaEngineAdapter::pop(state, 1);
+        LuaEngineAdapter::pop(state, 1);    //出栈init方法
+        LuaEngineAdapter::remove(state, -2); //出栈异常捕获方法
     }
 }
 
 void LuaExportsTypeManager::_bindLuaInstance(LuaObjectDescriptor *objectDescriptor)
 {
     lua_State *state = _context -> getCurrentSession() -> getState();
-    
+
+    //先为实例对象在lua中创建内存
+    LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::newUserdata(state, sizeof(LuaUserdataRef));
+
     if (objectDescriptor != NULL)
     {
-        //先为实例对象在lua中创建内存
-        LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::newUserdata(state, sizeof(LuaUserdataRef));
         //创建本地实例对象，赋予lua的内存块并进行保留引用
         ref -> value = objectDescriptor;
         
@@ -957,41 +953,90 @@ void LuaExportsTypeManager::_bindLuaInstance(LuaObjectDescriptor *objectDescript
     LuaEngineAdapter::pop(state, 1);
 }
 
-LuaExportPropertyDescriptor* LuaExportsTypeManager::_getInstanceProperty(LuaSession *session,
-                                                                         LuaExportTypeDescriptor *typeDescriptor,
-                                                                         std::string propertyName)
+int LuaExportsTypeManager::_getInstancePropertyValue(LuaSession *session,
+                                                     LuaObjectDescriptor *instance,
+                                                     LuaExportTypeDescriptor *typeDescriptor,
+                                                     std::string propertyName)
 {
+    int retValueCount = 1;
     lua_State *state = session -> getState();
     if (typeDescriptor != NULL)
     {
         LuaEngineAdapter::getMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
         LuaEngineAdapter::pushString(state, propertyName.c_str());
         LuaEngineAdapter::rawGet(state, -2);
-        
+
         if (LuaEngineAdapter::isNil(state, -1))
         {
-            //不存在
             LuaEngineAdapter::pop(state, 2);
-            
+
+            //不存在
             LuaExportPropertyDescriptor *propertyDescriptor = typeDescriptor -> getProperty(propertyName);
-            if (propertyDescriptor == NULL && typeDescriptor -> parentTypeDescriptor() != NULL)
+            if (propertyDescriptor == NULL)
             {
-                //存在父类，递归进行
-                propertyDescriptor = _getInstanceProperty(session, typeDescriptor -> parentTypeDescriptor(), propertyName);
+                if (typeDescriptor -> parentTypeDescriptor() != NULL)
+                {
+                    //递归父类
+                    retValueCount = _getInstancePropertyValue(
+                            session,
+                            instance,
+                            typeDescriptor -> parentTypeDescriptor(),
+                            propertyName);
+                }
+                else
+                {
+                    LuaEngineAdapter::pushNil(state);
+                }
             }
             else
             {
-                LuaEngineAdapter::pushNil(state);
+                if (propertyDescriptor -> canRead())
+                {
+                    LuaValue *retValue = propertyDescriptor -> invokeGetter(session, instance);
+                    retValueCount = session -> setReturnValue(retValue);
+                }
+                else
+                {
+                    LuaEngineAdapter::pushNil(state);
+                }
             }
-            
-            return propertyDescriptor;
         }
-        else
-        {
-            //pop prototype class
-            LuaEngineAdapter::remove(state, -2);
-        }
+
+        LuaEngineAdapter::remove(state, -1-retValueCount);
     }
-    
-    return NULL;
+
+    return retValueCount;
+
+}
+
+LuaExportPropertyDescriptor* LuaExportsTypeManager::_findInstanceProperty(LuaSession *session,
+                                                                          LuaExportTypeDescriptor *typeDescriptor,
+                                                                          std::string propertyName)
+{
+    LuaExportPropertyDescriptor *propertyDescriptor = NULL;
+    lua_State *state = session -> getState();
+    if (typeDescriptor != NULL)
+    {
+        LuaEngineAdapter::getMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
+        LuaEngineAdapter::pushString(state, propertyName.c_str());
+        LuaEngineAdapter::rawGet(state, -2);
+
+        if (LuaEngineAdapter::isNil(state, -1))
+        {
+            //不存在
+            propertyDescriptor = typeDescriptor -> getProperty(propertyName);
+            if (propertyDescriptor == NULL)
+            {
+                if (typeDescriptor -> parentTypeDescriptor() != NULL)
+                {
+                    //递归父类
+                    propertyDescriptor = _findInstanceProperty(session, typeDescriptor -> parentTypeDescriptor(), propertyName);
+                }
+            }
+        }
+
+        LuaEngineAdapter::pop(state, 2);
+    }
+
+    return propertyDescriptor;
 }

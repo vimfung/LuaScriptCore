@@ -13,6 +13,7 @@
 @class LSCFunction;
 @class LSCPointer;
 @class LSCTuple;
+@class LSCExportTypeDescriptor;
 
 /**
  *  Lua的值封装
@@ -130,6 +131,14 @@
 + (instancetype)tupleValue:(LSCTuple *)tupleValue;
 
 /**
+ 创建一个类型值对象
+
+ @param typeDescriptor 类型描述
+ @return 值对象
+ */
++ (instancetype)typeValue:(LSCExportTypeDescriptor *)typeDescriptor;
+
+/**
  *  转换为对象
  *
  *  @return 对象
@@ -213,5 +222,12 @@
  @return 元组
  */
 - (LSCTuple *)toTuple;
+
+/**
+ 转换为类型
+
+ @return 类型描述
+ */
+- (LSCExportTypeDescriptor *)toType;
 
 @end

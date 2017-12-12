@@ -25,6 +25,7 @@ namespace cn
             class LuaTuple;
             class LuaPointer;
             class LuaObjectDescriptor;
+            class LuaExportTypeDescriptor;
 
             /**
              * Lua值，用于Lua与C＋＋中交互数据使用
@@ -143,6 +144,13 @@ namespace cn
                 LuaValue (LuaTuple *value);
 
                 /**
+                 * 初始化
+                 *
+                 * @param value 导出Lua类型
+                 */
+                LuaValue (LuaExportTypeDescriptor *value);
+
+                /**
                  * 析构
                  */
                 ~LuaValue();
@@ -253,6 +261,13 @@ namespace cn
                  * @return 对象
                  */
                 LuaObjectDescriptor* toObject();
+
+                /**
+                 * 转换为导出Lua类型
+                 *
+                 * @return 导出Lua类型
+                 */
+                LuaExportTypeDescriptor* toType();
 
                 /**
                  * 入栈数据
