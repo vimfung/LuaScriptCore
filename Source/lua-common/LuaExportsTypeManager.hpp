@@ -14,6 +14,10 @@
 #include <string>
 #include "LuaObject.h"
 #include "lua.hpp"
+#include "LuaObjectDescriptor.h"
+#include "LuaExportPropertyDescriptor.hpp"
+#include "LuaSession.h"
+#include "LuaExportTypeDescriptor.hpp"
 
 namespace cn {
     namespace vimfung {
@@ -99,16 +103,30 @@ namespace cn {
                 
                 
                 /**
-                 获取实例属性
+                 获取实例属性值
 
                  @param session 会话
+                 @param instance 实例
                  @param typeDescriptor 类型
                  @param propertyName 属性名称
-                 @return 属性描述对象
+                 @return 返回参数数量
                  */
-                LuaExportPropertyDescriptor* _getInstanceProperty(LuaSession *session,
-                                                                  LuaExportTypeDescriptor *typeDescriptor,
-                                                                  std::string propertyName);
+                int _getInstancePropertyValue(LuaSession *session,
+                                                LuaObjectDescriptor *instance,
+                                                LuaExportTypeDescriptor *typeDescriptor,
+                                                std::string propertyName);
+
+                /**
+                 * 查找实例属性
+                 *
+                 * @param session 会话
+                 * @param typeDescriptor 类型
+                 * @param propertyName 属性名称
+                 * @return 属性描述
+                 */
+                LuaExportPropertyDescriptor* _findInstanceProperty(LuaSession *session,
+                                                                   LuaExportTypeDescriptor *typeDescriptor,
+                                                                   std::string propertyName);
                 
             private:
                 

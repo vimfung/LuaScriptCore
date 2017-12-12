@@ -84,6 +84,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
 
     LuaValue *retValue = NULL;
 
+    int errFuncIndex = _context -> catchException();
     //记录栈顶位置，用于计算返回值数量
     int top = LuaEngineAdapter::getTop(state);
     _context -> getDataExchanger() -> getLuaObject(this);
@@ -99,7 +100,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
             item->push(_context);
         }
 
-        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, 0) == 0)
+        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == 0)
         {
             //调用成功
             returnCount = LuaEngineAdapter::getTop(state) - top;
@@ -124,15 +125,8 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
         }
         else
         {
-
             //调用失败
-            returnCount = 1;
-
-            LuaValue *value = LuaValue::ValueByIndex(_context, -1);
-            std::string errMessage = value -> toString();
-            _context -> raiseException(errMessage);
-
-            value -> release();
+            returnCount = LuaEngineAdapter::getTop(state) - top;
         }
 
         //弹出返回值
@@ -141,7 +135,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
     else
     {
         //弹出function
-        LuaEngineAdapter::pop(state, 1);
+        LuaEngineAdapter::pop(state, 2);
     }
 
 

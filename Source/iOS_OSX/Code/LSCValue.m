@@ -14,6 +14,7 @@
 #import "LSCPointer.h"
 #import "LSCTuple_Private.h"
 #import "LSCManagedObjectProtocol.h"
+#import "LSCExportTypeDescriptor.h"
 
 @interface LSCValue ()
 
@@ -109,6 +110,10 @@
         {
             return [self tupleValue:objectValue];
         }
+        else if ([objectValue isKindOfClass:[LSCExportTypeDescriptor class]])
+        {
+            return [self typeValue:objectValue];
+        }
         else
         {
             return [[self alloc] initWithType:LSCValueTypeObject value:objectValue];
@@ -131,6 +136,11 @@
 + (instancetype)tupleValue:(LSCTuple *)tupleValue
 {
     return [[self alloc] initWithType:LSCValueTypeTuple value:tupleValue];
+}
+
++ (instancetype)typeValue:(LSCExportTypeDescriptor *)typeDescriptor
+{
+    return [[self alloc] initWithType:LSCValueTypeClass value:typeDescriptor];
 }
 
 - (instancetype)init
@@ -302,6 +312,16 @@
 - (LSCTuple *)toTuple
 {
     if (self.valueType == LSCValueTypeTuple)
+    {
+        return self.valueContainer;
+    }
+    
+    return nil;
+}
+
+- (LSCExportTypeDescriptor *)toType
+{
+    if (self.valueType == LSCValueTypeClass)
     {
         return self.valueContainer;
     }

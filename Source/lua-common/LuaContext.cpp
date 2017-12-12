@@ -18,6 +18,18 @@
 
 using namespace cn::vimfung::luascriptcore;
 
+/**
+ * 捕获异常处理器名称
+ */
+static const char * CatchLuaExceptionHandlerName = "__catchExcepitonHandler";
+
+/**
+ * 方法路由处理器
+ *
+ * @param state lua状态
+ *
+ * @return 参数返回数量
+ */
 static int methodRouteHandler(lua_State *state) {
 
     int returnCount = 0;
@@ -55,6 +67,22 @@ static int methodRouteHandler(lua_State *state) {
     return returnCount;
 }
 
+/**
+ * 捕获Lua异常处理器
+ *
+ * @param context 上下文对象
+ * @param method 方法名称
+ * @param arguments 参数列表
+ */
+static LuaValue* catchLuaExceptionHandler (LuaContext *context, std::string methodName, LuaArgumentList arguments)
+{
+    if (arguments.size() > 0)
+    {
+        context -> raiseException(arguments[1] -> toString());
+    }
+
+    return NULL;
+}
 
 LuaContext::LuaContext()
         : LuaObject()
@@ -73,6 +101,9 @@ LuaContext::LuaContext()
     
     //初始化类型导出管理器
     _exportsTypeManager = new LuaExportsTypeManager(this);
+
+    //注册错误捕获方法
+    registerMethod(CatchLuaExceptionHandlerName, catchLuaExceptionHandler);
 }
 
 LuaContext::~LuaContext()
@@ -130,6 +161,21 @@ void LuaContext::raiseException (std::string message)
     }
 }
 
+int LuaContext::catchException()
+{
+    lua_State *state = getCurrentSession() -> getState();
+
+    LuaEngineAdapter::getGlobal(state, CatchLuaExceptionHandlerName);
+    if (LuaEngineAdapter::isFunction(state, -1))
+    {
+        return LuaEngineAdapter::getTop(state);
+    }
+
+    LuaEngineAdapter::pop(state, 1);
+
+    return 0;
+}
+
 void LuaContext::addSearchPath(std::string path)
 {
     lua_State *state = getCurrentSession() -> getState();
@@ -165,11 +211,12 @@ LuaValue* LuaContext::evalScript(std::string script)
     lua_State *state = getCurrentSession() -> getState();
     LuaValue *retValue = NULL;
 
+    int errFuncIndex = catchException();
     int curTop = LuaEngineAdapter::getTop(state);
     int returnCount = 0;
 
     LuaEngineAdapter::loadString(state, script.c_str());
-    if (LuaEngineAdapter::pCall(state, 0, LUA_MULTRET, 0) == 0)
+    if (LuaEngineAdapter::pCall(state, 0, LUA_MULTRET, errFuncIndex) == 0)
     {
         //调用成功
         returnCount = LuaEngineAdapter::getTop(state) - curTop;
@@ -225,11 +272,12 @@ LuaValue* LuaContext::evalScriptFromFile(std::string path)
     lua_State *state = getCurrentSession() -> getState();
     LuaValue *retValue = NULL;
 
+    int errFuncIndex = catchException();
     int curTop = LuaEngineAdapter::getTop(state);
     int returnCount = 0;
 
     LuaEngineAdapter::loadFile(state, path.c_str());
-    if (LuaEngineAdapter::pCall(state, 0, LUA_MULTRET, 0) == 0)
+    if (LuaEngineAdapter::pCall(state, 0, LUA_MULTRET, errFuncIndex) == 0)
     {
         //调用成功
         returnCount = LuaEngineAdapter::getTop(state) - curTop;
@@ -286,6 +334,7 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
 
     LuaValue *resultValue = NULL;
 
+    int errFuncIndex = catchException();
     int curTop = LuaEngineAdapter::getTop(state);
 
     LuaEngineAdapter::getGlobal(state, methodName.c_str());
@@ -301,7 +350,7 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
             item->push(this);
         }
 
-        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, 0) == 0)
+        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == 0)
         {
             //调用成功
             returnCount = LuaEngineAdapter::getTop(state) - curTop;
@@ -342,7 +391,7 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
     else
     {
         //将变量从栈中移除
-        LuaEngineAdapter::pop(state, 1);
+        LuaEngineAdapter::pop(state, 2);
     }
 
     if (resultValue == NULL)

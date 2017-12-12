@@ -42,6 +42,7 @@
     __weak LSCFunction *theFunc = self;
     lua_State *state = self.context.currentSession.state;
     
+    int errFuncIndex = [self.context catchLuaException];
     int top = [LSCEngineAdapter getTop:state];
     [self.context.dataExchanger getLuaObject:self];
     
@@ -55,7 +56,7 @@
             
         }];
         
-        if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:0] == 0)
+        if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:errFuncIndex] == 0)
         {
             returnCount = [LSCEngineAdapter getTop:state] - top;
             if (returnCount > 1)
@@ -77,10 +78,7 @@
         else
         {
             //调用失败
-            returnCount = 1;
-            LSCValue *value = [LSCValue valueWithContext:self.context atIndex:-1];
-            NSString *errMessage = [value toString];
-            [self.context raiseExceptionWithMessage:errMessage];
+            returnCount = [LSCEngineAdapter getTop:state] - top;
         }
         
         //弹出返回值
@@ -89,7 +87,7 @@
     else
     {
         //弹出func
-        [LSCEngineAdapter pop:state count:1];
+        [LSCEngineAdapter pop:state count:2];
     }
 
     if (!retValue)
