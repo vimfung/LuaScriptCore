@@ -145,7 +145,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
     }
 
     //回收内存
-    LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
+    _context -> gc();
 
     return retValue;
 }

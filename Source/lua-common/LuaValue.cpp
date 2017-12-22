@@ -17,6 +17,7 @@
 #include "LuaDataExchanger.h"
 #include "LuaExportTypeDescriptor.hpp"
 #include "LuaExportsTypeManager.hpp"
+#include "LuaTmpValue.hpp"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -356,6 +357,11 @@ LuaValue* LuaValue::ValueByIndex(LuaContext *context, int index)
     value -> managedObject(context);
 
     return value;
+}
+
+LuaValue* LuaValue::TmpValue(LuaContext *context, int index)
+{
+    return new LuaTmpValue(context, index);
 }
 
 LuaValueType LuaValue::getType()

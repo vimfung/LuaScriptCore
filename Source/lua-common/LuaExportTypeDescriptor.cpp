@@ -49,6 +49,12 @@ LuaExportTypeDescriptor::~LuaExportTypeDescriptor()
             (*mit) -> release();
         }
     }
+    
+    //释放属性
+    for (PropertyMap::iterator it = _properties.begin(); it != _properties.end(); it++)
+    {
+        it -> second -> release();
+    }
 }
 
 std::string LuaExportTypeDescriptor::typeName()
@@ -143,7 +149,13 @@ LuaExportMethodDescriptor* LuaExportTypeDescriptor::getInstanceMethod(std::strin
 
 LuaExportPropertyDescriptor* LuaExportTypeDescriptor::getProperty(std::string propertyName)
 {
-    return _properties[propertyName];
+    PropertyMap::iterator it = _properties.find(propertyName);
+    if (it != _properties.end())
+    {
+        return it -> second;
+    }
+    
+    return NULL;
 }
 
 LuaObjectDescriptor* LuaExportTypeDescriptor::createInstance(LuaSession *session)

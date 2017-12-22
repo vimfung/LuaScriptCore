@@ -40,11 +40,6 @@ namespace cn
                 LuaMethodMap _methodMap;
 
                 /**
-                 * 模块映射表
-                 */
-                LuaModuleMap _moduleMap;
-
-                /**
                  * 数据交换器
                  */
                 LuaDataExchanger *_dataExchanger;
@@ -63,6 +58,16 @@ namespace cn
                  导出类型管理器
                  */
                 LuaExportsTypeManager *_exportsTypeManager;
+                
+                /**
+                 是否需要进行内存回收
+                 */
+                bool _needGC;
+                
+                /**
+                 是否激活
+                 */
+                bool _isActive;
 
             public:
 
@@ -174,6 +179,13 @@ namespace cn
                 void registerMethod(std::string methodName, LuaMethodHandler handler);
 
             public:
+                
+                /**
+                 获取上下文状态
+
+                 @return true 表示可用， false 表示不可用，已经销毁
+                 */
+                bool isActive();
 
                 /**
                  * 根据方法名称获取对应的方法处理器
@@ -224,6 +236,16 @@ namespace cn
                  * @return 当前会话对象
                  */
                 LuaSession* getCurrentSession();
+                
+                /**
+                 内存回收
+                 */
+                void gc();
+                
+                /**
+                 进行内存回收，由定时器进行调用
+                 */
+                void gcHandler();
             };
 
         }

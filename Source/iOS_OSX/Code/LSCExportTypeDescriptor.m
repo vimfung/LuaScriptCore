@@ -7,33 +7,11 @@
 //
 
 #import "LSCExportTypeDescriptor.h"
+#import "LSCExportTypeDescriptor+Private.h"
 #import "LSCValue.h"
 #import "LSCExportMethodDescriptor.h"
 #import "LSCExportPropertyDescriptor.h"
-
-@interface LSCExportTypeDescriptor ()
-
-/**
- 类型名称
- */
-@property (nonatomic, copy) NSString *typeName;
-
-/**
- 原型类型名称
- */
-@property (nonatomic, copy) NSString *prototypeTypeName;
-
-/**
- 原生类型
- */
-@property (nonatomic) Class nativeType;
-
-/**
- 方法映射表
- */
-@property (nonatomic, strong) NSMutableDictionary<NSString *,LSCExportMethodDescriptor *> *methodsMapping;
-
-@end
+#import <objc/runtime.h>
 
 @implementation LSCExportTypeDescriptor
 
@@ -296,6 +274,156 @@
         return methods.firstObject;
     }
 
+}
+
+- (LSCValue *)_invokeMethodWithInstance:(id)instance
+                             invocation:(NSInvocation *)invocation
+                              arguments:(NSArray *)arguments
+{
+    //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
+    typedef struct {float f;} LSCFloatStruct;
+    
+    //修正索引值，用于标识参数从哪个位置开始取值
+    //其中实例方法第一个参数是实例对象自身，因此要从第二个参数开始取值，而类方法不存在该问题
+    int fixedIndex = 0;
+    Method m = NULL;
+    if (instance)
+    {
+        //为实例方法
+        [invocation setTarget:instance];
+        fixedIndex = 1;
+        m = class_getInstanceMethod(self.nativeType, invocation.selector);
+    }
+    else
+    {
+        //为类方法
+        [invocation setTarget:self.nativeType];
+        fixedIndex = 2;
+        m = class_getClassMethod(self.nativeType, invocation.selector);
+    }
+    
+    [invocation retainArguments];
+    
+    for (int i = 2; i < method_getNumberOfArguments(m); i++)
+    {
+        char *argType = method_copyArgumentType(m, i);
+        
+        LSCValue *value = nil;
+        if (i - fixedIndex < arguments.count)
+        {
+            value = arguments[i - fixedIndex];
+        }
+        else
+        {
+            value = [LSCValue nilValue];
+        }
+        
+        if (strcmp(argType, @encode(float)) == 0)
+        {
+            //浮点型数据
+            LSCFloatStruct floatValue = {[value toDouble]};
+            [invocation setArgument:&floatValue atIndex:i];
+        }
+        else if (strcmp(argType, @encode(double)) == 0)
+        {
+            //双精度浮点型
+            double doubleValue = [value toDouble];
+            [invocation setArgument:&doubleValue atIndex:i];
+        }
+        else if (strcmp(argType, @encode(int)) == 0
+                 || strcmp(argType, @encode(unsigned int)) == 0
+                 || strcmp(argType, @encode(long)) == 0
+                 || strcmp(argType, @encode(unsigned long)) == 0
+                 || strcmp(argType, @encode(short)) == 0
+                 || strcmp(argType, @encode(unsigned short)) == 0
+                 || strcmp(argType, @encode(char)) == 0
+                 || strcmp(argType, @encode(unsigned char)) == 0)
+        {
+            //整型
+            NSInteger intValue = [value toDouble];
+            [invocation setArgument:&intValue atIndex:i];
+        }
+        else if (strcmp(argType, @encode(BOOL)) == 0)
+        {
+            //布尔类型
+            BOOL boolValue = [value toBoolean];
+            [invocation setArgument:&boolValue atIndex:i];
+        }
+        else if (strcmp(argType, @encode(id)) == 0)
+        {
+            //对象类型
+            id obj = [value toObject];
+            [invocation setArgument:&obj atIndex:i];
+        }
+        
+        free(argType);
+    }
+    
+    [invocation invoke];
+    
+    char *returnType = method_copyReturnType(m);
+    
+    LSCValue *retValue = nil;
+    if (strcmp(returnType, @encode(id)) == 0)
+    {
+        //返回值为对象，添加__unsafe_unretained修饰用于修复ARC下retObj对象被释放问题。
+        id __unsafe_unretained retObj = nil;
+        [invocation getReturnValue:&retObj];
+        
+        retValue = [LSCValue objectValue:retObj];
+    }
+    else if (strcmp(returnType, @encode(int)) == 0
+             || strcmp(returnType, @encode(unsigned int)) == 0
+             || strcmp(returnType, @encode(long)) == 0
+             || strcmp(returnType, @encode(unsigned long)) == 0
+             || strcmp(returnType, @encode(short)) == 0
+             || strcmp(returnType, @encode(unsigned short)) == 0
+             || strcmp(returnType, @encode(char)) == 0
+             || strcmp(returnType, @encode(unsigned char)) == 0)
+    {
+        // i 整型
+        // I 无符号整型
+        // q 长整型
+        // Q 无符号长整型
+        // S 无符号短整型
+        // c 字符型
+        // C 无符号字符型
+        
+        NSInteger intValue = 0;
+        [invocation getReturnValue:&intValue];
+        retValue = [LSCValue integerValue:intValue];
+    }
+    else if (strcmp(returnType, @encode(float)) == 0)
+    {
+        // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
+        LSCFloatStruct floatStruct = {0};
+        [invocation getReturnValue:&floatStruct];
+        retValue = [LSCValue numberValue:@(floatStruct.f)];
+        
+    }
+    else if (strcmp(returnType, @encode(double)) == 0)
+    {
+        // d 双精度浮点型
+        double doubleValue = 0.0;
+        [invocation getReturnValue:&doubleValue];
+        retValue = [LSCValue numberValue:@(doubleValue)];
+    }
+    else if (strcmp(returnType, @encode(BOOL)) == 0)
+    {
+        //B 布尔类型
+        BOOL boolValue = NO;
+        [invocation getReturnValue:&boolValue];
+        retValue = [LSCValue booleanValue:boolValue];
+    }
+    else
+    {
+        //nil
+        retValue = nil;
+    }
+    
+    free(returnType);
+    
+    return retValue;
 }
 
 @end

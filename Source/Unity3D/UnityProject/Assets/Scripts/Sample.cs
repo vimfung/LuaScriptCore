@@ -100,7 +100,8 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void registerClassButtonClickedHandler()
 	{
-		LuaContext.currentContext.evalScript ("function Person.prototype:init() print('Person create'); end; local p = Person.createPerson(); print(p); p.name='xxxx'; p:speak(); p.intValue = 111; print('intValue', p.intValue); print(Person.printPerson(p));");
+		LuaContext context = new LuaContext ();
+		context.evalScript ("function Person.prototype:init() print('Person create'); end; local p = Person.createPerson(); print(p); p.name='xxxx'; p:speak(); p.intValue = 111; print('intValue', p.intValue); print(Person.printPerson(p));");
 	}
 
 	/// <summary>
@@ -159,5 +160,10 @@ public class Sample : MonoBehaviour {
 		}
 
 		LuaContext.currentContext.evalScriptFromFile ("coroutine.lua");
+	}
+
+	public void definePropertyButtonClickedHandler ()
+	{
+		LuaContext.currentContext.evalScriptFromFile ("defineProperty.lua");
 	}
 }
