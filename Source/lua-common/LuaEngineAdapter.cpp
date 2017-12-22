@@ -265,3 +265,8 @@ void LuaEngineAdapter::pushCFunction (lua_State *state, lua_CFunction fn)
 {
     lua_pushcfunction(state, fn);
 }
+
+int LuaEngineAdapter::error (lua_State *state, const char *message)
+{
+    return luaL_error(state, message);
+}

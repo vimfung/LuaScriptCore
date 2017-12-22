@@ -410,33 +410,6 @@ public class LuaContext extends LuaBaseObject
         }
     }
 
-//    /**
-//     * 注册模块
-//     * @param moduleClass     模块类
-//     */
-//    public void registerModule(Class<? extends LuaModule> moduleClass)
-//    {
-//        try
-//        {
-//            Method regMethod = moduleClass.getMethod("_register", LuaContext.class, moduleClass.getClass());
-//            regMethod.invoke(moduleClass, this, moduleClass);
-//        }
-//        catch (Exception e)
-//        {
-////            e.printStackTrace();
-//        }
-//    }
-
-//    /**
-//     * 判断模块是否已经注册
-//     * @param moduleName    模块名称
-//     * @return  true 模块已注册, 否则尚未注册
-//     */
-//    public boolean isModuleRegisted(String moduleName)
-//    {
-//        return LuaNativeUtil.isModuleRegisted(_nativeId, moduleName);
-//    }
-
     /**
      * 调用方法
      * @param methodName    方法名称

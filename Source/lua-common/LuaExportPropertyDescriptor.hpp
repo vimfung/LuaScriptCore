@@ -21,6 +21,7 @@ namespace cn
         namespace luascriptcore
         {
             class LuaSession;
+            class LuaFunction;
             class LuaExportTypeDescriptor;
             class LuaObjectDescriptor;
             
@@ -39,6 +40,20 @@ namespace cn
                  @param canWrite 是否能写
                  */
                 LuaExportPropertyDescriptor(std::string name, bool canRead, bool canWrite);
+                
+                /**
+                 初始化
+                 
+                 @param name 属性名称
+                 @param getter 获取处理器
+                 @param setter 设置处理器
+                 */
+                LuaExportPropertyDescriptor(std::string name, LuaFunction *getter, LuaFunction *setter);
+                
+                /**
+                 销毁对象
+                 */
+                ~LuaExportPropertyDescriptor();
                 
                 /**
                  是否能读
@@ -104,6 +119,16 @@ namespace cn
                  是否可写
                  */
                 bool _canWrite;
+                
+                /**
+                 获取处理器
+                 */
+                LuaFunction *_getter;
+                
+                /**
+                 设置处理器
+                 */
+                LuaFunction *_setter;
             };
         }
     }

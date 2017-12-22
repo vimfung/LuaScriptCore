@@ -126,6 +126,20 @@
                 android:layout_marginTop="29dp"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Defined Property"
+                android:id="@+id/definedPropertyButton"
+                android:background="#4d5563"
+                android:textColor="#ffffff"
+                android:layout_below="@+id/coroutineButton"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_marginTop="29dp"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true" />
         </RelativeLayout>
     </ScrollView>
 </RelativeLayout>

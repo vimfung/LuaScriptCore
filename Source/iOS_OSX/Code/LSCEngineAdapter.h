@@ -470,4 +470,14 @@ typedef NS_ENUM(NSUInteger, LSCGCType) {
  */
 + (const char *)checkString:(lua_State *)state index:(int)index;
 
+/**
+ 抛出异常
+
+ @param state 状态
+ @param message 错误消息
+ 
+ @return 执行状态
+ */
++ (int)error:(lua_State *)state message:(const char *)message;
+
 @end

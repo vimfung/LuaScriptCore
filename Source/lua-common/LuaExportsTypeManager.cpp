@@ -59,7 +59,7 @@ static int subClassHandler (lua_State *state)
     
     if (LuaEngineAdapter::getTop(state) == 0)
     {
-        context -> raiseException("Miss the subclass name parameter");
+        LuaEngineAdapter::error(state, "Miss the subclass name parameter");
         return 0;
     }
     
@@ -151,7 +151,7 @@ static int classToStringHandler (lua_State *state)
     }
     else
     {
-        context -> raiseException("Can not describe unknown type.");
+        LuaEngineAdapter::error(state, "Can not describe unknown type.");
         LuaEngineAdapter::pushNil(state);
     }
     
@@ -168,48 +168,52 @@ static int classToStringHandler (lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
-    
-    LuaContext *context = manager -> context();
-    LuaSession *session = context -> makeSession(state);
-    
     if (LuaEngineAdapter::getTop(state) > 0 && LuaEngineAdapter::isUserdata(state, 1))
     {
-        LuaArgumentList args;
-        session -> parseArguments(args);
+        LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
+        LuaContext *context = manager -> context();
         
-        LuaObjectDescriptor *objDesc = args[0] -> toObject();
-        objDesc -> getTypeDescriptor() -> destroyInstance(session, objDesc);
-
-        int errFuncIndex = manager -> context() -> catchException();
-
-        //调用实例对象的destroy方法
-        LuaEngineAdapter::pushValue(state, 1);
-
-        LuaEngineAdapter::getField(state, -1, "destroy");
-        if (LuaEngineAdapter::isFunction(state, -1))
+        //判断context是否激活状态，由于调用lua_close时GC会回收对象触发该方法，如果继续执行下面操作会导致崩溃。因此，在这里需要进行判断。
+        if (context -> isActive())
         {
+            LuaSession *session = context -> makeSession(state);
+            
+            LuaArgumentList args;
+            session -> parseArguments(args);
+            
+            LuaObjectDescriptor *objDesc = args[0] -> toObject();
+            objDesc -> getTypeDescriptor() -> destroyInstance(session, objDesc);
+            
+            int errFuncIndex = manager -> context() -> catchException();
+            
+            //调用实例对象的destroy方法
             LuaEngineAdapter::pushValue(state, 1);
-            LuaEngineAdapter::pCall(state, 1, 0, errFuncIndex);
-
-            LuaEngineAdapter::pop(state, 1);
-        }
-        else
-        {
-            LuaEngineAdapter::pop(state, 3);
-        }
-        
-        //释放实例对象
-        objDesc -> release();
-        
-        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
-        {
-            LuaValue *value = *it;
-            value -> release();
+            
+            LuaEngineAdapter::getField(state, -1, "destroy");
+            if (LuaEngineAdapter::isFunction(state, -1))
+            {
+                LuaEngineAdapter::pushValue(state, 1);
+                LuaEngineAdapter::pCall(state, 1, 0, errFuncIndex);
+                
+                LuaEngineAdapter::pop(state, 1);
+            }
+            else
+            {
+                LuaEngineAdapter::pop(state, 3);
+            }
+            
+            //释放实例对象
+            objDesc -> release();
+            
+            for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+            {
+                LuaValue *value = *it;
+                value -> release();
+            }
+            
+            context -> destorySession(session);
         }
     }
-    
-    context -> destorySession(session);
     
     return 0;
 }
@@ -242,7 +246,7 @@ static int prototypeToStringHandler (lua_State *state)
     }
     else
     {
-        context -> raiseException("Can not describe unknown prototype.");
+        LuaEngineAdapter::error(state, "Can not describe unknown prototype.");
         LuaEngineAdapter::pushNil(state);
     }
 
@@ -277,8 +281,15 @@ static int objectToStringHandler (lua_State *state)
     }
     else
     {
-        manager -> context() -> raiseException("Can not describe unknown object.");
+        LuaEngineAdapter::error(state, "Can not describe unknown object.");
         LuaEngineAdapter::pushNil(state);
+    }
+    
+    //释放参数内存
+    for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+    {
+        LuaValue *value = *it;
+        value -> release();
     }
     
     manager -> context() -> destorySession(session);
@@ -402,7 +413,7 @@ static int instanceMethodRouteHandler(lua_State *state)
     if (LuaEngineAdapter::type(state, 1) != LUA_TUSERDATA)
     {
         std::string errMsg = "call " + methodName + " method error : missing self parameter, please call by instance:methodName(param)";
-        context -> raiseException(errMsg);
+        LuaEngineAdapter::error(state, errMsg.c_str());
         
         //回收内存
         LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
@@ -452,17 +463,20 @@ static int instanceNewIndexHandler (lua_State *state)
     
     LuaSession *session = manager -> context() -> makeSession(state);
     
+    std::string key = LuaEngineAdapter::toString(state, 2);
+    
     LuaArgumentList arguments;
-    session -> parseArguments(arguments);
     
     //检测是否存在类型属性
     LuaExportPropertyDescriptor *propertyDescriptor = manager -> _findInstanceProperty(session,
                                                                                       instance -> getTypeDescriptor(),
-                                                                                      arguments[1] -> toString());
+                                                                                      key);
     if (propertyDescriptor != NULL)
     {
         //调用对象属性
-        propertyDescriptor -> invokeSetter(session, instance, arguments[2]);
+        LuaValue *value = LuaValue::TmpValue(manager -> context(), 3);
+        propertyDescriptor -> invokeSetter(session, instance, value);
+        value -> release();
     }
     else
     {
@@ -550,6 +564,76 @@ static int instanceIndexHandler(lua_State *state)
     exporter -> context() -> destorySession(session);
     
     return retValueCount;
+}
+
+/**
+ 设置原型的新属性处理
+ 
+ @param state 状态
+ @return 参数数量
+ */
+static int prototypeNewIndexHandler (lua_State *state)
+{
+    int index = LuaEngineAdapter::upValueIndex(1);
+    const void *ptr = LuaEngineAdapter::toPointer(state, index);
+    LuaExportsTypeManager *exporter = (LuaExportsTypeManager *)ptr;
+    
+    LuaSession *session = exporter -> context() -> makeSession(state);
+    
+    //t,k,v
+    bool isPropertyReg = false;
+    if (LuaEngineAdapter::type(state, 3) == LUA_TTABLE)
+    {
+        //检测是否为属性设置
+        LuaFunction *getter = NULL;
+        LuaFunction *setter = NULL;
+        
+        LuaEngineAdapter::getField(state, 3, "get");
+        if (LuaEngineAdapter::type(state, -1) == LUA_TFUNCTION)
+        {
+            LuaValue *getterValue = LuaValue::ValueByIndex(exporter -> context(), -1);
+            getter = getterValue -> toFunction();
+        }
+        
+        LuaEngineAdapter::pop(state, 1);
+        
+        LuaEngineAdapter::getField(state, 3, "set");
+        if (LuaEngineAdapter::type(state, -1) == LUA_TFUNCTION)
+        {
+            LuaValue *setterValue = LuaValue::ValueByIndex(exporter -> context(), -1);
+            setter = setterValue -> toFunction();
+        }
+        
+        LuaEngineAdapter::pop(state, 1);
+        
+        if (getter != NULL || setter != NULL)
+        {
+            isPropertyReg = true;
+            
+            //注册属性
+            LuaEngineAdapter::getField(state, 1, "_nativeType");
+            if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
+            {
+                LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+                
+                LuaValue *propertyNameValue = LuaValue::ValueByIndex(exporter -> context(), 2);
+                
+                LuaExportPropertyDescriptor *propertyDescriptor = new LuaExportPropertyDescriptor(propertyNameValue -> toString(), getter, setter);
+                typeDescriptor -> addProperty(propertyDescriptor -> name(), propertyDescriptor);
+                propertyDescriptor -> release();
+            }
+        }
+    }
+    
+    if (!isPropertyReg)
+    {
+        //直接设置
+        LuaEngineAdapter::rawSet(state, 1);
+    }
+    
+    exporter -> context() -> destorySession(session);
+    
+    return 0;
 }
 
 LuaExportsTypeManager::LuaExportsTypeManager(LuaContext *context)
@@ -698,34 +782,39 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
 
     //---------创建实例对象原型表---------------
     LuaEngineAdapter::newMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
-    
+
     LuaEngineAdapter::getGlobal(state, typeDescriptor -> typeName().c_str());
     LuaEngineAdapter::setField(state, -2, "class");
-    
+
     LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
     LuaEngineAdapter::setField(state, -2, "_nativeType");
-    
+
     LuaEngineAdapter::pushValue(state, -1);
     LuaEngineAdapter::setField(state, -2, "__index");
-    
+
+    //增加__newindex元方法监听，主要用于原型中注册属性
     LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushCClosure(state, objectDestroyHandler, 1);
-    LuaEngineAdapter::setField(state, -2, "__gc");
-    
+    LuaEngineAdapter::pushCClosure(state, prototypeNewIndexHandler, 1);
+    LuaEngineAdapter::setField(state, -2, "__newindex");
+
+//    LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+//    LuaEngineAdapter::pushCClosure(state, objectDestroyHandler, 1);
+//    LuaEngineAdapter::setField(state, -2, "__gc");
+
     LuaEngineAdapter::pushLightUserdata(state, (void *)this);
     LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
     LuaEngineAdapter::pushCClosure(state, prototypeToStringHandler, 2);
     LuaEngineAdapter::setField(state, -2, "__tostring");
-    
+
     //给类元表绑定该实例元表
     LuaEngineAdapter::getGlobal(state, typeDescriptor -> typeName().c_str());
     LuaEngineAdapter::pushValue(state, -2);
     LuaEngineAdapter::setField(state, -2, "prototype");
     LuaEngineAdapter::pop(state, 1);
-    
+
     //导出实例方法
     _exportsInstanceMethods(state, typeDescriptor);
-    
+
     if (parentTypeDescriptor != NULL)
     {
         //关联父类
@@ -735,7 +824,7 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
             //设置父类访问属性 since ver 1.3
             LuaEngineAdapter::pushValue(state, -1);
             LuaEngineAdapter::setField(state, -3, "super");
-            
+
             //设置父类元表
             LuaEngineAdapter::setMetatable(state, -2);
         }
@@ -748,17 +837,17 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
     {
         //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
         LuaEngineAdapter::newTable(state);
-        
-        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-        LuaEngineAdapter::pushCClosure(state, objectDestroyHandler, 1);
-        LuaEngineAdapter::setField(state, -2, "__gc");
-        
+
+//        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+//        LuaEngineAdapter::pushCClosure(state, objectDestroyHandler, 1);
+//        LuaEngineAdapter::setField(state, -2, "__gc");
+
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
         LuaEngineAdapter::pushCClosure(state, prototypeToStringHandler, 1);
         LuaEngineAdapter::setField(state, -2, "__tostring");
-        
+
         LuaEngineAdapter::setMetatable(state, -2);
-        
+
         //Object类需要增加一些特殊方法
         //创建instanceOf方法 since ver 1.3
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
@@ -766,7 +855,7 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
         LuaEngineAdapter::pushCClosure(state, instanceOfHandler, 2);
         LuaEngineAdapter::setField(state, -2, "instanceOf");
     }
-    
+
     LuaEngineAdapter::pop(state, 1);
 }
 
@@ -803,12 +892,12 @@ void LuaExportsTypeManager::_exportsInstanceMethods(lua_State *state, LuaExportT
         if (!LuaEngineAdapter::isFunction(state, -1))
         {
             LuaEngineAdapter::pop(state, 1);
-            
+
             LuaEngineAdapter::pushLightUserdata(state, (void *)this);
             LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
             LuaEngineAdapter::pushString(state, (*it).c_str());
             LuaEngineAdapter::pushCClosure(state, instanceMethodRouteHandler, 3);
-            
+
             LuaEngineAdapter::setField(state, -2, (*it).c_str());
         }
         else
@@ -834,7 +923,7 @@ void LuaExportsTypeManager::_setupExportEnv()
     
     if (!LuaEngineAdapter::isTable(state, -1))
     {
-        _context -> raiseException("Invalid '_G' object，setup the exporter fail.");
+        LuaEngineAdapter::error(state, "Invalid '_G' object，setup the exporter fail.");
         LuaEngineAdapter::pop(state, 1);
         return;
     }

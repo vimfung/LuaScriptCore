@@ -25,6 +25,7 @@
 #include "LuaUnityExportMethodDescriptor.hpp"
 #include "LuaUnityExportPropertyDescriptor.hpp"
 #include "LuaValue.h"
+#include "LuaTmpValue.hpp"
 #include "LuaObjectDescriptor.h"
 #include "StringUtils.h"
 
@@ -141,6 +142,8 @@ extern "C" {
     {
         //设置映射类型
         LuaObjectEncoder::setMappingClassType(typeid(LuaValue).name(), "cn.vimfung.luascriptcore.LuaValue");
+        //让LuaTmpValue与LuaValue走一样的序列化操作
+        LuaObjectEncoder::setMappingClassType(typeid(LuaTmpValue).name(), "cn.vimfung.luascriptcore.LuaValue");
         LuaObjectEncoder::setMappingClassType(typeid(LuaObjectDescriptor).name(), "cn.vimfung.luascriptcore.LuaObjectDescriptor");
         LuaObjectEncoder::setMappingClassType(typeid(LuaFunction).name(), "cn.vimfung.luascriptcore.LuaFunction");
         LuaObjectEncoder::setMappingClassType(typeid(LuaPointer).name(), "cn.vimfung.luascriptcore.LuaPointer");

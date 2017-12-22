@@ -27,56 +27,67 @@ LuaUnityExportPropertyDescriptor::LuaUnityExportPropertyDescriptor(std::string n
 
 LuaValue* LuaUnityExportPropertyDescriptor::invokeGetter(LuaSession *session, LuaObjectDescriptor *instance)
 {
-    if (_getterHandler != NULL && canRead())
+    LuaValue *retValue = NULL;
+    if (canRead())
     {
-        void *returnBuffer = _getterHandler (typeDescriptor -> objectId(), (long long) instance -> getObject(), name().c_str());
-        
-        LuaValue *retValue = NULL;
-        if (returnBuffer != NULL)
+        if (_getterHandler != NULL)
         {
-            LuaObjectDecoder *decoder = new LuaObjectDecoder(session -> getContext(), returnBuffer);
-            retValue = dynamic_cast<LuaValue *>(decoder -> readObject());
-            decoder -> release();
-            
-            //释放C＃中申请的内存
-            free(returnBuffer);
+            void *returnBuffer = _getterHandler (typeDescriptor -> objectId(), (long long) instance -> getObject(), name().c_str());
+            if (returnBuffer != NULL)
+            {
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(session -> getContext(), returnBuffer);
+                retValue = dynamic_cast<LuaValue *>(decoder -> readObject());
+                decoder -> release();
+                
+                //释放C＃中申请的内存
+                free(returnBuffer);
+            }
+            else
+            {
+                retValue = LuaValue::NilValue();
+            }
         }
         else
         {
-            retValue = LuaValue::NilValue();
+            retValue = LuaExportPropertyDescriptor::invokeGetter(session, instance);
         }
-        
-        return retValue;
     }
     
-    return NULL;
+    return retValue;
 }
 
 void LuaUnityExportPropertyDescriptor::invokeSetter(LuaSession *session, LuaObjectDescriptor *instance, LuaValue *value)
 {
-    if (_setterHandler != NULL && canWrite())
+    if (canWrite())
     {
-        LuaObjectEncoder *encoder = new LuaObjectEncoder(session -> getContext());
-        if (value != NULL)
+        if (_setterHandler != NULL)
         {
-            encoder -> writeObject(value);
+            LuaObjectEncoder *encoder = new LuaObjectEncoder(session -> getContext());
+            if (value != NULL)
+            {
+                encoder -> writeObject(value);
+            }
+            else
+            {
+                LuaValue *nilValue = LuaValue::NilValue();
+                encoder -> writeObject(nilValue);
+                nilValue -> release();
+            }
+            
+            //valueBuf的内容由C#端进行释放
+            const void *valueBuf = encoder -> cloneBuffer();
+            
+            _setterHandler (typeDescriptor -> objectId(),
+                            (long long) instance -> getObject(),
+                            name().c_str(),
+                            valueBuf,
+                            encoder -> getBufferLength());
+            
+            encoder -> release();
         }
         else
         {
-            LuaValue *nilValue = LuaValue::NilValue();
-            encoder -> writeObject(nilValue);
-            nilValue -> release();
+            LuaExportPropertyDescriptor::invokeSetter(session, instance, value);
         }
-        
-        //valueBuf的内容由C#端进行释放
-        const void *valueBuf = encoder -> cloneBuffer();
-        
-        _setterHandler (typeDescriptor -> objectId(),
-                        (long long) instance -> getObject(),
-                        name().c_str(),
-                        valueBuf,
-                        encoder -> getBufferLength());
-        
-        encoder -> release();
     }
 }

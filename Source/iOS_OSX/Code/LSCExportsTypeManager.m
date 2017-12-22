@@ -10,9 +10,9 @@
 #import "LSCContext_Private.h"
 #import "LSCSession_Private.h"
 #import "LSCEngineAdapter.h"
-#import "LSCValue.h"
+#import "LSCValue_Private.h"
 #import "LSCPointer.h"
-#import "LSCExportTypeDescriptor.h"
+#import "LSCExportTypeDescriptor+Private.h"
 #import "LSCExportMethodDescriptor.h"
 #import "LSCExportTypeAnnotation.h"
 #import "LSCExportPropertyDescriptor.h"
@@ -95,7 +95,7 @@
     
     if (![LSCEngineAdapter isTable:state index:-1])
     {
-        [self.context raiseExceptionWithMessage:@"Invalid '_G' object，setup the exporter fail."];
+        [LSCEngineAdapter error:state message:"Invalid '_G' object，setup the exporter fail."];
         [LSCEngineAdapter pop:state count:1];
         return;
     }
@@ -272,10 +272,15 @@
 
     [LSCEngineAdapter pushValue:-1 state:state];
     [LSCEngineAdapter setField:state index:-2 name:"__index"];
-
+    
+    //增加__newindex元方法监听，主要用于原型中注册属性
     [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__gc"];
+    [LSCEngineAdapter pushCClosure:prototypeNewIndexHandler n:1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__newindex"];
+
+//    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+//    [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
+//    [LSCEngineAdapter setField:state index:-2 name:"__gc"];
 
     [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
     [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
@@ -320,9 +325,9 @@
         //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
         [LSCEngineAdapter newTable:state];
         
-        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-        [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
-        [LSCEngineAdapter setField:state index:-2 name:"__gc"];
+//        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+//        [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
+//        [LSCEngineAdapter setField:state index:-2 name:"__gc"];
         
         [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
         [LSCEngineAdapter pushCClosure:prototypeToStringHandler n:1 state:state];
@@ -359,7 +364,10 @@
             }
         }
         
-        NSArray *builtInExcludeMethodNames = @[];
+        NSArray *builtInExcludeMethodNames = @[@"typeName",
+                                               @"excludeExportClassMethods",
+                                               @"excludeProperties",
+                                               @"excludeExportInstanceMethods"];
         
         //解析方法
         NSMutableDictionary *methodDict = [typeDescriptor.classMethods mutableCopy];
@@ -478,10 +486,10 @@
 - (NSArray<NSString *> *)_exportsProperties:(LSCExportTypeDescriptor *)typeDescriptor
                                       state:(lua_State *)state
 {
-    NSMutableArray *propertySelectorList = nil;
+    NSMutableSet<NSString *> *propertySelectorList = nil;
     if (typeDescriptor.nativeType != NULL && typeDescriptor.nativeType != [NSObject class])
     {
-        propertySelectorList = [NSMutableArray array];
+        propertySelectorList = [NSMutableSet set];
         
         NSMutableDictionary *propertiesDict = [NSMutableDictionary dictionary];
         
@@ -558,23 +566,28 @@
             }
             
             //生成导出属性
-            LSCExportPropertyDescriptor *propertyDescriptor = [[LSCExportPropertyDescriptor alloc] initWithName:propertyName];
-            
-            if (!readonly)
-            {
-                propertyDescriptor.setterSelector = NSSelectorFromString(setterName);
-            }
-            propertyDescriptor.getterSelector = NSSelectorFromString(getterName);
+            LSCExportPropertyDescriptor *propertyDescriptor = [[LSCExportPropertyDescriptor alloc] initWithName:propertyName getterSelector:NSSelectorFromString(getterName) setterSelector:readonly ? nil : NSSelectorFromString(setterName)];
             
             [propertiesDict setObject:propertyDescriptor forKey:propertyDescriptor.name];
         }
         
         free(properties);
         
+        //记录属性Selector名称集合
+        typeDescriptor.propertySelectorNames = propertySelectorList;
+        //记录导出属性
         typeDescriptor.properties = propertiesDict;
+        
+        //加入所有父类属性名称集合，用于检测当前类型是否有重载父级属性
+        LSCExportTypeDescriptor *parentTypeDescriptor = typeDescriptor.parentTypeDescriptor;
+        while (parentTypeDescriptor)
+        {
+            [propertySelectorList addObjectsFromArray:parentTypeDescriptor.propertySelectorNames.allObjects];
+            parentTypeDescriptor = parentTypeDescriptor.parentTypeDescriptor;
+        }
     }
     
-    return propertySelectorList;
+    return [propertySelectorList allObjects];
 }
 
 /**
@@ -1064,22 +1077,9 @@
             }
             else
             {
-                if (propertyDescriptor.getterSelector)
-                {
-                    NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:propertyDescriptor.getterSelector];
-                    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
-                    invocation.selector = propertyDescriptor.getterSelector;
-                    
-                    LSCValue *retValue = [self _invokeMethodWithInstance:instance
-                                                          typeDescriptor:typeDescriptor
-                                                              invocation:invocation
-                                                               arguments:nil];
-                    retValueCount = [session setReturnValue:retValue];
-                }
-                else
-                {
-                    [LSCEngineAdapter pushNil:state];
-                }
+                LSCValue *retValue = [propertyDescriptor invokeGetterWithInstance:instance
+                                                                   typeDescriptor:typeDescriptor];
+                retValueCount = [session setReturnValue:retValue];
             }
         }
         
@@ -1090,166 +1090,166 @@
 }
 
 
-/**
- 调用方法
-
- @param instance 实例对象
- @param typeDescriptor 类型描述
- @param invocation 调用器
- @param arguments 参数
- 
- @return 返回值
- */
-- (LSCValue *)_invokeMethodWithInstance:(id)instance
-                         typeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
-                             invocation:(NSInvocation *)invocation
-                              arguments:(NSArray *)arguments
-{
-    //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
-    typedef struct {float f;} LSCFloatStruct;
-    
-    //修正索引值，用于标识参数从哪个位置开始取值
-    //其中实例方法第一个参数是实例对象自身，因此要从第二个参数开始取值，而类方法不存在该问题
-    int fixedIndex = 0;
-    Method m = NULL;
-    if (instance)
-    {
-        //为实例方法
-        [invocation setTarget:instance];
-        fixedIndex = 1;
-        m = class_getInstanceMethod(typeDescriptor.nativeType, invocation.selector);
-    }
-    else
-    {
-        //为类方法
-        [invocation setTarget:typeDescriptor.nativeType];
-        fixedIndex = 2;
-        m = class_getClassMethod(typeDescriptor.nativeType, invocation.selector);
-    }
-    
-    [invocation retainArguments];
-
-    for (int i = 2; i < method_getNumberOfArguments(m); i++)
-    {
-        char *argType = method_copyArgumentType(m, i);
-        
-        LSCValue *value = nil;
-        if (i - fixedIndex < arguments.count)
-        {
-            value = arguments[i - fixedIndex];
-        }
-        else
-        {
-            value = [LSCValue nilValue];
-        }
-        
-        if (strcmp(argType, @encode(float)) == 0)
-        {
-            //浮点型数据
-            LSCFloatStruct floatValue = {[value toDouble]};
-            [invocation setArgument:&floatValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(double)) == 0)
-        {
-            //双精度浮点型
-            double doubleValue = [value toDouble];
-            [invocation setArgument:&doubleValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(int)) == 0
-                 || strcmp(argType, @encode(unsigned int)) == 0
-                 || strcmp(argType, @encode(long)) == 0
-                 || strcmp(argType, @encode(unsigned long)) == 0
-                 || strcmp(argType, @encode(short)) == 0
-                 || strcmp(argType, @encode(unsigned short)) == 0
-                 || strcmp(argType, @encode(char)) == 0
-                 || strcmp(argType, @encode(unsigned char)) == 0)
-        {
-            //整型
-            NSInteger intValue = [value toDouble];
-            [invocation setArgument:&intValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(BOOL)) == 0)
-        {
-            //布尔类型
-            BOOL boolValue = [value toBoolean];
-            [invocation setArgument:&boolValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(id)) == 0)
-        {
-            //对象类型
-            id obj = [value toObject];
-            [invocation setArgument:&obj atIndex:i];
-        }
-        
-        free(argType);
-    }
-    
-    [invocation invoke];
-    
-    char *returnType = method_copyReturnType(m);
-    
-    LSCValue *retValue = nil;
-    if (strcmp(returnType, @encode(id)) == 0)
-    {
-        //返回值为对象，添加__unsafe_unretained修饰用于修复ARC下retObj对象被释放问题。
-        id __unsafe_unretained retObj = nil;
-        [invocation getReturnValue:&retObj];
-        
-        retValue = [LSCValue objectValue:retObj];
-    }
-    else if (strcmp(returnType, @encode(int)) == 0
-             || strcmp(returnType, @encode(unsigned int)) == 0
-             || strcmp(returnType, @encode(long)) == 0
-             || strcmp(returnType, @encode(unsigned long)) == 0
-             || strcmp(returnType, @encode(short)) == 0
-             || strcmp(returnType, @encode(unsigned short)) == 0
-             || strcmp(returnType, @encode(char)) == 0
-             || strcmp(returnType, @encode(unsigned char)) == 0)
-    {
-        // i 整型
-        // I 无符号整型
-        // q 长整型
-        // Q 无符号长整型
-        // S 无符号短整型
-        // c 字符型
-        // C 无符号字符型
-        
-        NSInteger intValue = 0;
-        [invocation getReturnValue:&intValue];
-        retValue = [LSCValue integerValue:intValue];
-    }
-    else if (strcmp(returnType, @encode(float)) == 0)
-    {
-        // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
-        LSCFloatStruct floatStruct = {0};
-        [invocation getReturnValue:&floatStruct];
-        retValue = [LSCValue numberValue:@(floatStruct.f)];
-        
-    }
-    else if (strcmp(returnType, @encode(double)) == 0)
-    {
-        // d 双精度浮点型
-        double doubleValue = 0.0;
-        [invocation getReturnValue:&doubleValue];
-        retValue = [LSCValue numberValue:@(doubleValue)];
-    }
-    else if (strcmp(returnType, @encode(BOOL)) == 0)
-    {
-        //B 布尔类型
-        BOOL boolValue = NO;
-        [invocation getReturnValue:&boolValue];
-        retValue = [LSCValue booleanValue:boolValue];
-    }
-    else
-    {
-        //nil
-        retValue = nil;
-    }
-    
-    free(returnType);
-    
-    return retValue;
-}
+///**
+// 调用方法
+//
+// @param instance 实例对象
+// @param typeDescriptor 类型描述
+// @param invocation 调用器
+// @param arguments 参数
+//
+// @return 返回值
+// */
+//- (LSCValue *)_invokeMethodWithInstance:(id)instance
+//                         typeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
+//                             invocation:(NSInvocation *)invocation
+//                              arguments:(NSArray *)arguments
+//{
+//    //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
+//    typedef struct {float f;} LSCFloatStruct;
+//
+//    //修正索引值，用于标识参数从哪个位置开始取值
+//    //其中实例方法第一个参数是实例对象自身，因此要从第二个参数开始取值，而类方法不存在该问题
+//    int fixedIndex = 0;
+//    Method m = NULL;
+//    if (instance)
+//    {
+//        //为实例方法
+//        [invocation setTarget:instance];
+//        fixedIndex = 1;
+//        m = class_getInstanceMethod(typeDescriptor.nativeType, invocation.selector);
+//    }
+//    else
+//    {
+//        //为类方法
+//        [invocation setTarget:typeDescriptor.nativeType];
+//        fixedIndex = 2;
+//        m = class_getClassMethod(typeDescriptor.nativeType, invocation.selector);
+//    }
+//
+//    [invocation retainArguments];
+//
+//    for (int i = 2; i < method_getNumberOfArguments(m); i++)
+//    {
+//        char *argType = method_copyArgumentType(m, i);
+//
+//        LSCValue *value = nil;
+//        if (i - fixedIndex < arguments.count)
+//        {
+//            value = arguments[i - fixedIndex];
+//        }
+//        else
+//        {
+//            value = [LSCValue nilValue];
+//        }
+//
+//        if (strcmp(argType, @encode(float)) == 0)
+//        {
+//            //浮点型数据
+//            LSCFloatStruct floatValue = {[value toDouble]};
+//            [invocation setArgument:&floatValue atIndex:i];
+//        }
+//        else if (strcmp(argType, @encode(double)) == 0)
+//        {
+//            //双精度浮点型
+//            double doubleValue = [value toDouble];
+//            [invocation setArgument:&doubleValue atIndex:i];
+//        }
+//        else if (strcmp(argType, @encode(int)) == 0
+//                 || strcmp(argType, @encode(unsigned int)) == 0
+//                 || strcmp(argType, @encode(long)) == 0
+//                 || strcmp(argType, @encode(unsigned long)) == 0
+//                 || strcmp(argType, @encode(short)) == 0
+//                 || strcmp(argType, @encode(unsigned short)) == 0
+//                 || strcmp(argType, @encode(char)) == 0
+//                 || strcmp(argType, @encode(unsigned char)) == 0)
+//        {
+//            //整型
+//            NSInteger intValue = [value toDouble];
+//            [invocation setArgument:&intValue atIndex:i];
+//        }
+//        else if (strcmp(argType, @encode(BOOL)) == 0)
+//        {
+//            //布尔类型
+//            BOOL boolValue = [value toBoolean];
+//            [invocation setArgument:&boolValue atIndex:i];
+//        }
+//        else if (strcmp(argType, @encode(id)) == 0)
+//        {
+//            //对象类型
+//            id obj = [value toObject];
+//            [invocation setArgument:&obj atIndex:i];
+//        }
+//
+//        free(argType);
+//    }
+//
+//    [invocation invoke];
+//
+//    char *returnType = method_copyReturnType(m);
+//
+//    LSCValue *retValue = nil;
+//    if (strcmp(returnType, @encode(id)) == 0)
+//    {
+//        //返回值为对象，添加__unsafe_unretained修饰用于修复ARC下retObj对象被释放问题。
+//        id __unsafe_unretained retObj = nil;
+//        [invocation getReturnValue:&retObj];
+//
+//        retValue = [LSCValue objectValue:retObj];
+//    }
+//    else if (strcmp(returnType, @encode(int)) == 0
+//             || strcmp(returnType, @encode(unsigned int)) == 0
+//             || strcmp(returnType, @encode(long)) == 0
+//             || strcmp(returnType, @encode(unsigned long)) == 0
+//             || strcmp(returnType, @encode(short)) == 0
+//             || strcmp(returnType, @encode(unsigned short)) == 0
+//             || strcmp(returnType, @encode(char)) == 0
+//             || strcmp(returnType, @encode(unsigned char)) == 0)
+//    {
+//        // i 整型
+//        // I 无符号整型
+//        // q 长整型
+//        // Q 无符号长整型
+//        // S 无符号短整型
+//        // c 字符型
+//        // C 无符号字符型
+//
+//        NSInteger intValue = 0;
+//        [invocation getReturnValue:&intValue];
+//        retValue = [LSCValue integerValue:intValue];
+//    }
+//    else if (strcmp(returnType, @encode(float)) == 0)
+//    {
+//        // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
+//        LSCFloatStruct floatStruct = {0};
+//        [invocation getReturnValue:&floatStruct];
+//        retValue = [LSCValue numberValue:@(floatStruct.f)];
+//
+//    }
+//    else if (strcmp(returnType, @encode(double)) == 0)
+//    {
+//        // d 双精度浮点型
+//        double doubleValue = 0.0;
+//        [invocation getReturnValue:&doubleValue];
+//        retValue = [LSCValue numberValue:@(doubleValue)];
+//    }
+//    else if (strcmp(returnType, @encode(BOOL)) == 0)
+//    {
+//        //B 布尔类型
+//        BOOL boolValue = NO;
+//        [invocation getReturnValue:&boolValue];
+//        retValue = [LSCValue booleanValue:boolValue];
+//    }
+//    else
+//    {
+//        //nil
+//        retValue = nil;
+//    }
+//
+//    free(returnType);
+//
+//    return retValue;
+//}
 
 #pragma mark - C Method
 
@@ -1287,10 +1287,9 @@ static int classMethodRouteHandler(lua_State *state)
     //确定调用方法的Target
     if (invocation)
     {
-        LSCValue *retValue = [exporter _invokeMethodWithInstance:nil
-                                                  typeDescriptor:typeDescriptor
-                                                      invocation:invocation
-                                                       arguments:arguments];
+        LSCValue *retValue = [typeDescriptor _invokeMethodWithInstance:nil
+                                                            invocation:invocation
+                                                             arguments:arguments];
         
         if (retValue)
         {
@@ -1300,7 +1299,7 @@ static int classMethodRouteHandler(lua_State *state)
     else
     {
         NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
-        [exporter.context raiseExceptionWithMessage:errMsg];
+        [LSCEngineAdapter error:state message:errMsg.UTF8String];
     }
     
     [exporter.context destroySession:callSession];
@@ -1334,7 +1333,7 @@ static int instanceMethodRouteHandler(lua_State *state)
     if ([LSCEngineAdapter type:state index:1] != LUA_TUSERDATA)
     {
         NSString *errMsg = [NSString stringWithFormat:@"call %@ method error : missing self parameter, please call by instance:methodName(param)", methodName];
-        [exporter.context raiseExceptionWithMessage:errMsg];
+        [LSCEngineAdapter error:state message:errMsg.UTF8String];
         return retCount;
     }
     
@@ -1351,10 +1350,9 @@ static int instanceMethodRouteHandler(lua_State *state)
     //获取类实例对象
     if (invocation && instance)
     {
-        LSCValue *retValue = [exporter _invokeMethodWithInstance:instance
-                                                  typeDescriptor:typeDescriptor
-                                                      invocation:invocation
-                                                       arguments:arguments];
+        LSCValue *retValue = [typeDescriptor _invokeMethodWithInstance:instance
+                                                            invocation:invocation
+                                                             arguments:arguments];
         
         if (retValue)
         {
@@ -1364,7 +1362,7 @@ static int instanceMethodRouteHandler(lua_State *state)
     else
     {
         NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
-        [exporter.context raiseExceptionWithMessage:errMsg];
+        [LSCEngineAdapter error:state message:errMsg.UTF8String];
     }
     
     [exporter.context destroySession:callSession];
@@ -1417,32 +1415,18 @@ static int instanceNewIndexHandler (lua_State *state)
                                                                                   index:[LSCEngineAdapter upvalueIndex:1]];
     LSCExportTypeDescriptor *typeDescriptor = (LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:[LSCEngineAdapter upvalueIndex:2]];
     id instance = (__bridge id)[LSCEngineAdapter toPointer:state index:[LSCEngineAdapter upvalueIndex:3]];
+    NSString *key = [NSString stringWithUTF8String:[LSCEngineAdapter toString:state index:2]];
     
     LSCSession *session = [exporter.context makeSessionWithState:state];
-    NSArray *arguments = [session parseArguments];
     
     //检测是否存在类型属性
     LSCExportPropertyDescriptor *propertyDescriptor = [exporter _findInstancePropertyWithSession:session
                                                                                   typeDescriptor:typeDescriptor
-                                                                                    propertyName:[(LSCValue *)arguments[1] toString]];
+                                                                                    propertyName:key];
     if (propertyDescriptor)
     {
-        //调用对象属性
-        if (propertyDescriptor.setterSelector)
-        {
-            NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:propertyDescriptor.setterSelector];
-            NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:sign];
-            invocation.selector = propertyDescriptor.setterSelector;
-            
-            //调用Setter方法
-            //组织参数
-            NSMutableArray *methodArgs = [arguments mutableCopy];
-            [methodArgs removeObjectAtIndex:1];
-            [exporter _invokeMethodWithInstance:instance
-                                 typeDescriptor:typeDescriptor
-                                     invocation:invocation
-                                      arguments:methodArgs];
-        }
+        LSCValue *value = [LSCValue tmpValueWithContext:exporter.context atIndex:3];
+        [propertyDescriptor invokeSetterWithInstance:instance typeDescriptor:typeDescriptor value:value];
     }
     else
     {
@@ -1508,14 +1492,14 @@ static int instanceIndexHandler(lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
-    int index = [LSCEngineAdapter upvalueIndex:1];
-    const void *ptr = [LSCEngineAdapter toPointer:state index:index];
-    LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
-    
-    LSCSession *session = [exporter.context makeSessionWithState:state];
-    
     if ([LSCEngineAdapter getTop:state] > 0 && [LSCEngineAdapter isUserdata:state index:1])
     {
+        int index = [LSCEngineAdapter upvalueIndex:1];
+        const void *ptr = [LSCEngineAdapter toPointer:state index:index];
+        LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
+        
+        LSCSession *session = [exporter.context makeSessionWithState:state];
+        
         //如果为userdata类型，则进行释放
         LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
         
@@ -1536,9 +1520,9 @@ static int objectDestroyHandler (lua_State *state)
         
         //释放内存
         CFBridgingRelease(ref -> value);
+        
+        [exporter.context destroySession:session];
     }
-    
-    [exporter.context destroySession:session];
     
     return 0;
 }
@@ -1572,7 +1556,7 @@ static int classToStringHandler (lua_State *state)
     }
     else
     {
-        [exporter.context raiseExceptionWithMessage:@"Can not describe unknown type."];
+        [LSCEngineAdapter error:state message:"Can not describe unknown type."];
         [LSCEngineAdapter pushNil:state];
     }
     
@@ -1609,13 +1593,81 @@ static int prototypeToStringHandler (lua_State *state)
     }
     else
     {
-        [exporter.context raiseExceptionWithMessage:@"Can not describe unknown prototype."];
+        [LSCEngineAdapter error:state message:"Can not describe unknown prototype."];
         [LSCEngineAdapter pushNil:state];
     }
     
     [exporter.context destroySession:session];
     
     return 1;
+}
+
+/**
+ 设置原型的新属性处理
+
+ @param state 状态
+ @return 参数数量
+ */
+static int prototypeNewIndexHandler (lua_State *state)
+{
+    int index = [LSCEngineAdapter upvalueIndex:1];
+    const void *ptr = [LSCEngineAdapter toPointer:state index:index];
+    LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
+    
+    LSCSession *session = [exporter.context makeSessionWithState:state];
+    
+    //t,k,v
+    BOOL isPropertyReg = NO;
+    if ([LSCEngineAdapter type:state index:3] == LUA_TTABLE)
+    {
+        //检测是否为属性设置
+        LSCFunction *getter = nil;
+        LSCFunction *setter = nil;
+        
+        [LSCEngineAdapter getField:state index:3 name:"get"];
+        if ([LSCEngineAdapter type:state index:-1] == LUA_TFUNCTION)
+        {
+            LSCValue *getterValue = [LSCValue valueWithContext:exporter.context atIndex:-1];
+            getter = [getterValue toFunction];
+        }
+        
+        [LSCEngineAdapter pop:state count:1];
+        
+        [LSCEngineAdapter getField:state index:3 name:"set"];
+        if ([LSCEngineAdapter type:state index:-1] == LUA_TFUNCTION)
+        {
+            LSCValue *setterValue = [LSCValue valueWithContext:exporter.context atIndex:-1];
+            setter = [setterValue toFunction];
+        }
+        
+        [LSCEngineAdapter pop:state count:1];
+        
+        if (getter || setter)
+        {
+            isPropertyReg = YES;
+            
+            //注册属性
+            [LSCEngineAdapter getField:state index:1 name:"_nativeType"];
+            if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
+            {
+                LSCExportTypeDescriptor *typeDescriptor = (LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
+                
+                LSCValue *propertyNameValue = [LSCValue valueWithContext:exporter.context atIndex:2];
+                LSCExportPropertyDescriptor *propertyDescriptor = [[LSCExportPropertyDescriptor alloc] initWithName:[propertyNameValue toString] getterFunction:getter setterFunction:setter];
+                [typeDescriptor.properties setObject:propertyDescriptor forKey:propertyDescriptor.name];
+            }
+        }
+    }
+    
+    if (!isPropertyReg)
+    {
+        //直接设置
+        [LSCEngineAdapter rawSet:state index:1];
+    }
+    
+    [exporter.context destroySession:session];
+    
+    return 0;
 }
 
 /**
@@ -1649,7 +1701,7 @@ static int objectToStringHandler (lua_State *state)
     }
     else
     {
-        [exporter.context raiseExceptionWithMessage:@"Can not describe unknown object."];
+        [LSCEngineAdapter error:state message:"Can not describe unknown object."];
         [LSCEngineAdapter pushNil:state];
     }
     
@@ -1677,7 +1729,7 @@ static int subClassHandler (lua_State *state)
     
     if ([LSCEngineAdapter getTop:state] == 0)
     {
-        [exporter.context raiseExceptionWithMessage:@"Miss the subclass name parameter"];
+        [LSCEngineAdapter error:state message:"Miss the subclass name parameter"];
         return 0;
     }
     
