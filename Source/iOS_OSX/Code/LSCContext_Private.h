@@ -74,4 +74,9 @@
  */
 - (int)catchLuaException;
 
+/**
+ 内存回收
+ */
+- (void)gc;
+
 @end

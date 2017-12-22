@@ -19,6 +19,15 @@
  */
 static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandler";
 
+@interface LSCContext ()
+
+/**
+ 是否需要回收内存
+ */
+@property (nonatomic) BOOL needGC;
+
+@end
+
 @implementation LSCContext
 
 - (instancetype)init
@@ -156,10 +165,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     else
     {
         //调用失败
-        returnCount = 1;
-        LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
-        NSString *errMessage = [value toString];
-        [self raiseExceptionWithMessage:errMessage];
+        returnCount = [LSCEngineAdapter getTop:state] - curTop;
     }
     
     //弹出返回值
@@ -171,7 +177,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     }
     
     //回收内存
-    [LSCEngineAdapter gc:state what:LSCGCTypeCollect data:0];
+    [self gc];
     
     return returnValue;
 }
@@ -222,10 +228,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     else
     {
         //调用失败
-        returnCount = 1;
-        LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
-        NSString *errMessage = [value toString];
-        [self raiseExceptionWithMessage:errMessage];
+        returnCount = [LSCEngineAdapter getTop:state] - curTop;
     }
     
     //弹出返回值
@@ -237,7 +240,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     }
     
     //回收内存
-    [LSCEngineAdapter gc:state what:LSCGCTypeCollect data:0];
+    [self gc];
     
     return retValue;
 }
@@ -287,10 +290,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         else
         {
             //调用失败
-            returnCount = 1;
-            LSCValue *value = [LSCValue valueWithContext:self atIndex:-1];
-            NSString *errMessage = [value toString];
-            [self raiseExceptionWithMessage:errMessage];
+            returnCount = [LSCEngineAdapter getTop:state] - curTop;
         }
         
         [LSCEngineAdapter pop:state count:returnCount];
@@ -302,7 +302,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     }
     
     //内存回收
-    [LSCEngineAdapter gc:state what:LSCGCTypeCollect data:0];
+    [self gc];
     
     return resultValue;
 }
@@ -399,6 +399,20 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     [LSCEngineAdapter pop:state count:1];
    
     return 0;
+}
+
+- (void)gc
+{
+    if (!self.needGC)
+    {
+        //进行定时内存回收检测
+        self.needGC = YES;
+        __weak typeof(self) theContext = self;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [LSCEngineAdapter gc:theContext.currentSession.state what:LSCGCTypeCollect data:0];
+            theContext.needGC = NO;
+        });
+    }
 }
 
 #pragma mark - c func

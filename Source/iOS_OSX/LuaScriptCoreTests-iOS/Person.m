@@ -28,6 +28,11 @@ static LSCManagedValue *_managedFunc = nil;
     return self;
 }
 
+- (void)setName:(NSString *)name
+{
+    _name = name;
+}
+
 - (void)speak:(NSString *)content
 {
     NSLog(@"%@ speak:\"%@\"", self.name, content);

@@ -39,8 +39,14 @@ namespace cn
                 double _numberValue;
                 size_t _bytesLen;
                 void *_value;
-                LuaContext *_context;
                 bool _hasManagedObject;
+                
+            protected:
+                
+                /**
+                 上下文对象
+                 */
+                LuaContext *_context;
 
             private:
 
@@ -153,7 +159,7 @@ namespace cn
                 /**
                  * 析构
                  */
-                ~LuaValue();
+                virtual ~LuaValue();
                 
                 /**
                  获取类型名称
@@ -176,105 +182,105 @@ namespace cn
                  *
                  * @return 类型
                  */
-                LuaValueType getType();
+                virtual LuaValueType getType();
 
                 /**
                  * 转换为整数
                  *
                  * @return 整数值
                  */
-                lua_Integer toInteger();
+                virtual lua_Integer toInteger();
 
                 /**
                  * 转换为字符串
                  *
                  * @return 字符串
                  */
-                const std::string toString();
+                virtual const std::string toString();
 
                 /**
                  * 转换为浮点数
                  *
                  * @return 浮点数
                  */
-                double toNumber();
+                virtual double toNumber();
 
                 /**
                  * 转换为布尔值
                  *
                  * @return 布尔值
                  */
-                bool toBoolean();
+                virtual bool toBoolean();
 
                 /**
                  * 转换为二进制数组
                  *
                  * @return 二进制数组
                  */
-                const char* toData();
+                virtual const char* toData();
 
                 /**
                  * 获取二进制数组的长度
                  *
                  * @return 长度
                  */
-                size_t getDataLength();
+                virtual size_t getDataLength();
 
                 /**
                  * 转换为数组
                  *
                  * @return 数组
                  */
-                LuaValueList* toArray();
+                virtual LuaValueList* toArray();
 
                 /**
                  * 转换为字典
                  *
                  * @return 字典
                  */
-                LuaValueMap* toMap();
+                virtual LuaValueMap* toMap();
 
                 /**
                  * 转换为指针
                  *
                  * @return 指针
                  */
-                LuaPointer* toPointer();
+                virtual LuaPointer* toPointer();
 
                 /**
                  * 转换为方法
                  *
                  * @return 方法
                  */
-                LuaFunction* toFunction();
+                virtual LuaFunction* toFunction();
 
                 /**
                  * 转换为元组
                  *
                  * @return 元组
                  */
-                LuaTuple* toTuple();
+                virtual LuaTuple* toTuple();
 
                 /**
                  * 转换为对象
                  *
                  * @return 对象
                  */
-                LuaObjectDescriptor* toObject();
+                virtual LuaObjectDescriptor* toObject();
 
                 /**
                  * 转换为导出Lua类型
                  *
                  * @return 导出Lua类型
                  */
-                LuaExportTypeDescriptor* toType();
+                virtual LuaExportTypeDescriptor* toType();
 
                 /**
                  * 入栈数据
                  *
                  * @param context 上下文对象
                  */
-                void push(LuaContext *context);
+                virtual void push(LuaContext *context);
 
             public:
 
@@ -394,6 +400,17 @@ namespace cn
                  * @return 值对象
                  */
                 static LuaValue* ValueByIndex(LuaContext *context, int index);
+                
+                
+                /**
+                 根据栈中位置创建临时值对象
+
+                 @param context 上下文对象
+                 @param index 位置索引
+                 
+                 @return 值对象
+                 */
+                static LuaValue* TmpValue(LuaContext *context, int index);
             };
             
         }

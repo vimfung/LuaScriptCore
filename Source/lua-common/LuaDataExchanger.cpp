@@ -488,6 +488,10 @@ void LuaDataExchanger::pushStackByObject(LuaManagedObject *object)
 
         //_vars_表中没有对应对象引用，则创建对应引用对象
         object -> push(_context);
+        
+        //放入_vars_表中，修复如果对象从未在lua回调回来时，无法找到对应对象问题。
+        LuaEngineAdapter::pushValue(state, -1);
+        LuaEngineAdapter::setField(state, -3, linkId.c_str());
     }
 
     //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua

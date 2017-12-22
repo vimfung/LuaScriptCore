@@ -297,11 +297,11 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                             [LSCEngineAdapter setField:state index:-2 name:"__gc"];
                         }
                         [LSCEngineAdapter setMetatable:state index:-2];
-                        
-                        //放入_vars_表中
-                        [LSCEngineAdapter pushValue:-1 state:state];
-                        [LSCEngineAdapter setField:state index:-3 name:objectId.UTF8String];
                     }
+                    
+                    //放入_vars_表中
+                    [LSCEngineAdapter pushValue:-1 state:state];
+                    [LSCEngineAdapter setField:state index:-3 name:objectId.UTF8String];
                 }
                 
                 //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua

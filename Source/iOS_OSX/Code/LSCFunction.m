@@ -96,7 +96,7 @@
     }
     
     //释放内存
-    [LSCEngineAdapter gc:state what:LSCGCTypeCollect data:0];
+    [self.context gc];
     
     return retValue;
 }

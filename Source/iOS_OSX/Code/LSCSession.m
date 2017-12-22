@@ -10,6 +10,7 @@
 #import "LSCSession_Private.h"
 #import "LSCValue_Private.h"
 #import "LSCTuple_Private.h"
+#import "LSCContext_Private.h"
 #import "LSCEngineAdapter.h"
 
 @implementation LSCSession
@@ -28,7 +29,7 @@
 - (void)dealloc
 {
     //释放内存
-    [LSCEngineAdapter gc:self.state what:LSCGCTypeCollect data:0];
+    [self.context gc];
 }
 
 - (NSArray *)parseArguments
