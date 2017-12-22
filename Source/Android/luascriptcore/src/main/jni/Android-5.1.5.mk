@@ -59,6 +59,7 @@ LOCAL_SRC_FILES := \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaObjectManager.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaPointer.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaValue.cpp \
+	$(LOCAL_PATH)/../../../../../lua-common/LuaTmpValue.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaTuple.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/StringUtils.cpp \
 	$(LOCAL_PATH)/../../../../../lua-common/LuaDataExchanger.cpp \

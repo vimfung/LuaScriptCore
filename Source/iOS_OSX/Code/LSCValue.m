@@ -15,20 +15,7 @@
 #import "LSCTuple_Private.h"
 #import "LSCManagedObjectProtocol.h"
 #import "LSCExportTypeDescriptor.h"
-
-@interface LSCValue ()
-
-/**
- *  数值容器
- */
-@property (nonatomic, strong) id valueContainer;
-
-/**
- *  数值类型
- */
-@property (nonatomic) LSCValueType valueType;
-
-@end
+#import "LSCTmpValue.h"
 
 @implementation LSCValue
 
@@ -342,6 +329,11 @@
     //将对象内存管理权交给LSCValue
     [value managedObjectWithContext:context];
     return value;
+}
+
++ (LSCValue *)tmpValueWithContext:(LSCContext *)context atIndex:(NSInteger)index
+{
+    return [[LSCTmpValue alloc] initWithContext:context index:index];
 }
 
 /**

@@ -22,9 +22,10 @@ namespace cn {
             class LuaSession : public LuaObject
             {
             private:
+                
                 lua_State *_state;
                 LuaContext *_context;
-
+                
             public:
 
                 /**

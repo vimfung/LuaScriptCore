@@ -217,6 +217,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        Button definedPropertyBtn = (Button) findViewById(R.id.definedPropertyButton);
+        if (definedPropertyBtn != null)
+        {
+            definedPropertyBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    _luaContext.evalScriptFromFile("defineProperty.lua");
+
+                }
+            });
+        }
     }
 
     /**

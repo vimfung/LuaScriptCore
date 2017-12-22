@@ -13,7 +13,7 @@
 #import "LuaObjectDecoder.hpp"
 #import "LuaTuple.h"
 #import "StringUtils.h"
-#import "LuaObjectClass.h"
+#import "LuaExportsTypeManager.hpp"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -65,8 +65,7 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
 - (void)testExample
 {
     using namespace cn::vimfung::luascriptcore;
-    
-    i
+
 //
 //    void *result = NULL;
 ////    evalScript(navId, "print('Hello World!');", (const void **)&result);
@@ -132,9 +131,7 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
 
 - (void)testRegClass
 {
-    using namespace cn::vimfung::luascriptcore::modules::oo;
-    
-    LuaObjectClass *personCls = new LuaObjectClass();
+
 }
 
 - (void)testTypeIdFeature
@@ -205,9 +202,28 @@ void* testModuleMethodHandler (int moduleId, const char *name, const void *args,
 
 - (void)testStringFormat
 {
+    XCTestExpectation *ex = [self expectationWithDescription:@"xxxx"];
+    
     LuaContext *context = (LuaContext *)LuaObject::findObject(self.contextId);
     LuaValue *value = context -> evalScript("return function () print('hello world'); end;");
-    printf("%p", value);
+    printf("%p\n", value);
+    
+    [self waitForExpectations:@[ex] timeout:3600];
+}
+
+- (void)testContext
+{
+    XCTestExpectation *ex = [self expectationWithDescription:@"xxxx"];
+    
+    LuaContext *context = new LuaContext();
+    std::string clsName = "Test";
+    LuaExportTypeDescriptor *testType = new LuaExportTypeDescriptor(clsName, NULL);
+    context -> getExportsTypeManager() -> exportsType(testType);
+    testType -> release();
+    context -> evalScript("print(Test);local t = Test.create();");
+    context -> release();
+    
+    [self waitForExpectations:@[ex] timeout:3600];
 }
 
 @end

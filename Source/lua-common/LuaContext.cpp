@@ -15,6 +15,10 @@
 #include <list>
 #include <iostream>
 #include <sstream>
+#include <thread>
+#include <signal.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -22,6 +26,11 @@ using namespace cn::vimfung::luascriptcore;
  * 捕获异常处理器名称
  */
 static const char * CatchLuaExceptionHandlerName = "__catchExcepitonHandler";
+
+/**
+ 需要回收内存上下文列表
+ */
+static std::vector<LuaContext *> _needsGCContextList;
 
 /**
  * 方法路由处理器
@@ -71,22 +80,83 @@ static int methodRouteHandler(lua_State *state) {
  * 捕获Lua异常处理器
  *
  * @param context 上下文对象
- * @param method 方法名称
+ * @param methodName 方法名称
  * @param arguments 参数列表
  */
 static LuaValue* catchLuaExceptionHandler (LuaContext *context, std::string methodName, LuaArgumentList arguments)
 {
     if (arguments.size() > 0)
     {
-        context -> raiseException(arguments[1] -> toString());
+        context -> raiseException(arguments[0] -> toString());
     }
 
     return NULL;
 }
 
+/**
+ 上下文内存回收处理
+
+ @param signo 信号
+ */
+static void contextGCHandler(int signo)
+{
+    //重置计时器
+    struct itimerval itv;
+    itv.it_value.tv_sec = 0;
+    itv.it_value.tv_usec = 0;
+    itv.it_interval = itv.it_value;
+    setitimer(ITIMER_REAL, &itv, NULL);
+    
+    //进行内存回收
+    for (std::vector<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
+    {
+        LuaContext *context = *it;
+        context -> gcHandler();
+        context -> release();       // 回收后释放
+    }
+    //清空
+    _needsGCContextList.clear();
+}
+
+/**
+ 上下文开始回收
+ 
+ @param context 上下文对象
+ */
+static void contextStartGC(LuaContext *context)
+{
+    //加入列表
+    bool hasExists = false;
+    for (std::vector<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
+    {
+        if (*it == context)
+        {
+            hasExists = true;
+            break;
+        }
+    }
+    
+    if (!hasExists)
+    {
+        context -> retain();
+        _needsGCContextList.push_back(context);
+        
+        //监听定时器信号
+        signal(SIGALRM, contextGCHandler);
+        
+        //开始倒计时进行回收
+        struct itimerval itv;
+        itv.it_value.tv_sec = 0;
+        itv.it_value.tv_usec = 100000;
+        itv.it_interval = itv.it_value;
+        setitimer(ITIMER_REAL, &itv, NULL);
+    }
+}
+
 LuaContext::LuaContext()
         : LuaObject()
 {
+    _isActive = true;
     _exceptionHandler = NULL;
     lua_State *state = LuaEngineAdapter::newState();
     _dataExchanger = new LuaDataExchanger(this);
@@ -108,7 +178,15 @@ LuaContext::LuaContext()
 
 LuaContext::~LuaContext()
 {
-    LuaEngineAdapter::close(_mainSession -> getState());
+    _isActive = false;      //标记Context已经销毁
+    
+    lua_State *state = _mainSession -> getState();
+    
+    _mainSession -> release();
+    _exportsTypeManager -> release();
+    _dataExchanger -> release();
+    
+    LuaEngineAdapter::close(state);
 }
 
 LuaSession* LuaContext::getMainSession()
@@ -243,14 +321,7 @@ LuaValue* LuaContext::evalScript(std::string script)
     else
     {
         //调用失败
-        returnCount = 1;
-
-        LuaValue *value = LuaValue::ValueByIndex(this, -1);
-
-        std::string errMessage = value -> toString();
-        this -> raiseException(errMessage);
-
-        value -> release();
+        returnCount = LuaEngineAdapter::getTop(state) - curTop;
     }
 
     //弹出返回值
@@ -262,7 +333,7 @@ LuaValue* LuaContext::evalScript(std::string script)
     }
 
     //释放内存
-    LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
+    gc();
 
     return retValue;
 }
@@ -304,14 +375,7 @@ LuaValue* LuaContext::evalScriptFromFile(std::string path)
     else
     {
         //调用失败
-        returnCount = 1;
-
-        LuaValue *value = LuaValue::ValueByIndex(this, -1);
-
-        std::string errMessage = value -> toString();
-        this -> raiseException(errMessage);
-
-        value -> release();
+        returnCount = LuaEngineAdapter::getTop(state) - curTop;
     }
 
     //弹出返回值
@@ -323,7 +387,7 @@ LuaValue* LuaContext::evalScriptFromFile(std::string path)
     }
 
     //释放内存
-    LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
+    gc();
 
     return retValue;
 }
@@ -376,14 +440,7 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
         else
         {
             //调用失败
-            returnCount = 1;
-
-            LuaValue *value = LuaValue::ValueByIndex(this, -1);
-            
-            std::string errMessage = value -> toString();
-            this -> raiseException(errMessage);
-
-            value -> release();
+            returnCount = LuaEngineAdapter::getTop(state) - curTop;
         }
 
         LuaEngineAdapter::pop(state, returnCount);
@@ -400,7 +457,7 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
     }
 
     //回收内存
-    LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
+    gc();
 
     return resultValue;
 }
@@ -449,4 +506,28 @@ void LuaContext::retainValue(LuaValue *value)
 void LuaContext::releaseValue(LuaValue *value)
 {
     _dataExchanger -> releaseLuaObject(value);
+}
+
+bool LuaContext::isActive()
+{
+    return _isActive;
+}
+
+void LuaContext::gc()
+{
+    if (_isActive && !_needGC)
+    {
+        //进行定时内存回收检测
+        _needGC = true;
+        contextStartGC(this);
+    }
+}
+
+void LuaContext::gcHandler()
+{
+    if (_isActive)
+    {
+        LuaEngineAdapter::GC(getCurrentSession() -> getState(), LUA_GCCOLLECT, 0);
+        _needGC = false;
+    }
 }

@@ -44,6 +44,11 @@
     [self.context evalScriptFromString:@"local p = Person.createPerson();  p.intValue = 111; print('intValue', p.intValue);"];
 }
 
+- (void)testCustomProperty2
+{
+    [self.context evalScriptFromString:@"Person.prototype.age = {set = function(self, value) print('set value = ', value); self._value = value end, get = function(self) print('get value = ', self._value); return self._value end}; local p = Person.createPerson(); p.age = 20; print('p.age = ', p.age);"];
+}
+
 - (void)testGlobalVar
 {
     NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
@@ -57,8 +62,6 @@
     LSCValue *value = [context evalScriptFromString:@"return 4 * 256; "];
     XCTAssertNotNil(value, "value is nil");
     NSLog(@"retValue = %@", value);
-    
-    [context evalScriptFromString:@""];
 }
 
 - (void)testEvalScript
@@ -265,6 +268,13 @@
 - (void)testNewTypeExporter
 {
     [self.context evalScriptFromString:@"print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t.name = 'vim'; t:printName();"];
+}
+
+- (void)testDefinedProperty
+{
+    NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
+    NSString *path = [bundle pathForResource:@"definedProperty" ofType:@"lua"];
+    [self.context evalScriptFromFile:path];
 }
 
 - (void)tearDown

@@ -271,4 +271,9 @@
     return luaL_checkstring(state, index);
 }
 
++ (int)error:(lua_State *)state message:(const char *)message
+{
+    return luaL_error(state, message);
+}
+
 @end

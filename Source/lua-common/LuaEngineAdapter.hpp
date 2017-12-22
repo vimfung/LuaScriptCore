@@ -455,6 +455,15 @@ namespace cn
                  @return 执行结果
                  */
                 static int newMetatable (lua_State *state, const char *tname);
+                
+                /**
+                 抛出异常
+
+                 @param state 状态对象
+                 @param message 错误消息
+                 @return 执行结果
+                 */
+                static int error (lua_State *state, const char *message);
             };
             
         }

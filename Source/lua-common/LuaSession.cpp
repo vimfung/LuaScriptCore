@@ -17,7 +17,7 @@ LuaSession::LuaSession(lua_State *state, LuaContext *context)
 
 LuaSession::~LuaSession()
 {
-    LuaEngineAdapter::GC(_state, LUA_GCCOLLECT, 0);
+    _context -> gc();
 }
 
 lua_State* LuaSession::getState()
