@@ -135,9 +135,11 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
     else
     {
         //弹出function
-        LuaEngineAdapter::pop(state, 2);
+        LuaEngineAdapter::pop(state, 1);
     }
-
+    
+    //移除异常捕获方法
+    LuaEngineAdapter::remove(state, errFuncIndex);
 
     if (!retValue)
     {

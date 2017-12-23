@@ -32,7 +32,10 @@ LuaValue* LuaUnityExportPropertyDescriptor::invokeGetter(LuaSession *session, Lu
     {
         if (_getterHandler != NULL)
         {
-            void *returnBuffer = _getterHandler (typeDescriptor -> objectId(), (long long) instance -> getObject(), name().c_str());
+            void *returnBuffer = _getterHandler (session -> getContext() -> objectId(),
+                                                 typeDescriptor -> objectId(),
+                                                 (long long) instance -> getObject(),
+                                                 name().c_str());
             if (returnBuffer != NULL)
             {
                 LuaObjectDecoder *decoder = new LuaObjectDecoder(session -> getContext(), returnBuffer);
@@ -77,7 +80,8 @@ void LuaUnityExportPropertyDescriptor::invokeSetter(LuaSession *session, LuaObje
             //valueBuf的内容由C#端进行释放
             const void *valueBuf = encoder -> cloneBuffer();
             
-            _setterHandler (typeDescriptor -> objectId(),
+            _setterHandler (session -> getContext() -> objectId(),
+                            typeDescriptor -> objectId(),
                             (long long) instance -> getObject(),
                             name().c_str(),
                             valueBuf,

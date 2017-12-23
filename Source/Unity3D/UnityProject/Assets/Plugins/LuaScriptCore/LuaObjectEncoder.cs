@@ -9,10 +9,28 @@ namespace cn.vimfung.luascriptcore
 	public class LuaObjectEncoder 
 	{
 		private List<byte> _buffer;
+		private LuaContext _context;
 
-		public LuaObjectEncoder ()
+		/// <summary>
+		/// 初始化
+		/// </summary>
+		/// <param name="context">上下文对象.</param>
+		public LuaObjectEncoder (LuaContext context)
 		{
 			_buffer = new List<byte> ();
+			_context = context;
+		}
+
+		/// <summary>
+		/// 获取上下文对象
+		/// </summary>
+		/// <value>上下文对象.</value>
+		public LuaContext context
+		{
+			get
+			{
+				return _context;
+			}
 		}
 
 		/// <summary>

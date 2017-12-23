@@ -326,6 +326,9 @@ LuaValue* LuaContext::evalScript(std::string script)
 
     //弹出返回值
     LuaEngineAdapter::pop(state, returnCount);
+    
+    //移除异常捕获方法
+    LuaEngineAdapter::remove(state, errFuncIndex);
 
     if (retValue == NULL)
     {
@@ -380,6 +383,9 @@ LuaValue* LuaContext::evalScriptFromFile(std::string path)
 
     //弹出返回值
     LuaEngineAdapter::pop(state, returnCount);
+    
+    //移除异常捕获方法
+    LuaEngineAdapter::remove(state, errFuncIndex);
 
     if (retValue == NULL)
     {
@@ -448,8 +454,11 @@ LuaValue* LuaContext::callMethod(std::string methodName, LuaArgumentList *argume
     else
     {
         //将变量从栈中移除
-        LuaEngineAdapter::pop(state, 2);
+        LuaEngineAdapter::pop(state, 1);
     }
+    
+    //移除异常捕获方法
+    LuaEngineAdapter::remove(state, errFuncIndex);
 
     if (resultValue == NULL)
     {
