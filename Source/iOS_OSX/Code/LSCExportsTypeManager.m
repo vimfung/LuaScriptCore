@@ -797,14 +797,15 @@
             [LSCEngineAdapter pushValue:i state:state];
         }
         
-        
         [LSCEngineAdapter pCall:state nargs:paramCount + 1 nresults:0 errfunc:errFuncIndex];
     }
     else
     {
         [LSCEngineAdapter pop:state count:1];       //出栈init方法
-        [LSCEngineAdapter remove:state index:-2];   //出栈异常捕获方法
     }
+    
+    //移除异常捕获方法
+    [LSCEngineAdapter remove:state index:errFuncIndex];
 }
 
 /**
@@ -1515,8 +1516,11 @@ static int objectDestroyHandler (lua_State *state)
         }
         else
         {
-            [LSCEngineAdapter pop:state count:3]; //出栈方法、实例对象和异常捕获方法
+            [LSCEngineAdapter pop:state count:2]; //出栈方法、实例对象
         }
+        
+        //移除异常捕获方法
+        [LSCEngineAdapter remove:state index:errFuncIndex];
         
         //释放内存
         CFBridgingRelease(ref -> value);

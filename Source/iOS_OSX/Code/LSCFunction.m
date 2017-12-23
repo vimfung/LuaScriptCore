@@ -87,8 +87,11 @@
     else
     {
         //弹出func
-        [LSCEngineAdapter pop:state count:2];
+        [LSCEngineAdapter pop:state count:1];
     }
+    
+    //移除异常捕获方法
+    [LSCEngineAdapter remove:state index:errFuncIndex];
 
     if (!retValue)
     {

@@ -171,6 +171,9 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     //弹出返回值
     [LSCEngineAdapter pop:state count:returnCount];
     
+    //移除异常捕获方法
+    [LSCEngineAdapter remove:state index:errFuncIndex];
+    
     if (!returnValue)
     {
         returnValue = [LSCValue nilValue];
@@ -233,6 +236,9 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     
     //弹出返回值
     [LSCEngineAdapter pop:state count:returnCount];
+    
+    //移除异常捕获方法
+    [LSCEngineAdapter remove:state index:errFuncIndex];
     
     if (!retValue)
     {
@@ -298,8 +304,11 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     else
     {
         //将变量从栈中移除
-        [LSCEngineAdapter pop:state count:2];
+        [LSCEngineAdapter pop:state count:1];
     }
+    
+    //移除异常捕获方法
+    [LSCEngineAdapter remove:state index:errFuncIndex];
     
     //内存回收
     [self gc];

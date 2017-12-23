@@ -10,9 +10,6 @@ namespace cn.vimfung.luascriptcore
 	public delegate IntPtr LuaMethodHandleDelegate(int nativeContextId, string methodName, IntPtr arguments, int size);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaModuleMethodHandleDelegate (int nativeModuleId, string methodName, IntPtr arguments, int size);
-
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public delegate void LuaSetNativeObjectIdHandleDelegate(Int64 obj, int nativeObjectId, string luaObjectId);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -28,79 +25,16 @@ namespace cn.vimfung.luascriptcore
 	public delegate string LuaInstanceDescriptionHandleDelegate(Int64 instancePtr);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaInstanceMethodHandleDelegate (int classId, Int64 instance, string methodName, IntPtr argumentsBuffer, int bufferSize);
+	public delegate IntPtr LuaModuleMethodHandleDelegate (int contextId, int nativeModuleId, string methodName, IntPtr arguments, int size);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaInstanceFieldGetterHandleDelegate (int classId, Int64 instance, string fieldName);
+	public delegate IntPtr LuaInstanceMethodHandleDelegate (int contextId, int classId, Int64 instance, string methodName, IntPtr argumentsBuffer, int bufferSize);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate void LuaInstanceFieldSetterHandleDelegate (int classId, Int64 instance, string fieldName, IntPtr valueBuffer, int bufferSize);
+	public delegate IntPtr LuaInstanceFieldGetterHandleDelegate (int contextId, int classId, Int64 instance, string fieldName);
 
-	/// <summary>
-	/// 检测是否为LuaObjectClass子类
-	/// </summary>
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate string LuaCheckObjectSubclassDelegate(int nativeContextId, string className);
-
-	/// <summary>
-	/// 是否允许导出类型
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate bool LuaAllowExportClassDelegate(int nativeContextId, string className);
-
-	/// <summary>
-	/// 获取所有导出的类方法
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaAllExportClassMethodsDelegte(int nativeContextId, string className);
-
-	/// <summary>
-	/// 获取所有导出的实例方法
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaAllExportInstanceMethodsDelegte(int nativeContextId, string className);
-
-	/// <summary>
-	/// 获取所有导出的实例字段Getter方法
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaAllExportInstanceFieldGettersDelegate(int nativeContextId, string className);
-
-	/// <summary>
-	/// 获取所有导出的实例字段Setter方法
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaAllExportInstanceFieldSettersDelegate(int nativeContextId, string className);
-
-	/// <summary>
-	/// 创建原生对象
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate Int64 LuaCreateNativeObjectDelegate(int nativeContextId, string className);
-
-	/// <summary>
-	/// 原生对象类方法调用
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaNativeClassMethodHandleDelegate (int contextId, string className, string methodName, IntPtr arguments, int size);
-
-	/// <summary>
-	/// 原生对象实例方法调用
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaNativeInstanceMethodHandleDelegate(int contextId, string className, Int64 instance, string methodName, IntPtr argumentsBuffer, int bufferSize);
-
-	/// <summary>
-	/// 原生对象实例字段Getter调用
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate IntPtr LuaNativeInstanceFieldGetterHandleDelegate(int contextId, string className, Int64 instance, string fieldName);
-
-	/// <summary>
-	/// 原生对象实例字段Setter调用
-	/// </summary>
-	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate void LuaNativeInstanceFieldSetterHandleDelegate(int contextId, string className, Int64 instance, string fieldName, IntPtr argumentsBuffer, int bufferSize);
+	public delegate void LuaInstanceFieldSetterHandleDelegate (int contextId,int classId, Int64 instance, string fieldName, IntPtr valueBuffer, int bufferSize);
 
 	/// <summary>
 	/// 异常处理器

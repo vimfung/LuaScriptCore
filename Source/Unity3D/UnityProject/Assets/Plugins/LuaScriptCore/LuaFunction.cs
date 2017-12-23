@@ -45,7 +45,7 @@ namespace cn.vimfung.luascriptcore
 			IntPtr argsPtr = IntPtr.Zero;
 			IntPtr resultPtr = IntPtr.Zero;
 
-			LuaObjectEncoder funcEncoder = new LuaObjectEncoder ();
+			LuaObjectEncoder funcEncoder = new LuaObjectEncoder (_context);
 			funcEncoder.writeObject (this);
 
 			byte[] bytes = funcEncoder.bytes;
@@ -54,7 +54,7 @@ namespace cn.vimfung.luascriptcore
 
 			if (arguments != null)
 			{
-				LuaObjectEncoder argEncoder = new LuaObjectEncoder ();
+				LuaObjectEncoder argEncoder = new LuaObjectEncoder (_context);
 				argEncoder.writeInt32 (arguments.Count);
 				foreach (LuaValue value in arguments)
 				{
@@ -79,7 +79,7 @@ namespace cn.vimfung.luascriptcore
 
 			if (size > 0)
 			{
-				return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
+				return LuaObjectDecoder.DecodeObject (resultPtr, size, _context) as LuaValue;
 			}
 
 			return new LuaValue ();

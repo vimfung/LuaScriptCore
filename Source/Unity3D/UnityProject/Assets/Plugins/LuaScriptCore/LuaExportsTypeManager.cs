@@ -17,19 +17,19 @@ namespace cn.vimfung.luascriptcore
 		/// <summary>
 		/// 默认管理器对象
 		/// </summary>
-		static private LuaExportsTypeManager _manager = new LuaExportsTypeManager();
+//		static private LuaExportsTypeManager _manager = new LuaExportsTypeManager();
 
 		/// <summary>
 		/// 获取默认lua导出管理器
 		/// </summary>
 		/// <value>管理器.</value>
-		static internal LuaExportsTypeManager defaultManager
-		{
-			get
-			{
-				return _manager;
-			}
-		}
+//		static internal LuaExportsTypeManager defaultManager
+//		{
+//			get
+//			{
+//				return _manager;
+//			}
+//		}
 
 		/// <summary>
 		/// 基础数据类型映射表
@@ -54,11 +54,6 @@ namespace cn.vimfung.luascriptcore
 		/// 导出类型
 		/// </summary>
 		private static Dictionary<int, Type> _exportsClass = new Dictionary<int, Type>();
-
-		/// <summary>
-		/// 导出类型标识映射表
-		/// </summary>
-		private static Dictionary<Type, int> _exportsClassIdMapping = new Dictionary<Type, int>();
 
 		/// <summary>
 		/// 导出类方法集合
@@ -109,6 +104,37 @@ namespace cn.vimfung.luascriptcore
 		/// 方法处理委托
 		/// </summary>
 		private static LuaModuleMethodHandleDelegate _classMethodHandleDelegate;
+
+		/// <summary>
+		/// 上下文对象
+		/// </summary>
+		private WeakReference _weakContext;
+
+		/// <summary>
+		/// 导出类型标识映射表
+		/// </summary>
+		private Dictionary<Type, int> _exportsClassIdMapping = new Dictionary<Type, int>();
+
+		/// <summary>
+		/// 初始化
+		/// </summary>
+		/// <param name="context">上下文对象.</param>
+		public LuaExportsTypeManager(LuaContext context)
+		{
+			_weakContext = new WeakReference (context);
+		}
+
+		/// <summary>
+		/// 获取上下文对象
+		/// </summary>
+		/// <value>上下文对象.</value>
+		public LuaContext context
+		{
+			get
+			{
+				return _weakContext.Target as LuaContext;
+			}
+		}
 
 		/// <summary>
 		/// 导出类型
@@ -212,7 +238,7 @@ namespace cn.vimfung.luascriptcore
 			IntPtr exportPropertyNamesPtr = IntPtr.Zero;
 			if (exportPropertyNames.Count > 0)
 			{
-				LuaObjectEncoder fieldEncoder = new LuaObjectEncoder ();
+				LuaObjectEncoder fieldEncoder = new LuaObjectEncoder (context);
 				fieldEncoder.writeInt32 (exportPropertyNames.Count);
 				foreach (string name in exportPropertyNames) 
 				{
@@ -229,7 +255,7 @@ namespace cn.vimfung.luascriptcore
 			IntPtr exportInstanceMethodNamesPtr = IntPtr.Zero;
 			if (exportInstanceMethodNames.Count > 0)
 			{
-				LuaObjectEncoder instanceMethodEncoder = new LuaObjectEncoder ();
+				LuaObjectEncoder instanceMethodEncoder = new LuaObjectEncoder (context);
 				instanceMethodEncoder.writeInt32 (exportInstanceMethodNames.Count);
 				foreach (string name in exportInstanceMethodNames) 
 				{
@@ -246,7 +272,7 @@ namespace cn.vimfung.luascriptcore
 			IntPtr exportClassMethodNamesPtr = IntPtr.Zero;
 			if (exportClassMethodNames.Count > 0)
 			{
-				LuaObjectEncoder classMethodEncoder = new LuaObjectEncoder ();
+				LuaObjectEncoder classMethodEncoder = new LuaObjectEncoder (context);
 				classMethodEncoder.writeInt32 (exportClassMethodNames.Count);
 				foreach (string name in exportClassMethodNames)
 				{
@@ -440,13 +466,14 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="instance">实例.</param>
 		/// <param name="fieldName">字段名称.</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceFieldGetterHandleDelegate))]
-		private static IntPtr _fieldGetter (int classId, Int64 instancePtr, string fieldName)
+		private static IntPtr _fieldGetter (int contextId, int classId, Int64 instancePtr, string fieldName)
 		{
 			IntPtr retValuePtr = IntPtr.Zero;
 			if (instancePtr != 0 
 				&& _exportsFields.ContainsKey(classId) 
 				&& _exportsFields[classId].ContainsKey(fieldName))
 			{
+				LuaContext context = LuaContext.getContext (contextId);
 				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
 				object instance = objRef.target;
 				PropertyInfo propertyInfo = _exportsFields[classId][fieldName];
@@ -455,7 +482,7 @@ namespace cn.vimfung.luascriptcore
 					object retValue = propertyInfo.GetValue (instance, null);
 					LuaValue value = new LuaValue (retValue);
 
-					LuaObjectEncoder encoder = new LuaObjectEncoder ();
+					LuaObjectEncoder encoder = new LuaObjectEncoder (context);
 					encoder.writeObject (value);
 					byte[] bytes = encoder.bytes;
 					retValuePtr = Marshal.AllocHGlobal (bytes.Length);
@@ -475,18 +502,19 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="valueBuffer">值数据</param>
 		/// <param name="bufferSize">数据大小</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceFieldSetterHandleDelegate))]
-		private static void _fieldSetter (int classId, Int64 instancePtr, string fieldName, IntPtr valueBuffer, int bufferSize)
+		private static void _fieldSetter (int contextId, int classId, Int64 instancePtr, string fieldName, IntPtr valueBuffer, int bufferSize)
 		{
 			if (instancePtr != 0
 				&& _exportsFields.ContainsKey(classId) 
 				&& _exportsFields[classId].ContainsKey(fieldName))
 			{
+				LuaContext context = LuaContext.getContext (contextId);
 				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
 				object instance = objRef.target;
 				PropertyInfo propertyInfo = _exportsFields[classId][fieldName];
 				if (instance != null && propertyInfo != null && propertyInfo.CanWrite)
 				{
-					LuaObjectDecoder decoder = new LuaObjectDecoder (valueBuffer, bufferSize);
+					LuaObjectDecoder decoder = new LuaObjectDecoder (valueBuffer, bufferSize, context);
 					LuaValue value = decoder.readObject () as LuaValue;
 
 					propertyInfo.SetValue(instance, getNativeValueForLuaValue (propertyInfo.PropertyType, value), null);
@@ -504,23 +532,24 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="argumentsBuffer">参数数据</param>
 		/// <param name="bufferSize">数据大小.</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceMethodHandleDelegate))]
-		private static IntPtr _instanceMethodHandler (int classId, Int64 instancePtr, string methodName, IntPtr argumentsBuffer, int bufferSize)
+		private static IntPtr _instanceMethodHandler (int contextId, int classId, Int64 instancePtr, string methodName, IntPtr argumentsBuffer, int bufferSize)
 		{
 			if (instancePtr != 0
 				&& _exportsInstanceMethods.ContainsKey(classId)
 				&& _exportsInstanceMethods[classId].ContainsKey(methodName))
 			{
+				LuaContext context = LuaContext.getContext (contextId);
 				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
 				object instance = objRef.target;
 				MethodInfo m = _exportsInstanceMethods[classId][methodName];
 				if (instance != null && m != null)
 				{
-					ArrayList argsArr = parseMethodParameters (m, argumentsBuffer, bufferSize);
+					ArrayList argsArr = parseMethodParameters (context, m, argumentsBuffer, bufferSize);
 					object ret = m.Invoke (instance, argsArr != null ? argsArr.ToArray() : null);
 
 					LuaValue retValue = new LuaValue (ret);
 
-					LuaObjectEncoder encoder = new LuaObjectEncoder ();
+					LuaObjectEncoder encoder = new LuaObjectEncoder (context);
 					encoder.writeObject (retValue);
 
 					byte[] bytes = encoder.bytes;
@@ -543,18 +572,19 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="arguments">参数列表缓冲区.</param>
 		/// <param name="size">参数列表缓冲区大小.</param>
 		[MonoPInvokeCallback (typeof (LuaModuleMethodHandleDelegate))]
-		private static IntPtr _classMethodHandler (int classId, string methodName, IntPtr arguments, int size)
+		private static IntPtr _classMethodHandler (int contextId, int classId, string methodName, IntPtr arguments, int size)
 		{
 			if (_exportsClassMethods.ContainsKey (classId) && _exportsClassMethods[classId].ContainsKey(methodName)) 
 			{
+				LuaContext context = LuaContext.getContext (contextId);
 				//存在该方法, 进行调用
 				MethodInfo m = _exportsClassMethods [classId][methodName];
 
-				ArrayList argsArr = parseMethodParameters (m, arguments, size);
+				ArrayList argsArr = parseMethodParameters (context, m, arguments, size);
 				object ret = m.Invoke (null, argsArr != null ? argsArr.ToArray() : null);
 				LuaValue retValue = new LuaValue (ret);
 
-				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				LuaObjectEncoder encoder = new LuaObjectEncoder (context);
 				encoder.writeObject (retValue);
 
 				byte[] bytes = encoder.bytes;
@@ -874,16 +904,17 @@ namespace cn.vimfung.luascriptcore
 		/// 解析方法的参数列表
 		/// </summary>
 		/// <returns>参数列表</returns>
+		/// <param name="context">上下文对象</param>
 		/// <param name="m">方法信息</param>
 		/// <param name="arguments">参数列表数据</param>
 		/// <param name="size">参数列表数据长度</param>
-		protected static ArrayList parseMethodParameters(MethodInfo m, IntPtr arguments, int size)
+		protected static ArrayList parseMethodParameters(LuaContext context, MethodInfo m, IntPtr arguments, int size)
 		{
 			List<LuaValue> argumentsList = null;
 			if (arguments != IntPtr.Zero) 
 			{
 				//反序列化参数列表
-				LuaObjectDecoder decoder = new LuaObjectDecoder(arguments, size);
+				LuaObjectDecoder decoder = new LuaObjectDecoder(arguments, size, context);
 				int argSize = decoder.readInt32 ();
 
 				argumentsList = new List<LuaValue> ();
