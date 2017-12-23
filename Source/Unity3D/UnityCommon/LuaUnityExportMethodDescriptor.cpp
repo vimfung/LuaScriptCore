@@ -56,7 +56,11 @@ LuaValue* LuaUnityExportMethodDescriptor::invokeClassMethod(LuaSession *session,
         //paramsBuffer的内容由C#端进行释放
         std::string methodName = StringUtils::format("%s_%s", name().c_str(), methodSignature().c_str());
         const void *paramsBuffer = encoder -> cloneBuffer();
-        void *returnBuffer = _classMethodHandler(typeDescriptor -> objectId(), methodName.c_str(), paramsBuffer, encoder -> getBufferLength());
+        void *returnBuffer = _classMethodHandler(session -> getContext() -> objectId(),
+                                                 typeDescriptor -> objectId(),
+                                                 methodName.c_str(),
+                                                 paramsBuffer,
+                                                 encoder -> getBufferLength());
 
         encoder -> release();
 
@@ -102,11 +106,12 @@ LuaValue* LuaUnityExportMethodDescriptor::invokeInstanceMethod(LuaSession *sessi
         //paramsBuffer的内容由C#端进行释放
         std::string methodName = StringUtils::format("%s_%s", name().c_str(), methodSignature().c_str());
         const void *paramsBuffer = encoder -> cloneBuffer();
-        void *returnBuffer = _instanceMethodHandler(typeDescriptor -> objectId(),
-                                       (long long) instance -> getObject(),
-                                       methodName.c_str(),
-                                       paramsBuffer,
-                                       encoder -> getBufferLength());
+        void *returnBuffer = _instanceMethodHandler(session -> getContext() -> objectId(),
+                                                    typeDescriptor -> objectId(),
+                                                    (long long) instance -> getObject(),
+                                                    methodName.c_str(),
+                                                    paramsBuffer,
+                                                    encoder -> getBufferLength());
         
         encoder -> release();
         

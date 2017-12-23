@@ -57,6 +57,11 @@ namespace cn.vimfung.luascriptcore
 		private Dictionary<string, LuaMethodHandler> _methodHandlers;
 
 		/// <summary>
+		/// 导出类型管理器
+		/// </summary>
+		private LuaExportsTypeManager _exportsTypeManager;
+
+		/// <summary>
 		/// 方法处理委托
 		/// </summary>
 		private static LuaMethodHandleDelegate _methodHandleDelegate;
@@ -158,11 +163,24 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
+		/// 获取导出类型管理器
+		/// </summary>
+		/// <value>导出类型管理器.</value>
+		internal LuaExportsTypeManager exportsTypemanager
+		{
+			get
+			{
+				return _exportsTypeManager;
+			}
+		}
+
+		/// <summary>
 		/// 初始化上下文
 		/// </summary>
 		public LuaContext()
 		{
 			_methodHandlers = new Dictionary<string, LuaMethodHandler> ();
+			_exportsTypeManager = new LuaExportsTypeManager (this);
 			_nativeObjectId = NativeUtils.createLuaContext ();
 			_contexts.Add (_nativeObjectId, new WeakReference(this));
 
@@ -190,7 +208,7 @@ namespace cn.vimfung.luascriptcore
 			//注册类型
 			foreach (Type t in _regTypes)
 			{
-				LuaExportsTypeManager.defaultManager.exportType (t, this);
+				_exportsTypeManager.exportType (t, this);
 			}
 		}
 
@@ -233,7 +251,7 @@ namespace cn.vimfung.luascriptcore
 			IntPtr valuePtr = IntPtr.Zero;
 			if (value != null)
 			{
-				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				LuaObjectEncoder encoder = new LuaObjectEncoder (this);
 				encoder.writeObject (value);
 
 				byte[] bytes = encoder.bytes;
@@ -261,7 +279,7 @@ namespace cn.vimfung.luascriptcore
 
 			if (valuePtr != IntPtr.Zero && size > 0)
 			{
-				LuaObjectDecoder decoder = new LuaObjectDecoder (valuePtr, size);
+				LuaObjectDecoder decoder = new LuaObjectDecoder (valuePtr, size, this);
 				return decoder.readObject () as LuaValue;
 			}
 
@@ -279,7 +297,7 @@ namespace cn.vimfung.luascriptcore
 			if (value != null)
 			{
 				IntPtr valuePtr = IntPtr.Zero;
-				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				LuaObjectEncoder encoder = new LuaObjectEncoder (this);
 				encoder.writeObject (value);
 
 				byte[] bytes = encoder.bytes;
@@ -306,7 +324,7 @@ namespace cn.vimfung.luascriptcore
 			if (value != null)
 			{
 				IntPtr valuePtr = IntPtr.Zero;
-				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				LuaObjectEncoder encoder = new LuaObjectEncoder (this);
 				encoder.writeObject (value);
 
 				byte[] bytes = encoder.bytes;
@@ -331,7 +349,7 @@ namespace cn.vimfung.luascriptcore
 		{
 			IntPtr resultPtr = IntPtr.Zero;
 			int size = NativeUtils.evalScript (_nativeObjectId, script, out resultPtr);
-			return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
+			return LuaObjectDecoder.DecodeObject (resultPtr, size, this) as LuaValue;
 		}
 
 		/// <summary>
@@ -373,7 +391,7 @@ namespace cn.vimfung.luascriptcore
 #endif
 			IntPtr resultPtr;
 			int size = NativeUtils.evalScriptFromFile (_nativeObjectId, filePath, out resultPtr);
-			LuaValue retValue = LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
+			LuaValue retValue = LuaObjectDecoder.DecodeObject (resultPtr, size, this) as LuaValue;
 
 			return retValue;
 
@@ -392,7 +410,7 @@ namespace cn.vimfung.luascriptcore
 
 			if (arguments != null)
 			{
-				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				LuaObjectEncoder encoder = new LuaObjectEncoder (this);
 				encoder.writeInt32 (arguments.Count);
 				foreach (LuaValue value in arguments)
 				{
@@ -413,7 +431,7 @@ namespace cn.vimfung.luascriptcore
 				
 			if (size > 0)
 			{
-				return LuaObjectDecoder.DecodeObject (resultPtr, size) as LuaValue;
+				return LuaObjectDecoder.DecodeObject (resultPtr, size, this) as LuaValue;
 			}
 
 			return new LuaValue();
@@ -468,7 +486,7 @@ namespace cn.vimfung.luascriptcore
 			if (_methodHandlers.ContainsKey (methodName))
 			{
 				//反序列化参数列表
-				LuaObjectDecoder decoder = new LuaObjectDecoder(args, size);
+				LuaObjectDecoder decoder = new LuaObjectDecoder(args, size, this);
 				int argSize = decoder.readInt32 ();
 
 				List<LuaValue> argumentsList = new List<LuaValue> ();
@@ -486,7 +504,7 @@ namespace cn.vimfung.luascriptcore
 					retValue = new LuaValue ();
 				}
 
-				LuaObjectEncoder encoder = new LuaObjectEncoder ();
+				LuaObjectEncoder encoder = new LuaObjectEncoder (this);
 				encoder.writeObject (retValue);
 
 				byte[] bytes = encoder.bytes;

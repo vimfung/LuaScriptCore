@@ -199,8 +199,11 @@ static int objectDestroyHandler (lua_State *state)
             }
             else
             {
-                LuaEngineAdapter::pop(state, 3);
+                LuaEngineAdapter::pop(state, 2);
             }
+            
+            //移除异常捕获方法
+            LuaEngineAdapter::remove(state, errFuncIndex);
             
             //释放实例对象
             objDesc -> release();
@@ -984,8 +987,9 @@ void LuaExportsTypeManager::_initLuaObject(LuaObjectDescriptor *objectDescriptor
     else
     {
         LuaEngineAdapter::pop(state, 1);    //出栈init方法
-        LuaEngineAdapter::remove(state, -2); //出栈异常捕获方法
     }
+    
+    LuaEngineAdapter::remove(state, errFuncIndex); //出栈异常捕获方法
 }
 
 void LuaExportsTypeManager::_bindLuaInstance(LuaObjectDescriptor *objectDescriptor)
