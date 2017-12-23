@@ -11,20 +11,34 @@ namespace cn.vimfung.luascriptcore
 	{
 		private byte[] _buffer;
 		private int _offset;
+		private LuaContext _context;
 
 		/// <summary>
 		/// 初始化对象解码器
 		/// </summary>
 		/// <param name="objectPtr">原生层中缓冲区指针</param>
 		/// <param name="size">缓冲区大小</param>
-		public LuaObjectDecoder(IntPtr objectPtr, int size)
+		public LuaObjectDecoder(IntPtr objectPtr, int size, LuaContext context)
 		{
 			if (size > 0)
 			{
+				_context = context;
 				_offset = 0;
 				_buffer = new byte[size];
 				Marshal.Copy (objectPtr, _buffer, 0, size);
 				Marshal.FreeHGlobal (objectPtr);
+			}
+		}
+
+		/// <summary>
+		/// 获取上下文对象
+		/// </summary>
+		/// <value>上下文对象.</value>
+		public LuaContext context
+		{
+			get
+			{
+				return _context;
 			}
 		}
 
@@ -173,11 +187,12 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>对象</returns>
 		/// <param name="objectPtr">表示C中的二进制数据缓冲区指针</param>
 		/// <param name="size">缓冲区大小</param>
-		public static object DecodeObject(IntPtr objectPtr, int size)
+		/// <param name="context">上下文对象</param>
+		public static object DecodeObject(IntPtr objectPtr, int size, LuaContext context)
 		{
 			if (size > 0)
 			{
-				LuaObjectDecoder decoder = new LuaObjectDecoder (objectPtr, size);
+				LuaObjectDecoder decoder = new LuaObjectDecoder (objectPtr, size, context);
 				return decoder.readObject ();
 			}
 
