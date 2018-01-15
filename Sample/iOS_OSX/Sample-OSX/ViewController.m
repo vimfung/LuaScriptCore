@@ -24,26 +24,12 @@
  */
 @property(nonatomic) BOOL hasRegMethod;
 
-/**
- *  是否注册模块
- */
-@property (nonatomic) BOOL hasRegModule;
-
-/**
- *  是否注册类
- */
-@property (nonatomic) BOOL hasRegClass;
-
-/**
- 是否导入类
- */
-@property (nonatomic) BOOL hasImportClass;
-
 @end
 
 @implementation ViewController
 
-- (void)viewDidLoad {
+- (void)viewDidLoad
+{
   [super viewDidLoad];
 
   // Do any additional setup after loading the view.
@@ -132,12 +118,6 @@
  */
 - (IBAction)registerModuleClickedHandler:(id)sender
 {
-    if (!self.hasRegModule)
-    {
-        self.hasRegModule = YES;
-        [self.context registerModuleWithClass:[LogModule class]];
-    }
-    
     [self.context evalScriptFromString:@"LogModule.writeLog('Hello Lua Module!');"];
 }
 
@@ -149,12 +129,6 @@
  */
 - (IBAction)registerClassClickedHandler:(id)sender
 {
-    if (!self.hasRegClass)
-    {
-        self.hasRegClass = YES;
-        [self.context registerModuleWithClass:[LSCTPerson class]];
-    }
-    
     [self.context evalScriptFromFile:[[NSBundle mainBundle] pathForResource:@"test"
                                                                      ofType:@"lua"]];
 }
@@ -166,14 +140,7 @@
  */
 - (IBAction)importNativeClassClickedHandler:(id)sender
 {
-    if (!self.hasImportClass)
-    {
-        self.hasImportClass = YES;
-        [self.context registerModuleWithClass:[LSCClassImport class]];
-        [LSCClassImport setInculdesClasses:@[LSCTPerson.class, LSCTNativeData.class] withContext:self.context];
-    }
-    
-    [self.context evalScriptFromString:@"local Data = ClassImport('LSCTNativeData'); print(Data); local d = Data.create(); print(d); d:setDataId('xxxx'); print(d:dataId()); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
+    [self.context evalScriptFromString:@"local Data = LSCTNativeData; print(Data); local d = Data.create(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
 }
 
 @end

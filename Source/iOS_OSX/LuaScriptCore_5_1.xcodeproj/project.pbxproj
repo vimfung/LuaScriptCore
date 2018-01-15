@@ -139,6 +139,12 @@
 		7C6B155E1D6B2BF100489D9E /* LSCContext.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D21D6B047F00489D9E /* LSCContext.h */; };
 		7C6B155F1D6B2BF100489D9E /* LSCValue.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D51D6B047F00489D9E /* LSCValue.h */; };
 		7C6B15601D6B2BF100489D9E /* LuaScriptCore.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */; };
+		7C77CB29200C96E8004190F2 /* LSCVirtualInstance.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C77CB27200C96E8004190F2 /* LSCVirtualInstance.h */; };
+		7C77CB2A200C96E8004190F2 /* LSCVirtualInstance.h in Headers */ = {isa = PBXBuildFile; fileRef = 7C77CB27200C96E8004190F2 /* LSCVirtualInstance.h */; };
+		7C77CB2B200C96E8004190F2 /* LSCVirtualInstance.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C77CB28200C96E8004190F2 /* LSCVirtualInstance.m */; };
+		7C77CB2C200C96E8004190F2 /* LSCVirtualInstance.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C77CB28200C96E8004190F2 /* LSCVirtualInstance.m */; };
+		7C77CB2D200C96E8004190F2 /* LSCVirtualInstance.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C77CB28200C96E8004190F2 /* LSCVirtualInstance.m */; };
+		7C77CB2E200C96E8004190F2 /* LSCVirtualInstance.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C77CB28200C96E8004190F2 /* LSCVirtualInstance.m */; };
 		7C83F3EE1ECD498400177720 /* Chinese.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3ED1ECD498400177720 /* Chinese.m */; };
 		7C83F3F11ECD499600177720 /* English.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3F01ECD499600177720 /* English.m */; };
 		7C83F3F41ECD49BB00177720 /* America.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3F31ECD49BB00177720 /* America.m */; };
@@ -524,6 +530,8 @@
 		7C6B13D61D6B047F00489D9E /* LSCValue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCValue.m; path = Code/LSCValue.m; sourceTree = "<group>"; };
 		7C6B13D71D6B047F00489D9E /* LuaScriptCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LuaScriptCore.h; path = Code/LuaScriptCore.h; sourceTree = "<group>"; };
 		7C6B152E1D6B2B2500489D9E /* libLuaScriptCore-OSX.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-OSX.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7C77CB27200C96E8004190F2 /* LSCVirtualInstance.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCVirtualInstance.h; path = Code/LSCVirtualInstance.h; sourceTree = "<group>"; };
+		7C77CB28200C96E8004190F2 /* LSCVirtualInstance.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCVirtualInstance.m; path = Code/LSCVirtualInstance.m; sourceTree = "<group>"; };
 		7C83F3EC1ECD498400177720 /* Chinese.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Chinese.h; sourceTree = "<group>"; };
 		7C83F3ED1ECD498400177720 /* Chinese.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Chinese.m; sourceTree = "<group>"; };
 		7C83F3EF1ECD499600177720 /* English.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = English.h; sourceTree = "<group>"; };
@@ -812,6 +820,8 @@
 				7C46D0181FEA6EC4005E4351 /* LSCExportTypeDescriptor+Private.h */,
 				7C8EA3191FCFD247000F58BF /* LSCExportPropertyDescriptor.h */,
 				7C8EA31A1FCFD247000F58BF /* LSCExportPropertyDescriptor.m */,
+				7C77CB27200C96E8004190F2 /* LSCVirtualInstance.h */,
+				7C77CB28200C96E8004190F2 /* LSCVirtualInstance.m */,
 			);
 			name = LuaScriptCore;
 			sourceTree = "<group>";
@@ -962,6 +972,7 @@
 				7C8EA2EE1FCFD0E6000F58BF /* LSCEngineAdapter.h in Headers */,
 				7C177BBB1DEFDE49008C9DF1 /* LSCValue_Private.h in Headers */,
 				7CB560641F343F5F002982CE /* lstring.h in Headers */,
+				7C77CB2A200C96E8004190F2 /* LSCVirtualInstance.h in Headers */,
 				7CB560241F343F5F002982CE /* lgc.h in Headers */,
 				7CB55FFE1F343F5F002982CE /* lcode.h in Headers */,
 				7CB5603E1F343F5F002982CE /* lmem.h in Headers */,
@@ -1021,6 +1032,7 @@
 				7C8EA2ED1FCFD0E6000F58BF /* LSCEngineAdapter.h in Headers */,
 				7C238F401DEED3A1009CB024 /* LSCFunction_Private.h in Headers */,
 				7CB560631F343F5F002982CE /* lstring.h in Headers */,
+				7C77CB29200C96E8004190F2 /* LSCVirtualInstance.h in Headers */,
 				7CB560231F343F5F002982CE /* lgc.h in Headers */,
 				7CB55FFD1F343F5F002982CE /* lcode.h in Headers */,
 				7CB5603D1F343F5F002982CE /* lmem.h in Headers */,
@@ -1394,6 +1406,7 @@
 				7CB5602C1F343F5F002982CE /* liolib.c in Sources */,
 				7CB560841F343F5F002982CE /* lundump.c in Sources */,
 				7CA6630C1F7A66F500007F25 /* LuaExportType.swift in Sources */,
+				7C77CB2E200C96E8004190F2 /* LSCVirtualInstance.m in Sources */,
 				7CB560161F343F5F002982CE /* lext.c in Sources */,
 				7C8EA2F21FCFD0E6000F58BF /* LSCEngineAdapter.m in Sources */,
 				7CF7D6B81FDF8C57004E887D /* LuaExportPropertyDescriptor.swift in Sources */,
@@ -1457,6 +1470,7 @@
 				7C238F421DEED3A1009CB024 /* LSCFunction.m in Sources */,
 				7CB560151F343F5F002982CE /* lext.c in Sources */,
 				7CA6630B1F7A66F500007F25 /* LuaExportType.swift in Sources */,
+				7C77CB2D200C96E8004190F2 /* LSCVirtualInstance.m in Sources */,
 				7CB560511F343F5F002982CE /* loslib.c in Sources */,
 				7C8EA2F11FCFD0E6000F58BF /* LSCEngineAdapter.m in Sources */,
 				7CF7D6B71FDF8C57004E887D /* LuaExportPropertyDescriptor.swift in Sources */,
@@ -1539,6 +1553,7 @@
 				7CB5603A1F343F5F002982CE /* lmem.c in Sources */,
 				7CB5605A1F343F5F002982CE /* lstate.c in Sources */,
 				7CB560041F343F5F002982CE /* ldebug.c in Sources */,
+				7C77CB2C200C96E8004190F2 /* LSCVirtualInstance.m in Sources */,
 				7CB560361F343F5F002982CE /* lmathlib.c in Sources */,
 				7C8EA2DB1FCFD0C9000F58BF /* LSCManagedValue.m in Sources */,
 				7CB560741F343F5F002982CE /* ltm.c in Sources */,
@@ -1591,6 +1606,7 @@
 				7CB560391F343F5F002982CE /* lmem.c in Sources */,
 				7CB560591F343F5F002982CE /* lstate.c in Sources */,
 				7CB560031F343F5F002982CE /* ldebug.c in Sources */,
+				7C77CB2B200C96E8004190F2 /* LSCVirtualInstance.m in Sources */,
 				7CB560351F343F5F002982CE /* lmathlib.c in Sources */,
 				7C8EA2DA1FCFD0C9000F58BF /* LSCManagedValue.m in Sources */,
 				7CB560731F343F5F002982CE /* ltm.c in Sources */,

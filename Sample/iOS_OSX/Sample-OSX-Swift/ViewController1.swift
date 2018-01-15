@@ -13,9 +13,6 @@ class ViewController1: NSViewController {
 
     var _context : LuaContext = LuaContext();
     var _hasRegMethod : Bool = false;
-    var _hasRegModule : Bool = false;
-    var _hasRegClass : Bool = false;
-    var _hasImportClass : Bool = false;
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -79,12 +76,6 @@ class ViewController1: NSViewController {
     /// - Parameter sender: 事件对象
     @IBAction func regModuleButtonClickedHandler(_ sender: Any)
     {
-        if (!_hasRegModule)
-        {
-            _hasRegModule = true;
-            _context.registerModule(moduleClass: LogModule.self);
-        }
-        
         _ = _context.evalScript(script: "LogModule.writeLog('Hello Lua Module!');");
     }
     
@@ -93,12 +84,6 @@ class ViewController1: NSViewController {
     /// - Parameter sender: 事件对象
     @IBAction func regClassButtonClickedHandler(_ sender: Any)
     {
-        if (!_hasRegClass)
-        {
-            _hasRegClass = true;
-            _context.registerModule(moduleClass: LSCTPerson.self);
-        }
-        
         _ = _context.evalScript(filePath: "test.lua");
     }
     
@@ -107,14 +92,7 @@ class ViewController1: NSViewController {
     /// - Parameter sender: 事件对象
     @IBAction func importNativeClassButtonClickedHandler(_ sender: Any)
     {
-        if !_hasRegModule
-        {
-            _hasImportClass = true;
-            _context.registerModule(moduleClass: LuaClassImport.self);
-            LuaClassImport.setInculdesClasses(classes: [LSCTNativeData.self], context: _context);
-        }
-        
-        _ = _context.evalScript(script: "local Data = ClassImport('Sample_OSX_Swift.LSCTNativeData'); print(Data); local d = Data.create(); print(d); d:setDataId('xxxx'); print(d:dataId()); d:setData('xxx','testKey'); print(d:getData('testKey'));");
+        _ = _context.evalScript(script: "local Data = LSCTNativeData; print(Data); local d = Data.create(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));");
     }
 }
 

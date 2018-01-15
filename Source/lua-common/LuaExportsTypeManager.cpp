@@ -16,6 +16,7 @@
 #include "LuaEngineAdapter.hpp"
 #include "LuaExportMethodDescriptor.hpp"
 #include "LuaObjectDescriptor.h"
+#include "LuaDataExchanger.h"
 #include "StringUtils.h"
 
 using namespace cn::vimfung::luascriptcore;
@@ -1044,6 +1045,10 @@ void LuaExportsTypeManager::_bindLuaInstance(LuaObjectDescriptor *objectDescript
     }
 
     LuaEngineAdapter::pop(state, 1);
+    
+    //将创建对象放入到_vars_表中，主要修复对象创建后，在init中调用方法或者访问属性，由于对象尚未记录在_vars_中，而循环创建lua对象，并导致栈溢出。
+    std::string linkId = StringUtils::format("%p", objectDescriptor);
+    this -> context() -> getDataExchanger() -> setLuaObject(-1, linkId);
 }
 
 int LuaExportsTypeManager::_getInstancePropertyValue(LuaSession *session,
