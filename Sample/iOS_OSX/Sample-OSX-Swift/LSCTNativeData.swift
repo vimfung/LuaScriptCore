@@ -7,24 +7,25 @@
 //
 
 import Cocoa
+import LuaScriptCore_OSX_Swift
 
-class LSCTNativeData: NSObject
+class LSCTNativeData: NSObject, LuaExportType
 {
-    var dataId : String? = nil;
+    @objc var dataId : String? = nil;
     
     private var _data : Dictionary<String, String> = Dictionary();
     
-    public class func createData () -> LSCTNativeData
+    @objc public class func createData () -> LSCTNativeData
     {
         return LSCTNativeData();
     }
     
-    public func setData(value : String, key : String) -> Void
+    @objc public func setData(value : String, key : String) -> Void
     {
         _data[key] = value;
     }
     
-    public func getData(key : String) -> String
+    @objc public func getData(key : String) -> String
     {
         return _data[key]!;
     }

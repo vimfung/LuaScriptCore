@@ -340,6 +340,8 @@ void LuaDataExchanger::setLuaObject(int stackIndex, const std::string &linkId)
 {
     lua_State *state = _context -> getCurrentSession() -> getState();
 
+    stackIndex = LuaEngineAdapter::absIndex(state, stackIndex);
+    
     beginGetVarsTable();
 
     //放入对象到_vars_表中
