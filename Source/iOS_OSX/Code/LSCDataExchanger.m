@@ -726,6 +726,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                         objectId:(NSString *)objectId
                            state:(lua_State *)state
 {
+    index = [LSCEngineAdapter absIndex:(int)index state:state];
     [self doActionInVarsTableWithState:state block:^{
         
         //放入对象到_vars_表中

@@ -8,9 +8,9 @@
 
 import LuaScriptCore_OSX_Swift
 
-class LogModule: LSCModule
+class LogModule: NSObject, LuaExportType
 {
-    static func writeLog(message : String) -> Void
+    @objc static func writeLog(message : String) -> Void
     {
         NSLog("** message = %@", message);
     }

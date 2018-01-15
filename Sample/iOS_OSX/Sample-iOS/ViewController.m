@@ -162,7 +162,7 @@
  */
 - (IBAction)importNativeClassClickedHandler:(id)sender
 {
-    [self.context evalScriptFromString:@"local Data = nativeType('LSCTNativeData'); print(Data); local d = Data.create(); print(d); d:setDataId('xxxx'); print(d:dataId()); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
+    [self.context evalScriptFromString:@"local Data = LSCTNativeData; print(Data); local d = Data.create(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
 }
 
 @end

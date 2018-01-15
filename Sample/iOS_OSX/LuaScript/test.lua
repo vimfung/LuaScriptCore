@@ -5,6 +5,6 @@ function LSCTPerson.prototype:destroy ()
 end
 
 local person = LSCTPerson.create();
-person:setName('vimfung');
+person.name = "vimfung";
 person:walk();
 person:speak();
