@@ -8,16 +8,16 @@
 
 import LuaScriptCore_OSX_Swift
 
-class LSCTPerson: LSCObjectClass
+class LSCTPerson: NSObject, LuaExportType
 {
-    var name : String? = nil;
+    @objc var name : String? = nil;
     
-    func speak() -> Void
+    @objc func speak() -> Void
     {
         NSLog("%@ speak", name ?? "noname");
     }
     
-    func walk() -> Void
+    @objc func walk() -> Void
     {
         NSLog("%@ walk", name ?? "noname");
     }

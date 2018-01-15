@@ -108,6 +108,7 @@
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {
+    //由于function都是从lua层回传到原生层，因此在变量表中一定会有记录，所以这里不需要做任何push操作
     return YES;
 }
 

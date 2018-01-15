@@ -16,6 +16,7 @@
 #import "LSCExportMethodDescriptor.h"
 #import "LSCExportTypeAnnotation.h"
 #import "LSCExportPropertyDescriptor.h"
+#import "LSCVirtualInstance.h"
 #import <objc/runtime.h>
 
 @interface LSCExportsTypeManager ()
@@ -350,7 +351,7 @@
                   targetType:(LSCExportTypeDescriptor *)targetTypeDescriptor
                        state:(lua_State *)state
 {
-    if (targetTypeDescriptor.nativeType != NULL && targetTypeDescriptor.nativeType != [NSObject class])
+    if (targetTypeDescriptor.nativeType != NULL)
     {
         NSArray *excludesMethodNames = nil;
         Class metaType = objc_getMetaClass(NSStringFromClass(targetTypeDescriptor.nativeType).UTF8String);
@@ -487,7 +488,7 @@
                                       state:(lua_State *)state
 {
     NSMutableSet<NSString *> *propertySelectorList = nil;
-    if (typeDescriptor.nativeType != NULL && typeDescriptor.nativeType != [NSObject class])
+    if (typeDescriptor.nativeType != NULL)
     {
         propertySelectorList = [NSMutableSet set];
         
@@ -601,7 +602,7 @@
            propertySelectorList:(NSArray<NSString *> *)propertySelectorList
                           state:(lua_State *)state
 {
-    if (typeDescriptor.nativeType != NULL && typeDescriptor.nativeType != [NSObject class])
+    if (typeDescriptor.nativeType != NULL)
     {
         //注册实例方法
         //先判断是否有注解排除实例方法
@@ -865,6 +866,10 @@
     }
     
     [LSCEngineAdapter pop:state count:1];
+    
+    //将创建对象放入到_vars_表中，主要修复对象创建后，在init中调用方法或者访问属性，由于对象尚未记录在_vars_中，而循环创建lua对象，并导致栈溢出。
+    NSString *objectId = [NSString stringWithFormat:@"%p", nativeObject];
+    [self.context.dataExchanger setLubObjectByStackIndex:-1 objectId:objectId];
 }
 
 /**
@@ -875,9 +880,10 @@
  */
 - (LSCExportTypeDescriptor *)_findParentTypeDescriptorWithTypeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
 {
-    if (typeDescriptor == self.exportTypes[@"Object"])
+    if (typeDescriptor.nativeType == nil)
     {
-        //如果为Object对象，则直接返回空
+        //如果为Object或者lua定义类型，则直接返回空
+        //注：lua定义类型不会走这个方法，并且在创建类型时已经指定父类
         return nil;
     }
     
@@ -909,6 +915,11 @@
         NSString *clsName = NSStringFromClass([object class]);
         NSString *typeName = self.exportTypesMapping[clsName];
         return self.exportTypes[typeName];
+    }
+    else if ([object isKindOfClass:[LSCVirtualInstance class]])
+    {
+        //为Lua层类型
+        return ((LSCVirtualInstance *)object).typeDescriptor;
     }
     
     return nil;
@@ -1090,168 +1101,6 @@
     return retValueCount;
 }
 
-
-///**
-// 调用方法
-//
-// @param instance 实例对象
-// @param typeDescriptor 类型描述
-// @param invocation 调用器
-// @param arguments 参数
-//
-// @return 返回值
-// */
-//- (LSCValue *)_invokeMethodWithInstance:(id)instance
-//                         typeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
-//                             invocation:(NSInvocation *)invocation
-//                              arguments:(NSArray *)arguments
-//{
-//    //修复float类型在Invocation中会丢失问题，需要定义该结构体来提供给带float参数的方法。同时返回值处理也一样。
-//    typedef struct {float f;} LSCFloatStruct;
-//
-//    //修正索引值，用于标识参数从哪个位置开始取值
-//    //其中实例方法第一个参数是实例对象自身，因此要从第二个参数开始取值，而类方法不存在该问题
-//    int fixedIndex = 0;
-//    Method m = NULL;
-//    if (instance)
-//    {
-//        //为实例方法
-//        [invocation setTarget:instance];
-//        fixedIndex = 1;
-//        m = class_getInstanceMethod(typeDescriptor.nativeType, invocation.selector);
-//    }
-//    else
-//    {
-//        //为类方法
-//        [invocation setTarget:typeDescriptor.nativeType];
-//        fixedIndex = 2;
-//        m = class_getClassMethod(typeDescriptor.nativeType, invocation.selector);
-//    }
-//
-//    [invocation retainArguments];
-//
-//    for (int i = 2; i < method_getNumberOfArguments(m); i++)
-//    {
-//        char *argType = method_copyArgumentType(m, i);
-//
-//        LSCValue *value = nil;
-//        if (i - fixedIndex < arguments.count)
-//        {
-//            value = arguments[i - fixedIndex];
-//        }
-//        else
-//        {
-//            value = [LSCValue nilValue];
-//        }
-//
-//        if (strcmp(argType, @encode(float)) == 0)
-//        {
-//            //浮点型数据
-//            LSCFloatStruct floatValue = {[value toDouble]};
-//            [invocation setArgument:&floatValue atIndex:i];
-//        }
-//        else if (strcmp(argType, @encode(double)) == 0)
-//        {
-//            //双精度浮点型
-//            double doubleValue = [value toDouble];
-//            [invocation setArgument:&doubleValue atIndex:i];
-//        }
-//        else if (strcmp(argType, @encode(int)) == 0
-//                 || strcmp(argType, @encode(unsigned int)) == 0
-//                 || strcmp(argType, @encode(long)) == 0
-//                 || strcmp(argType, @encode(unsigned long)) == 0
-//                 || strcmp(argType, @encode(short)) == 0
-//                 || strcmp(argType, @encode(unsigned short)) == 0
-//                 || strcmp(argType, @encode(char)) == 0
-//                 || strcmp(argType, @encode(unsigned char)) == 0)
-//        {
-//            //整型
-//            NSInteger intValue = [value toDouble];
-//            [invocation setArgument:&intValue atIndex:i];
-//        }
-//        else if (strcmp(argType, @encode(BOOL)) == 0)
-//        {
-//            //布尔类型
-//            BOOL boolValue = [value toBoolean];
-//            [invocation setArgument:&boolValue atIndex:i];
-//        }
-//        else if (strcmp(argType, @encode(id)) == 0)
-//        {
-//            //对象类型
-//            id obj = [value toObject];
-//            [invocation setArgument:&obj atIndex:i];
-//        }
-//
-//        free(argType);
-//    }
-//
-//    [invocation invoke];
-//
-//    char *returnType = method_copyReturnType(m);
-//
-//    LSCValue *retValue = nil;
-//    if (strcmp(returnType, @encode(id)) == 0)
-//    {
-//        //返回值为对象，添加__unsafe_unretained修饰用于修复ARC下retObj对象被释放问题。
-//        id __unsafe_unretained retObj = nil;
-//        [invocation getReturnValue:&retObj];
-//
-//        retValue = [LSCValue objectValue:retObj];
-//    }
-//    else if (strcmp(returnType, @encode(int)) == 0
-//             || strcmp(returnType, @encode(unsigned int)) == 0
-//             || strcmp(returnType, @encode(long)) == 0
-//             || strcmp(returnType, @encode(unsigned long)) == 0
-//             || strcmp(returnType, @encode(short)) == 0
-//             || strcmp(returnType, @encode(unsigned short)) == 0
-//             || strcmp(returnType, @encode(char)) == 0
-//             || strcmp(returnType, @encode(unsigned char)) == 0)
-//    {
-//        // i 整型
-//        // I 无符号整型
-//        // q 长整型
-//        // Q 无符号长整型
-//        // S 无符号短整型
-//        // c 字符型
-//        // C 无符号字符型
-//
-//        NSInteger intValue = 0;
-//        [invocation getReturnValue:&intValue];
-//        retValue = [LSCValue integerValue:intValue];
-//    }
-//    else if (strcmp(returnType, @encode(float)) == 0)
-//    {
-//        // f 浮点型，需要将值保存到floatStruct结构中传入给方法，否则会导致数据丢失
-//        LSCFloatStruct floatStruct = {0};
-//        [invocation getReturnValue:&floatStruct];
-//        retValue = [LSCValue numberValue:@(floatStruct.f)];
-//
-//    }
-//    else if (strcmp(returnType, @encode(double)) == 0)
-//    {
-//        // d 双精度浮点型
-//        double doubleValue = 0.0;
-//        [invocation getReturnValue:&doubleValue];
-//        retValue = [LSCValue numberValue:@(doubleValue)];
-//    }
-//    else if (strcmp(returnType, @encode(BOOL)) == 0)
-//    {
-//        //B 布尔类型
-//        BOOL boolValue = NO;
-//        [invocation getReturnValue:&boolValue];
-//        retValue = [LSCValue booleanValue:boolValue];
-//    }
-//    else
-//    {
-//        //nil
-//        retValue = nil;
-//    }
-//
-//    free(returnType);
-//
-//    return retValue;
-//}
-
 #pragma mark - C Method
 
 /**
@@ -1395,6 +1244,11 @@ static int objectCreateHandler (lua_State *state)
     if (typeDescriptor.nativeType != NULL)
     {
         instance = [[typeDescriptor.nativeType alloc] init];
+    }
+    else
+    {
+        //创建一个虚拟的类型对象
+        instance = [[LSCVirtualInstance alloc] initWithTypeDescriptor:typeDescriptor];
     }
     
     [exporter _initLuaObjectWithObject:instance type:typeDescriptor];
@@ -1658,7 +1512,14 @@ static int prototypeNewIndexHandler (lua_State *state)
                 
                 LSCValue *propertyNameValue = [LSCValue valueWithContext:exporter.context atIndex:2];
                 LSCExportPropertyDescriptor *propertyDescriptor = [[LSCExportPropertyDescriptor alloc] initWithName:[propertyNameValue toString] getterFunction:getter setterFunction:setter];
-                [typeDescriptor.properties setObject:propertyDescriptor forKey:propertyDescriptor.name];
+                
+                NSMutableDictionary *properties = [typeDescriptor.properties mutableCopy];
+                if (!typeDescriptor.properties)
+                {
+                    properties = [NSMutableDictionary dictionary];
+                }
+                [properties setObject:propertyDescriptor forKey:propertyDescriptor.name];
+                typeDescriptor.properties = properties;
             }
         }
     }
