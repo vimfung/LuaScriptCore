@@ -17,8 +17,18 @@
 #include <sstream>
 #include <thread>
 #include <signal.h>
+
+#if _WINDOWS
+
+#include <windows.h>
+#pragma comment(lib,"Winmm.lib")
+
+#else
+
 #include <sys/time.h>
 #include <unistd.h>
+
+#endif
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -31,6 +41,7 @@ static const char * CatchLuaExceptionHandlerName = "__catchExcepitonHandler";
  需要回收内存上下文列表
  */
 static std::vector<LuaContext *> _needsGCContextList;
+
 
 /**
  * 方法路由处理器
@@ -93,6 +104,27 @@ static LuaValue* catchLuaExceptionHandler (LuaContext *context, std::string meth
     return NULL;
 }
 
+#if _WINDOWS
+
+void WINAPI contextGCHandler(UINT wTimerID, UINT msg, DWORD dwUser, DWORD dwl, DWORD dw2)
+{
+	unityDebug("gc handler...");
+
+	//重置计时器
+	timeKillEvent(wTimerID);
+
+	//进行内存回收
+	for (std::vector<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
+	{
+		LuaContext *context = *it;
+		context->gcHandler();
+		context->release();       // 回收后释放
+	}
+	//清空
+	_needsGCContextList.clear();
+}
+
+#else
 /**
  上下文内存回收处理
 
@@ -100,6 +132,7 @@ static LuaValue* catchLuaExceptionHandler (LuaContext *context, std::string meth
  */
 static void contextGCHandler(int signo)
 {
+
     //重置计时器
     struct itimerval itv;
     itv.it_value.tv_sec = 0;
@@ -117,6 +150,8 @@ static void contextGCHandler(int signo)
     //清空
     _needsGCContextList.clear();
 }
+
+#endif
 
 /**
  上下文开始回收
@@ -141,6 +176,16 @@ static void contextStartGC(LuaContext *context)
         context -> retain();
         _needsGCContextList.push_back(context);
         
+#if _WINDOWS
+		
+		MMRESULT gcTimerId = timeSetEvent(100, 1, (LPTIMECALLBACK)contextGCHandler, NULL, TIME_ONESHOT);
+		if (NULL == gcTimerId)
+		{
+			unityDebug("gc timer create error!");
+		}
+
+#else
+
         //监听定时器信号
         signal(SIGALRM, contextGCHandler);
         
@@ -150,6 +195,9 @@ static void contextStartGC(LuaContext *context)
         itv.it_value.tv_usec = 100000;
         itv.it_interval = itv.it_value;
         setitimer(ITIMER_REAL, &itv, NULL);
+
+#endif
+
     }
 }
 
