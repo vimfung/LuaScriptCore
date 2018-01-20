@@ -216,6 +216,9 @@
     <ClCompile Include="..\..\..\lua-common\LuaEngineAdapter.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaTmpValue.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lua-core\src\lapi.h">
@@ -384,6 +387,9 @@
       <Filter>Header Files\UnityCommon</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaEngineAdapter.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaTmpValue.hpp">
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
   </ItemGroup>

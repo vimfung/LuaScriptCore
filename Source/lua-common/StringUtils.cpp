@@ -43,7 +43,8 @@ std::string StringUtils::format (const char *format, ...)
     va_start(marker, format);
 
     char buffer[1024] = {0};
-    int size = vsprintf(buffer, format, marker);
+	int size = vsnprintf_s(buffer, 1024, format, marker);
+    //vsprintf(buffer, format, marker);
     
     va_end(marker);
 
