@@ -100,6 +100,7 @@
     <ClCompile Include="..\..\..\lua-common\LuaObjectManager.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaPointer.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaSession.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaTmpValue.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaTuple.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaValue.cpp" />
     <ClCompile Include="..\..\..\lua-common\StringUtils.cpp" />
@@ -165,6 +166,7 @@
     <ClInclude Include="..\..\..\lua-common\LuaObjectSerializationTypes.h" />
     <ClInclude Include="..\..\..\lua-common\LuaPointer.h" />
     <ClInclude Include="..\..\..\lua-common\LuaSession.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaTmpValue.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaTuple.h" />
     <ClInclude Include="..\..\..\lua-common\LuaValue.h" />
     <ClInclude Include="..\..\..\lua-common\StringUtils.h" />
