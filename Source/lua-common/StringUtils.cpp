@@ -43,8 +43,12 @@ std::string StringUtils::format (const char *format, ...)
     va_start(marker, format);
 
     char buffer[1024] = {0};
+    
+#if _WINDOWS
 	int size = vsnprintf_s(buffer, 1024, format, marker);
-    //vsprintf(buffer, format, marker);
+#else
+    int size = vsprintf(buffer, format, marker);
+#endif
     
     va_end(marker);
 
