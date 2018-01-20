@@ -36,14 +36,14 @@ namespace cn {
             private:
 
                 /**
-                 类型描述器
-                 */
-                LuaExportTypeDescriptor *_typeDescriptor;
-                
-                /**
                  * 对象
                  */
                 void *_object;
+
+				/**
+				类型描述器
+				*/
+				LuaExportTypeDescriptor *_typeDescriptor;
                 
                 /**
                  * 用户自定义数据
