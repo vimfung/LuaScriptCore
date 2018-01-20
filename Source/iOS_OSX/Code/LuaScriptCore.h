@@ -6,7 +6,7 @@
 //  Copyright © 2016年 vimfung. All rights reserved.
 //
 
-#define LuaScriptCoreVersion @"2.0.1"
+#define LuaScriptCoreVersion @"2.1.0"
 
 #import "LSCContext.h"
 #import "LSCValue.h"
