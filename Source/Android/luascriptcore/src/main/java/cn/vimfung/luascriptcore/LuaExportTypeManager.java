@@ -298,37 +298,37 @@ class LuaExportTypeManager
      */
     private Object getArgValue(Class<?> argType, LuaValue value)
     {
-        if (argType.isAssignableFrom(int.class))
+        if (int.class.isAssignableFrom(argType))
         {
             return value.toInteger();
         }
-        else if (argType.isAssignableFrom(double.class))
+        else if (double.class.isAssignableFrom(argType))
         {
             return value.toDouble();
         }
-        else if (argType.isAssignableFrom(boolean.class))
+        else if (boolean.class.isAssignableFrom(argType))
         {
             return value.toBoolean();
         }
-        else if (argType.isAssignableFrom(String.class))
+        else if (String.class.isAssignableFrom(argType))
         {
             return value.toString();
         }
-        else if (argType.isAssignableFrom(byte[].class))
+        else if (byte[].class.isAssignableFrom(argType))
         {
             return value.toByteArray();
         }
-        else if (argType.isAssignableFrom(ArrayList.class))
+        else if (ArrayList.class.isAssignableFrom(argType))
         {
             return value.toArrayList();
         }
-        else if (argType.isAssignableFrom(HashMap.class))
+        else if (HashMap.class.isAssignableFrom(argType))
         {
             return value.toHashMap();
         }
         else if (argType.isArray())
         {
-            if (argType.isAssignableFrom(int[].class))
+            if (int[].class.isAssignableFrom(argType))
             {
                 //转换数组中的Double型为整型
                 ArrayList itemArr = value.toArrayList();
@@ -339,7 +339,7 @@ class LuaExportTypeManager
                 }
                 return items;
             }
-            else if (argType.isAssignableFrom(Integer[].class))
+            else if (Integer[].class.isAssignableFrom(argType))
             {
                 //转换数组中的Double型为整型
                 ArrayList itemArr = value.toArrayList();
@@ -352,11 +352,11 @@ class LuaExportTypeManager
 
                 return items;
             }
-            else if (argType.isAssignableFrom(Double[].class))
+            else if (Double[].class.isAssignableFrom(argType))
             {
                 return value.toArrayList().toArray(new Double[0]);
             }
-            else if (argType.isAssignableFrom(double[].class))
+            else if (double[].class.isAssignableFrom(argType))
             {
                 ArrayList itemArr = value.toArrayList();
                 double items[] = new double[itemArr.size()];
@@ -367,11 +367,11 @@ class LuaExportTypeManager
 
                 return items;
             }
-            else if (argType.isAssignableFrom(Boolean[].class))
+            else if (Boolean[].class.isAssignableFrom(argType))
             {
                 return value.toArrayList().toArray(new Boolean[0]);
             }
-            else if (argType.isAssignableFrom(boolean[].class))
+            else if (boolean[].class.isAssignableFrom(argType))
             {
                 ArrayList itemArr = value.toArrayList();
                 boolean items[] = new boolean[itemArr.size()];
