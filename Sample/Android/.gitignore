@@ -9,3 +9,4 @@
 .idea
 /local.properties
 /gradle.properties
+.externalNativeBuild
