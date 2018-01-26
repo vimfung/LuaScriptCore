@@ -423,7 +423,7 @@
                 hasExists = NO;
                 [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
                    
-                    if ([obj.methodSignature isEqualToString:signStr])
+                    if ([obj.paramsSignature isEqualToString:signStr])
                     {
                         hasExists = YES;
                         *stop = YES;
@@ -433,12 +433,8 @@
                 
                 if (!hasExists)
                 {
-                    LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] init];
-                    methodDesc.methodSignature = signStr;
-                    
                     NSMethodSignature *sign = [targetTypeDescriptor.nativeType methodSignatureForSelector:selector];
-                    methodDesc.invocation = [NSInvocation invocationWithMethodSignature:sign];
-                    [methodDesc.invocation setSelector:selector];
+                    LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] initWithSelector:selector methodSignature:sign paramsSignature:signStr];
                     
                     [methodList addObject:methodDesc];
                 }
@@ -673,7 +669,7 @@
                 hasExists = NO;
                 [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
                     
-                    if ([obj.methodSignature isEqualToString:signStr])
+                    if ([obj.paramsSignature isEqualToString:signStr])
                     {
                         hasExists = YES;
                         *stop = YES;
@@ -683,13 +679,9 @@
                 
                 if (!hasExists)
                 {
-                    LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] init];
-                    methodDesc.methodSignature = signStr;
-                    
                     NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:selector];
-                    methodDesc.invocation = [NSInvocation invocationWithMethodSignature:sign];
-                    [methodDesc.invocation setSelector:selector];
-                    
+                    LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] initWithSelector:selector methodSignature:sign paramsSignature:signStr];
+
                     [methodList addObject:methodDesc];
                 }
             }
@@ -949,7 +941,7 @@
         methodDesc = [typeDesc instanceMethodWithName:methodName arguments:arguments];
     }
     
-    return methodDesc.invocation;
+    return [methodDesc createInvocation];
 }
 
 
@@ -1175,23 +1167,23 @@ static int instanceMethodRouteHandler(lua_State *state)
     index = [LSCEngineAdapter upvalueIndex:2];
     ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportTypeDescriptor *typeDescriptor = (__bridge LSCExportTypeDescriptor *)ptr;
-    
+
     index = [LSCEngineAdapter upvalueIndex:3];
     const char *methodNameCStr = [LSCEngineAdapter toString:state index:index];
     NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
-    
+
     if ([LSCEngineAdapter type:state index:1] != LUA_TUSERDATA)
     {
         NSString *errMsg = [NSString stringWithFormat:@"call %@ method error : missing self parameter, please call by instance:methodName(param)", methodName];
         [LSCEngineAdapter error:state message:errMsg.UTF8String];
         return retCount;
     }
-    
+
     //创建调用会话
     LSCSession *callSession = [exporter.context makeSessionWithState:state];
     NSArray *arguments = [callSession parseArguments];
     id instance = [arguments[0] toObject];
-    
+
     NSInvocation *invocation = [exporter _invocationWithMethodName:methodName
                                                          arguments:arguments
                                                           typeDesc:typeDescriptor
@@ -1203,7 +1195,7 @@ static int instanceMethodRouteHandler(lua_State *state)
         LSCValue *retValue = [typeDescriptor _invokeMethodWithInstance:instance
                                                             invocation:invocation
                                                              arguments:arguments];
-        
+
         if (retValue)
         {
             retCount = [callSession setReturnValue:retValue];
@@ -1214,7 +1206,7 @@ static int instanceMethodRouteHandler(lua_State *state)
         NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
         [LSCEngineAdapter error:state message:errMsg.UTF8String];
     }
-    
+
     [exporter.context destroySession:callSession];
     
     return retCount;
