@@ -153,7 +153,7 @@
                 NSRegularExpression *regExp = [[NSRegularExpression alloc] initWithPattern:signStrRegexp options:0 error:nil];
                 [methods enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
                     
-                    NSTextCheckingResult *result = [regExp firstMatchInString:obj.methodSignature options:0 range:NSMakeRange(0, obj.methodSignature.length)];
+                    NSTextCheckingResult *result = [regExp firstMatchInString:obj.paramsSignature options:0 range:NSMakeRange(0, obj.paramsSignature.length)];
                     if (result)
                     {
                         [matchMethods addObject:obj];
@@ -170,11 +170,11 @@
                         
                         BOOL hasMatch = YES;
                         BOOL hasAlternate = NO;
-                        for (int i = 0; i < methodDesc.methodSignature.length; i++)
+                        for (int i = 0; i < methodDesc.paramsSignature.length; i++)
                         {
                             if (i < signArr.count)
                             {
-                                NSString *nativeSign = [methodDesc.methodSignature substringWithRange:NSMakeRange(i, 1)];
+                                NSString *nativeSign = [methodDesc.paramsSignature substringWithRange:NSMakeRange(i, 1)];
                                 NSString *luaSign = signArr[i];
                                 
                                 if ([luaSign isEqualToString:@"N"]
@@ -257,7 +257,7 @@
             //不带参数
             [methods enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
                 
-                if ([obj.methodSignature isEqualToString:@""])
+                if ([obj.paramsSignature isEqualToString:@""])
                 {
                     targetMethod = obj;
                     *stop = NO;
