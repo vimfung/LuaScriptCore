@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "cn.vimfung.luascriptcore.sample"
-        minSdkVersion 13
+        minSdkVersion 14
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -26,6 +26,7 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:24.1.0'
+    compile 'com.blankj:utilcode:1.12.0'
 //    compile 'com.github.vimfung.luascriptcore:luascriptcore:1.3.5'
 //        compile files('src/main/libs/LuaScriptCore.jar')
     compile project(':luascriptcore')

@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,11 +65,11 @@ public class LuaContext extends LuaBaseObject
     /**
      * 排除类型规则
      */
-    private static String[] _excludeClassesRules = {
+    private static String[] _defaultExcludeClassesRules = {
             "^android[.]support$",
             "^android[.]support[.].+",
             "^com[.]android$",
-            "^com[.]android[.].+",
+            "^com[.]android[.].+"
     };
 
     /**
@@ -84,6 +85,11 @@ public class LuaContext extends LuaBaseObject
             _regTypes = new ArrayList<Class<? extends LuaExportType>>();
             try
             {
+                //获取排除类型规则
+                ArrayList<String> excludeRules = new ArrayList<String>();
+                excludeRules.addAll(Arrays.asList(_defaultExcludeClassesRules));
+                excludeRules.addAll(excludeClassesRules);
+
                 String packageCodePath = context.getPackageCodePath();
                 DexFile df = new DexFile(packageCodePath);
                 for (Enumeration<String> iter = df.entries(); iter.hasMoreElements();)
@@ -91,7 +97,7 @@ public class LuaContext extends LuaBaseObject
                     String className = iter.nextElement();
 
                     boolean isExcludeClass = false;
-                    for (String patternStr : _excludeClassesRules)
+                    for (String patternStr : excludeRules)
                     {
                         Pattern pattern = Pattern.compile(patternStr);
                         Matcher matcher = pattern.matcher(className);
@@ -105,6 +111,7 @@ public class LuaContext extends LuaBaseObject
 
                     if (!isExcludeClass)
                     {
+                        Log.d("luascriptcore", String.format("found Class = %s", className));
                         try
                         {
                             Class type = Class.forName(className);
@@ -118,6 +125,10 @@ public class LuaContext extends LuaBaseObject
                         catch (ClassNotFoundException e)
                         {
                             Log.d("luascriptcore", e.getMessage());
+                        }
+                        catch (Exception e)
+                        {
+                            Log.w("luascriptcore", e.getMessage());
                         }
 
                     }
@@ -153,7 +164,7 @@ public class LuaContext extends LuaBaseObject
         int perm = _context.checkCallingOrSelfPermission("android.permission.WRITE_EXTERNAL_STORAGE");
         if (MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) &&  perm == PackageManager.PERMISSION_GRANTED)
         {
-            appCacheDir = _context.getExternalCacheDir();;
+            appCacheDir = _context.getExternalCacheDir();
         }
 
         if (appCacheDir == null)
@@ -238,11 +249,13 @@ public class LuaContext extends LuaBaseObject
     {
         super(nativeId);
 
-        this._methods = new HashMap<String, LuaMethodHandler>();
+        this._methods = new HashMap<>();
 
         //导出类型
         exportTypes();
     }
+
+    public static ArrayList<String> excludeClassesRules = new ArrayList<>();
 
     /**
      * 创建上下文对象
@@ -275,7 +288,7 @@ public class LuaContext extends LuaBaseObject
     public void onException (LuaExceptionHandler handler)
     {
         _exceptionHandler = handler;
-        LuaNativeUtil.catchException(this, handler != null);
+        LuaNativeUtil.catchException(this, _exceptionHandler != null);
     }
 
     /**

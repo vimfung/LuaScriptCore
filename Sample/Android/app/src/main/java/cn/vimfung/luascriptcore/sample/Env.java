@@ -13,6 +13,7 @@ public class Env
 
     public static void setup(Context context)
     {
+        LuaContext.excludeClassesRules.add("^com[.]blankj[.]utilcode[.].+");
         _ctx = LuaContext.create(context);
     }
 
