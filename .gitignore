@@ -58,3 +58,10 @@ fastlane/screenshots
 # https://github.com/johnno1962/injectionforxcode
 
 iOSInjectionProject/
+
+## ndk build
+
+Source/Android/luascriptcore/.externalNativeBuild/
+
+## idea / Android Studio
+*.iml
