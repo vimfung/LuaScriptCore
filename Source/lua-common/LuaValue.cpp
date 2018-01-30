@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 #include <typeinfo>
+#include <cstring>
 #include "LuaValue.h"
 #include "LuaContext.h"
 #include "LuaObjectManager.h"
@@ -72,7 +73,7 @@ LuaValue::LuaValue(const char *bytes, size_t length)
     _type = LuaValueTypeData;
     _bytesLen = length;
     _value = new char[_bytesLen];
-    memcpy(_value, bytes, _bytesLen);
+    std::memcpy(_value, bytes, _bytesLen);
     _hasManagedObject = false;
 }
 

@@ -1,7 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-APP_PLATFORM := android-13
+APP_PLATFORM := android-14
 
 LOCAL_MODULE := LuaScriptCore-Unity-Android
 LOCAL_LDFLAGS := -Wl,--build-id

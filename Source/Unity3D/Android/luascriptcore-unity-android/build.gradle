@@ -2,10 +2,10 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
-        minSdkVersion 13
+        minSdkVersion 14
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"
@@ -16,6 +16,7 @@ android {
             moduleName "LuaScriptCore-Unity-Android"
             stl "gnustl_static"
             ldLibs "log"
+            abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"      //筛选只需要的架构，其中armeabi、mips、mips64已标记过时
         }
 
         externalNativeBuild {
@@ -23,7 +24,7 @@ android {
 
                 arguments "APP_STL=gnustl_static",
                         "NDK_DEBUG=1",
-                        "APP_PLATFORM=android-13",
+                        "APP_PLATFORM=android-14",
                         "NDK_TOOLCHAIN_VERSION=4.9"
                 cppFlags "-frtti",
                         "-fexceptions",
@@ -63,6 +64,15 @@ android {
         }
 
     }
+
+    //解决过期架构过期问题
+    task ndkClean(type: Delete) {
+        // remove unused archs from build cache
+        delete fileTree('.externalNativeBuild') {
+            exclude defaultConfig.ndk.abiFilters.collect { '**/' + it }
+        }
+    }
+    tasks.findByPath(':clean').dependsOn ndkClean
 }
 
 dependencies {

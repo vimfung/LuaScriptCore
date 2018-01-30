@@ -5,6 +5,7 @@
 #include "StringUtils.h"
 #include <stdio.h>
 #include <algorithm>
+#include <cstring>
 
 #if _WINDOWS
 
@@ -56,8 +57,8 @@ std::string StringUtils::format (const char *format, ...)
     size++;
     
     char *cStr = new char[size];
-    memset(cStr, 0, size);
-    memcpy(cStr, buffer, size);
+    std::memset(cStr, 0, size);
+    std::memcpy(cStr, buffer, size);
     
     std::string str(cStr);
     

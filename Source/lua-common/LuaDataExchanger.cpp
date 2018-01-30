@@ -17,6 +17,7 @@
 #include "LuaExportTypeDescriptor.hpp"
 #include <iostream>
 #include <sstream>
+#include <cstring>
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -68,7 +69,7 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
             size_t len = 0;
             const char *bytes = LuaEngineAdapter::toLString(state, stackIndex, &len);
 
-            if (*(bytes + len) != '\0' || strlen(bytes) != len)
+            if (*(bytes + len) != '\0' || std::strlen(bytes) != len)
             {
                 //为二进制数据流
                 value = LuaValue::DataValue(bytes, len);
