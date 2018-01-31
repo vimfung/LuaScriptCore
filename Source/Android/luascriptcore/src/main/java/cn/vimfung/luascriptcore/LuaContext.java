@@ -10,6 +10,8 @@ import android.os.Environment;
 import android.provider.ContactsContract;
 import android.util.Log;
 
+import org.joor.Reflect;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -37,10 +39,14 @@ import java.util.ServiceLoader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import dalvik.system.DexClassLoader;
 import dalvik.system.DexFile;
+import dalvik.system.PathClassLoader;
 
 import static android.os.Environment.MEDIA_MOUNTED;
 //import java.util.Objects;
+
+
 
 /**
  * Lua上下文对象
@@ -90,12 +96,9 @@ public class LuaContext extends LuaBaseObject
                 excludeRules.addAll(Arrays.asList(_defaultExcludeClassesRules));
                 excludeRules.addAll(excludeClassesRules);
 
-                String packageCodePath = context.getPackageCodePath();
-                DexFile df = new DexFile(packageCodePath);
-                for (Enumeration<String> iter = df.entries(); iter.hasMoreElements();)
+                List<String> clazz = findAllClazz(context);
+                for (String className : clazz)
                 {
-                    String className = iter.nextElement();
-
                     boolean isExcludeClass = false;
                     for (String patternStr : excludeRules)
                     {
@@ -134,7 +137,8 @@ public class LuaContext extends LuaBaseObject
                     }
                 }
             }
-            catch (IOException e)
+//            catch (IOException e)
+            catch (Exception e)
             {
                 Log.d("luascriptcore", e.getMessage());
             }
@@ -483,5 +487,39 @@ public class LuaContext extends LuaBaseObject
         {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 查找所有类型
+     * @param context   上下文对象
+     * @return  类型名称列表
+     */
+    private static List<String> findAllClazz(Context context)
+    {
+        List<String> allClazz = new ArrayList<>();
+        ClassLoader classLoader = context.getClassLoader();
+        Object pathList = Reflect.on(classLoader).field("pathList").get();
+        Object[] dexElements = Reflect.on(pathList).field("dexElements").get();
+        for (Object dexElement : dexElements){
+            DexFile dexFile = Reflect.on(dexElement).field("dexFile").get();
+            allClazz.addAll(findDexFileClazz(dexFile));
+        }
+        return allClazz;
+    }
+
+    /**
+     * dexFile的Clazz
+     * @param dexFile DEX文件对象
+     * @return 所有类名称
+     */
+    private static List<String> findDexFileClazz(DexFile dexFile)
+    {
+        List<String> allClazz = new ArrayList<>();
+        Enumeration<String> enumeration = dexFile.entries();//获取df中的元素  这里包含了所有可执行的类名 该类名包含了包名+类名的方式
+        while (enumeration.hasMoreElements()) {//遍历
+            String className = enumeration.nextElement();
+            allClazz.add(className);
+        }
+        return allClazz;
     }
 }

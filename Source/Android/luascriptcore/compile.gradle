@@ -101,6 +101,7 @@ ext {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'org.jooq:joor-java-8:0.9.7'
     testCompile 'junit:junit:4.12'
 }
 

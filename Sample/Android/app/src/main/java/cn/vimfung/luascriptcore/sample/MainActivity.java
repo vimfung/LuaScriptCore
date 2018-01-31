@@ -63,8 +63,9 @@ public class MainActivity extends AppCompatActivity {
             evalScriptBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    LuaValue retValue = _luaContext.evalScript("print(10); return 'Hello','World';");
-                    Log.v("luaScriptCoreSample", retValue.toString());
+//                    LuaValue retValue = _luaContext.evalScript("print(10); return 'Hello','World';");
+//                    Log.v("luaScriptCoreSample", retValue.toString());
+                    _luaContext.evalScriptFromFile("test.lua");
                 }
             });
         }

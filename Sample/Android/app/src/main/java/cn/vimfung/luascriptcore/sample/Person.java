@@ -13,14 +13,6 @@ import cn.vimfung.luascriptcore.LuaManagedValue;
 import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
 
-class TestObject
-{
-    void click()
-    {
-        Log.v("lsc", "-------- click");
-    }
-}
-
 /**
  * 人类
  * Created by vimfung on 16/10/12.
@@ -46,6 +38,11 @@ public class Person implements LuaExportType
     public static Person createPerson()
     {
         return new Person();
+    }
+
+    public static void action(TestObj testObj)
+    {
+        Log.v("lsc", testObj.toString());
     }
 
     public static Object createObj()
