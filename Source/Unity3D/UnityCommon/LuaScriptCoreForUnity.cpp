@@ -11,6 +11,7 @@
 #include <typeinfo>
 #include <ctype.h>
 #include <vector>
+#include <stdlib.h>
 #include "LuaContext.h"
 #include "LuaObjectEncoder.hpp"
 #include "LuaObjectManager.h"

@@ -13,6 +13,7 @@
 #include "LuaSession.h"
 #include "LuaObjectDecoder.hpp"
 #include "LuaObjectEncoder.hpp"
+#include <stdlib.h>
 
 LuaUnityExportPropertyDescriptor::LuaUnityExportPropertyDescriptor(std::string name,
                                                                    bool canRead,

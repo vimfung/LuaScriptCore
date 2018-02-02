@@ -13,6 +13,7 @@
 #include "LuaExportTypeDescriptor.hpp"
 #include "LuaObjectDescriptor.h"
 #include "StringUtils.h"
+#include <stdlib.h>
 
 LuaUnityExportMethodDescriptor::LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, LuaModuleMethodHandlerPtr handler) : LuaExportMethodDescriptor(name, methodSignature)
 {
