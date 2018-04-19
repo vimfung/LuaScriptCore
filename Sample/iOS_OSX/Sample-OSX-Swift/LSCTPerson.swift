@@ -8,6 +8,7 @@
 
 import LuaScriptCore_OSX_Swift
 
+@objc(LSCTPerson)
 class LSCTPerson: NSObject, LuaExportType
 {
     @objc var name : String? = nil;

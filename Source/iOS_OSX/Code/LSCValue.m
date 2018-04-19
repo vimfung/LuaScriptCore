@@ -21,7 +21,7 @@
 
 + (instancetype)nilValue
 {
-    return [[self alloc] initWithType:LSCValueTypeNil value:[NSNull null]];
+    return [[self alloc] initWithType:LSCValueTypeNil value:nil];
 }
 
 + (instancetype)numberValue:(NSNumber *)numberValue
@@ -128,16 +128,6 @@
 + (instancetype)typeValue:(LSCExportTypeDescriptor *)typeDescriptor
 {
     return [[self alloc] initWithType:LSCValueTypeClass value:typeDescriptor];
-}
-
-- (instancetype)init
-{
-    if (self = [super init])
-    {
-        self.valueContainer = [NSNull null];
-    }
-    
-    return self;
 }
 
 - (void)dealloc

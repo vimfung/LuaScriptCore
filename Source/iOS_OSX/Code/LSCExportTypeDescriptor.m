@@ -17,9 +17,14 @@
 
 + (LSCExportTypeDescriptor *)objectTypeDescriptor
 {
-    LSCExportTypeDescriptor *objectTypeDesc = [[LSCExportTypeDescriptor alloc] init];
-    objectTypeDesc.typeName = @"Object";
-    objectTypeDesc.prototypeTypeName = [objectTypeDesc _prototypeClassNameWithTypeName:objectTypeDesc.typeName];
+    static LSCExportTypeDescriptor *objectTypeDesc = nil;
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        objectTypeDesc = [[LSCExportTypeDescriptor alloc] init];
+        objectTypeDesc.typeName = @"Object";
+        objectTypeDesc.prototypeTypeName = [objectTypeDesc _prototypeClassNameWithTypeName:objectTypeDesc.typeName];
+    });
     
     return objectTypeDesc;
 }
@@ -38,7 +43,7 @@
 {
     if (self = [self init])
     {
-        self.typeName = typeName;
+        self.typeName = [typeName stringByReplacingOccurrencesOfString:@"." withString:@"_"];
         self.prototypeTypeName = [self _prototypeClassNameWithTypeName:typeName];
         self.nativeType = nativeType;
     }

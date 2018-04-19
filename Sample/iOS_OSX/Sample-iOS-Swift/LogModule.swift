@@ -8,6 +8,7 @@
 
 import LuaScriptCore_iOS_Swift
 
+@objc(LogModule)
 class LogModule : NSObject, LuaExportType
 {
     @objc static func writeLog(message : String) -> Void

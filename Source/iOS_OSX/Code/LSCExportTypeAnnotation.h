@@ -17,13 +17,6 @@
 @optional
 
 /**
- 获取模块名称
- 
- @return 模块名称
- */
-+ (NSString *)typeName;
-
-/**
  被排除的类方法，被排除的方法无法导出到Lua中
  
  @return 方法列表

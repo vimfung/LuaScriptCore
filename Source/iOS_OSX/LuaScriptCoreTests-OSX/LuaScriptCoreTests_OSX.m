@@ -241,4 +241,13 @@
     [self.context evalScriptFromString:@"print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t.name = 'vim'; t:printName();"];
 }
 
+- (void)testLuaFuncCall
+{
+    [self.context evalScriptFromString:@"App = {}; function App:onCreate(arg) print('Hello World', arg); end"];
+//    [self.context evalScriptFromString:@"App:onCreate();"];
+    LSCValue *value = [self.context evalScriptFromString:@"return App"];
+    LSCFunction *func = [[self.context evalScriptFromString:@"return App.onCreate"] toFunction];
+    [func invokeWithArguments:@[value, [LSCValue integerValue:1024]]];
+}
+
 @end

@@ -9,6 +9,7 @@
 import UIKit
 import LuaScriptCore_iOS_Swift
 
+@objc(LSCTNativeData)
 class LSCTNativeData: NSObject, LuaExportType
 {
     @objc var dataId : String? = nil;

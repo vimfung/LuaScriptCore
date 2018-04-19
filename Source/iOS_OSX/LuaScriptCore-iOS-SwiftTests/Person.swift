@@ -12,6 +12,7 @@ import LuaScriptCore_iOS_Swift
 private var _func : LuaValue? = nil;
 private var _managedFunc : LuaManagedValue? = nil;
 
+@objc(Person)
 class Person: NSObject, LuaExportType, LuaExportTypeAnnotation {
     
     deinit {

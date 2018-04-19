@@ -10,11 +10,6 @@
 
 @implementation SubLuaLog
 
-+ (NSString *)typeName
-{
-    return @"ChildLog";
-}
-
 - (void)printName
 {
     NSLog(@"%@ name = %@", self, self.name);

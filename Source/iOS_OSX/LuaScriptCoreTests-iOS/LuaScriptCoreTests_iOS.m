@@ -41,7 +41,7 @@
 
 - (void)testCustomProperty
 {
-    [self.context evalScriptFromString:@"local p = Person.createPerson();  p.intValue = 111; print('intValue', p.intValue);"];
+    [self.context evalScriptFromString:@"local p = Person.createPerson(); p.intValue = 111; print('intValue', p.intValue);"];
 }
 
 - (void)testCustomProperty2
@@ -144,12 +144,12 @@
 
 - (void)testClassIsSubclassOf
 {
-    [self.context evalScriptFromString:@"print(Person.subclassOf(Object));"];
+    [self.context evalScriptFromString:@"print(Person.subclassOf(Object));print(Object.subclassOf(Person));"];
 }
 
 - (void)testClassIsInstanceOf
 {
-    [self.context evalScriptFromString:@"local p = Person.create(); print(p:instanceOf(Person)); print(p:instanceOf(Object));"];
+    [self.context evalScriptFromString:@"local p = Person.create(); print(p:instanceOf(Person)); print(p:instanceOf(Object)); local o = Object.create(); print(o:instanceOf(Person)); print(o:instanceOf(Object));"];
 }
 
 - (void)testClassMethodInherited
@@ -267,7 +267,7 @@
 
 - (void)testNewTypeExporter
 {
-    [self.context evalScriptFromString:@"print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t.name = 'vim'; t:printName();"];
+    [self.context evalScriptFromString:@"Object.typeMapping('ios', 'SubLuaLog', 'ChildLog'); print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t.name = 'vim'; t:printName();"];
 }
 
 - (void)testDefinedProperty
@@ -275,6 +275,11 @@
     NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
     NSString *path = [bundle pathForResource:@"definedProperty" ofType:@"lua"];
     [self.context evalScriptFromFile:path];
+}
+
+- (void)testSubclass
+{
+    [self.context evalScriptFromString:@"Object.subclass('Test'); print(Test); local t = Test.create(); print(t); print(t:instanceOf(Test));"];
 }
 
 - (void)tearDown
