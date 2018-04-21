@@ -117,7 +117,20 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
  */
 + (LSCExportTypeDescriptor *)_createTypeDescriptorWithName:(NSString *)name
 {
-    __block Class cls = NSClassFromString(name);
+    __block NSString *typeName = name;
+    __block Class cls = NSClassFromString(typeName);
+    
+    if (cls == NULL)
+    {
+        //转换类型名称，有可能传入"名称空间_类型名称"格式的类型
+        NSString *targetName = [typeName stringByReplacingOccurrencesOfString:@"_" withString:@"."];
+        cls = NSClassFromString(targetName);
+        if (cls != NULL)
+        {
+            typeName = targetName;
+        }
+    }
+    
     if (cls == NULL)
     {
         //由于Swift的类型名称为“模块名称.类型名称”，因此尝试拼接模块名称后进行类型检测
@@ -126,10 +139,11 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
             NSString *bundleName = bundle.infoDictionary[@"CFBundleName"];
             if (bundleName)
             {
-                NSString *typeName = [NSString stringWithFormat:@"%@.%@", bundleName, name];
-                cls = NSClassFromString(typeName);
+                NSString *targetName = [NSString stringWithFormat:@"%@.%@", bundleName, typeName];
+                cls = NSClassFromString(targetName);
                 if (cls != NULL)
                 {
+                    typeName = targetName;
                     *stop = YES;
                 }
             }
@@ -143,9 +157,18 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
             && [cls conformsToProtocol:@protocol(LSCExportType)])
         {
             //创建类型
-            LSCExportTypeDescriptor *typeDescriptor = [[LSCExportTypeDescriptor alloc] initWithTypeName:name
+            LSCExportTypeDescriptor *typeDescriptor = [[LSCExportTypeDescriptor alloc] initWithTypeName:typeName
                                                                                              nativeType:cls];
-            [exportTypes setObject:typeDescriptor forKey:name];
+            [exportTypes setObject:typeDescriptor forKey:typeName];
+            
+            //设置lua中类型名称对应的原生类型映射，加此步骤主要是为了让用户在传入"名称空间_类型名称"格式时可以找到对应类型
+            [exportTypesMapping setObject:typeName forKey:typeDescriptor.typeName];
+            
+            if ([typeDescriptor.typeName isEqualToString:name])
+            {
+                //如果传入格式不等于导出类型名称，则进行映射操作
+                [exportTypesMapping setObject:typeName forKey:name];
+            }
             
             //检测是否存在父级导出类型
             Class parentCls = class_getSuperclass(cls);
@@ -1780,7 +1803,6 @@ static int globalIndexMetaMethodHandler(lua_State *state)
     if ([LSCEngineAdapter isNil:state index:-1])
     {
         //检测是否该key是否为导出类型
-        
         //先检查类型映射表示是否有对应关系
         NSString *typeName = exportTypesMapping[key];
         if (!typeName)

@@ -44,7 +44,7 @@
     if (self = [self init])
     {
         self.typeName = [typeName stringByReplacingOccurrencesOfString:@"." withString:@"_"];
-        self.prototypeTypeName = [self _prototypeClassNameWithTypeName:typeName];
+        self.prototypeTypeName = [self _prototypeClassNameWithTypeName:self.typeName];
         self.nativeType = nativeType;
     }
     return self;
