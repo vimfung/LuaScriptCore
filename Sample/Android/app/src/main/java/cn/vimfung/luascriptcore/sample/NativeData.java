@@ -8,7 +8,7 @@ import cn.vimfung.luascriptcore.LuaExportTypeConfig;
 /**
  * Created by vimfung on 2017/4/17.
  */
-@LuaExportTypeConfig(typeName = "NativePerson")
+@LuaExportTypeConfig()
 public class NativeData implements LuaExportType
 {
     public String dataId;

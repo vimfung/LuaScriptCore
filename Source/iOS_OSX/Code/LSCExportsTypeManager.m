@@ -98,12 +98,20 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
  */
 + (LSCExportTypeDescriptor *)_getMappingTypeWithName:(NSString *)name
 {
+    //先检查类型映射表示是否有对应关系
+    NSString *typeName = exportTypesMapping[name];
+    if (!typeName)
+    {
+        //无映射类型，则表示直接使用原生类型名称
+        typeName = name;
+    }
+    
     //检测导出类型是否生成
-    LSCExportTypeDescriptor *typeDescriptor = exportTypes[name];
+    LSCExportTypeDescriptor *typeDescriptor = exportTypes[typeName];
     if (!typeDescriptor)
     {
         //未生成类型，则进行类型生成
-        typeDescriptor = [self _createTypeDescriptorWithName:name];
+        typeDescriptor = [self _createTypeDescriptorWithName:typeName];
     }
     
     return typeDescriptor;
@@ -164,7 +172,7 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
             //设置lua中类型名称对应的原生类型映射，加此步骤主要是为了让用户在传入"名称空间_类型名称"格式时可以找到对应类型
             [exportTypesMapping setObject:typeName forKey:typeDescriptor.typeName];
             
-            if ([typeDescriptor.typeName isEqualToString:name])
+            if (![typeDescriptor.typeName isEqualToString:name])
             {
                 //如果传入格式不等于导出类型名称，则进行映射操作
                 [exportTypesMapping setObject:typeName forKey:name];
@@ -1803,15 +1811,7 @@ static int globalIndexMetaMethodHandler(lua_State *state)
     if ([LSCEngineAdapter isNil:state index:-1])
     {
         //检测是否该key是否为导出类型
-        //先检查类型映射表示是否有对应关系
-        NSString *typeName = exportTypesMapping[key];
-        if (!typeName)
-        {
-            //无映射类型，则表示直接使用原生类型名称
-            typeName = key;
-        }
-        
-        LSCExportTypeDescriptor *typeDescriptor = [LSCExportsTypeManager _getMappingTypeWithName:typeName];
+        LSCExportTypeDescriptor *typeDescriptor = [LSCExportsTypeManager _getMappingTypeWithName:key];
         if (typeDescriptor)
         {
             //为导出类型

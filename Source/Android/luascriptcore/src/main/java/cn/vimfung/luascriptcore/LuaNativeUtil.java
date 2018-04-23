@@ -122,51 +122,10 @@ public class LuaNativeUtil
             LuaFunction func,
             LuaValue[] arguments);
 
-//    /**
-//     * 注册模块
-//     * @param contextNativeId 上下文的本地标识
-//     * @param moduleClass    模块类
-//     * @param methods 注册的方法
-//     * @return true 注册成功，false 注册失败
-//     */
-//    public static native boolean registerModule(
-//            int contextNativeId,
-//            String moduleName,
-//            Class<? extends LuaModule> moduleClass,
-//            Method[] methods
-//    );
-
-    /**
-     * 判断模块是否注册
-     * @param contextNativeId   上下文的本地标识
-     * @param moduleName    模块名称
-     * @return  true 已注册,否则,未注册。
-     */
-//    public static native boolean isModuleRegisted(int contextNativeId, String moduleName);
-
-//    /**
-//     * 注册类型
-//     * @param context   上下文对象
-//     * @param className 类名称
-//     * @param superClassName    父类型名称
-//     * @param objectClass   类型
-//     * @param fields    字段集合
-//     * @param instanceMethods   实例方法集合
-//     * @param classMethods 类方法集合
-//     * @return true 注册成功，false 注册失败
-//     */
-//    public static native boolean registerClass (
-//            LuaContext context,
-//            String className,
-//            String superClassName,
-//            Class<? extends LuaObjectClass> objectClass,
-//            Field[] fields,
-//            Method[] instanceMethods,
-//            Method[] classMethods);
-
     /**
      * 注册类型
      * @param context               上下文对象
+     * @param alias                 别名
      * @param typeName              导出类型名称
      * @param parentTypeName        导出类型的父类名称
      * @param type                  导出类型
@@ -177,27 +136,13 @@ public class LuaNativeUtil
      */
     public static native boolean registerType (
             LuaContext context,
+            String alias,
             String typeName,
             String parentTypeName,
             Class type,
             String[] fields,
             String[] instanceMethods,
             String[] classMethods);
-
-
-
-    /**
-     * 注册类型导入模块
-     * @param context 上下文对象
-     * @param moduleName 模块名称
-     */
-//    public static native void registerClassImport(LuaContext context, String moduleName);
-
-    /**
-     * 设置导出的类型集合，必须在registerClassImport方法后调用
-     * @param classes 类型集合
-     */
-//    public static native void setInculdesClasses(LuaContext context, String moduleName, List<Class> classes);
 
 
 }

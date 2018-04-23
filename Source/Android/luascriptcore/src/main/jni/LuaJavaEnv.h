@@ -128,7 +128,13 @@ public:
      *
      * @return Lua异常处理器
      */
-    static LuaExceptionHandler getExceptionhandler();
+    static LuaExceptionHandler getExceptionHandler();
+
+    /**
+     * 获取导出原生类型处理器
+     * @return 导出原生类型处理器
+     */
+    static LuaExportsNativeTypeHandler getExportsNativeTypeHandler();
 
     /**
      * 获取Java类型的名称
@@ -140,16 +146,6 @@ public:
      * @return 类型名称
      */
     static std::string getJavaClassName(JNIEnv *env, jclass cls, bool simpleName);
-
-    /**
-     * 获取导出类型名称
-     *
-     * @param env JNI环境
-     * @param cls 类型
-     *
-     * @return 导出类型名称
-     */
-    static std::string getExportTypeName(JNIEnv *env, jclass cls);
 
     /**
      * 获取导出类型管理器

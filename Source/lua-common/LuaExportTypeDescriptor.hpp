@@ -36,20 +36,34 @@ namespace cn {
             class LuaExportTypeDescriptor : public LuaObject
             {
             public:
+
+                /**
+                 * 对象类型描述对象
+                 * @return 描述对象
+                 */
+                static LuaExportTypeDescriptor* objectTypeDescriptor();
+
+            public:
                 
                 /**
                  初始化
                  
-                 @param typeName 类型名称
+                 @param nativeTypeName 原生类型名称
                  @param parentTypeDescriptor 父级类型
                  */
-                LuaExportTypeDescriptor (std::string &typeName, LuaExportTypeDescriptor *parentTypeDescriptor);
+                LuaExportTypeDescriptor (std::string &nativeTypeName, LuaExportTypeDescriptor *parentTypeDescriptor);
                 
                 /**
                  析构对象
                  */
                 ~LuaExportTypeDescriptor();
-                
+
+                /**
+                 * 获取原生类型名称
+                 * @return 原生类型名称
+                 */
+                std::string nativeTypeName();
+
                 /**
                  获取类型名称
                  
@@ -171,7 +185,12 @@ namespace cn {
                 virtual LuaExportTypeDescriptor* createSubType(LuaSession *session, std::string subTypeName);
                 
             private:
-                
+
+                /**
+                 * 原生类型名称
+                 */
+                std::string _nativeTypeName;
+
                 /**
                  类型名称
                  */

@@ -129,6 +129,26 @@ static void _luaExceptionHandler (LuaContext *context, std::string message)
     LuaJavaEnv::resetEnv(env);
 }
 
+static void _luaExportsNativeTypeHandler(LuaContext *context, std::string typeName)
+{
+    JNIEnv *env = LuaJavaEnv::getEnv();
+
+    jobject jcontext = LuaJavaEnv::getJavaLuaContext(env, context);
+    if (jcontext != NULL)
+    {
+        static jclass contenxtClass = LuaJavaType::contextClass(env);
+        static jmethodID invokeMethodID = env -> GetMethodID(contenxtClass, "exportsNativeType", "(Ljava/lang/String;)V");
+
+        jstring jTypeName = env -> NewStringUTF(typeName.c_str());
+
+        env -> CallVoidMethod(jcontext, invokeMethodID, jTypeName);
+
+        env -> DeleteLocalRef(jTypeName);
+    }
+
+    LuaJavaEnv::resetEnv(env);
+}
+
 void LuaJavaEnv::init(JavaVM *javaVM)
 {
     _javaVM = javaVM;
@@ -302,7 +322,12 @@ std::string LuaJavaEnv::getJavaClassNameByInstance(JNIEnv *env, jobject instance
     return className;
 }
 
-cn::vimfung::luascriptcore::LuaExceptionHandler LuaJavaEnv::getExceptionhandler()
+LuaExportsNativeTypeHandler LuaJavaEnv::getExportsNativeTypeHandler()
+{
+    return _luaExportsNativeTypeHandler;
+}
+
+cn::vimfung::luascriptcore::LuaExceptionHandler LuaJavaEnv::getExceptionHandler()
 {
     return _luaExceptionHandler;
 }
@@ -333,22 +358,6 @@ std::string LuaJavaEnv::getJavaClassName(JNIEnv *env, jclass cls, bool simpleNam
     env -> DeleteLocalRef(className);
 
     return name;
-}
-
-std::string LuaJavaEnv::getExportTypeName(JNIEnv *env, jclass cls)
-{
-    jobject jExportManager = getExportTypeManager(env);
-
-    jmethodID  getExportTypeNameMethodId = env -> GetMethodID(LuaJavaType::exportTypeManagerClass(env), "getExportTypeName", "(Ljava/lang/Class;)Ljava/lang/String;");
-    jstring typeName = (jstring)env -> CallObjectMethod(jExportManager, getExportTypeNameMethodId, cls);
-    const char* typeNameCStr = env -> GetStringUTFChars(typeName, 0);
-
-    std::string typeNameString = typeNameCStr;
-
-    env -> ReleaseStringUTFChars(typeName, typeNameCStr);
-    env -> DeleteLocalRef(typeName);
-
-    return typeNameString;
 }
 
 jobject LuaJavaEnv::getExportTypeManager(JNIEnv *env)

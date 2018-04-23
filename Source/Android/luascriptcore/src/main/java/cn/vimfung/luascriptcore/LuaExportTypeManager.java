@@ -16,6 +16,9 @@ import java.util.Objects;
  */
 class LuaExportTypeManager
 {
+    /**
+     * 类型管理器
+     */
     private static LuaExportTypeManager _manager = new LuaExportTypeManager();
 
     /**
@@ -100,23 +103,6 @@ class LuaExportTypeManager
         }
 
         return "@";
-    }
-
-    /**
-     * 获取导出类型名称
-     * @param type 类型
-     * @return 名称
-     */
-    String getExportTypeName(Class<? extends LuaExportType> type)
-    {
-        String typeName = type.getSimpleName();
-        LuaExportTypeConfig typeConfig = findExportTypeConfig(type);
-        if (typeConfig != null && !typeConfig.typeName().equals(""))
-        {
-            typeName = typeConfig.typeName();
-        }
-
-        return typeName;
     }
 
     /**
@@ -396,35 +382,21 @@ class LuaExportTypeManager
 
     /**
      * 导出类型
+     * @param context 上下文对象
      * @param t 类型
+     * @param st 父类型
      */
     @SuppressWarnings("unchecked")
-    void exportType(LuaContext context, Class<? extends LuaExportType> t)
+    void exportType(LuaContext context, Class<? extends LuaExportType> t, Class<? extends  LuaExportType> st)
     {
-        String typeName = t.getSimpleName();
+        String alias = t.getSimpleName();
+        String typeName = t.getName();
         LuaExportTypeConfig typeConfig = findExportTypeConfig(t);
-        if (typeConfig != null && !typeConfig.typeName().equals(""))
-        {
-            typeName = typeConfig.typeName();
-        }
 
-        Class baseType = t.getSuperclass();
-        String baseTypeName;
-        if (LuaExportType.class.isAssignableFrom(baseType))
+        String baseTypeName = null;
+        if (st != null)
         {
-            LuaExportTypeConfig baseTypeConfig = findExportTypeConfig((Class<? extends LuaExportType>) baseType);
-            if (baseTypeConfig != null && !baseTypeConfig.typeName().equals(""))
-            {
-                baseTypeName = baseTypeConfig.typeName();
-            }
-            else
-            {
-                baseTypeName = baseType.getSimpleName();
-            }
-        }
-        else
-        {
-            baseTypeName = "Object";
+            baseTypeName = st.getName();
         }
 
         //获取导出属性、方法
@@ -599,6 +571,7 @@ class LuaExportTypeManager
 
         if (LuaNativeUtil.registerType(
                 context,
+                alias,
                 typeName,
                 baseTypeName,
                 t,

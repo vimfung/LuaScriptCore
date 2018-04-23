@@ -28,7 +28,7 @@ namespace cn {
             class LuaObjectDescriptor;
             class LuaExportPropertyDescriptor;
             class LuaSession;
-            
+
             /**
              导出类型管理器
              */
@@ -62,10 +62,10 @@ namespace cn {
                  @return 类型描述对象
                  */
                 LuaExportTypeDescriptor* getExportTypeDescriptor(std::string name);
-                
+
                 /**
                  导出类型
-                 
+
                  @param typeDescriptor 类型描述
                  */
                 void exportsType(LuaExportTypeDescriptor *typeDescriptor);
@@ -78,6 +78,35 @@ namespace cn {
                 void createLuaObject(LuaObjectDescriptor *objectDescriptor);
                 
             public:
+
+                /**
+                 * 映射类型
+                 * @param name  类型名称
+                 * @param alias 别名
+                 * @return  true 映射成功，否则失败
+                 */
+                bool _mappingType(std::string name, std::string alias);
+
+                /**
+                 * 获取类型完整名称
+                 * @param name 映射类型名称
+                 * @return 完整的类型名称
+                 */
+                std::string _getTypeFullName(std::string name);
+
+                /**
+                 * 创建类型描述
+                 * @param name  类型名称
+                 * @return 类型描述对象
+                 */
+                LuaExportTypeDescriptor* _createTypeDescriptor(std::string name);
+
+                /**
+                 * 获取映射类型
+                 * @param name  类型名称
+                 * @return 类型描述对象
+                 */
+                LuaExportTypeDescriptor* _getMappingType(std::string name);
                 
                 /**
                  初始化Lua对象
@@ -134,12 +163,17 @@ namespace cn {
                  上下文对象
                  */
                 LuaContext *_context;
-                
+
+                /**
+                 * 导出类型映射，key为类型别名，value为原生类型名称
+                 */
+                std::map<std::string, std::string> _exportTypesMapping;
+
                 /**
                  导出类型
                  */
                 std::map<std::string, LuaExportTypeDescriptor*> _exportTypes;
-                
+
                 /**
                  初始化导出类型
                  */
@@ -149,7 +183,7 @@ namespace cn {
                  初始化导出环境
                  */
                 void _setupExportEnv();
-                
+
                 /**
                  导出类型
 

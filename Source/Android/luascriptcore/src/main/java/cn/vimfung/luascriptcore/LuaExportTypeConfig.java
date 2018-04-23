@@ -14,13 +14,6 @@ import java.lang.annotation.Target;
 public @interface LuaExportTypeConfig
 {
     /**
-     * 导出类型名称
-     *
-     * @return 类型名称
-     */
-    public String typeName() default "";
-
-    /**
      * 排除的导出类方法名称列表
      *
      * @return 排除的导出类方法名称列表

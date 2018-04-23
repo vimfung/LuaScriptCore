@@ -103,7 +103,7 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseValue
         (JNIEnv *, jclass, jobject, jobject);
 
 JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerType
-        (JNIEnv *, jclass, jobject, jstring, jstring, jclass, jobjectArray, jobjectArray, jobjectArray);
+        (JNIEnv *, jclass, jobject, jstring, jstring, jstring, jclass, jobjectArray, jobjectArray, jobjectArray);
 
 #ifdef __cplusplus
 }

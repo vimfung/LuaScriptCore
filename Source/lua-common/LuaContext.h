@@ -30,6 +30,11 @@ namespace cn
             private:
 
                 /**
+                 * 导出原生类型处理器
+                 */
+                LuaExportsNativeTypeHandler _exportNativeTypeHandler;
+
+                /**
                  * Lua运行异常处理器
                  */
                 LuaExceptionHandler _exceptionHandler;
@@ -80,6 +85,20 @@ namespace cn
                  * 销毁上下文对象
                  */
                 ~LuaContext();
+
+            public:
+
+                /**
+                 * 导出原生类型时触发
+                 * @param handler 事件处理器
+                 */
+                void onExportsNativeType(LuaExportsNativeTypeHandler handler);
+
+                /**
+                 * 导出原生类型
+                 * @param typeName 类型名称
+                 */
+                void exportsNativeType(std::string typeName);
 
             public:
 

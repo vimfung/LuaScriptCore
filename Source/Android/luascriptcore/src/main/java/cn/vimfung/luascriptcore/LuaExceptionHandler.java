@@ -1,10 +1,6 @@
 package cn.vimfung.luascriptcore;
 
 /**
- * Created by vimfung on 17/1/13.
- */
-
-/**
  * Lua异常处理器
  */
 public interface LuaExceptionHandler

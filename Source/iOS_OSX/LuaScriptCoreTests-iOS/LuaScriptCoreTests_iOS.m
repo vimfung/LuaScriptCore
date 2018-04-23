@@ -132,6 +132,11 @@
     [self.context evalScriptFromString:@"function Person.prototype:test () print('test msg'); end local p = Person.createPerson(); print(p); p.name = 'vim'; Person.printPersonName(p); p:speak('Hello World!'); p:speak(true); p:speak(30); p:test();"];
 }
 
+- (void)testRegClass2
+{
+    [self.context evalScriptFromString:@"local chinese = Chinese.create(); print (chinese); local p = Person.create(); print(p);"];
+}
+
 - (void)testCreateObjectWithParams
 {
     [self.context evalScriptFromString:@"function Person.prototype:init(value) print(value); end local p = Person.create('xxx'); print(p);"];

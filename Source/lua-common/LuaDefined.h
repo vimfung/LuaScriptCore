@@ -54,6 +54,11 @@ namespace cn
             typedef std::map<std::string, LuaValue*> LuaValueMap;
             typedef std::map<int, LuaObject*> LuaObjectMap;
 
+            /**
+             * 导出原生类型处理器
+             */
+            typedef void (*LuaExportsNativeTypeHandler) (LuaContext *context, std::string typeName);
+
             typedef LuaValue* (*LuaMethodHandler) (LuaContext *context, std::string methodName, LuaArgumentList arguments);
             typedef LuaValue* (*LuaModuleMethodHandler) (LuaModule *module, std::string methodName, LuaArgumentList arguments);
             typedef LuaValue* (*LuaModuleGetterHandler) (LuaModule *module, std::string fieldName);

@@ -39,6 +39,9 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createCont
     jobject jcontext = LuaJavaEnv::createJavaLuaContext(env, context);
     context -> release();
 
+    //绑定导出原生类型方法
+    context->onExportsNativeType(LuaJavaEnv::getExportsNativeTypeHandler());
+
     return jcontext;
 }
 
@@ -95,7 +98,7 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_catchExceptio
         if (enabled)
         {
             //设置异常捕获
-            context -> onException(LuaJavaEnv::getExceptionhandler());
+            context -> onException(LuaJavaEnv::getExceptionHandler());
         }
         else
         {
@@ -281,6 +284,7 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
         JNIEnv *env,
         jclass thiz,
         jobject jcontext,
+        jstring alias,
         jstring typeName,
         jstring parentTypeName,
         jclass type,
@@ -292,16 +296,40 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
     if (context != NULL)
     {
         const char *typeNameCStr = env->GetStringUTFChars(typeName, 0);
-        const char *parentTypeNameCStr = env->GetStringUTFChars(parentTypeName, 0);
+
+        const char *aliasCStr = NULL;
+        if (alias != NULL)
+        {
+            aliasCStr = env -> GetStringUTFChars(alias, 0);
+        }
+
+        const char *parentTypeNameCStr = NULL;
+        if (parentTypeName != NULL)
+        {
+            parentTypeNameCStr = env->GetStringUTFChars(parentTypeName, 0);
+        }
 
         LuaExportTypeDescriptor *parentTypeDescriptor = NULL;
         if (parentTypeNameCStr != NULL)
         {
             parentTypeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor(parentTypeNameCStr);
         }
+        else
+        {
+            parentTypeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor("Object");
+        }
 
         std::string typeNameStr = typeNameCStr;
         LuaJavaExportTypeDescriptor *typeDescriptor = new LuaJavaExportTypeDescriptor(typeNameStr, env, type, parentTypeDescriptor);
+
+        //设置类型名称映射
+        context -> getExportsTypeManager() -> _mappingType(typeNameCStr, typeDescriptor -> typeName());
+
+        if (aliasCStr != NULL && typeDescriptor -> typeName() != aliasCStr)
+        {
+            //如果传入格式不等于导出类型名称，则进行映射操作
+            context -> getExportsTypeManager() -> _mappingType(typeNameCStr, aliasCStr);
+        }
 
         //注册字段
         int fieldsLen = env -> GetArrayLength(fields);
@@ -373,8 +401,17 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
 
         typeDescriptor -> release();
 
+        if (aliasCStr != NULL)
+        {
+            env -> ReleaseStringUTFChars(alias, aliasCStr);
+        }
+
+        if (parentTypeNameCStr != NULL)
+        {
+            env->ReleaseStringUTFChars(parentTypeName, parentTypeNameCStr);
+        }
+
         env->ReleaseStringUTFChars(typeName, typeNameCStr);
-        env->ReleaseStringUTFChars(parentTypeName, parentTypeNameCStr);
 
         return JNI_TRUE;
     }

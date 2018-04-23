@@ -211,8 +211,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
             if (env -> IsAssignableFrom(objType, exportTypeCls))
             {
                 //为导出类型
-                std::string typeNameString = LuaJavaEnv::getExportTypeName(env, objType);
-                LuaExportTypeDescriptor *typeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor(typeNameString);
+                std::string typeName = LuaJavaEnv::getJavaClassName(env, objType, false);
+                LuaExportTypeDescriptor *typeDescriptor = context -> getExportsTypeManager() -> _getMappingType(typeName);
                 objDesc = new LuaJavaObjectDescriptor(env, object, typeDescriptor);
             }
             else
@@ -445,8 +445,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                     if (env -> IsAssignableFrom(objType, exportTypeCls))
                     {
                         //为导出类型
-                        std::string typeNameString = LuaJavaEnv::getExportTypeName(env, objType);
-                        LuaExportTypeDescriptor *typeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor(typeNameString);
+                        std::string typeName = LuaJavaEnv::getJavaClassName(env, objType, false);
+                        LuaExportTypeDescriptor *typeDescriptor = context -> getExportsTypeManager() -> _getMappingType(typeName);
                         objDesc = new LuaJavaObjectDescriptor(env, obj, typeDescriptor);
                     }
                     else

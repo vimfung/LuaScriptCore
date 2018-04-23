@@ -21,11 +21,26 @@
 
 using namespace cn::vimfung::luascriptcore;
 
-LuaExportTypeDescriptor::LuaExportTypeDescriptor (std::string &typeName, LuaExportTypeDescriptor *parentTypeDescriptor)
+LuaExportTypeDescriptor* LuaExportTypeDescriptor::objectTypeDescriptor()
 {
-    _typeName = typeName;
+    static LuaExportTypeDescriptor *objectTypeDescriptor = NULL;
+
+    if (objectTypeDescriptor == NULL)
+    {
+        std::string objectTypeName = "Object";
+        objectTypeDescriptor = new LuaExportTypeDescriptor(objectTypeName, NULL);
+    }
+
+    return objectTypeDescriptor;
+}
+
+LuaExportTypeDescriptor::LuaExportTypeDescriptor (std::string &nativeTypeName, LuaExportTypeDescriptor *parentTypeDescriptor)
+{
+    //将类型中的点转换为下划线
+    _nativeTypeName = nativeTypeName;
+    _typeName = StringUtils::replace(nativeTypeName, ".", "_");
     _parentTypeDescriptor = parentTypeDescriptor;
-    _prototypeTypeName = StringUtils::format("_%s_PROTOTYPE_", typeName.c_str());
+    _prototypeTypeName = StringUtils::format("_%s_PROTOTYPE_", _typeName.c_str());
 }
 
 LuaExportTypeDescriptor::~LuaExportTypeDescriptor()
@@ -55,6 +70,11 @@ LuaExportTypeDescriptor::~LuaExportTypeDescriptor()
     {
         it -> second -> release();
     }
+}
+
+std::string LuaExportTypeDescriptor::nativeTypeName()
+{
+    return _nativeTypeName;
 }
 
 std::string LuaExportTypeDescriptor::typeName()

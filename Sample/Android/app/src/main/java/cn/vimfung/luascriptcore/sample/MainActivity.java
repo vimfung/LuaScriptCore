@@ -63,9 +63,8 @@ public class MainActivity extends AppCompatActivity {
             evalScriptBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    LuaValue retValue = _luaContext.evalScript("print(10); return 'Hello','World';");
-//                    Log.v("luaScriptCoreSample", retValue.toString());
-                    _luaContext.evalScriptFromFile("test.lua");
+                    LuaValue retValue = _luaContext.evalScript("print(10); return 'Hello','World';");
+                    Log.v("luaScriptCoreSample", retValue.toString());
                 }
             });
         }
@@ -152,8 +151,8 @@ public class MainActivity extends AppCompatActivity {
             regClsBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
-                    _luaContext.evalScript("local obj = Person.createObj(); Person.CheckObj(obj);");
+                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
+                    _luaContext.evalScript("print(Person); local obj = Person.createObj(); Person.CheckObj(obj);");
                 }
             });
         }
@@ -164,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
             importNativeClssBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("print(Person); local Data = NativePerson; print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p.name = 'vim'; print(p.name); p:speak(); Person.printPersonName(p);");
+                    _luaContext.evalScript("print(Person); local Data = NativeData; print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p.name = 'vim'; print(p.name); p:speak(); Person.printPersonName(p);");
                 }
             });
         }

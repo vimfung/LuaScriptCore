@@ -274,6 +274,19 @@ void LuaContext::destorySession(LuaSession *session)
     }
 }
 
+void LuaContext::onExportsNativeType(LuaExportsNativeTypeHandler handler)
+{
+    _exportNativeTypeHandler = handler;
+}
+
+void LuaContext::exportsNativeType(std::string typeName)
+{
+    if (_exportNativeTypeHandler != NULL)
+    {
+        _exportNativeTypeHandler(this, typeName);
+    }
+}
+
 void LuaContext::onException(LuaExceptionHandler handler)
 {
     _exceptionHandler = handler;
