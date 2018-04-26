@@ -35,7 +35,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void* reserved)
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createContext
         (JNIEnv *env, jclass obj)
 {
-    LuaContext *context = new LuaContext();
+    LuaContext *context = new LuaContext("android");
     jobject jcontext = LuaJavaEnv::createJavaLuaContext(env, context);
     context -> release();
 
@@ -314,7 +314,8 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
         {
             parentTypeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor(parentTypeNameCStr);
         }
-        else
+
+        if (parentTypeDescriptor == NULL)
         {
             parentTypeDescriptor = context -> getExportsTypeManager() -> getExportTypeDescriptor("Object");
         }
@@ -323,12 +324,15 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
         LuaJavaExportTypeDescriptor *typeDescriptor = new LuaJavaExportTypeDescriptor(typeNameStr, env, type, parentTypeDescriptor);
 
         //设置类型名称映射
-        context -> getExportsTypeManager() -> _mappingType(typeNameCStr, typeDescriptor -> typeName());
+        if (typeDescriptor -> typeName() != typeNameCStr)
+        {
+            context -> getExportsTypeManager() -> _mappingType("android", typeNameCStr, typeDescriptor -> typeName());
+        }
 
         if (aliasCStr != NULL && typeDescriptor -> typeName() != aliasCStr)
         {
             //如果传入格式不等于导出类型名称，则进行映射操作
-            context -> getExportsTypeManager() -> _mappingType(typeNameCStr, aliasCStr);
+            context -> getExportsTypeManager() -> _mappingType("android", typeNameCStr, aliasCStr);
         }
 
         //注册字段

@@ -201,7 +201,7 @@ static void contextStartGC(LuaContext *context)
     }
 }
 
-LuaContext::LuaContext()
+LuaContext::LuaContext(std::string platform)
         : LuaObject()
 {
     _isActive = true;
@@ -218,7 +218,7 @@ LuaContext::LuaContext()
     _currentSession = NULL;
     
     //初始化类型导出管理器
-    _exportsTypeManager = new LuaExportsTypeManager(this);
+    _exportsTypeManager = new LuaExportsTypeManager(this, platform);
 
     //注册错误捕获方法
     registerMethod(CatchLuaExceptionHandlerName, catchLuaExceptionHandler);

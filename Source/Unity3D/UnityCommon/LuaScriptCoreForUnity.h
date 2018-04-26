@@ -40,6 +40,14 @@ extern "C" {
      */
     LuaScriptCoreApi extern void bindGetClassNameByInstanceHandler (LuaGetClassNameByInstanceHandlerPtr handler);
     
+    
+    /**
+     绑定导出类型事件处理
+
+     @param handler 事件处理器
+     */
+    LuaScriptCoreApi extern void bindExportsNativeTypeHandler(LuaExportsNativeTypeHandlerPtr handler);
+    
     /**
      创建Lua上下文对象
 
@@ -169,6 +177,7 @@ extern "C" {
      注册类型
 
      @param nativeContextId 本地上下文对象ID
+     @param alias 别名
      @param typeName 类名称
      @param parentTypeName 父类名称
      @param exportsPropertyNames 导出属性名称列表,元素组成形式:propertyname_[rw|r]
@@ -184,6 +193,7 @@ extern "C" {
      @return 类的本地标识
      */
     LuaScriptCoreApi extern int registerType(int nativeContextId,
+                                             const char *alias,
                                              const char *typeName,
                                              const char *parentTypeName,
                                              const void *exportsPropertyNames,

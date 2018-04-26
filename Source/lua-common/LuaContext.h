@@ -78,8 +78,10 @@ namespace cn
 
                 /**
                  * 初始化上下文对象
+                 *
+                 * @param platform 平台类型：ios,android,unity3d
                  */
-                LuaContext();
+                LuaContext(std::string platform);
 
                 /**
                  * 销毁上下文对象

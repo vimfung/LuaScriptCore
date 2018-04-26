@@ -40,8 +40,9 @@ namespace cn {
                  初始化
                  
                  @param context 上下文对象
+                 @param platform 平台类型
                  */
-                LuaExportsTypeManager(LuaContext *context);
+                LuaExportsTypeManager(LuaContext *context, std::string platform);
                 
                 /**
                  销毁对象
@@ -81,11 +82,12 @@ namespace cn {
 
                 /**
                  * 映射类型
+                 * @param platform 平台类型
                  * @param name  类型名称
                  * @param alias 别名
                  * @return  true 映射成功，否则失败
                  */
-                bool _mappingType(std::string name, std::string alias);
+                bool _mappingType(std::string platform, std::string name, std::string alias);
 
                 /**
                  * 获取类型完整名称
@@ -163,6 +165,11 @@ namespace cn {
                  上下文对象
                  */
                 LuaContext *_context;
+                
+                /**
+                 平台类型
+                 */
+                std::string _platform;
 
                 /**
                  * 导出类型映射，key为类型别名，value为原生类型名称

@@ -111,11 +111,6 @@ namespace cn.vimfung.luascriptcore
 		private WeakReference _weakContext;
 
 		/// <summary>
-		/// 导出类型标识映射表
-		/// </summary>
-		private Dictionary<Type, int> _exportsClassIdMapping = new Dictionary<Type, int>();
-
-		/// <summary>
 		/// 初始化
 		/// </summary>
 		/// <param name="context">上下文对象.</param>
@@ -144,7 +139,6 @@ namespace cn.vimfung.luascriptcore
 		public void exportType(Type t, LuaContext context)
 		{
 			LuaExportTypeAnnotation typeAnnotation = Attribute.GetCustomAttribute (t, typeof(LuaExportTypeAnnotation), false) as LuaExportTypeAnnotation;
-			LuaExportTypeAnnotation baseTypeAnnotation = Attribute.GetCustomAttribute (t.BaseType, typeof(LuaExportTypeAnnotation), false) as LuaExportTypeAnnotation;
 
 			//获取导出的类/实例方法
 			Dictionary<string, MethodInfo> exportClassMethods = new Dictionary<string, MethodInfo> ();
@@ -325,23 +319,12 @@ namespace cn.vimfung.luascriptcore
 			{
 				_classMethodHandleDelegate = new LuaModuleMethodHandleDelegate (_classMethodHandler);
 			}
-
-			string typeName = t.Name;
-			if (typeAnnotation != null && typeAnnotation.typeName != null)
-			{
-				typeName = typeAnnotation.typeName;
-			}
-
-			string baseTypeName = t.BaseType.Name;
-			if (baseTypeAnnotation != null && baseTypeAnnotation.typeName != null)
-			{
-				baseTypeName = baseTypeAnnotation.typeName;
-			}
 				
 			int typeId = NativeUtils.registerType (
 				context.objectId, 
-				typeName,
-				baseTypeName,
+				t.Name,
+				t.FullName,
+				t.BaseType.FullName,
 				exportPropertyNamesPtr,
 				exportInstanceMethodNamesPtr,
 				exportClassMethodNamesPtr,
@@ -355,7 +338,6 @@ namespace cn.vimfung.luascriptcore
 
 			//关联注册模块的注册方法
 			_exportsClass[typeId] = t;
-			_exportsClassIdMapping [t] = typeId;
 			_exportsClassMethods[typeId] = exportClassMethods;
 			_exportsInstanceMethods[typeId] = exportInstanceMethods;
 			_exportsFields[typeId] = exportFields;
@@ -372,21 +354,6 @@ namespace cn.vimfung.luascriptcore
 			{
 				Marshal.FreeHGlobal (exportClassMethodNamesPtr);
 			}
-		}
-
-		/// <summary>
-		/// 根据C#类型获取原生类型标识
-		/// </summary>
-		/// <returns>原生类型标识.</returns>
-		/// <param name="type">C#类型.</param>
-		internal int getNativeTypeId(Type type)
-		{
-			if (_exportsClassIdMapping.ContainsKey (type))
-			{
-				return _exportsClassIdMapping [type];
-			}
-
-			return 0;
 		}
 
 		/// <summary>

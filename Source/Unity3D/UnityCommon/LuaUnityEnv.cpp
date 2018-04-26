@@ -35,6 +35,11 @@ void LuaUnityEnv::bindGetClassNameByInstanceHandler (LuaGetClassNameByInstanceHa
     _getClassNameByInstanceHandler = handler;
 }
 
+void LuaUnityEnv::bindExportsNativeTypeHandler (LuaExportsNativeTypeHandlerPtr handler)
+{
+    _exportsNativeTypeHandler = handler;
+}
+
 void LuaUnityEnv::setNativeObjectId(const void *instance, int nativeObjectId, std::string luaObjectId)
 {
     if (_setNativeObjectIdHandler != NULL)
@@ -53,4 +58,12 @@ std::string LuaUnityEnv::getClassNameByInstance(const void *instance)
     }
     
     return clsName;
+}
+
+void LuaUnityEnv::exportsNativeType(int contextId, std::string typeName)
+{
+    if (_exportsNativeTypeHandler != NULL)
+    {
+        _exportsNativeTypeHandler(contextId, typeName.c_str());
+    }
 }

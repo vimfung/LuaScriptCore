@@ -62,8 +62,7 @@ namespace cn.vimfung.luascriptcore
 			encoder.writeString (luaObjectId);
 
 			//写入本地类型标识
-			int nativeTypeId = encoder.context.exportsTypemanager.getNativeTypeId (_objRef.target.GetType ());
-			encoder.writeInt32 (nativeTypeId);
+			encoder.writeString(_objRef.target.GetType().FullName);
 
 			//写入自定义数据
 			encoder.writeInt32(1);

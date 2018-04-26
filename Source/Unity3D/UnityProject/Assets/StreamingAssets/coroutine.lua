@@ -76,8 +76,8 @@ function TestClassImportFunc()
 
         print ("-------------");
 
-        print(Person, NativePerson);
-        local p = NativePerson.createPerson();
+        print(Person, NativeData);
+        local p = NativeData.createPerson();
         print(p);
         p.name = "abc";
         p:speak();

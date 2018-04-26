@@ -71,11 +71,8 @@ LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
     _linkId = decoder -> readString();
     
     //读取类型
-    int typeId = decoder -> readInt32();
-    if (typeId > 0)
-    {
-        _typeDescriptor = (LuaExportTypeDescriptor *)LuaObject::findObject(typeId);
-    }
+    std::string typeName = decoder -> readString();
+    _typeDescriptor = decoder -> getContext() -> getExportsTypeManager() -> _getMappingType(typeName);
     
     //读取用户数据
     int size = decoder -> readInt32();

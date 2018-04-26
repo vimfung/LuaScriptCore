@@ -100,6 +100,20 @@ extern "C" {
     }
     
     /**
+     导出原生类型处理器
+
+     @param context 上下文对象
+     @param typeName 类型名称
+     */
+    static void luaExportsNativeTypeHandler(LuaContext *context, std::string typeName)
+    {
+        if (!typeName.empty() && typeName[0] != '_')
+        {
+            LuaUnityEnv::sharedInstance() -> exportsNativeType(context -> objectId(), typeName);
+        }
+    }
+    
+    /**
      lua异常处理器
 
      @param context 上下文对象
@@ -134,6 +148,17 @@ extern "C" {
         LuaUnityEnv::sharedInstance() -> bindGetClassNameByInstanceHandler(handler);
     }
     
+    
+    /**
+     绑定导出原生类型处理
+
+     @param handler 处理器
+     */
+    void bindExportsNativeTypeHandler(LuaExportsNativeTypeHandlerPtr handler)
+    {
+        LuaUnityEnv::sharedInstance() -> bindExportsNativeTypeHandler(handler);
+    }
+    
     /**
      创建Lua上下文对象
 
@@ -150,7 +175,11 @@ extern "C" {
         LuaObjectEncoder::setMappingClassType(typeid(LuaPointer).name(), "cn.vimfung.luascriptcore.LuaPointer");
         LuaObjectEncoder::setMappingClassType(typeid(LuaTuple).name(), "cn.vimfung.luascriptcore.LuaTuple");
         
-        LuaContext *context = new LuaContext();
+        LuaContext *context = new LuaContext("unity3d");
+        
+        //设置导出原生类型处理器
+        context -> onExportsNativeType(luaExportsNativeTypeHandler);
+        
         LuaObjectManager::SharedInstance() -> putObject(context);
         context -> release();
 
@@ -448,6 +477,7 @@ extern "C" {
     }
     
     int registerType(int nativeContextId,
+                     const char *alias,
                      const char *typeName,
                      const char *parentTypeName,
                      const void *exportsPropertyNames,
@@ -474,7 +504,26 @@ extern "C" {
                 parentTypeDescriptor = (LuaUnityExportTypeDescriptor *)context -> getExportsTypeManager() -> getExportTypeDescriptor(parentTypeName);
             }
             
+            if (parentTypeDescriptor == NULL)
+            {
+                //Object为基类
+                parentTypeDescriptor = (LuaUnityExportTypeDescriptor *)context -> getExportsTypeManager() -> getExportTypeDescriptor("Object");
+            }
+            
             typeDescriptor = new LuaUnityExportTypeDescriptor(typeName, parentTypeDescriptor);
+            
+            //设置类型名称映射
+            if (typeDescriptor -> typeName() != typeName)
+            {
+                context -> getExportsTypeManager() -> _mappingType("unity3d", typeName, typeDescriptor -> typeName());
+            }
+            
+            if (alias != NULL && typeDescriptor -> typeName() != alias)
+            {
+                //如果传入格式不等于导出类型名称，则进行映射操作
+                context -> getExportsTypeManager() -> _mappingType("unity3d", typeName, alias);
+            }
+            
             typeDescriptor -> createInstanceHandler = instanceCreateHandler;
             typeDescriptor -> destroyInstanceHandler = instanceDestroyHandler;
             typeDescriptor -> instanceDescriptionHandler = instanceDescriptionHandler;

@@ -16,6 +16,9 @@ namespace cn.vimfung.luascriptcore
 	public delegate string LuaGetClassNameByInstanceDelegate(IntPtr obj);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+	public delegate void LuaExportsNativeTypeDelegate(int contextId, string typeName);
+
+	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public delegate Int64 LuaInstanceCreateHandleDelegate(int nativeClassId);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -92,6 +95,13 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="handler">处理器对象</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
 		internal extern static void bindGetClassNameByInstanceHandler (IntPtr handler);
+
+		/// <summary>
+		/// 绑定导出原生类型处理器
+		/// </summary>
+		/// <param name="handler">处理器.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void bindExportsNativeTypeHandler(IntPtr handler);
 
         /// <summary>
         /// 创建Lua上下文对象
@@ -199,6 +209,7 @@ namespace cn.vimfung.luascriptcore
 		/// </summary>
 		/// <returns>The type.</returns>
 		/// <param name="nativeContextId">本地上下文标识.</param>
+		/// <param name="alias">别名</param>
 		/// <param name="typeName">类型名称.</param>
 		/// <param name="parentTypeName">父类名称.</param>
 		/// <param name="exportsPropertyNames">导出属性名称列表</param>
@@ -214,6 +225,7 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("LuaScriptCore-Unity-OSX")]
 		internal extern static int registerType(
 			int nativeContextId,
+			string alias,
 			string typeName,
 			string parentTypeName,
 			IntPtr exportsPropertyNames,
@@ -265,6 +277,13 @@ namespace cn.vimfung.luascriptcore
         /// <param name="handler">处理器对象</param>
         [DllImport("LuaScriptCore-Unity-Win64")]
         internal extern static void bindGetClassNameByInstanceHandler(IntPtr handler);
+
+		/// <summary>
+		/// 绑定导出原生类型处理器
+		/// </summary>
+		/// <param name="handler">处理器.</param>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+		internal extern static void bindExportsNativeTypeHandler(IntPtr handler);
 
 
         /// <summary>
@@ -373,6 +392,7 @@ namespace cn.vimfung.luascriptcore
 		/// </summary>
 		/// <returns>The type.</returns>
 		/// <param name="nativeContextId">本地上下文标识.</param>
+		/// <param name="alias">别名</param>
 		/// <param name="typeName">类型名称.</param>
 		/// <param name="parentTypeName">父类名称.</param>
 		/// <param name="exportsPropertyNames">导出属性名称列表</param>
@@ -388,6 +408,7 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static int registerType(
 			int nativeContextId,
+			string alias,
 			string typeName,
 			string parentTypeName,
 			IntPtr exportsPropertyNames,
@@ -439,6 +460,13 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="handler">处理器对象</param>
 		[DllImport("__Internal")]
 		internal extern static void bindGetClassNameByInstanceHandler (IntPtr handler);
+
+		/// <summary>
+		/// 绑定导出原生类型处理器
+		/// </summary>
+		/// <param name="handler">处理器.</param>
+		[DllImport("__Internal")]
+		internal extern static void bindExportsNativeTypeHandler(IntPtr handler);
 
 		/// <summary>
 		/// 设置全局变量
@@ -546,6 +574,7 @@ namespace cn.vimfung.luascriptcore
 		/// </summary>
 		/// <returns>The type.</returns>
 		/// <param name="nativeContextId">本地上下文标识.</param>
+		/// <param name="alias">别名</param>
 		/// <param name="typeName">类型名称.</param>
 		/// <param name="parentTypeName">父类名称.</param>
 		/// <param name="exportsPropertyNames">导出属性名称列表</param>
@@ -561,6 +590,7 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("__Internal")]
 		internal extern static int registerType(
 			int nativeContextId,
+			string alias,
 			string typeName,
 			string parentTypeName,
 			IntPtr exportsPropertyNames,
@@ -605,6 +635,13 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="handler">处理器对象</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
 		internal extern static void bindGetClassNameByInstanceHandler (IntPtr handler);
+
+		/// <summary>
+		/// 绑定导出原生类型处理器
+		/// </summary>
+		/// <param name="handler">处理器.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static void bindExportsNativeTypeHandler(IntPtr handler);
 
 		/// <summary>
 		/// 设置全局变量
@@ -712,6 +749,7 @@ namespace cn.vimfung.luascriptcore
 		/// </summary>
 		/// <returns>The type.</returns>
 		/// <param name="nativeContextId">本地上下文标识.</param>
+		/// <param name="alias">别名</param>
 		/// <param name="typeName">类型名称.</param>
 		/// <param name="parentTypeName">父类名称.</param>
 		/// <param name="exportsPropertyNames">导出属性名称列表</param>
@@ -727,6 +765,7 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("LuaScriptCore-Unity-Android")]
 		internal extern static int registerType(
 			int nativeContextId,
+			string alias,
 			string typeName,
 			string parentTypeName,
 			IntPtr exportsPropertyNames,

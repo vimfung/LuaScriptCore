@@ -170,7 +170,10 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
             [exportTypes setObject:typeDescriptor forKey:typeName];
             
             //设置lua中类型名称对应的原生类型映射，加此步骤主要是为了让用户在传入"名称空间_类型名称"格式时可以找到对应类型
-            [exportTypesMapping setObject:typeName forKey:typeDescriptor.typeName];
+            if (![typeDescriptor.typeName isEqualToString:typeName])
+            {
+                [exportTypesMapping setObject:typeName forKey:typeDescriptor.typeName];
+            }
             
             if (![typeDescriptor.typeName isEqualToString:name])
             {

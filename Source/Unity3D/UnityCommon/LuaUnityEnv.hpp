@@ -20,6 +20,7 @@ class LuaUnityEnv
 private:
     LuaSetNativeObjectIdHandlerPtr _setNativeObjectIdHandler;
     LuaGetClassNameByInstanceHandlerPtr _getClassNameByInstanceHandler;
+    LuaExportsNativeTypeHandlerPtr _exportsNativeTypeHandler;
     LuaUnityEnv();
     
 public:
@@ -37,6 +38,13 @@ public:
      @param handler 处理器
      */
     void bindGetClassNameByInstanceHandler (LuaGetClassNameByInstanceHandlerPtr handler);
+    
+    /**
+     绑定导出原生类型处理器
+
+     @param handler 处理器
+     */
+    void bindExportsNativeTypeHandler (LuaExportsNativeTypeHandlerPtr handler);
     
 public:
     
@@ -63,6 +71,14 @@ public:
      @return 类型名称
      */
     std::string getClassNameByInstance(const void *instance);
+    
+    /**
+     导出原生类型
+
+     @param contextId 上下文标识
+     @param typeName 类型名称
+     */
+    void exportsNativeType(int contextId, std::string typeName);
 };
 
 #endif /* LuaUnityEnv_hpp */

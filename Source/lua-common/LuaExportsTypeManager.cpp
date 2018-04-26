@@ -46,12 +46,9 @@ static int typeMappingHandler(lua_State *state)
     {
         std::string platform = argumentList[0]->toString();
         std::transform(platform.begin(), platform.end(), platform.begin(), ::tolower);
-        if (platform == "android")
-        {
-            std::string nativeTypeName = argumentList[1]->toString();
-            std::string alias = argumentList[2]->toString();
-            manager -> _mappingType(nativeTypeName, alias);
-        }
+        std::string nativeTypeName = argumentList[1]->toString();
+        std::string alias = argumentList[2]->toString();
+        manager -> _mappingType(platform, nativeTypeName, alias);
     }
 
     manager -> context() -> destorySession(session);
@@ -688,9 +685,10 @@ static int prototypeNewIndexHandler (lua_State *state)
     return 0;
 }
 
-LuaExportsTypeManager::LuaExportsTypeManager(LuaContext *context)
+LuaExportsTypeManager::LuaExportsTypeManager(LuaContext *context, std::string platform)
 {
     _context = context;
+    _platform = platform;
     
     _setupExportEnv();
     _setupExportType();
@@ -733,10 +731,15 @@ void LuaExportsTypeManager::exportsType(LuaExportTypeDescriptor *typeDescriptor)
     }
 }
 
-bool LuaExportsTypeManager::_mappingType(std::string name, std::string alias)
+bool LuaExportsTypeManager::_mappingType(std::string platform, std::string name, std::string alias)
 {
-    _exportTypesMapping[alias] = name;
-    return true;
+    if (platform == _platform)
+    {
+        _exportTypesMapping[alias] = name;
+        return true;
+    }
+    
+    return false;
 }
 
 std::string LuaExportsTypeManager::_getTypeFullName(std::string name)
@@ -871,13 +874,13 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
     }
     else
     {
-        //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
-        LuaEngineAdapter::newTable(state);
-
         //类型映射
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
         LuaEngineAdapter::pushCClosure(state, typeMappingHandler, 1);
         LuaEngineAdapter::setField(state, -2, "typeMapping");
+        
+        //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
+        LuaEngineAdapter::newTable(state);
 
         //类型描述
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);

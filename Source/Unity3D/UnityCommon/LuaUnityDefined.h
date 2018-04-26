@@ -15,6 +15,11 @@
 #if defined (__cplusplus)
 extern "C" {
 #endif
+    
+    /**
+     导出原生类型处理器
+     */
+    typedef void (*LuaExportsNativeTypeHandlerPtr) (int contextId, const char *typeName);
 
     /**
      设置本地对象ID处理器

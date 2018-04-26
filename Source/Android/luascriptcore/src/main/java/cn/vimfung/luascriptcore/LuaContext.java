@@ -66,122 +66,6 @@ public class LuaContext extends LuaBaseObject
     private static boolean _isSetupLuaFolder = false;
 
     /**
-     * 注册类型
-     */
-//    private static ArrayList<Class<? extends LuaExportType>> _regTypes = null;
-
-    /**
-     * 排除类型规则
-     */
-//    private static String[] _defaultExcludeClassesRules = {
-//            "^android[.]support$",
-//            "^android[.]support[.].+",
-//            "^com[.]android$",
-//            "^com[.]android[.].+"
-//    };
-
-//    /**
-//     * 查找导出的类型
-//     *
-//     * @param context 上下文对象
-//     */
-//    @SuppressWarnings("unchecked")
-//    private static void findRegTypes (Context context)
-//    {
-//        if (_regTypes == null)
-//        {
-//            _regTypes = new ArrayList<Class<? extends LuaExportType>>();
-//            try
-//            {
-//                //获取排除类型规则
-//                ArrayList<String> excludeRules = new ArrayList<String>();
-//                excludeRules.addAll(Arrays.asList(_defaultExcludeClassesRules));
-//                excludeRules.addAll(excludeClassesRules);
-//
-//                List<String> clazz = findAllClazz(context);
-//                for (String className : clazz)
-//                {
-//                    boolean isExcludeClass = false;
-//                    for (String patternStr : excludeRules)
-//                    {
-//                        Pattern pattern = Pattern.compile(patternStr);
-//                        Matcher matcher = pattern.matcher(className);
-//                        if (matcher.matches())
-//                        {
-//                            //匹配
-//                            isExcludeClass = true;
-//                            break;
-//                        }
-//                    }
-//
-//                    if (!isExcludeClass)
-//                    {
-//                        Log.d("luascriptcore", String.format("found Class = %s", className));
-//                        try
-//                        {
-//                            Class type = Class.forName(className);
-//                            if (!type.isInterface() && LuaExportType.class.isAssignableFrom(type))
-//                            {
-//                                //非接口
-//                                Log.d("luascriptcore", String.format("Register type %s", type.getName()));
-//                                _regTypes.add(type);
-//                            }
-//                        }
-//                        catch (ClassNotFoundException e)
-//                        {
-//                            Log.d("luascriptcore", e.getMessage());
-//                        }
-//                        catch (Exception e)
-//                        {
-//                            Log.w("luascriptcore", e.getMessage());
-//                        }
-//
-//                    }
-//                }
-//            }
-////            catch (IOException e)
-//            catch (Exception e)
-//            {
-//                Log.d("luascriptcore", e.getMessage());
-//            }
-//        }
-//    }
-
-    /**
-     * 查找所有类型
-     * @param context   上下文对象
-     * @return  类型名称列表
-     */
-//    private static List<String> findAllClazz(Context context)
-//    {
-//        List<String> allClazz = new ArrayList<>();
-//        ClassLoader classLoader = context.getClassLoader();
-//        Object pathList = Reflect.on(classLoader).field("pathList").get();
-//        Object[] dexElements = Reflect.on(pathList).field("dexElements").get();
-//        for (Object dexElement : dexElements){
-//            DexFile dexFile = Reflect.on(dexElement).field("dexFile").get();
-//            allClazz.addAll(findDexFileClazz(dexFile));
-//        }
-//        return allClazz;
-//    }
-
-    /**
-     * dexFile的Clazz
-     * @param dexFile DEX文件对象
-     * @return 所有类名称
-     */
-//    private static List<String> findDexFileClazz(DexFile dexFile)
-//    {
-//        List<String> allClazz = new ArrayList<>();
-//        Enumeration<String> enumeration = dexFile.entries();//获取df中的元素  这里包含了所有可执行的类名 该类名包含了包名+类名的方式
-//        while (enumeration.hasMoreElements()) {//遍历
-//            String className = enumeration.nextElement();
-//            allClazz.add(className);
-//        }
-//        return allClazz;
-//    }
-
-    /**
      * 建立Lua目录结构
      */
     private void setupLuaFolder()
@@ -271,17 +155,6 @@ public class LuaContext extends LuaBaseObject
     }
 
     /**
-     * 导出类型
-     */
-//    private void exportTypes()
-//    {
-//        for (Class<? extends LuaExportType> t : _regTypes)
-//        {
-//            LuaExportTypeManager.getDefaultManager().exportType(this, t);
-//        }
-//    }
-
-    /**
      * 创建上下文对象
      * @param nativeId  本地对象标识
      */
@@ -291,9 +164,6 @@ public class LuaContext extends LuaBaseObject
 
         this._regTypes = new ArrayList<>();
         this._methods = new HashMap<>();
-
-        //导出类型
-//        exportTypes();
     }
 
     public static ArrayList<String> excludeClassesRules = new ArrayList<>();
@@ -306,9 +176,6 @@ public class LuaContext extends LuaBaseObject
      */
     public static LuaContext create(Context context)
     {
-        //初始化注册类型
-//        findRegTypes(context);
-
         LuaContext luaContext = LuaNativeUtil.createContext();
         luaContext._context = context;
 
