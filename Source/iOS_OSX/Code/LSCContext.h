@@ -15,6 +15,13 @@
 @interface LSCContext : NSObject
 
 /**
+ 抛出异常
+ 
+ @param message 消息
+ */
+- (void)raiseExceptionWithMessage:(NSString *)message;
+
+/**
  *  发生异常时触发
  *
  *  @param handler 事件处理器

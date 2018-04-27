@@ -98,7 +98,7 @@ static LuaValue* catchLuaExceptionHandler (LuaContext *context, std::string meth
 {
     if (arguments.size() > 0)
     {
-        context -> raiseException(arguments[0] -> toString());
+        context -> outputExceptionMessage(arguments[0] -> toString());
     }
 
     return NULL;
@@ -293,6 +293,11 @@ void LuaContext::onException(LuaExceptionHandler handler)
 }
 
 void LuaContext::raiseException (std::string message)
+{
+    LuaEngineAdapter::error(_mainSession -> getState(), message.c_str());
+}
+
+void LuaContext::outputExceptionMessage(std::string message)
 {
     if (_exceptionHandler != NULL)
     {

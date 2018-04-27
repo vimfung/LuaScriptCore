@@ -217,6 +217,15 @@ extern "C" {
         }
     }
     
+    void raiseException(int nativeContextId, const char *message)
+    {
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL && message != NULL)
+        {
+            context -> raiseException(message);
+        }
+    }
+    
     /**
      删除Lua上下文对象
 

@@ -47,13 +47,6 @@
 @property (nonatomic, strong) LSCExportsTypeManager *exportsTypeManager;
 
 /**
- 抛出异常
-
- @param message 消息
- */
-- (void)raiseExceptionWithMessage:(NSString *)message;
-
-/**
  通过状态设置当前会话
 
  @param state 状态

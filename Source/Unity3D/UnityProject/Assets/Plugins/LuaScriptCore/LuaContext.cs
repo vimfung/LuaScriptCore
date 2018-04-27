@@ -171,6 +171,15 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
+		/// 抛出异常
+		/// </summary>
+		/// <param name="message">异常消息.</param>
+		public void raiseException(string message)
+		{
+			NativeUtils.raiseException (_nativeObjectId, message);
+		}
+
+		/// <summary>
 		/// 设置全局变量
 		/// </summary>
 		/// <param name="name">变量名称.</param>

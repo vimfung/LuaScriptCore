@@ -40,6 +40,12 @@ public class Person implements LuaExportType
         return new Person();
     }
 
+    public static Person createPersonError()
+    {
+        Env.defaultContext().raiseException("can't create person");
+        return new Person();
+    }
+
     public static void action(TestObj testObj)
     {
         Log.v("lsc", testObj.toString());

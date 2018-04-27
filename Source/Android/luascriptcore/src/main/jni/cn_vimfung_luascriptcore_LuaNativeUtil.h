@@ -105,6 +105,8 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseValue
 JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerType
         (JNIEnv *, jclass, jobject, jstring, jstring, jstring, jclass, jobjectArray, jobjectArray, jobjectArray);
 
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_raiseException(JNIEnv *, jclass, jobject, jstring);
+
 #ifdef __cplusplus
 }
 #endif

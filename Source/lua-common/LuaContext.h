@@ -119,6 +119,12 @@ namespace cn
                 void raiseException (std::string message);
 
                 /**
+                 * 输出异常信息
+                 * @param message 异常消息
+                 */
+                void outputExceptionMessage(std::string message);
+
+                /**
                  * 捕获异常信息
                  *
                  * @return 异常捕获方法所在堆栈位置

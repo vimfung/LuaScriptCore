@@ -66,6 +66,13 @@ public class LuaNativeUtil
     public static native void releaseValue(LuaContext context, LuaValue value);
 
     /**
+     * 排除异常
+     * @param context   上下文对象
+     * @param message   异常消息
+     */
+    public static native void raiseException(LuaContext context, String message);
+
+    /**
      * 捕获Lua异常
      * @param context   上下文对象
      * @param enabled   true表示捕获异常，false表示不进行捕获

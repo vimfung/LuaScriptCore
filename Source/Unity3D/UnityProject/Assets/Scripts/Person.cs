@@ -29,6 +29,12 @@ public class Person : LuaExportType
 		return new Person ();
 	}
 
+	public static Person createPersonError()
+	{
+		LuaContext.currentContext.raiseException ("can't create person");
+		return new Person ();
+	}
+
 	public void speak()
 	{
 		Debug.Log (string.Format("{0} speak", this.name));

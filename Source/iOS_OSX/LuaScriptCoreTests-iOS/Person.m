@@ -72,6 +72,12 @@ static LSCManagedValue *_managedFunc = nil;
     return [[Person alloc] init];
 }
 
++ (Person *)createPersonError
+{
+    [Env.defaultContext raiseExceptionWithMessage:@"can't create person"];
+    return [self createPerson];
+}
+
 + (NativePerson *)createNativePerson
 {
     return [[NativePerson alloc] init];

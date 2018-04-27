@@ -422,3 +422,14 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
 
     return JNI_FALSE;
 }
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_raiseException(JNIEnv *env, jclass type, jobject jcontext, jstring message)
+{
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
+    {
+        const char *messageCStr = env->GetStringUTFChars(message, 0);
+        context -> raiseException(messageCStr);
+        env->ReleaseStringUTFChars(message, messageCStr);
+    }
+}

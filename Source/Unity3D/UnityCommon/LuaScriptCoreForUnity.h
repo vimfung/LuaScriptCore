@@ -79,6 +79,14 @@ extern "C" {
 	LuaScriptCoreApi extern void setExceptionHandler (int nativeContextId, LuaExceptionHandlerPtr handler);
     
     /**
+     抛出异常
+
+     @param nativeContextId 本地上下文对象ID
+     @param message 异常消息
+     */
+    LuaScriptCoreApi extern void raiseException(int nativeContextId, const char *message);
+    
+    /**
      设置全局变量
 
      @param nativeContextId 本地上下文对象ID

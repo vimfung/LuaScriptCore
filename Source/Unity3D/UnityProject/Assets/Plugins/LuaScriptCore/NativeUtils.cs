@@ -128,6 +128,14 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void setExceptionHandler (int contextId, IntPtr handlerRef);
 
 		/// <summary>
+		/// 抛出异常
+		/// </summary>
+		/// <param name="contextId">上下文标识.</param>
+		/// <param name="message">消息.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void raiseException (int contextId, string message);
+
+		/// <summary>
 		/// 设置全局变量
 		/// </summary>
 		/// <param name="contextId">Lua上下文对象的本地标识.</param>
@@ -309,6 +317,14 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="HandleRef">事件处理器引用.</param>
 		[DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static void setExceptionHandler (int contextId, IntPtr handlerRef);
+
+		/// <summary>
+		/// 抛出异常
+		/// </summary>
+		/// <param name="contextId">上下文标识.</param>
+		/// <param name="message">消息.</param>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+		internal extern static void raiseException (int contextId, string message);
 
         /// <summary>
 		/// 设置全局变量
@@ -512,6 +528,14 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void setExceptionHandler (int contextId, IntPtr handlerRef);
 
 		/// <summary>
+		/// 抛出异常
+		/// </summary>
+		/// <param name="contextId">上下文标识.</param>
+		/// <param name="message">消息.</param>
+		[DllImport("__Internal")]
+		internal extern static void raiseException (int contextId, string message);
+
+		/// <summary>
 		/// 解析Lua脚本
 		/// </summary>
 		/// <returns>返回值的缓冲区大小</returns>
@@ -685,6 +709,14 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="HandleRef">事件处理器引用.</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
 		internal extern static void setExceptionHandler (int contextId, IntPtr handlerRef);
+
+		/// <summary>
+		/// 抛出异常
+		/// </summary>
+		/// <param name="contextId">上下文标识.</param>
+		/// <param name="message">消息.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static void raiseException (int contextId, string message);
 
 		/// <summary>
 		/// 解析Lua脚本

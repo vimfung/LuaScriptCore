@@ -64,7 +64,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
             
             if (arguments.count > 0)
             {
-                [weakSelf raiseExceptionWithMessage:[arguments[0] toString]];
+                [weakSelf outputExceptionMessage:[arguments[0] toString]];
             }
             return nil;
             
@@ -91,6 +91,11 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     }
     
     return _mainSession;
+}
+
+- (void)raiseExceptionWithMessage:(NSString *)message
+{
+    [LSCEngineAdapter error:self.mainSession.state message:message.UTF8String];
 }
 
 - (void)onException:(LSCExceptionHandler)handler
@@ -190,7 +195,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     if (!path)
     {
         NSString *errMessage = @"Lua file path is empty!";
-        [self raiseExceptionWithMessage:errMessage];
+        [self outputExceptionMessage:errMessage];
         
         return nil;
     }
@@ -359,7 +364,12 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     }
 }
 
-- (void)raiseExceptionWithMessage:(NSString *)message
+/**
+ 输出异常消息
+
+ @param message 异常消息
+ */
+- (void)outputExceptionMessage:(NSString *)message
 {
     if (self.exceptionHandler)
     {

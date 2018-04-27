@@ -166,8 +166,6 @@ public class LuaContext extends LuaBaseObject
         this._methods = new HashMap<>();
     }
 
-    public static ArrayList<String> excludeClassesRules = new ArrayList<>();
-
     /**
      * 创建上下文对象
      *
@@ -197,6 +195,11 @@ public class LuaContext extends LuaBaseObject
     {
         _exceptionHandler = handler;
         LuaNativeUtil.catchException(this, _exceptionHandler != null);
+    }
+
+    public void raiseException (String message)
+    {
+        LuaNativeUtil.raiseException(this, message);
     }
 
     /**

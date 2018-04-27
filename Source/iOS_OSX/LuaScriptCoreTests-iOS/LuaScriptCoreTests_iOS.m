@@ -44,6 +44,11 @@
     [self.context evalScriptFromString:@"local p = Person.createPerson(); p.intValue = 111; print('intValue', p.intValue);"];
 }
 
+- (void)testRaiseException
+{
+    [self.context evalScriptFromString:@"local p = Person.createPersonError(); print(p);"];
+}
+
 - (void)testCustomProperty2
 {
     [self.context evalScriptFromString:@"Person.prototype.age = {set = function(self, value) print('set value = ', value); self._value = value end, get = function(self) print('get value = ', self._value); return self._value end}; local p = Person.createPerson(); p.age = 20; print('p.age = ', p.age);"];
