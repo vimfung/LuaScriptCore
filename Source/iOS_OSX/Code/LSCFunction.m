@@ -24,7 +24,7 @@
         //设置Lua对象到_vars_表中
         [self.context.dataExchanger setLubObjectByStackIndex:index objectId:self.linkId];
         //进行引用
-        [self.context retainValue:[LSCValue functionValue:self]];
+        [self.context.dataExchanger retainLuaObject:self];
     }
     
     return self;
@@ -32,7 +32,7 @@
 
 - (void)dealloc
 {
-    [self.context releaseValue:[LSCValue functionValue:self]];
+    [self.context.dataExchanger releaseLuaObject:self];
 }
 
 - (LSCValue *)invokeWithArguments:(NSArray<LSCValue *> *)arguments

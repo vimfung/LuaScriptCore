@@ -12,6 +12,7 @@
 
 @class NativePerson;
 @class LSCTuple;
+@class LSCFunction;
 
 @interface Person : NSObject <LSCExportType>
 
@@ -26,5 +27,7 @@
 + (Person *)createPerson;
 
 + (NativePerson *)createNativePerson;
+
++ (void)testFuncRelease:(LSCFunction *)func;
 
 @end

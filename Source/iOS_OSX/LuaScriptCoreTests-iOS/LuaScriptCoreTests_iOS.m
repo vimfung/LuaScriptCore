@@ -19,6 +19,8 @@
 #import "SubLuaLog.h"
 #import <objc/message.h>
 
+#import "LSCEngineAdapter.h"
+
 @interface LuaScriptCoreTests_iOS : XCTestCase
 
 @property (nonatomic, strong) LSCContext *context;
@@ -37,6 +39,17 @@
         NSLog(@"error = %@", message);
         
     }];
+}
+
+- (void)testLuaFunctionRelease
+{
+    [self.context evalScriptFromString:@"function abc() print('---------'); end Person.testFuncRelease(abc);"];
+}
+
+- (void)testLuaScript
+{
+    NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
+    [self.context evalScriptFromFile:[bundle pathForResource:@"class" ofType:@"lua"]];
 }
 
 - (void)testCustomProperty

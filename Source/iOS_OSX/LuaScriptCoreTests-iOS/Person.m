@@ -121,4 +121,9 @@ static LSCManagedValue *_managedFunc = nil;
     }
 }
 
++ (void)testFuncRelease:(LSCFunction *)func
+{
+    
+}
+
 @end

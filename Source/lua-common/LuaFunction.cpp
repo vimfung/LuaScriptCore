@@ -36,18 +36,14 @@ LuaFunction::LuaFunction(LuaContext *context, int index)
 
     _context -> getDataExchanger() -> setLuaObject(index, _linkId);
 
-    LuaValue *value = LuaValue::FunctionValue(this);
-    _context->retainValue(value);
-    value -> release();
+    _context -> getDataExchanger() -> retainLuaObject(this);
 }
 
 LuaFunction::~LuaFunction()
 {
     if (_context != NULL)
     {
-        LuaValue *value = LuaValue::FunctionValue(this);
-        _context->releaseValue(value);
-        value -> release();
+        _context -> getDataExchanger() -> releaseLuaObject(this);
     }
 }
 

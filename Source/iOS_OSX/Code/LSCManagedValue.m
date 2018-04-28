@@ -7,7 +7,7 @@
 //
 
 #import "LSCManagedValue.h"
-#import "LSCContext.h"
+#import "LSCContext_Private.h"
 
 @interface LSCManagedValue ()
 
@@ -33,14 +33,14 @@
         self.context = context;
         self.source = value;
         
-        [self.context retainValue:self.source];
+        [self.context.dataExchanger retainLuaObject:self.source];
     }
     return self;
 }
 
 - (void)dealloc
 {
-    [self.context releaseValue:self.source];
+    [self.context.dataExchanger releaseLuaObject:self.source];
 }
 
 @end
