@@ -160,6 +160,7 @@ print (obj);
 本次更新内容包括：
 
 1、修复iOS ／ OSX平台下调用方法导致内存泄漏问题。
+
 2、修复Android平台下，类型方法的参数使用Object类型来声明参数时，强转报错问题。
 
 ## [更多更新历史](https://github.com/vimfung/LuaScriptCore/wiki/%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2)
