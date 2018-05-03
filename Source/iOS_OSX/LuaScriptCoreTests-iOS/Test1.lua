@@ -1,5 +1,5 @@
 print(Person);
-local p = Person.createPerson();
+local p = Person:createPerson();
 print(p);
 print(p.name);
 p.name = {a=2};

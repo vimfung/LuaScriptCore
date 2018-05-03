@@ -30,4 +30,8 @@
 
 + (void)testFuncRelease:(LSCFunction *)func;
 
++ (BOOL)returnBoolean;
+
++ (char)returnChar;
+
 @end

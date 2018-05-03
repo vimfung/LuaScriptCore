@@ -27,6 +27,14 @@
  */
 - (NSArray *)parseArguments;
 
+
+/**
+ 解析并获取参数（排除第一个参数）
+
+ @return 参数集合
+ */
+- (NSArray *)parseArgumentsWithoutTheFirst;
+
 /**
  设置返回值
 

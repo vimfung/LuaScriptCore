@@ -138,8 +138,8 @@ public class MainActivity extends AppCompatActivity {
             regModuleBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("LogModule.writeLog('Hello Lua Module!');");
-                    _luaContext.evalScript("local obj = LogModule.createObj(); print(obj); LogModule.testObj(obj);");
+                    _luaContext.evalScript("LogModule:writeLog('Hello Lua Module!');");
+                    _luaContext.evalScript("local obj = LogModule:createObj(); print(obj); LogModule:testObj(obj);");
                 }
             });
         }
@@ -151,9 +151,9 @@ public class MainActivity extends AppCompatActivity {
             regClsBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("local p = Person.createPersonError(); print(p);");
-                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese.create(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
-                    _luaContext.evalScript("print(Person); local obj = Person.createObj(); Person.CheckObj(obj);");
+                    _luaContext.evalScript("local p = Person:createPersonError(); print(p);");
+                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
+                    _luaContext.evalScript("print(Person); local obj = Person:createObj(); Person:CheckObj(obj);");
                 }
             });
         }
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
             importNativeClssBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("print(Person); local Data = NativeData; print(Data); local d = Data.create(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data.createPerson(); print(p); p.name = 'vim'; print(p.name); p:speak(); Person.printPersonName(p);");
+                    _luaContext.evalScript("print(Person); local Data = NativeData; print(Data); local d = Data(); d:setData('key', 'xxx'); print(d:getData('key')); local p = Data:createPerson(); print(p); p.name = 'vim'; print(p.name); p:speak(); Person:printPersonName(p);");
                 }
             });
         }
@@ -175,9 +175,9 @@ public class MainActivity extends AppCompatActivity {
             retainReleaseBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("local test = function() print('test func') end; test(); Person.retainHandler2(test);");
-                    _luaContext.evalScript("print('-------------1'); Person.callHandler2(); Person.releaseHandler2();");
-                    _luaContext.evalScript("print('-------------2'); Person.callHandler2();");
+                    _luaContext.evalScript("local test = function() print('test func') end; test(); Person:retainHandler2(test);");
+                    _luaContext.evalScript("print('-------------1'); Person:callHandler2(); Person:releaseHandler2();");
+                    _luaContext.evalScript("print('-------------2'); Person:callHandler2();");
                 }
             });
         }

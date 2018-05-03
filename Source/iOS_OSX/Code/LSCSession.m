@@ -34,20 +34,12 @@
 
 - (NSArray *)parseArguments
 {
-    int top = [LSCEngineAdapter getTop:self.state];
-    if (top >= 1)
-    {
-        NSMutableArray *arguments = [NSMutableArray array];
-        for (int i = 1; i <= top; i++)
-        {
-            LSCValue *value = [LSCValue valueWithContext:self.context atIndex:i];
-            [arguments addObject:value];
-        }
-        
-        return arguments;
-    }
-    
-    return nil;
+    return [self _parseArgumentsFromIndex:1];
+}
+
+- (NSArray *)parseArgumentsWithoutTheFirst
+{
+    return [self _parseArgumentsFromIndex:2];
 }
 
 - (int)setReturnValue:(LSCValue *)value
@@ -72,6 +64,33 @@
     }
     
     return count;
+}
+
+#pragma mark - Private
+
+
+/**
+ 解析参数
+
+ @param index 开始索引
+ @return 参数集合
+ */
+- (NSArray *)_parseArgumentsFromIndex:(int)index
+{
+    int top = [LSCEngineAdapter getTop:self.state];
+    if (top >= index)
+    {
+        NSMutableArray *arguments = [NSMutableArray array];
+        for (int i = index; i <= top; i++)
+        {
+            LSCValue *value = [LSCValue valueWithContext:self.context atIndex:i];
+            [arguments addObject:value];
+        }
+        
+        return arguments;
+    }
+    
+    return nil;
 }
 
 @end

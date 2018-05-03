@@ -22,7 +22,7 @@ function TestModuleFunc()
     
     local tfunc = coroutine.create(function()
 
-        local str = TestModule.test();
+        local str = TestModule();
         print (str);
 
         coroutine.yield()
@@ -39,7 +39,7 @@ function TestClassFunc()
 
         print ("+++++++++++++");
 
-        local p = Person.create();
+        local p = Person();
         print (p);
 
         p:speak("i am vim");
@@ -78,7 +78,7 @@ function TestClassImportFunc()
 
 end
 
---Test();
---TestModuleFunc();
+Test();
+TestModuleFunc();
 TestClassFunc();
---TestClassImportFunc();
+TestClassImportFunc();

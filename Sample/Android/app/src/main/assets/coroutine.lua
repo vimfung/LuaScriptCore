@@ -47,7 +47,7 @@ function TestClassFunc()
 
         print ("+++++++++++++");
 
-        local p = Person.create();
+        local p = Person();
         print (p);
 
         p:speak();

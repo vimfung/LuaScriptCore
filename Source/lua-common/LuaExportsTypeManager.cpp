@@ -33,21 +33,24 @@ static int typeMappingHandler(lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
 
+    if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
+    {
+        LuaEngineAdapter::error(state, "please use the colon syntax to call the method");
+        return 0;
+    }
+
     LuaSession *session = manager -> context() -> makeSession(state);
 
-    LuaArgumentList argumentList;
-    session -> parseArguments(argumentList);
-
-    if (argumentList.size() < 3)
+    if (LuaEngineAdapter::getTop(state) < 4)
     {
         LuaEngineAdapter::error(state, "`typeMapping` method need to pass 3 parameters");
     }
     else
     {
-        std::string platform = argumentList[0]->toString();
+        std::string platform = LuaEngineAdapter::toString(state, 2);
         std::transform(platform.begin(), platform.end(), platform.begin(), ::tolower);
-        std::string nativeTypeName = argumentList[1]->toString();
-        std::string alias = argumentList[2]->toString();
+        std::string nativeTypeName = LuaEngineAdapter::toString(state, 3);
+        std::string alias = LuaEngineAdapter::toString(state, 4);
         manager -> _mappingType(platform, nativeTypeName, alias);
     }
 
@@ -66,13 +69,28 @@ static int typeMappingHandler(lua_State *state)
 static int objectCreateHandler (lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-    LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
-    
+
     LuaSession *session = manager -> context() -> makeSession(state);
-    
-    LuaObjectDescriptor *objectDescriptor = typeDescriptor -> createInstance(session);
-    manager -> _initLuaObject(objectDescriptor);
-    objectDescriptor -> release();
+
+    LuaExportTypeDescriptor *typeDescriptor = NULL;
+    LuaEngineAdapter::getField(state, 1, "_nativeType");
+    if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
+    {
+        typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+    }
+    LuaEngineAdapter::pop(state, 1);
+
+    if (typeDescriptor != NULL)
+    {
+        LuaObjectDescriptor *objectDescriptor = typeDescriptor -> createInstance(session);
+        manager -> _initLuaObject(objectDescriptor);
+        objectDescriptor -> release();
+    }
+    else
+    {
+        LuaEngineAdapter::error(state, "can't construct instance, Invalid type!");
+    }
+
     
     manager -> context() -> destorySession(session);
     
@@ -89,25 +107,45 @@ static int objectCreateHandler (lua_State *state)
 static int subClassHandler (lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-    LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
-    
     LuaContext *context = manager -> context();
-    
-    if (LuaEngineAdapter::getTop(state) == 0)
+
+    if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
     {
-        LuaEngineAdapter::error(state, "Miss the subclass name parameter");
+        LuaEngineAdapter::error(state, "please use the colon syntax to call the method");
+        return 0;
+    }
+
+    if (LuaEngineAdapter::getTop(state) < 2 || LuaEngineAdapter::type(state, 2) != LUA_TSTRING)
+    {
+        LuaEngineAdapter::error(state, "missing parameter subclass name or argument type mismatch.");
         return 0;
     }
     
     LuaSession *session = context -> makeSession(state);
-    
-    std::string subclassName = LuaEngineAdapter::checkString(state, 1);
-    
-    //构建子类型描述
-    LuaExportTypeDescriptor *subTypeDescriptor = typeDescriptor -> createSubType(session, subclassName);
-    manager -> exportsType(subTypeDescriptor);
-    manager -> _prepareExportsType(state, typeDescriptor);
-    subTypeDescriptor -> release();
+
+    //获取传入类型
+    LuaExportTypeDescriptor *typeDescriptor = NULL;
+    LuaEngineAdapter::getField(state, 1, "_nativeType");
+    if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
+    {
+        typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+    }
+    LuaEngineAdapter::pop(state, 1);
+
+    if (typeDescriptor != NULL)
+    {
+        std::string subclassName = LuaEngineAdapter::checkString(state, 1);
+
+        //构建子类型描述
+        LuaExportTypeDescriptor *subTypeDescriptor = typeDescriptor -> createSubType(session, subclassName);
+        manager -> exportsType(subTypeDescriptor);
+        manager -> _prepareExportsType(state, typeDescriptor);
+        subTypeDescriptor -> release();
+    }
+    else
+    {
+        LuaEngineAdapter::error(state, "can't subclass type! Invalid base type.");
+    }
     
     context -> destorySession(session);
     
@@ -122,37 +160,57 @@ static int subClassHandler (lua_State *state)
  */
 static int subclassOfHandler (lua_State *state)
 {
-    if (LuaEngineAdapter::getTop(state) == 0)
+    if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
+    {
+        LuaEngineAdapter::error(state, "Please use the colon syntax to call the method");
+        return 0;
+    }
+
+    if (LuaEngineAdapter::getTop(state) < 2 || LuaEngineAdapter::type(state, 2) != LUA_TTABLE)
     {
         LuaEngineAdapter::pushBoolean(state, false);
         return 1;
     }
     
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-    LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
     
     LuaContext *context = manager -> context();
     LuaSession *session = context -> makeSession(state);
-    
+
+    bool flag = false;
+
+    LuaExportTypeDescriptor *typeDescriptor = NULL;
     if (LuaEngineAdapter::type(state, 1) == LUA_TTABLE)
     {
         LuaEngineAdapter::getField(state, 1, "_nativeClass");
         if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
         {
-            LuaExportTypeDescriptor *checkType = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
-            
-            bool flag = typeDescriptor -> subtypeOfType(checkType);
-            LuaEngineAdapter::pushBoolean(state, flag);
+            typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
         }
-        else
+        LuaEngineAdapter::pop(state, 1);
+    }
+
+    LuaExportTypeDescriptor *checkTypeDescriptor = NULL;
+    if (LuaEngineAdapter::type(state, 2) == LUA_TTABLE)
+    {
+        LuaEngineAdapter::getField(state, 2, "_nativeType");
+        if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
         {
-            LuaEngineAdapter::pushBoolean(state, false);
+            checkTypeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
         }
+        LuaEngineAdapter::pop(state, 1);
+    }
+
+    if (typeDescriptor != NULL && checkTypeDescriptor != NULL)
+    {
+        flag = typeDescriptor -> subtypeOfType(checkTypeDescriptor);
     }
     else
     {
-        LuaEngineAdapter::pushBoolean(state, false);
+        LuaEngineAdapter::error(state, "Unknown error.");
     }
+
+    LuaEngineAdapter::pushBoolean(state, flag);
     
     context -> destorySession(session);
     
@@ -168,8 +226,7 @@ static int subclassOfHandler (lua_State *state)
 static int classToStringHandler (lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-//    LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
-    
+
     LuaContext *context = manager -> context();
     LuaSession *session = context -> makeSession(state);
     
@@ -285,7 +342,7 @@ static int prototypeToStringHandler (lua_State *state)
     }
     else
     {
-        LuaEngineAdapter::error(state, "Can not describe unknown prototype.");
+        LuaEngineAdapter::error(state, "can not describe unknown prototype.");
         LuaEngineAdapter::pushNil(state);
     }
 
@@ -320,7 +377,7 @@ static int objectToStringHandler (lua_State *state)
     }
     else
     {
-        LuaEngineAdapter::error(state, "Can not describe unknown object.");
+        LuaEngineAdapter::error(state, "can not describe unknown object.");
         LuaEngineAdapter::pushNil(state);
     }
     
@@ -399,36 +456,58 @@ static int classMethodRouteHandler(lua_State *state)
     int retCount = 0;
     
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-    LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
-    const char *methodName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(3));
-    
-    LuaContext *context = manager -> context();
-    LuaSession *session = context -> makeSession(state);
-    
-    LuaArgumentList args;
-    session -> parseArguments(args);
-    
-    LuaExportMethodDescriptor *methodDescriptor = typeDescriptor -> getClassMethod(methodName, args);
-    if (methodDescriptor != NULL)
+    const char *methodName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(2));
+
+    if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
     {
-        LuaValue *retValue = methodDescriptor -> invoke(session, args);
-        if (retValue != NULL)
+        LuaEngineAdapter::error(state, "please use the colon syntax to call the method");
+    }
+    else
+    {
+        LuaContext *context = manager -> context();
+        LuaSession *session = context -> makeSession(state);
+
+        LuaExportTypeDescriptor *typeDescriptor = NULL;
+        LuaEngineAdapter::getField(state, 1, "_nativeType");
+        if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
         {
-            retCount = session -> setReturnValue(retValue);
-            //释放返回值
-            retValue -> release();
+            typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
         }
+        LuaEngineAdapter::pop(state, 1);
+
+        if (typeDescriptor != NULL)
+        {
+            LuaArgumentList args;
+            session -> parseArguments(args, 2);
+
+            LuaExportMethodDescriptor *methodDescriptor = typeDescriptor -> getClassMethod(methodName, args);
+            if (methodDescriptor != NULL)
+            {
+                LuaValue *retValue = methodDescriptor -> invoke(session, args);
+                if (retValue != NULL)
+                {
+                    retCount = session -> setReturnValue(retValue);
+                    //释放返回值
+                    retValue -> release();
+                }
+            }
+
+            //释放参数内存
+            for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+            {
+                LuaValue *item = *it;
+                item -> release();
+            }
+        }
+        else
+        {
+            std::string errMsg = StringUtils::format("call `%s` method fail : invalid type", methodName);
+            LuaEngineAdapter::error(state, errMsg.c_str());
+        }
+
+        //销毁会话
+        context -> destorySession(session);
     }
-    
-    //释放参数内存
-    for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
-    {
-        LuaValue *item = *it;
-        item -> release();
-    }
-    
-    //销毁会话
-    context -> destorySession(session);
     
     return retCount;
 }
@@ -822,24 +901,11 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
     //导出声明的类方法
     _exportsClassMethods(state, typeDescriptor);
 
-    //添加创建对象方法
+    //构造函数
     LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
-    LuaEngineAdapter::pushCClosure(state, objectCreateHandler, 2);
-    LuaEngineAdapter::setField(state, -2, "create");
-    
-    //添加子类化对象方法
-    LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
-    LuaEngineAdapter::pushCClosure(state, subClassHandler, 2);
-    LuaEngineAdapter::setField(state, -2, "subclass");
-    
-    //增加子类判断方法, since ver 1.3
-    LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
-    LuaEngineAdapter::pushCClosure(state, subclassOfHandler, 2);
-    LuaEngineAdapter::setField(state, -2, "subclassOf");
-    
+    LuaEngineAdapter::pushCClosure(state, objectCreateHandler, 1);
+    LuaEngineAdapter::setField(state, -2, "__call");
+
     //关联索引
     LuaEngineAdapter::pushValue(state, -1);
     LuaEngineAdapter::setField(state, -2, "__index");
@@ -874,6 +940,16 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
     }
     else
     {
+        //添加子类化对象方法
+        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+        LuaEngineAdapter::pushCClosure(state, subClassHandler, 1);
+        LuaEngineAdapter::setField(state, -2, "subclass");
+
+        //增加子类判断方法, since ver 1.3
+        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+        LuaEngineAdapter::pushCClosure(state, subclassOfHandler, 1);
+        LuaEngineAdapter::setField(state, -2, "subclassOf");
+
         //类型映射
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
         LuaEngineAdapter::pushCClosure(state, typeMappingHandler, 1);
@@ -881,6 +957,11 @@ void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescript
         
         //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
         LuaEngineAdapter::newTable(state);
+
+        //构造函数, Object需要在其元表中添加该构造方法
+        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+        LuaEngineAdapter::pushCClosure(state, objectCreateHandler, 1);
+        LuaEngineAdapter::setField(state, -2, "__call");
 
         //类型描述
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
@@ -979,9 +1060,8 @@ void LuaExportsTypeManager::_exportsClassMethods(lua_State *state, LuaExportType
             LuaEngineAdapter::pop(state, 1);
             
             LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-            LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
             LuaEngineAdapter::pushString(state, (*it).c_str());
-            LuaEngineAdapter::pushCClosure(state, classMethodRouteHandler, 3);
+            LuaEngineAdapter::pushCClosure(state, classMethodRouteHandler, 2);
             
             LuaEngineAdapter::setField(state, -2, (*it).c_str());
         }
@@ -1030,7 +1110,7 @@ void LuaExportsTypeManager::_setupExportEnv()
     
     if (!LuaEngineAdapter::isTable(state, -1))
     {
-        LuaEngineAdapter::error(state, "Invalid '_G' object，setup the exporter fail.");
+        LuaEngineAdapter::error(state, "invalid '_G' object，setup the exporter fail.");
         LuaEngineAdapter::pop(state, 1);
         return;
     }
@@ -1081,12 +1161,13 @@ void LuaExportsTypeManager::_initLuaObject(LuaObjectDescriptor *objectDescriptor
         //将create传入的参数传递给init方法
         //-4 代表有4个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象, 错误捕获方法
         int paramCount = LuaEngineAdapter::getTop(state) - 4;
-        for (int i = 1; i <= paramCount; i++)
+        //从索引2开始传入参数，ver2.2后使用冒号调用create方法，忽略第一个参数self
+        for (int i = 2; i <= paramCount; i++)
         {
             LuaEngineAdapter::pushValue(state, i);
         }
         
-        LuaEngineAdapter::pCall(state, paramCount + 1, 0, errFuncIndex);
+        LuaEngineAdapter::pCall(state, paramCount, 0, errFuncIndex);
     }
     else
     {

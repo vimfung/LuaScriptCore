@@ -72,6 +72,14 @@ namespace cn {
                 void parseArguments(LuaArgumentList &argumentList);
 
                 /**
+                 * 解析参数
+                 *
+                 * @param argumentList 参数列表
+                 * @param fromIndex 从哪个索引开始解析
+                 */
+                void parseArguments(LuaArgumentList &argumentList, int fromIndex);
+
+                /**
                  * 设置返回值
                  *
                  * @param value 返回值

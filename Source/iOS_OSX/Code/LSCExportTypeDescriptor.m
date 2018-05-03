@@ -334,6 +334,12 @@
             double doubleValue = [value toDouble];
             [invocation setArgument:&doubleValue atIndex:i];
         }
+        else if (strcmp(argType, @encode(BOOL)) == 0)
+        {
+            //布尔类型
+            BOOL boolValue = [value toBoolean];
+            [invocation setArgument:&boolValue atIndex:i];
+        }
         else if (strcmp(argType, @encode(int)) == 0
                  || strcmp(argType, @encode(unsigned int)) == 0
                  || strcmp(argType, @encode(long)) == 0
@@ -346,12 +352,6 @@
             //整型
             NSInteger intValue = [value toDouble];
             [invocation setArgument:&intValue atIndex:i];
-        }
-        else if (strcmp(argType, @encode(BOOL)) == 0)
-        {
-            //布尔类型
-            BOOL boolValue = [value toBoolean];
-            [invocation setArgument:&boolValue atIndex:i];
         }
         else if (strcmp(argType, @encode(id)) == 0)
         {
@@ -375,6 +375,14 @@
         [invocation getReturnValue:&retObj];
         
         retValue = [LSCValue objectValue:retObj];
+    }
+    else if (strcmp(returnType, @encode(BOOL)) == 0)
+    {
+        //fixed：修复在32位设备下，由于BOOL和char类型返回一样导致，无法正常识别BOOL值问题，目前处理方式将BOOL值判断提前。但会引起32位下char的返回得不到正确的判断。考虑char的使用频率没有BOOL高，故折中处理该问题。
+        //B 布尔类型
+        BOOL boolValue = NO;
+        [invocation getReturnValue:&boolValue];
+        retValue = [LSCValue booleanValue:boolValue];
     }
     else if (strcmp(returnType, @encode(int)) == 0
              || strcmp(returnType, @encode(unsigned int)) == 0
@@ -411,13 +419,6 @@
         double doubleValue = 0.0;
         [invocation getReturnValue:&doubleValue];
         retValue = [LSCValue numberValue:@(doubleValue)];
-    }
-    else if (strcmp(returnType, @encode(BOOL)) == 0)
-    {
-        //B 布尔类型
-        BOOL boolValue = NO;
-        [invocation getReturnValue:&boolValue];
-        retValue = [LSCValue booleanValue:boolValue];
     }
     else
     {

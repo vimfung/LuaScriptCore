@@ -126,4 +126,14 @@ static LSCManagedValue *_managedFunc = nil;
     
 }
 
++ (BOOL)returnBoolean
+{
+    return NO;
+}
+
++ (char)returnChar
+{
+    return 0;
+}
+
 @end

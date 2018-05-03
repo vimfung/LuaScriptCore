@@ -12,9 +12,9 @@ Person.prototype.age = {
 
 };
 
-local p = Person.create();  p.age = 12; print (p.age);
+local p = Person();  p.age = 12; print (p.age);
 
-Object.subclass("Child");
+Object:subclass("Child");
 
 Child.prototype.name = {
     get = function (self)
@@ -27,4 +27,4 @@ Child.prototype.name = {
     end
 };
 
-local c = Child.create(); c.name = "vim"; print (c.name);
+local c = Child(); c.name = "vim"; print (c.name);

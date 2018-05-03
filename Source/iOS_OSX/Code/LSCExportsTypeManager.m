@@ -334,6 +334,11 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
     [LSCEngineAdapter pushString:typeDescriptor.typeName.UTF8String state:state];
     [LSCEngineAdapter setField:state index:-2 name:"name"];
     
+    //构造函数
+    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+    [LSCEngineAdapter pushCClosure:objectCreateHandler n:1 state:state];
+    [LSCEngineAdapter setField:state index:-2 name:"__call"];
+    
     //关联本地类型
     [LSCEngineAdapter pushLightUserdata:(__bridge void *)(typeDescriptor) state:state];
     [LSCEngineAdapter setField:state index:-2 name:"_nativeType"];
@@ -345,24 +350,6 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
      **/
     //导出声明的类方法
     [self _exportsClassMethods:typeDescriptor state:state];
-
-    //添加创建对象方法
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-    [LSCEngineAdapter pushCClosure:objectCreateHandler n:2 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"create"];
-
-    //添加子类化对象方法
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-    [LSCEngineAdapter pushCClosure:subClassHandler n:2 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"subclass"];
-
-    //增加子类判断方法, since ver 1.3
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-    [LSCEngineAdapter pushCClosure:subclassOfHandler n:2 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"subclassOf"];
     
     //关联索引
     [LSCEngineAdapter pushValue:-1 state:state];
@@ -398,6 +385,16 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
     }
     else
     {
+        //添加子类化对象方法
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushCClosure:subClassHandler n:1 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"subclass"];
+        
+        //增加子类判断方法, since ver 1.3
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushCClosure:subclassOfHandler n:1 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"subclassOf"];
+        
         //Object需要创建一个typeMapping方法，用于绑定原生类型，其方法原型: function Object.typeMapping(platform, nativeTypeName, alias);
         //该方法在默认情况下无法找到原生类型时使用（默认情况会根据lua调用的类型名称类查询原生类型，如果名称不匹配则表示不存在），允许使用该方法来关联原生类型
         //其中platform为平台字符串类型，分别为：ios,android,u3d
@@ -409,6 +406,11 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
         
         //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
         [LSCEngineAdapter newTable:state];
+        
+        //构造函数, Object需要在其元表中添加该构造方法
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushCClosure:objectCreateHandler n:1 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__call"];
         
         //类型描述
         [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
@@ -556,9 +558,8 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
                 if (!hasExists)
                 {
                     [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-                    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
                     [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
-                    [LSCEngineAdapter pushCClosure:classMethodRouteHandler n:3 state:state];
+                    [LSCEngineAdapter pushCClosure:classMethodRouteHandler n:2 state:state];
                     
                     [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
                 }
@@ -905,12 +906,13 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
         //将create传入的参数传递给init方法
         //-4 代表有4个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象，异常捕获方法
         int paramCount = [LSCEngineAdapter getTop:state] - 4;
-        for (int i = 1; i <= paramCount; i++)
+        //从索引2开始传入参数，ver2.2后使用冒号调用create方法，忽略第一个参数self
+        for (int i = 2; i <= paramCount; i++)
         {
             [LSCEngineAdapter pushValue:i state:state];
         }
         
-        [LSCEngineAdapter pCall:state nargs:paramCount + 1 nresults:0 errfunc:errFuncIndex];
+        [LSCEngineAdapter pCall:state nargs:paramCount nresults:0 errfunc:errFuncIndex];
     }
     else
     {
@@ -1170,20 +1172,25 @@ static int typeMappingHandler(lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
+    if ([LSCEngineAdapter type:state index:1] != LUA_TTABLE)
+    {
+        [LSCEngineAdapter error:state message:"please use the colon syntax to call the method"];
+        return 0;
+    }
+    
     LSCSession *callSession = [exporter.context makeSessionWithState:state];
-    NSArray *arguments = [callSession parseArguments];
-    if (arguments.count < 3)
+    if ([LSCEngineAdapter getTop:state] < 4)
     {
         NSString *errMsg = @"`typeMapping` method need to pass 3 parameters";
         [LSCEngineAdapter error:state message:errMsg.UTF8String];
     }
     else
     {
-        NSString *platform = [arguments[0] toString];
+        NSString *platform = [NSString stringWithUTF8String:[LSCEngineAdapter toString:state index:2]];
         if ([[platform lowercaseString] isEqualToString:@"ios"])
         {
-            NSString *nativeTypeName = [arguments[1] toString];
-            NSString *alias = [arguments[2] toString];
+            NSString *nativeTypeName = [NSString stringWithUTF8String:[LSCEngineAdapter toString:state index:3]];
+            NSString *alias = [NSString stringWithUTF8String:[LSCEngineAdapter toString:state index:4]];
             [LSCExportsTypeManager _mappingTypeWithName:nativeTypeName alias:alias];
         }
     }
@@ -1208,41 +1215,61 @@ static int classMethodRouteHandler(lua_State *state)
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
     index = [LSCEngineAdapter upvalueIndex:2];
-    ptr = [LSCEngineAdapter toPointer:state index:index];
-    LSCExportTypeDescriptor *typeDescriptor = (__bridge LSCExportTypeDescriptor *)ptr;
-    
-    index = [LSCEngineAdapter upvalueIndex:3];
     const char *methodNameCStr = [LSCEngineAdapter toString:state index:index];
     NSString *methodName = [NSString stringWithUTF8String:methodNameCStr];
     
-    LSCSession *callSession = [exporter.context makeSessionWithState:state];
-    NSArray *arguments = [callSession parseArguments];
-    
-    //筛选方法，对于重载方法需要根据lua传入参数进行筛选
-    NSInvocation *invocation = [exporter _invocationWithMethodName:methodName
-                                                         arguments:arguments
-                                                          typeDesc:typeDescriptor
-                                                          isStatic:YES];
-
-    //确定调用方法的Target
-    if (invocation)
+    if ([LSCEngineAdapter type:state index:1] != LUA_TTABLE)
     {
-        LSCValue *retValue = [typeDescriptor _invokeMethodWithInstance:nil
-                                                            invocation:invocation
-                                                             arguments:arguments];
-        
-        if (retValue)
-        {
-            retCount = [callSession setReturnValue:retValue];
-        }
+        [LSCEngineAdapter error:state message:"please use the colon syntax to call the method"];
     }
     else
     {
-        NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
-        [LSCEngineAdapter error:state message:errMsg.UTF8String];
+        LSCSession *callSession = [exporter.context makeSessionWithState:state];
+        
+        LSCExportTypeDescriptor *typeDescriptor = nil;
+        [LSCEngineAdapter getField:state index:1 name:"_nativeType"];
+        if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
+        {
+            typeDescriptor = (__bridge LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
+        }
+        [LSCEngineAdapter pop:state count:1];
+        
+        if (typeDescriptor)
+        {
+            NSArray *arguments = [callSession parseArgumentsWithoutTheFirst];
+            
+            //筛选方法，对于重载方法需要根据lua传入参数进行筛选
+            NSInvocation *invocation = [exporter _invocationWithMethodName:methodName
+                                                                 arguments:arguments
+                                                                  typeDesc:typeDescriptor
+                                                                  isStatic:YES];
+            
+            //确定调用方法的Target
+            if (invocation)
+            {
+                LSCValue *retValue = [typeDescriptor _invokeMethodWithInstance:nil
+                                                                    invocation:invocation
+                                                                     arguments:arguments];
+                
+                if (retValue)
+                {
+                    retCount = [callSession setReturnValue:retValue];
+                }
+            }
+            else
+            {
+                NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : argument type mismatch", methodName];
+                [LSCEngineAdapter error:state message:errMsg.UTF8String];
+            }
+        }
+        else
+        {
+            NSString *errMsg = [NSString stringWithFormat:@"call `%@` method fail : invalid type", methodName];
+            [LSCEngineAdapter error:state message:errMsg.UTF8String];
+        }
+        
+        [exporter.context destroySession:callSession];
     }
-    
-    [exporter.context destroySession:callSession];
     
     return retCount;
 }
@@ -1323,25 +1350,38 @@ static int objectCreateHandler (lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
-    index = [LSCEngineAdapter upvalueIndex:2];
-    ptr = [LSCEngineAdapter toPointer:state index:index];
-    LSCExportTypeDescriptor *typeDescriptor = (__bridge LSCExportTypeDescriptor *)ptr;
-    
     LSCSession *session = [exporter.context makeSessionWithState:state];
     
-    //创建对象
-    id instance = nil;
-    if (typeDescriptor.nativeType != NULL)
+    //获取传入类型
+    LSCExportTypeDescriptor *typeDescriptor = nil;
+    [LSCEngineAdapter getField:state index:1 name:"_nativeType"];
+    if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
     {
-        instance = [[typeDescriptor.nativeType alloc] init];
+        typeDescriptor = (__bridge LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
+    }
+    [LSCEngineAdapter pop:state count:1];
+    
+    if (typeDescriptor)
+    {
+        //创建对象
+        id instance = nil;
+        if (typeDescriptor.nativeType != NULL)
+        {
+            instance = [[typeDescriptor.nativeType alloc] init];
+        }
+        else
+        {
+            //创建一个虚拟的类型对象
+            instance = [[LSCVirtualInstance alloc] initWithTypeDescriptor:typeDescriptor];
+        }
+        
+        [exporter _initLuaObjectWithObject:instance type:typeDescriptor];
     }
     else
     {
-        //创建一个虚拟的类型对象
-        instance = [[LSCVirtualInstance alloc] initWithTypeDescriptor:typeDescriptor];
+        
+        [LSCEngineAdapter error:state message:"construct instance fail : invalid type!"];
     }
-    
-    [exporter _initLuaObjectWithObject:instance type:typeDescriptor];
     
     [exporter.context destroySession:session];
     
@@ -1504,7 +1544,7 @@ static int classToStringHandler (lua_State *state)
     }
     else
     {
-        [LSCEngineAdapter error:state message:"Can not describe unknown type."];
+        [LSCEngineAdapter error:state message:"can not describe unknown type."];
         [LSCEngineAdapter pushNil:state];
     }
     
@@ -1541,7 +1581,7 @@ static int prototypeToStringHandler (lua_State *state)
     }
     else
     {
-        [LSCEngineAdapter error:state message:"Can not describe unknown prototype."];
+        [LSCEngineAdapter error:state message:"can not describe unknown prototype."];
         [LSCEngineAdapter pushNil:state];
     }
     
@@ -1656,7 +1696,7 @@ static int objectToStringHandler (lua_State *state)
     }
     else
     {
-        [LSCEngineAdapter error:state message:"Can not describe unknown object."];
+        [LSCEngineAdapter error:state message:"can not describe unknown object."];
         [LSCEngineAdapter pushNil:state];
     }
     
@@ -1677,26 +1717,46 @@ static int subClassHandler (lua_State *state)
     int index = [LSCEngineAdapter upvalueIndex:1];
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
-    
-    index = [LSCEngineAdapter upvalueIndex:2];
-    ptr = [LSCEngineAdapter toPointer:state index:index];
-    LSCExportTypeDescriptor *typeDescriptor = (__bridge LSCExportTypeDescriptor *)ptr;
-    
-    if ([LSCEngineAdapter getTop:state] == 0)
+
+    if ([LSCEngineAdapter type:state index:1] != LUA_TTABLE)
     {
-        [LSCEngineAdapter error:state message:"Miss the subclass name parameter"];
+        [LSCEngineAdapter error:state message:"please use the colon syntax to call the method"];
         return 0;
     }
     
+    if ([LSCEngineAdapter getTop:state] < 2 || [LSCEngineAdapter type:state index:2] != LUA_TSTRING)
+    {
+        [LSCEngineAdapter error:state message:"missing parameter subclass name or argument type mismatch.."];
+        return 0;
+    }
+    
+    
     LSCSession *session = [exporter.context makeSessionWithState:state];
     
-    //构建子类型描述
-    NSString *typeName = [NSString stringWithUTF8String:[LSCEngineAdapter checkString:state index:1]];
-    LSCExportTypeDescriptor *subTypeDescriptor = [[LSCExportTypeDescriptor alloc] initWithTypeName:typeName nativeType:typeDescriptor.nativeType];
-    subTypeDescriptor.parentTypeDescriptor = typeDescriptor;
-    [exportTypes setObject:subTypeDescriptor forKey:subTypeDescriptor.typeName];
+    //获取传入类型
+    LSCExportTypeDescriptor *typeDescriptor = nil;
+    [LSCEngineAdapter getField:state index:1 name:"_nativeType"];
+    if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
+    {
+        typeDescriptor = (__bridge LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
+    }
+    [LSCEngineAdapter pop:state count:1];
     
-    [exporter _exportsType:subTypeDescriptor state:state];
+    if (typeDescriptor)
+    {
+        //构建子类型描述
+        NSString *typeName = [NSString stringWithUTF8String:[LSCEngineAdapter checkString:state index:2]];
+        LSCExportTypeDescriptor *subTypeDescriptor = [[LSCExportTypeDescriptor alloc] initWithTypeName:typeName nativeType:typeDescriptor.nativeType];
+        subTypeDescriptor.parentTypeDescriptor = typeDescriptor;
+        [exportTypes setObject:subTypeDescriptor forKey:subTypeDescriptor.typeName];
+        
+        [exporter _exportsType:subTypeDescriptor state:state];
+    }
+    else
+    {
+        [LSCEngineAdapter error:state message:"can't subclass type! Invalid base type."];
+    }
+    
     
     [exporter.context destroySession:session];
     
@@ -1711,8 +1771,15 @@ static int subClassHandler (lua_State *state)
  */
 static int subclassOfHandler (lua_State *state)
 {
-    if ([LSCEngineAdapter getTop:state] == 0)
+    if ([LSCEngineAdapter type:state index:1] != LUA_TTABLE)
     {
+        [LSCEngineAdapter error:state message:"please use the colon syntax to call the method"];
+        return 0;
+    }
+    
+    if ([LSCEngineAdapter getTop:state] < 2 || [LSCEngineAdapter type:state index:2] != LUA_TTABLE)
+    {
+        [LSCEngineAdapter error:state message:"missing parameter `type` or argument type mismatch."];
         [LSCEngineAdapter pushBoolean:NO state:state];
         return 1;
     }
@@ -1721,21 +1788,38 @@ static int subclassOfHandler (lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
-    index = [LSCEngineAdapter upvalueIndex:2];
-    ptr = [LSCEngineAdapter toPointer:state index:index];
-    LSCExportTypeDescriptor *typeDescriptor = (__bridge LSCExportTypeDescriptor *)ptr;
-    
     BOOL flag = NO;
     LSCSession *session = [exporter.context makeSessionWithState:state];
     
+    LSCExportTypeDescriptor *typeDescriptor = nil;
     if ([LSCEngineAdapter type:state index:1] == LUA_TTABLE)
     {
         [LSCEngineAdapter getField:state index:1 name:"_nativeType"];
         if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
         {
-            LSCExportTypeDescriptor *checkTypeDescriptor = (__bridge LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
-            flag = [typeDescriptor subtypeOfType:checkTypeDescriptor];
+            typeDescriptor = (__bridge LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
         }
+        [LSCEngineAdapter pop:state count:1];
+    }
+    
+    LSCExportTypeDescriptor *checkTypeDescriptor = nil;
+    if ([LSCEngineAdapter type:state index:2] == LUA_TTABLE)
+    {
+        [LSCEngineAdapter getField:state index:2 name:"_nativeType"];
+        if ([LSCEngineAdapter type:state index:-1] == LUA_TLIGHTUSERDATA)
+        {
+            checkTypeDescriptor = (__bridge LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:-1];
+        }
+        [LSCEngineAdapter pop:state count:1];
+    }
+    
+    if (typeDescriptor && checkTypeDescriptor)
+    {
+        flag = [typeDescriptor subtypeOfType:checkTypeDescriptor];
+    }
+    else
+    {
+        [LSCEngineAdapter error:state message:"Unknown error."];
     }
     
     [LSCEngineAdapter pushBoolean:flag state:state];

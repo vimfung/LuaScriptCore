@@ -32,16 +32,22 @@ LuaContext* LuaSession::getContext()
 
 void LuaSession::parseArguments(LuaArgumentList &argumentList)
 {
+    parseArguments(argumentList, 1);
+}
+
+void LuaSession::parseArguments(LuaArgumentList &argumentList, int fromIndex)
+{
     int top = LuaEngineAdapter::getTop(_state);
-    if (top >= 1)
+    if (top >= fromIndex)
     {
-        for (int i = 1; i <= top; i++)
+        for (int i = fromIndex; i <= top; i++)
         {
             LuaValue *value = LuaValue::ValueByIndex(_context, i);
             argumentList.push_back(value);
         }
     }
 }
+
 
 int LuaSession::setReturnValue(LuaValue *value)
 {

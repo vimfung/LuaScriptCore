@@ -9,4 +9,4 @@ Person.prototype.age = {
 	
 };
 
-local p = Person.create();  p.age = 12; print (p.age);
+local p = Person();  p.age = 12; print (p.age);

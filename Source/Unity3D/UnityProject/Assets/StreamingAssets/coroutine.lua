@@ -31,7 +31,7 @@ function TestModuleFunc()
 
     local tfunc = coroutine.create(function()
 
-        print (LogModule.test({111, 2222}));
+        print (LogModule:test({111, 2222}));
 
         coroutine.yield()
 
@@ -47,20 +47,20 @@ function TestClassFunc()
 
         print ("+++++++++++++");
 
-        local p = Person.create();
+        local p = Person:create();
         print (p);
         p.name = "abc";
 
         p:speak();
 
-        local p = Person.createPerson();
+        local p = Person:createPerson();
         print (p);
 
         p.name = "vim";
         print (p.name);
         p:speak();
 
-        Person.printPerson(p);
+        Person:printPerson(p);
 
         coroutine.yield()
 
@@ -77,7 +77,7 @@ function TestClassImportFunc()
         print ("-------------");
 
         print(Person, NativeData);
-        local p = NativeData.createPerson();
+        local p = NativeData:createPerson();
         print(p);
         p.name = "abc";
         p:speak();
