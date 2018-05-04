@@ -15,13 +15,7 @@ buildscript {
 }
 
 allprojects {
-
-//    if(org.gradle.internal.os.OperatingSystem.current().isWindows())
-//    {
-//        //Windows下由于路径问题会导致编译报错，这里重新设置build路径
-//        buildDir = "C:/tmp/${rootProject.name}/${project.name}"
-//    }
-
+    
     repositories {
         jcenter()
         google()
