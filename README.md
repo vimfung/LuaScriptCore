@@ -131,7 +131,7 @@ class LuaType : LuaExportType
 则可以在Lua中进行使用，如：
 
 ```
-local obj = LuaType.create();
+local obj = LuaType();
 print (obj);
 ```
 
@@ -155,13 +155,27 @@ print (obj);
 
 # 最近更新
 
-## Release 2.1.1 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/2.1.1)
+## Release 2.2.0 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/2.2.0)
 
 本次更新内容包括：
 
-1、修复iOS ／ OSX平台下调用方法导致内存泄漏问题。
+1. 废弃原有构造函数`create`，使用`类型()`方式构造对象；
 
-2、修复Android平台下，类型方法的参数使用Object类型来声明参数时，强转报错问题。
+2. 统一使用冒号来进行类方法和实例方法的声明和调用（之前版本类方法用点语法，实例方法用冒号语法）。
+
+3. 优化类型加载逻辑，提升执行效率。
+
+4. `Object`类型新增`typeMapping`方法，用于为原生类型定义别名。
+
+5. `LuaContext`新增`raiseException`原生方法，用于抛出Lua执行异常。
+
+6. 修复iOS、OSX下Function类型传入原生层后释放时崩溃问题。
+
+7. 修复iOS、OSX下32位设备返回布尔类有误问题。
+
+8. 修复Windows下编译Android项目报错问题。
+
+**注：由于本次更新涉及语法变更，更新后需要调整变更的语法，请使用旧版本的同学谨慎升级**
 
 ## [更多更新历史](https://github.com/vimfung/LuaScriptCore/wiki/%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2)
 
