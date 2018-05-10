@@ -41,6 +41,21 @@
     }];
 }
 
+- (void)testThreadInitContext
+{
+    XCTestExpectation *exp = [[XCTestExpectation alloc] initWithDescription:@""];
+    
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+       
+        LSCContext *context = [[LSCContext alloc] init];
+        XCTAssertNotNil(context, "context is nil");
+        [exp fulfill];
+        
+    });
+    
+    [self waitForExpectations:@[exp] timeout:5];
+}
+
 - (void)testReturnBoolean
 {
     [self.context evalScriptFromString:@"if Person:returnBoolean() then print('true'); else print('false'); end"];

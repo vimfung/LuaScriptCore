@@ -606,6 +606,8 @@ static int instanceNewIndexHandler (lua_State *state)
             LuaEngineAdapter::pushValue(state, 3);
             LuaEngineAdapter::rawSet(state, -3);
         }
+        
+        LuaEngineAdapter::pop(state, 1);
     }
     
     manager -> context() -> destorySession(session);
@@ -688,6 +690,8 @@ static int instanceIndexHandler(lua_State *state)
         LuaEngineAdapter::pop(state, 1);
         retValueCount = exporter -> _getInstancePropertyValue(session, instance, instance -> getTypeDescriptor(), key);
     }
+    
+    LuaEngineAdapter::remove(state, -1-retValueCount);
     
     exporter -> context() -> destorySession(session);
     
@@ -1250,7 +1254,7 @@ int LuaExportsTypeManager::_getInstancePropertyValue(LuaSession *session,
 
         if (LuaEngineAdapter::isNil(state, -1))
         {
-            LuaEngineAdapter::pop(state, 2);
+            LuaEngineAdapter::pop(state, 1);
 
             //不存在
             LuaExportPropertyDescriptor *propertyDescriptor = typeDescriptor -> getProperty(propertyName);

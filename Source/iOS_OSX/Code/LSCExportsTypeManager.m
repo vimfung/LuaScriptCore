@@ -1124,7 +1124,7 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
 
         if ([LSCEngineAdapter isNil:state index:-1])
         {
-            [LSCEngineAdapter pop:state count:2];
+            [LSCEngineAdapter pop:state count:1];
             
             //不存在
             LSCExportPropertyDescriptor *propertyDescriptor = [typeDescriptor.properties objectForKey:propertyName];
@@ -1423,6 +1423,8 @@ static int instanceNewIndexHandler (lua_State *state)
             [LSCEngineAdapter pushValue:3 state:state];
             [LSCEngineAdapter rawSet:state index:-3];
         }
+        
+        [LSCEngineAdapter pop:state count:1];
     }
     
     [exporter.context destroySession:session];
@@ -1462,8 +1464,13 @@ static int instanceIndexHandler(lua_State *state)
                                                 typeDescriptor:typeDescriptor
                                                   propertyName:key];
     }
+
+    //移除元表
+    [LSCEngineAdapter remove:state index:-1-retValueCount];
     
     [exporter.context destroySession:session];
+    
+    
     
     return retValueCount;
 }
