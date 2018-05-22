@@ -67,9 +67,9 @@ std::string StringUtils::format (const char *format, ...)
     return str;
 }
 
-std::vector<std::string> StringUtils::split(std::string srcStr, std::string delimStr, bool repeatedCharIgnored)
+std::deque<std::string> StringUtils::split(std::string srcStr, std::string delimStr, bool repeatedCharIgnored)
 {
-    std::vector<std::string> resultStringVector;
+    std::deque<std::string> resultStringVector;
     std::replace_if(srcStr.begin(),
                     srcStr.end(),
                     [&](const char& c)

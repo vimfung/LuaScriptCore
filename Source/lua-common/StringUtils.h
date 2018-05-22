@@ -6,7 +6,7 @@
 #define ANDROID_STRINGUTILS_H
 
 #include <string>
-#include <vector>
+#include <deque>
 
 namespace cn
 {
@@ -52,7 +52,7 @@ namespace cn
                  @param repeatedCharIgnored 是否忽视待分割字符串中的重复分隔符，也就是说如果忽视，那么多个连续分隔符将被视为一个分隔符
                  @return 分割后字符串数组
                  */
-                static std::vector<std::string> split(std::string text, std::string delimStr, bool repeatedCharIgnored);
+                static std::deque<std::string> split(std::string text, std::string delimStr, bool repeatedCharIgnored);
             };
         }
     }

@@ -285,6 +285,13 @@ LuaValue::~LuaValue()
             && _type != LuaValueTypeTuple
             && _type != LuaValueTypeClass)
         {
+            if (_type == LuaValueTypeString)
+            {
+                //fixed：string无法直接通过delete释放，需要使用swap来实现释放操作
+                std::string tmpString;
+                tmpString.swap(*((std::string *)_value));
+            }
+
             delete (char *)_value;
         }
 

@@ -189,6 +189,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_callMethod
             LuaValue *item = *it;
             item -> release();
         }
+        argumentList.clear();
     }
 
     return retObj;
@@ -342,7 +343,7 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
             jstring fieldName = (jstring)env -> GetObjectArrayElement(fields, i);
             const char *fieldNameCStr = env -> GetStringUTFChars(fieldName, 0);
 
-            std::vector<std::string> fieldComps =  StringUtils::split(fieldNameCStr, "_", false);
+            std::deque<std::string> fieldComps =  StringUtils::split(fieldNameCStr, "_", false);
 
             bool canRead = false;
             bool canWrite = false;
@@ -365,6 +366,8 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
             typeDescriptor -> addProperty(propertyDescriptor -> name(), propertyDescriptor);
             propertyDescriptor -> release();
 
+            fieldComps.clear();
+
             env -> ReleaseStringUTFChars(fieldName, fieldNameCStr);
         }
 
@@ -375,11 +378,13 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
             jstring methodName = (jstring)env -> GetObjectArrayElement(instanceMethods, i);
             const char *methodNameCStr = env -> GetStringUTFChars(methodName, 0);
 
-            std::vector<std::string> methodComps =  StringUtils::split(methodNameCStr, "_", false);
+            std::deque<std::string> methodComps =  StringUtils::split(methodNameCStr, "_", false);
 
             LuaJavaExportMethodDescriptor *methodDescriptor = new LuaJavaExportMethodDescriptor(methodComps[0], methodComps[1], LuaJavaMethodTypeInstance);
             typeDescriptor -> addInstanceMethod(methodComps[0], methodDescriptor);
             methodDescriptor -> release();
+
+            methodComps.clear();
 
             env -> ReleaseStringUTFChars(methodName, methodNameCStr);
         }
@@ -391,11 +396,13 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
             jstring methodName = (jstring)env -> GetObjectArrayElement(classMethods, i);
             const char *methodNameCStr = env -> GetStringUTFChars(methodName, 0);
 
-            std::vector<std::string> methodComps =  StringUtils::split(methodNameCStr, "_", false);
+            std::deque<std::string> methodComps =  StringUtils::split(methodNameCStr, "_", false);
 
             LuaJavaExportMethodDescriptor *methodDescriptor = new LuaJavaExportMethodDescriptor(methodComps[0], methodComps[1], LuaJavaMethodTypeStatic);
             typeDescriptor -> addClassMethod(methodComps[0], methodDescriptor);
             methodDescriptor -> release();
+
+            methodComps.clear();
 
             env -> ReleaseStringUTFChars(methodName, methodNameCStr);
         }
