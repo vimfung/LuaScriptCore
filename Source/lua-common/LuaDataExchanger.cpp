@@ -177,11 +177,11 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
         case LUA_TLIGHTUSERDATA:
         {
             LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::toPointer(state, stackIndex);
-            LuaPointer *pointer = new LuaPointer(ref);
+            LuaPointer *pointer = new LuaPointer(_context, ref);
             value = LuaValue::PointerValue(pointer);
             pointer -> release();
 
-            objectId = pointer -> getLinkId();
+            objectId = pointer -> getExchangeId();
             break;
         }
         case LUA_TUSERDATA:
@@ -190,7 +190,7 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
             void *obj = userdataRef -> value;
             value = LuaValue::ObjectValue((LuaObjectDescriptor *)obj);
 
-            objectId = ((LuaObjectDescriptor *)obj) -> getLinkId();
+            objectId = ((LuaObjectDescriptor *)obj) -> getExchangeId();
             break;
         }
         case LUA_TFUNCTION:
@@ -198,7 +198,7 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
             LuaFunction *func = new LuaFunction(_context, stackIndex);
             value = LuaValue::FunctionValue(func);
 
-            objectId = func -> getLinkId();
+            objectId = func -> getExchangeId();
             break;
         }
         default:
@@ -314,7 +314,7 @@ void LuaDataExchanger::getLuaObject(LuaObject *object)
         }
         else if (managedObject != NULL)
         {
-            linkId = managedObject -> getLinkId();
+            linkId = managedObject -> getExchangeId();
         }
         else
         {
@@ -380,7 +380,7 @@ void LuaDataExchanger::retainLuaObject(LuaObject *object)
         }
         else if (managedObject != NULL)
         {
-            linkId = managedObject -> getLinkId();
+            linkId = managedObject -> getExchangeId();
         }
         else
         {
@@ -419,7 +419,7 @@ void LuaDataExchanger::releaseLuaObject(LuaObject *object)
         }
         else if (managedObject != NULL)
         {
-            linkId = managedObject -> getLinkId();
+            linkId = managedObject -> getExchangeId();
         }
         else
         {
@@ -481,7 +481,7 @@ void LuaDataExchanger::pushStackByObject(LuaManagedObject *object)
 
     beginGetVarsTable();
 
-    std::string linkId = object -> getLinkId();
+    std::string linkId = object -> getExchangeId();
 
     LuaEngineAdapter::getField(state, -1, linkId.c_str());
     if (LuaEngineAdapter::isNil(state, -1))
@@ -648,4 +648,27 @@ void LuaDataExchanger::doObjectAction(std::string linkId, LuaObjectAction action
         //弹出_G
         LuaEngineAdapter::pop(state, 1);
     }
+}
+
+void LuaDataExchanger::clearObject(LuaManagedObject *object)
+{
+    /*
+     * fixed：清除_vars_表中持有的对象，虽然_vars_是弱引用表，但是对象释放后器kv依然会保留在表中，因此在对象释放时需要通知该表将对应的key置空，
+     * 否则当有新对象分配到该内存地址的时候就会对某些业务操作造成影响
+     * */
+    beginGetVarsTable();
+
+    lua_State *state = _context -> getCurrentSession() -> getState();
+    const char *linkId = object -> getExchangeId().c_str();
+
+    LuaEngineAdapter::getField(state, -1, linkId);
+    if (!LuaEngineAdapter::isNil(state, -1))
+    {
+        LuaEngineAdapter::pushNil(state);
+        LuaEngineAdapter::setField(state, -3, linkId);
+    }
+
+    LuaEngineAdapter::pop(state, 1);
+
+    endGetVarsTable();
 }

@@ -208,7 +208,7 @@ void LuaEngineAdapter::pushNumber(lua_State *state, lua_Number n)
 
 lua_Integer LuaEngineAdapter::toInteger(lua_State *state, int idx)
 {
-    return lua_tonumber(state, idx);
+    return lua_tointeger(state, idx);
 }
 
 void LuaEngineAdapter::pushBoolean (lua_State *state, int b)

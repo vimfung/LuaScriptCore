@@ -10,14 +10,14 @@
 #include "LuaPointer.h"
 #include "lua.hpp"
 
-LuaJavaObjectDescriptor::LuaJavaObjectDescriptor(JNIEnv *env, jobject object)
-    : LuaObjectDescriptor((void *)(env -> NewGlobalRef(object)))
+LuaJavaObjectDescriptor::LuaJavaObjectDescriptor(LuaContext *context, JNIEnv *env, jobject object)
+    : LuaObjectDescriptor(context, (void *)(env -> NewGlobalRef(object)))
 {
 
 }
 
-LuaJavaObjectDescriptor::LuaJavaObjectDescriptor(JNIEnv *env, jobject object, LuaExportTypeDescriptor *typeDescriptor)
-    : LuaObjectDescriptor((void *)(env -> NewGlobalRef(object)), typeDescriptor)
+LuaJavaObjectDescriptor::LuaJavaObjectDescriptor(LuaContext *context, JNIEnv *env, jobject object, LuaExportTypeDescriptor *typeDescriptor)
+    : LuaObjectDescriptor(context, (void *)(env -> NewGlobalRef(object)), typeDescriptor)
 {
 
 }

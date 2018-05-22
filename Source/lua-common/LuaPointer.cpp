@@ -19,25 +19,28 @@ using namespace cn::vimfung::luascriptcore;
 
 DECLARE_NATIVE_CLASS(LuaPointer);
 
-LuaPointer::LuaPointer ()
+LuaPointer::LuaPointer (LuaContext *context)
+    : LuaManagedObject(context)
 {
     _needFree = false;
     _value = NULL;
 }
 
-LuaPointer::LuaPointer(LuaUserdataRef userdata)
+LuaPointer::LuaPointer(LuaContext *context, LuaUserdataRef userdata)
+    : LuaManagedObject(context)
 {
     _needFree = false;
     _value = userdata;
-    _linkId = StringUtils::format("%p", _value);
+    _exchangeId = StringUtils::format("%p", _value);
 }
 
-LuaPointer::LuaPointer(const void *value)
+LuaPointer::LuaPointer(LuaContext *context, const void *value)
+    : LuaManagedObject(context)
 {
     _needFree = true;
     _value = (LuaUserdataRef)malloc(sizeof(LuaUserdataRef));
     _value -> value = (void *)value;
-    _linkId = StringUtils::format("%p", _value);
+    _exchangeId = StringUtils::format("%p", _value);
 }
 
 LuaPointer::~LuaPointer()
@@ -59,7 +62,7 @@ LuaPointer::LuaPointer (LuaObjectDecoder *decoder)
     _value = (LuaUserdataRef)malloc(sizeof(LuaUserdataRef));
     _value -> value = (void *)objRef;
     
-    _linkId = decoder -> readString();
+    _exchangeId = decoder -> readString();
 }
 
 std::string LuaPointer::typeName()
@@ -77,12 +80,7 @@ void LuaPointer::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
     encoder -> writeInt64((long long)_value -> value);
-    encoder -> writeString(_linkId);
-}
-
-std::string LuaPointer::getLinkId()
-{
-    return _linkId;
+    encoder -> writeString(_exchangeId);
 }
 
 void LuaPointer::push(LuaContext *context)

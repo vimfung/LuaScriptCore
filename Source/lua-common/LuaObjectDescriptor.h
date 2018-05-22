@@ -50,11 +50,6 @@ namespace cn {
                  */
                 LuaObjectDescriptorUserData _userdata;
 
-                /**
-                 * 连接ID
-                 */
-                std::string _linkId;
-
             protected:
 
                 /**
@@ -77,23 +72,27 @@ namespace cn {
 
                 /**
                  * 初始化对象描述器
+                 *
+                 * @param context 上下文对象
                  */
-                LuaObjectDescriptor();
+                LuaObjectDescriptor(LuaContext *context);
                 
                 /**
                  * 初始化对象描述器
                  *
+                 * @param context 上下文对象
                  * @param object 对象指针
                  */
-                LuaObjectDescriptor(const void *object);
+                LuaObjectDescriptor(LuaContext *context, const void *object);
                 
                 /**
                  初始化
-                 
+
+                 @param context 上下文对象
                  @param object 对象
                  @param typeDescriptor 类型描述器
                  */
-                LuaObjectDescriptor(void *object, LuaExportTypeDescriptor *typeDescriptor);
+                LuaObjectDescriptor(LuaContext *context, void *object, LuaExportTypeDescriptor *typeDescriptor);
                 
                 /**
                  * 初始化, 在反序列化对象时会触发该方法
@@ -155,13 +154,6 @@ namespace cn {
                 LuaExportTypeDescriptor* getTypeDescriptor();
 
             public:
-
-                /**
-                 * 获取对象标识
-                 *
-                 * @return 对象标识
-                 */
-                virtual std::string getLinkId();
 
                 /**
                  * 入栈数据

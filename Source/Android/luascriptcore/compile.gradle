@@ -3,6 +3,7 @@ apply plugin: 'com.android.library'
 android {
     compileSdkVersion 24
     buildToolsVersion '26.0.2'
+    publishNonDefault true
 
     defaultConfig {
         minSdkVersion 14
@@ -35,7 +36,9 @@ android {
                         "-fpermissive"
 
             }
-
+//            cmake {
+//                cppFlags "-frtti -fexceptions -std=gnu++11 -g -Wno-deprecated-declarations -fpermissive"
+//            }
         }
 
     }
@@ -62,6 +65,9 @@ android {
         ndkBuild {
             path "src/main/jni/Android.mk"
         }
+//        cmake {
+//            path "src/main/jni/CMakeLists.txt"
+//        }
 
     }
 

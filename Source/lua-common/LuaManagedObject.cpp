@@ -3,25 +3,22 @@
 //
 
 #include "LuaManagedObject.h"
+#include "LuaObjectDecoder.hpp"
+#include "LuaContext.h"
+#include "LuaDataExchanger.h"
 
 using namespace cn::vimfung::luascriptcore;
 
-LuaManagedObject::LuaManagedObject()
-    : LuaObject()
+LuaManagedObject::LuaManagedObject(LuaContext *context)
+    : LuaObject(), _context(context)
 {
 
 }
 
 LuaManagedObject::LuaManagedObject (LuaObjectDecoder *decoder)
-    : LuaObject (decoder)
+    : LuaObject (decoder), _context(decoder -> getContext())
 {
 
-}
-
-std::string LuaManagedObject::getLinkId()
-{
-    std::string linkId;
-    return linkId;
 }
 
 void LuaManagedObject::push(LuaContext *context)
@@ -32,4 +29,20 @@ void LuaManagedObject::push(LuaContext *context)
 void LuaManagedObject::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
+}
+
+LuaManagedObject::~LuaManagedObject()
+{
+    //清除对象在交互层的引用
+    _context -> getDataExchanger() -> clearObject(this);
+}
+
+LuaContext *LuaManagedObject::getContext()
+{
+    return _context;
+}
+
+std::string LuaManagedObject::getExchangeId()
+{
+    return _exchangeId;
 }

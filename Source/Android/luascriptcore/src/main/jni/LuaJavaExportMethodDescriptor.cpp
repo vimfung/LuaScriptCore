@@ -26,9 +26,9 @@ LuaValue* LuaJavaExportMethodDescriptor::invoke(LuaSession *session, LuaArgument
         case LuaJavaMethodTypeInstance:
             //实例方法
             return invokeInstanceMethod(session, arguments);
+        default:
+            return NULL;
     }
-
-    return NULL;
 }
 
 LuaValue* LuaJavaExportMethodDescriptor::invokeClassMethod(LuaSession *session, LuaArgumentList arguments)

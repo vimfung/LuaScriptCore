@@ -9,15 +9,18 @@
 
 using namespace cn::vimfung::luascriptcore;
 
-LuaSession::LuaSession(lua_State *state, LuaContext *context)
-    : _state(state), _context(context)
+LuaSession::LuaSession(lua_State *state, LuaContext *context, bool lightweight)
+    : _state(state), _context(context), _hasErr(false), _lightweight(lightweight)
 {
 
 }
 
 LuaSession::~LuaSession()
 {
-    _context -> gc();
+    if (!_lightweight)
+    {
+        _context -> gc();
+    }
 }
 
 lua_State* LuaSession::getState()
@@ -71,4 +74,22 @@ int LuaSession::setReturnValue(LuaValue *value)
     }
 
     return count;
+}
+
+void LuaSession::checkException()
+{
+    if (_hasErr)
+    {
+        //清空错误信息
+        _hasErr = false;
+
+        LuaEngineAdapter::error(getState(), _lastErrMsg.c_str());
+        _lastErrMsg = "";
+    }
+}
+
+void LuaSession::reportLuaException(std::string message)
+{
+    _hasErr = true;
+    _lastErrMsg = message;
 }

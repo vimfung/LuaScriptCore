@@ -25,6 +25,10 @@ namespace cn {
                 
                 lua_State *_state;
                 LuaContext *_context;
+                bool _lightweight;
+
+                bool _hasErr;                   //是否存在异常
+                std::string _lastErrMsg;        //记录最后一次异常信息
                 
             public:
 
@@ -33,8 +37,9 @@ namespace cn {
                  *
                  * @param state 状态
                  * @param context 上下文对象
+                 * @param lightweight 是否为轻量级会话，ture时表示绘画销毁时不需要进行内存回收，否则需要
                  */
-                LuaSession(lua_State *state, LuaContext *context);
+                LuaSession(lua_State *state, LuaContext *context, bool lightweight);
 
                 /**
                  * 销毁对象
@@ -87,6 +92,17 @@ namespace cn {
                  * @return 返回值数量
                  */
                 int setReturnValue(LuaValue *value);
+
+                /**
+                 * 报告Lua异常，与checkException配合使用可以让Lua中断执行
+                 * @param message 异常描述消息
+                 */
+                void reportLuaException(std::string message);
+
+                /**
+                 * 检测异常，如果存在异常则进行中断lua执行
+                 */
+                void checkException();
             };
         }
     }

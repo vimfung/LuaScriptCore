@@ -24,13 +24,33 @@ namespace cn {
             private:
                 LuaUserdataRef _value;
                 bool _needFree;
-                std::string _linkId;
 
             public:
-                LuaPointer ();
-                LuaPointer (LuaUserdataRef userdata);
-                LuaPointer (const void *value);
-                ~LuaPointer();
+
+                /**
+                 * 初始化
+                 * @param context 上下文对象
+                 */
+                LuaPointer (LuaContext *context);
+
+                /**
+                 * 初始化
+                 * @param context 上下文对象
+                 * @param userdata Lua自定义数据
+                 */
+                LuaPointer (LuaContext *context, LuaUserdataRef userdata);
+
+                /**
+                 * 初始化
+                 * @param context 上下文对象
+                 * @param value 任意类型指针
+                 */
+                LuaPointer (LuaContext *context, const void *value);
+
+                /**
+                 * 析构方法
+                 */
+                virtual ~LuaPointer();
                 
                 /**
                  * 初始化, 在反序列化对象时会触发该方法
@@ -61,13 +81,6 @@ namespace cn {
                 const LuaUserdataRef getValue();
 
             public:
-
-                /**
-                 * 获取对象标识
-                 *
-                 * @return 对象标识
-                 */
-                virtual std::string getLinkId();
 
                 /**
                  * 入栈数据

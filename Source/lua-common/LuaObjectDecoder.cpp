@@ -146,7 +146,7 @@ LuaObject* LuaObjectDecoder::readObject()
         void **objRef = NULL;
         objRef = (void **)readInt64();
         
-        LuaObjectDescriptor *objDesc = new LuaObjectDescriptor(*objRef);
+        LuaObjectDescriptor *objDesc = new LuaObjectDescriptor(getContext(), *objRef);
         return objDesc;
     }
     

@@ -22,28 +22,26 @@ using namespace cn::vimfung::luascriptcore;
 
 DECLARE_NATIVE_CLASS(LuaFunction);
 
-LuaFunction::LuaFunction ()
-    : LuaManagedObject()
+LuaFunction::LuaFunction (LuaContext *context)
+    : LuaManagedObject(context)
 {
     
 }
 
 LuaFunction::LuaFunction(LuaContext *context, int index)
-    : LuaManagedObject()
+    : LuaManagedObject(context)
 {
-    _context = context;
-    _linkId = StringUtils::format("%p", this);
+    _exchangeId = StringUtils::format("%p", this);
 
-    _context -> getDataExchanger() -> setLuaObject(index, _linkId);
-
-    _context -> getDataExchanger() -> retainLuaObject(this);
+    getContext() -> getDataExchanger() -> setLuaObject(index, _exchangeId);
+    getContext() -> getDataExchanger() -> retainLuaObject(this);
 }
 
 LuaFunction::~LuaFunction()
 {
-    if (_context != NULL)
+    if (getContext() != NULL)
     {
-        _context -> getDataExchanger() -> releaseLuaObject(this);
+        getContext() -> getDataExchanger() -> releaseLuaObject(this);
     }
 }
 
@@ -56,17 +54,13 @@ std::string LuaFunction::typeName()
 LuaFunction::LuaFunction (LuaObjectDecoder *decoder)
     :LuaManagedObject(decoder)
 {
-    int contextId = decoder -> readInt32();
-    _context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(contextId));
-    _linkId = decoder -> readString();
+    _exchangeId = decoder -> readString();
 }
 
 void LuaFunction::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
-    
-    encoder -> writeInt32(_context -> objectId());
-    encoder -> writeString(_linkId);
+    encoder -> writeString(_exchangeId);
 }
 
 void LuaFunction::push(LuaContext *context)
@@ -76,14 +70,14 @@ void LuaFunction::push(LuaContext *context)
 
 LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
 {
-    lua_State *state = _context -> getCurrentSession() -> getState();
+    lua_State *state = getContext() -> getCurrentSession() -> getState();
 
     LuaValue *retValue = NULL;
 
-    int errFuncIndex = _context -> catchException();
+    int errFuncIndex = getContext() -> catchException();
     //记录栈顶位置，用于计算返回值数量
     int top = LuaEngineAdapter::getTop(state);
-    _context -> getDataExchanger() -> getLuaObject(this);
+    getContext() -> getDataExchanger() -> getLuaObject(this);
 
     if (LuaEngineAdapter::isFunction(state, -1))
     {
@@ -93,7 +87,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
         for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
         {
             LuaValue *item = *i;
-            item->push(_context);
+            item->push(getContext());
         }
 
         if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == 0)
@@ -105,7 +99,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
                 LuaTuple *tuple = new LuaTuple();
                 for (int i = 1; i <= returnCount; i++)
                 {
-                    LuaValue *value = LuaValue::ValueByIndex(_context, top + i);
+                    LuaValue *value = LuaValue::ValueByIndex(getContext(), top + i);
                     tuple -> addReturnValue(value);
                     value -> release();
                 }
@@ -116,7 +110,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
             }
             else if (returnCount == 1)
             {
-                retValue = LuaValue::ValueByIndex(_context, -1);
+                retValue = LuaValue::ValueByIndex(getContext(), -1);
             }
         }
         else
@@ -143,13 +137,7 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
     }
 
     //回收内存
-    _context -> gc();
+    getContext() -> gc();
 
     return retValue;
-}
-
-
-std::string LuaFunction::getLinkId()
-{
-    return _linkId;
 }

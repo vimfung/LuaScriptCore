@@ -19,26 +19,14 @@ namespace cn
     {
         namespace luascriptcore
         {
-            
             class LuaObjectDecoder;
             
             #define DECLARE_NATIVE_CLASS(class) \
-                static void* create##class##Instance()\
-                {\
-                    return new class();\
-                }\
                 static void* create##class##InstanceByDecoder(LuaObjectDecoder *decoder)\
                 {\
                     return new class(decoder);\
                 }\
-                static LuaNativeClass *__##class##ClassType = new LuaNativeClass(#class, create##class##Instance, create##class##InstanceByDecoder);\
-            
-            /**
-             创建类实例处理器
-             
-             @return 实例对象
-             */
-            typedef void* (*CreateInstanceHandler)(void);
+                static LuaNativeClass *__##class##ClassType = new LuaNativeClass(#class, create##class##InstanceByDecoder);\
             
             /**
              创建类实例处理器
@@ -56,24 +44,14 @@ namespace cn
             {
             private:
                 std::string _className;
-                CreateInstanceHandler _createInstanceHandler;
                 CreateInstanceByDecoderHandler _createInstanceByDecoderHandler;
 
             public:
                 LuaNativeClass(std::string className,
-                               CreateInstanceHandler createInstanceHandler,
                                CreateInstanceByDecoderHandler createInstanceByDecoderHandler);
                 
             public:
-                
-                /**
-                 创建实例
 
-                 @return 实例对象
-                 */
-                void* createInstance();
-                
-                
                 /**
                  创建实例
 

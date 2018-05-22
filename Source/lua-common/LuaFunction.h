@@ -22,24 +22,14 @@ namespace cn {
              */
             class LuaFunction : public LuaManagedObject
             {
-            private:
-
-                /**
-                 * Lua上下文环境
-                 */
-                LuaContext *_context;
-
-                /**
-                 * 连接ID
-                 */
-                std::string _linkId;
-
             public:
                 
                 /**
                  * 初始化方法对象
+                 *
+                 * @param context 上下文对象
                  */
-                LuaFunction ();
+                LuaFunction (LuaContext *context);
                 
                 /**
                  * 初始化方法对象
@@ -59,7 +49,7 @@ namespace cn {
                 /**
                  * 释放对象
                  */
-                ~LuaFunction();
+                virtual ~LuaFunction();
                 
                 /**
                  获取类型名称
@@ -87,13 +77,6 @@ namespace cn {
                 LuaValue* invoke(LuaArgumentList *arguments);
 
             public:
-
-                /**
-                 * 获取对象标识
-                 *
-                 * @return 对象标识
-                 */
-                virtual std::string getLinkId();
 
                 /**
                  * 入栈数据

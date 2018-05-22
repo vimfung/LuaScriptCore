@@ -10,7 +10,7 @@
 #define LuaEngineAdapter_hpp
 
 #include <stdio.h>
-#include "lua.hpp"
+#include <lua.hpp>
 
 namespace cn
 {

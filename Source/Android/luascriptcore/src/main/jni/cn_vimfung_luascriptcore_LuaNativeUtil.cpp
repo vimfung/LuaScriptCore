@@ -429,7 +429,7 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_raiseExceptio
     if (context != NULL)
     {
         const char *messageCStr = env->GetStringUTFChars(message, 0);
-        context -> raiseException(messageCStr);
+        context -> getCurrentSession() -> reportLuaException(messageCStr);
         env->ReleaseStringUTFChars(message, messageCStr);
     }
 }

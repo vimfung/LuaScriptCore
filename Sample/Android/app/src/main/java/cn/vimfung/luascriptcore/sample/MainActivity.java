@@ -46,6 +46,14 @@ public class MainActivity extends AppCompatActivity {
         //创建LuaContext
         Env.setup(this);
         _luaContext = Env.defaultContext();
+        _luaContext.registerMethod("testThreadFun", new LuaMethodHandler() {
+            @Override
+            public LuaValue onExecute(LuaValue[] arguments) {
+
+                return new LuaValue(new byte[1024 * 1024]);
+
+            }
+        });
 
         _luaContext.onException(new LuaExceptionHandler() {
             @Override
@@ -63,8 +71,17 @@ public class MainActivity extends AppCompatActivity {
             evalScriptBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    LuaValue retValue = _luaContext.evalScript("print(10); return 'Hello','World';");
-                    Log.v("luaScriptCoreSample", retValue.toString());
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+
+//                            LuaValue retValue = _luaContext.evalScript("print(10); return 'Hello','World';");
+//                            Log.v("luaScriptCoreSample", retValue.toString());
+                            _luaContext.evalScript("testThreadFun(); print(\"end call....\");");
+
+                        }
+                    }).start();
                 }
             });
         }
@@ -152,8 +169,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     _luaContext.evalScript("local p = Person:createPersonError(); print(p);");
-                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
-                    _luaContext.evalScript("print(Person); local obj = Person:createObj(); Person:CheckObj(obj);");
+//                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
+//                    _luaContext.evalScript("print(Person); local obj = Person:createObj(); Person:CheckObj(obj);");
                 }
             });
         }

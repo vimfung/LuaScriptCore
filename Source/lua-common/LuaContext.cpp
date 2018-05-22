@@ -42,7 +42,6 @@ static const char * CatchLuaExceptionHandlerName = "__catchExcepitonHandler";
  */
 static std::vector<LuaContext *> _needsGCContextList;
 
-
 /**
  * 方法路由处理器
  *
@@ -60,12 +59,16 @@ static int methodRouteHandler(lua_State *state) {
     LuaMethodHandler handler = context-> getMethodHandler(methodName);
     if (handler != NULL)
     {
-        LuaSession *session = context -> makeSession(state);
+        LuaSession *session = context -> makeSession(state, false);
 
         LuaArgumentList args;
         session -> parseArguments(args);
 
         LuaValue *retValue = handler (context, methodName, args);
+
+        //检测异常
+        session -> checkException();
+
         if (retValue != NULL)
         {
             returnCount = session -> setReturnValue(retValue);
@@ -132,14 +135,13 @@ void WINAPI contextGCHandler(UINT wTimerID, UINT msg, DWORD dwUser, DWORD dwl, D
  */
 static void contextGCHandler(int signo)
 {
-
     //重置计时器
     struct itimerval itv;
     itv.it_value.tv_sec = 0;
     itv.it_value.tv_usec = 0;
     itv.it_interval = itv.it_value;
     setitimer(ITIMER_REAL, &itv, NULL);
-    
+
     //进行内存回收
     for (std::vector<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
     {
@@ -170,14 +172,14 @@ static void contextStartGC(LuaContext *context)
             break;
         }
     }
-    
+
     if (!hasExists)
     {
         context -> retain();
         _needsGCContextList.push_back(context);
-        
+
 #if _WINDOWS
-		
+
 		MMRESULT gcTimerId = timeSetEvent(100, 1, (LPTIMECALLBACK)contextGCHandler, NULL, TIME_ONESHOT);
 		if (NULL == gcTimerId)
 		{
@@ -188,7 +190,7 @@ static void contextStartGC(LuaContext *context)
 
         //监听定时器信号
         signal(SIGALRM, contextGCHandler);
-        
+
         //开始倒计时进行回收
         struct itimerval itv;
         itv.it_value.tv_sec = 0;
@@ -207,6 +209,7 @@ LuaContext::LuaContext(std::string platform)
     _isActive = true;
     _exceptionHandler = NULL;
     lua_State *state = LuaEngineAdapter::newState();
+
     _dataExchanger = new LuaDataExchanger(this);
 
     LuaEngineAdapter::GC(state, LUA_GCSTOP, 0);
@@ -214,7 +217,7 @@ LuaContext::LuaContext(std::string platform)
     LuaEngineAdapter::openLibs(state);
     LuaEngineAdapter::GC(state, LUA_GCRESTART, 0);
 
-    _mainSession = new LuaSession(state, this);
+    _mainSession = new LuaSession(state, this, false);
     _currentSession = NULL;
     
     //初始化类型导出管理器
@@ -252,9 +255,9 @@ LuaSession* LuaContext::getCurrentSession()
     return _mainSession;
 }
 
-LuaSession* LuaContext::makeSession(lua_State *state)
+LuaSession* LuaContext::makeSession(lua_State *state, bool lightweight)
 {
-    LuaSession *session = new LuaSession(state, this);
+    LuaSession *session = new LuaSession(state, this, lightweight);
     session -> prevSession = _currentSession;
     _currentSession = session;
 
@@ -294,7 +297,8 @@ void LuaContext::onException(LuaExceptionHandler handler)
 
 void LuaContext::raiseException (std::string message)
 {
-    LuaEngineAdapter::error(_mainSession -> getState(), message.c_str());
+    getCurrentSession() -> reportLuaException(message);
+    throw std::runtime_error(message);
 }
 
 void LuaContext::outputExceptionMessage(std::string message)
@@ -602,7 +606,7 @@ void LuaContext::gcHandler()
 {
     if (_isActive)
     {
-        LuaEngineAdapter::GC(getCurrentSession() -> getState(), LUA_GCCOLLECT, 0);
+        LuaEngineAdapter::GC(getMainSession() -> getState(), LUA_GCCOLLECT, 0);
         _needGC = false;
     }
 }

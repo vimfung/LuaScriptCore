@@ -197,9 +197,10 @@ public class LuaContext extends LuaBaseObject
         LuaNativeUtil.catchException(this, _exceptionHandler != null);
     }
 
-    public void raiseException (String message)
+    public void raiseException (String message) throws Error
     {
         LuaNativeUtil.raiseException(this, message);
+        throw new Error(message);
     }
 
     /**

@@ -213,11 +213,11 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
                 //为导出类型
                 std::string typeName = LuaJavaEnv::getJavaClassName(env, objType, false);
                 LuaExportTypeDescriptor *typeDescriptor = context -> getExportsTypeManager() -> _getMappingType(typeName);
-                objDesc = new LuaJavaObjectDescriptor(env, object, typeDescriptor);
+                objDesc = new LuaJavaObjectDescriptor(context, env, object, typeDescriptor);
             }
             else
             {
-                objDesc = new LuaJavaObjectDescriptor(env, object);
+                objDesc = new LuaJavaObjectDescriptor(context, env, object);
             }
 
             needRelease = true;
@@ -287,10 +287,12 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             jbyteArray byteArr = (jbyteArray)env -> CallObjectMethod(value, toByteArrMethodId);
             jsize len = env -> GetArrayLength(byteArr);
 
-            jbyte buffer[len];
+            jbyte *buffer = new jbyte[len];
             env -> GetByteArrayRegion(byteArr, 0, len, buffer);
 
             retValue = LuaValue::DataValue((const char *)buffer, (size_t)len);
+
+            delete[] buffer;
 
             env -> DeleteLocalRef(byteArr);
 
@@ -447,11 +449,11 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                         //为导出类型
                         std::string typeName = LuaJavaEnv::getJavaClassName(env, objType, false);
                         LuaExportTypeDescriptor *typeDescriptor = context -> getExportsTypeManager() -> _getMappingType(typeName);
-                        objDesc = new LuaJavaObjectDescriptor(env, obj, typeDescriptor);
+                        objDesc = new LuaJavaObjectDescriptor(context, env, obj, typeDescriptor);
                     }
                     else
                     {
-                        objDesc = new LuaJavaObjectDescriptor(env, obj);
+                        objDesc = new LuaJavaObjectDescriptor(context, env, obj);
                     }
 
                     needRelease = true;

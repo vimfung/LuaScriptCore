@@ -91,6 +91,12 @@ namespace cn {
                  */
                 void releaseLuaObject(LuaObject *object);
 
+                /**
+                 * 清除对象在Lua中的引用
+                 * @param object 管理对象
+                 */
+                void clearObject(LuaManagedObject *object);
+
             private:
 
                 /**

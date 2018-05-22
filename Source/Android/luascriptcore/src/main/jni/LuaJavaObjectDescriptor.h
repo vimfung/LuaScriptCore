@@ -32,21 +32,23 @@ class LuaJavaObjectDescriptor : public LuaObjectDescriptor
 public:
 
     /**
-    * 初始化描述器对象
-    *
-    * @param env JNI环境
-    * @param object Java对象
-    */
-    LuaJavaObjectDescriptor(JNIEnv *env, jobject object);
+     * 初始化描述器对象
+     *
+     * @param context 上下文对象
+     * @param env JNI环境
+     * @param object Java对象
+     */
+    LuaJavaObjectDescriptor(LuaContext *context, JNIEnv *env, jobject object);
 
     /**
      * 初始化描述器对象
      *
+     * @param context 上下文对象
      * @param env JNI环境
      * @param object Java对象
      * @param typeDescriptor 类型描述
      */
-    LuaJavaObjectDescriptor(JNIEnv *env, jobject object, LuaExportTypeDescriptor *typeDescriptor);
+    LuaJavaObjectDescriptor(LuaContext *context, JNIEnv *env, jobject object, LuaExportTypeDescriptor *typeDescriptor);
 
     /**
      * 描述器对象析构方法

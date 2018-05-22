@@ -21,14 +21,39 @@ namespace cn
              */
             class LuaManagedObject : public LuaObject
             {
-            public:
-                LuaManagedObject();
-                LuaManagedObject (LuaObjectDecoder *decoder);
-            public:
+            private:
+                LuaContext *_context;
+
+            protected:
+
                 /**
-                 * 获取连接标识
+                 * 交换层标识，每个对象应该保证唯一
                  */
-                virtual std::string getLinkId();
+                std::string _exchangeId;
+
+            public:
+                LuaManagedObject(LuaContext *context);
+                LuaManagedObject (LuaObjectDecoder *decoder);
+
+                /**
+                 * 析构对象
+                 */
+                virtual ~LuaManagedObject();
+
+            public:
+
+                /**
+                 * 获取上下文对象
+                 * @return 上下文对象
+                 */
+                LuaContext* getContext();
+
+            public:
+
+                /**
+                 * 获取交换层标识
+                 */
+                std::string getExchangeId();
 
                 /**
                  * 入栈数据

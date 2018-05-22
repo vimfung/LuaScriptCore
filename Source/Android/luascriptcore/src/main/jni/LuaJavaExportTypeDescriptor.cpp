@@ -5,6 +5,7 @@
 #include "LuaJavaExportTypeDescriptor.h"
 #include "LuaJavaEnv.h"
 #include "LuaJavaObjectDescriptor.h"
+#include "LuaSession.h"
 
 LuaJavaExportTypeDescriptor::LuaJavaExportTypeDescriptor (std::string &typeName, JNIEnv *env, jclass jType, LuaExportTypeDescriptor *parentTypeDescriptor)
     : LuaExportTypeDescriptor(typeName, parentTypeDescriptor)
@@ -33,7 +34,7 @@ LuaObjectDescriptor* LuaJavaExportTypeDescriptor::createInstance(LuaSession *ses
     jmethodID initMethodId = env->GetMethodID(objType, "<init>", "()V");
     jobject jInstance = env->NewObject(objType, initMethodId);
 
-    LuaJavaObjectDescriptor *objectDescriptor = new LuaJavaObjectDescriptor(env, jInstance, this);
+    LuaJavaObjectDescriptor *objectDescriptor = new LuaJavaObjectDescriptor(session -> getContext(), env, jInstance, this);
 
     env -> DeleteLocalRef(jInstance);
 

@@ -43,22 +43,22 @@ static int objectReferenceGCHandler(lua_State *state)
     return 0;
 }
 
-LuaObjectDescriptor::LuaObjectDescriptor()
-        : _object(NULL), _typeDescriptor(NULL)
+LuaObjectDescriptor::LuaObjectDescriptor(LuaContext *context)
+        : LuaManagedObject(context), _object(NULL), _typeDescriptor(NULL)
 {
-    _linkId = StringUtils::format("%p", this);
+    _exchangeId = StringUtils::format("%p", this);
 }
 
-LuaObjectDescriptor::LuaObjectDescriptor(const void *object)
-    : _object((void *)object), _typeDescriptor(NULL)
+LuaObjectDescriptor::LuaObjectDescriptor(LuaContext *context, const void *object)
+    : LuaManagedObject(context), _object((void *)object), _typeDescriptor(NULL)
 {
-    _linkId = StringUtils::format("%p", this);
+    _exchangeId = StringUtils::format("%p", this);
 }
 
-LuaObjectDescriptor::LuaObjectDescriptor(void *object, LuaExportTypeDescriptor *typeDescriptor)
-    : _object(object), _typeDescriptor(typeDescriptor)
+LuaObjectDescriptor::LuaObjectDescriptor(LuaContext *context, void *object, LuaExportTypeDescriptor *typeDescriptor)
+    : LuaManagedObject(context), _object(object), _typeDescriptor(typeDescriptor)
 {
-    _linkId = StringUtils::format("%p", this);
+    _exchangeId = StringUtils::format("%p", this);
 }
 
 LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
@@ -68,7 +68,7 @@ LuaObjectDescriptor::LuaObjectDescriptor (LuaObjectDecoder *decoder)
     objRef = (void *)decoder -> readInt64();
     setObject(objRef);
 
-    _linkId = decoder -> readString();
+    _exchangeId = decoder -> readString();
     
     //读取类型
     std::string typeName = decoder -> readString();
@@ -182,7 +182,7 @@ void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
     LuaObject::serialization(encoder);
     
     encoder -> writeInt64((long long)_object);
-    encoder -> writeString(_linkId);
+    encoder -> writeString(_exchangeId);
     
     //写入类型标识
     if (_typeDescriptor != NULL)
@@ -201,9 +201,4 @@ void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)
         encoder -> writeString(it -> first);
         encoder -> writeString(it -> second);
     }
-}
-
-std::string LuaObjectDescriptor::getLinkId()
-{
-    return _linkId;
 }

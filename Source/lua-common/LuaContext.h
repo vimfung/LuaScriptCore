@@ -239,9 +239,10 @@ namespace cn
                  * 创建会话
                  *
                  * @param state 状态
+                 * @param lightweight 轻量级
                  * @return 会话对象
                  */
-                LuaSession* makeSession(lua_State *state);
+                LuaSession* makeSession(lua_State *state, bool lightweight);
 
                 /**
                  * 销毁会话
