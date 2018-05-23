@@ -9,6 +9,7 @@
 #include "LuaUnityExportTypeDescriptor.hpp"
 #include "LuaUnityEnv.hpp"
 #include "LuaObjectDescriptor.h"
+#include "LuaSession.h"
 
 LuaUnityExportTypeDescriptor::LuaUnityExportTypeDescriptor(std::string name, LuaExportTypeDescriptor *parentTypeDescriptor) : LuaExportTypeDescriptor(name, parentTypeDescriptor)
 {
@@ -33,12 +34,12 @@ LuaObjectDescriptor* LuaUnityExportTypeDescriptor::createInstance(LuaSession *se
     if (createInstanceHandler != NULL)
     {
         long long instanceId = createInstanceHandler(objectId());
-        objectDescriptor = new LuaObjectDescriptor((void *)instanceId, this);
+        objectDescriptor = new LuaObjectDescriptor(session -> getContext(), (void *)instanceId, this);
         
         //设置本地对象标识
         LuaUnityEnv::sharedInstance() -> setNativeObjectId(objectDescriptor -> getObject(),
                                                            objectDescriptor -> objectId(),
-                                                           objectDescriptor -> getLinkId());
+                                                           objectDescriptor -> getExchangeId());
     }
     
     return objectDescriptor;

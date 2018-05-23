@@ -54,12 +54,14 @@ std::string LuaFunction::typeName()
 LuaFunction::LuaFunction (LuaObjectDecoder *decoder)
     :LuaManagedObject(decoder)
 {
+    decoder -> readInt32(); //读取Unity中传过来的ContextID，并忽略(decoder中包含context对象)
     _exchangeId = decoder -> readString();
 }
 
 void LuaFunction::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
+    encoder -> writeInt32(getContext() -> objectId());
     encoder -> writeString(_exchangeId);
 }
 

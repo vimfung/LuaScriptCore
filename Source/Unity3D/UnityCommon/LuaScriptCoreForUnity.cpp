@@ -222,7 +222,7 @@ extern "C" {
         LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
         if (context != NULL && message != NULL)
         {
-            context -> raiseException(message);
+            context -> getCurrentSession() -> reportLuaException(message);
         }
     }
     
@@ -546,7 +546,7 @@ extern "C" {
                 {
                     std::string methodName = decoder -> readString();
                     //分割方法组成部分
-                    std::vector<std::string> methodComps = StringUtils::split(methodName, "_", false);
+                    std::deque<std::string> methodComps = StringUtils::split(methodName, "_", false);
                     LuaUnityExportMethodDescriptor *methodDescriptor = new LuaUnityExportMethodDescriptor(methodComps[0], methodComps[1], classMethodRouteHandler);
                     typeDescriptor -> addClassMethod(methodComps[0], methodDescriptor);
                     methodDescriptor -> release();
@@ -563,7 +563,7 @@ extern "C" {
                 {
                     std::string methodName = decoder -> readString();
                     //分割方法组成部分
-                    std::vector<std::string> methodComps = StringUtils::split(methodName, "_", false);
+                    std::deque<std::string> methodComps = StringUtils::split(methodName, "_", false);
                     LuaUnityExportMethodDescriptor *methodDescriptor = new LuaUnityExportMethodDescriptor(methodComps[0], methodComps[1],  instanceMethodRouteHandler);
                     typeDescriptor -> addInstanceMethod(methodComps[0], methodDescriptor);
                     methodDescriptor -> release();
@@ -579,7 +579,7 @@ extern "C" {
                 for (int i = 0; i < size; i++)
                 {
                     std::string fieldName = decoder -> readString();
-                    std::vector<std::string> fieldNameComps = StringUtils::split(fieldName, "_", false);
+                    std::deque<std::string> fieldNameComps = StringUtils::split(fieldName, "_", false);
                     
                     bool canRead = false;
                     bool canWrite = false;

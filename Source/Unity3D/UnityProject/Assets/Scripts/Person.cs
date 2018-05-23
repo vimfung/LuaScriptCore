@@ -2,6 +2,7 @@
 using System.Collections;
 using System.CodeDom;
 using cn.vimfung.luascriptcore;
+using System;
 
 public class Person : LuaExportType 
 {
@@ -31,8 +32,15 @@ public class Person : LuaExportType
 
 	public static Person createPersonError()
 	{
-		LuaContext.currentContext.raiseException ("can't create person");
-		return new Person ();
+		try
+		{
+			LuaContext.currentContext.raiseException ("can't create person");
+			return new Person ();
+		}
+		catch (Exception ex)
+		{
+			return null;
+		}
 	}
 
 	public void speak()
