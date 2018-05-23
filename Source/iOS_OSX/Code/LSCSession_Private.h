@@ -32,6 +32,7 @@
  @return 调用会话
  */
 - (instancetype)initWithState:(lua_State *)state
-                      context:(LSCContext *)context;
+                      context:(LSCContext *)context
+                  lightweight:(BOOL)lightweight;
 
 @end

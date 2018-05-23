@@ -4,7 +4,7 @@ function LSCTPerson.prototype:destroy ()
 
 end
 
-local person = LSCTPerson.create();
+local person = LSCTPerson();
 person.name = "vimfung";
 person:walk();
 person:speak();

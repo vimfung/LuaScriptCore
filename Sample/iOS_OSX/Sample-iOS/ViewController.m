@@ -140,7 +140,7 @@
  */
 - (IBAction)registerModuleClickedHandler:(id)sender
 {
-    [self.context evalScriptFromString:@"LogModule.writeLog('Hello Lua Module!');"];
+    [self.context evalScriptFromString:@"LogModule:writeLog('Hello Lua Module!');"];
 }
 
 
@@ -162,7 +162,7 @@
  */
 - (IBAction)importNativeClassClickedHandler:(id)sender
 {
-    [self.context evalScriptFromString:@"local Data = LSCTNativeData; print(Data); local d = Data.create(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
+    [self.context evalScriptFromString:@"Object:typeMapping('ios', 'LSCTNativeData', 'Data'); print(Data); local d = Data(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
 }
 
 @end

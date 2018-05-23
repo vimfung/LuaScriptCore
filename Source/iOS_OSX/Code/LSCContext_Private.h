@@ -50,8 +50,10 @@
  通过状态设置当前会话
 
  @param state 状态
+ @param lightweight 轻量级标识
  */
-- (LSCSession *)makeSessionWithState:(lua_State *)state;
+- (LSCSession *)makeSessionWithState:(lua_State *)state
+                         lightweight:(BOOL)lightweight;
 
 /**
  销毁会话

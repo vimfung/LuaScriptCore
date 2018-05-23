@@ -1178,7 +1178,7 @@ static int typeMappingHandler(lua_State *state)
         return 0;
     }
     
-    LSCSession *callSession = [exporter.context makeSessionWithState:state];
+    LSCSession *callSession = [exporter.context makeSessionWithState:state lightweight:NO];
     if ([LSCEngineAdapter getTop:state] < 4)
     {
         NSString *errMsg = @"`typeMapping` method need to pass 3 parameters";
@@ -1224,7 +1224,7 @@ static int classMethodRouteHandler(lua_State *state)
     }
     else
     {
-        LSCSession *callSession = [exporter.context makeSessionWithState:state];
+        LSCSession *callSession = [exporter.context makeSessionWithState:state lightweight:NO];
         
         LSCExportTypeDescriptor *typeDescriptor = nil;
         [LSCEngineAdapter getField:state index:1 name:"_nativeType"];
@@ -1305,7 +1305,7 @@ static int instanceMethodRouteHandler(lua_State *state)
     }
 
     //创建调用会话
-    LSCSession *callSession = [exporter.context makeSessionWithState:state];
+    LSCSession *callSession = [exporter.context makeSessionWithState:state lightweight:NO];
     NSArray *arguments = [callSession parseArguments];
     id instance = [arguments[0] toObject];
 
@@ -1350,7 +1350,7 @@ static int objectCreateHandler (lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:NO];
     
     //获取传入类型
     LSCExportTypeDescriptor *typeDescriptor = nil;
@@ -1402,7 +1402,7 @@ static int instanceNewIndexHandler (lua_State *state)
     id instance = (__bridge id)[LSCEngineAdapter toPointer:state index:[LSCEngineAdapter upvalueIndex:3]];
     NSString *key = [NSString stringWithUTF8String:[LSCEngineAdapter toString:state index:2]];
     
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:YES];
     
     //检测是否存在类型属性
     LSCExportPropertyDescriptor *propertyDescriptor = [exporter _findInstancePropertyWithSession:session
@@ -1446,7 +1446,7 @@ static int instanceIndexHandler(lua_State *state)
     LSCExportTypeDescriptor *typeDescriptor = (LSCExportTypeDescriptor *)[LSCEngineAdapter toPointer:state index:[LSCEngineAdapter upvalueIndex:2]];
     id instance = (__bridge id)[LSCEngineAdapter toPointer:state index:[LSCEngineAdapter upvalueIndex:3]];
     
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:YES];
     
     NSString *key = [NSString stringWithUTF8String:[LSCEngineAdapter toString:state index:2]];
     
@@ -1490,7 +1490,7 @@ static int objectDestroyHandler (lua_State *state)
         const void *ptr = [LSCEngineAdapter toPointer:state index:index];
         LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
         
-        LSCSession *session = [exporter.context makeSessionWithState:state];
+        LSCSession *session = [exporter.context makeSessionWithState:state lightweight:NO];
         
         //如果为userdata类型，则进行释放
         LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
@@ -1535,7 +1535,7 @@ static int classToStringHandler (lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:NO];
     
     LSCExportTypeDescriptor *typeDescriptor = nil;
     
@@ -1572,7 +1572,7 @@ static int prototypeToStringHandler (lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:NO];
     
     LSCExportTypeDescriptor *typeDescriptor = nil;
     
@@ -1609,7 +1609,7 @@ static int prototypeNewIndexHandler (lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:YES];
     
     //t,k,v
     BOOL isPropertyReg = NO;
@@ -1685,7 +1685,7 @@ static int objectToStringHandler (lua_State *state)
     const void *ptr = [LSCEngineAdapter toPointer:state index:index];
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:NO];
     
     LSCExportTypeDescriptor *typeDescriptor = nil;
     
@@ -1738,7 +1738,7 @@ static int subClassHandler (lua_State *state)
     }
     
     
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:NO];
     
     //获取传入类型
     LSCExportTypeDescriptor *typeDescriptor = nil;
@@ -1796,7 +1796,7 @@ static int subclassOfHandler (lua_State *state)
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
     
     BOOL flag = NO;
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:NO];
     
     LSCExportTypeDescriptor *typeDescriptor = nil;
     if ([LSCEngineAdapter type:state index:1] == LUA_TTABLE)
@@ -1855,7 +1855,7 @@ static int instanceOfHandler (lua_State *state)
     LSCExportsTypeManager *exporter = (__bridge LSCExportsTypeManager *)ptr;
 
     BOOL flag = NO;
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:NO];
     
     //获取实例类型
     LSCExportTypeDescriptor *typeDescriptor = nil;
@@ -1879,7 +1879,6 @@ static int instanceOfHandler (lua_State *state)
         }
     }
     
-    
     [LSCEngineAdapter pushBoolean:flag state:state];
     
     [exporter.context destroySession:session];
@@ -1896,7 +1895,7 @@ static int instanceOfHandler (lua_State *state)
 static int globalIndexMetaMethodHandler(lua_State *state)
 {
     LSCExportsTypeManager *exporter = [LSCEngineAdapter toPointer:state index:[LSCEngineAdapter upvalueIndex:1]];
-    LSCSession *session = [exporter.context makeSessionWithState:state];
+    LSCSession *session = [exporter.context makeSessionWithState:state lightweight:YES];
     
     //获取key
     NSString *key = [NSString stringWithUTF8String:[LSCEngineAdapter toString:state index:2]];

@@ -46,7 +46,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         [LSCEngineAdapter gc:state what:LSCGCTypeRestart data:0];
         
         //创建主会话
-        self.mainSession = [[LSCSession alloc] initWithState:state context:self];
+        self.mainSession = [[LSCSession alloc] initWithState:state context:self lightweight:NO];
         
         //设置搜索路径
         NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
@@ -96,6 +96,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 - (void)raiseExceptionWithMessage:(NSString *)message
 {
     [LSCEngineAdapter error:self.mainSession.state message:message.UTF8String];
+    @throw [NSException exceptionWithName:@"LuaScriptCoreException" reason:message userInfo:nil];
 }
 
 - (void)onException:(LSCExceptionHandler)handler
@@ -346,9 +347,10 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
 #pragma mark - Private
 
-- (LSCSession *)makeSessionWithState:(lua_State *)state;
+- (LSCSession *)makeSessionWithState:(lua_State *)state
+                         lightweight:(BOOL)lightweight
 {
-    LSCSession *session = [[LSCSession alloc] initWithState:state context:self];
+    LSCSession *session = [[LSCSession alloc] initWithState:state context:self lightweight:lightweight];
     session.prevSession = _currentSession;
     
     self.currentSession = session;
@@ -457,7 +459,7 @@ static int cfuncRouteHandler(lua_State *state)
     LSCFunctionHandler handler = context.methodBlocks[methodName];
     if (handler)
     {
-        LSCSession *session = [context makeSessionWithState:state];
+        LSCSession *session = [context makeSessionWithState:state lightweight:NO];
         NSArray *arguments = [session parseArguments];
         
         LSCValue *retValue = handler(arguments);

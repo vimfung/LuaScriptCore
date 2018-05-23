@@ -13,14 +13,25 @@
 #import "LSCContext_Private.h"
 #import "LSCEngineAdapter.h"
 
+@interface LSCSession ()
+
+
+/**
+ 轻量级标识，YES 表示Session销毁后不需要执行内存回收
+ */
+@property (nonatomic) BOOL lightweight;
+
+@end
+
 @implementation LSCSession
 
-- (instancetype)initWithState:(lua_State *)state context:(LSCContext *)context
+- (instancetype)initWithState:(lua_State *)state context:(LSCContext *)context lightweight:(BOOL)lightweight
 {
     if (self = [super init])
     {
         _state = state;
         _context = context;
+        self.lightweight = lightweight;
     }
     
     return self;
@@ -28,8 +39,11 @@
 
 - (void)dealloc
 {
-    //释放内存
-    [self.context gc];
+    if (!self.lightweight)
+    {
+        //释放内存
+        [self.context gc];
+    }
 }
 
 - (NSArray *)parseArguments
