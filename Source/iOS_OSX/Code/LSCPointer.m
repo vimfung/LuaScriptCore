@@ -81,8 +81,11 @@
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {
-    lua_State *state = context.currentSession.state;
-    [LSCEngineAdapter pushLightUserdata:[self value] state:state];
+    [context.optQueue performAction:^{
+        lua_State *state = context.currentSession.state;
+        [LSCEngineAdapter pushLightUserdata:[self value] state:state];
+    }];
+    
     return YES;
 }
 

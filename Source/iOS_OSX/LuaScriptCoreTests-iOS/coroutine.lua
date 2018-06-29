@@ -44,13 +44,13 @@ function TestClassFunc()
 
         p:speak("i am vim");
 
-        p = Person.createPerson();
+        p = Person:createPerson();
         print (p);
 
         p.name = "vim";
         print (p.name);
 
-        Person.printPersonName(p);
+        Person:printPersonName(p);
 
         coroutine.yield()
 
@@ -65,7 +65,7 @@ function TestClassImportFunc()
     local tfunc = coroutine.create(function()
 
         print(Person, NativePerson); 
-        local p = NativePerson.createPerson(); 
+        local p = NativePerson:createPerson(); 
         print(p); 
         p.name = "abc"
         p:speak('Hello World!');

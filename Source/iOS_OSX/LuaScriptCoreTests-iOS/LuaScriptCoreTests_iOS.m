@@ -17,6 +17,7 @@
 #import "LSCTuple.h"
 #import "Env.h"
 #import "SubLuaLog.h"
+#import "LSCOperationQueue.h"
 #import <objc/message.h>
 
 #import "LSCEngineAdapter.h"
@@ -39,6 +40,39 @@
         NSLog(@"error = %@", message);
         
     }];
+}
+
+- (void)testMultiThreadCall
+{
+    XCTestExpectation *exp = [[XCTestExpectation alloc] initWithDescription:@""];
+    
+    dispatch_group_t group = dispatch_group_create();
+    
+    for (int i = 0; i < 100; i++)
+    {
+        dispatch_group_enter(group);
+        dispatch_group_async(group, dispatch_get_global_queue(0, 0), ^{
+            
+            [self.context evalScriptFromString:@"Person.prototype.age = {set = function(self, value) print('set value = ', value); self._value = value end, get = function(self) print('get value = ', self._value); return self._value end}; local p = Person:createPerson(); p.age = 20; print('p.age = ', p.age);"];
+            
+            dispatch_group_leave(group);
+            
+        });
+    }
+    
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+       
+        [exp fulfill];
+        
+    });
+    
+    [self waitForExpectations:@[exp] timeout:20];
+}
+
+- (void)testCompiledCode
+{
+    NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
+    [self.context evalScriptFromFile:[bundle pathForResource:@"test" ofType:@"out"]];
 }
 
 - (void)testThreadInitContext

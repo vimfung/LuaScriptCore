@@ -36,7 +36,10 @@
     {
         lua_State *state = context.currentSession.state;
         self.context = context;
-        self.index = [LSCEngineAdapter absIndex:(int)index state:state];
+        
+        [self.context.optQueue performAction:^{
+            self.index = [LSCEngineAdapter absIndex:(int)index state:state];
+        }];
     }
     
     return self;
@@ -134,8 +137,10 @@
     }
     else
     {
-        lua_State *state = self.context.currentSession.state;
-        [LSCEngineAdapter pushValue:(int)self.index state:state];
+        [self.context.optQueue performAction:^{
+            lua_State *state = self.context.currentSession.state;
+            [LSCEngineAdapter pushValue:(int)self.index state:state];
+        }];
     }
 }
 

@@ -50,7 +50,9 @@ static LSCManagedValue *_managedFunc = nil;
 
 - (void)dealloc
 {
-    NSLog(@"person dealloc");
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"person dealloc");
+    });
 }
 
 - (LSCTuple *)test

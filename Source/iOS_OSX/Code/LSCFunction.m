@@ -37,69 +37,71 @@
 
 - (LSCValue *)invokeWithArguments:(NSArray<LSCValue *> *)arguments
 {
-    LSCValue *retValue = nil;
-    
-    __weak LSCFunction *theFunc = self;
-    lua_State *state = self.context.currentSession.state;
-    
-    int errFuncIndex = [self.context catchLuaException];
-    int top = [LSCEngineAdapter getTop:state];
-    [self.context.dataExchanger getLuaObject:self];
-    
-    if ([LSCEngineAdapter isFunction:state index:-1])
-    {
-        int returnCount = 0;
+    __block LSCValue *retValue = nil;
+    [self.context.optQueue performAction:^{
         
-        [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
-            
-            [value pushWithContext:theFunc.context];
-            
-        }];
+        lua_State *state = self.context.currentSession.state;
         
-        if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:errFuncIndex] == 0)
+        int errFuncIndex = [self.context catchLuaException];
+        int top = [LSCEngineAdapter getTop:state];
+        [self.context.dataExchanger getLuaObject:self];
+        
+        if ([LSCEngineAdapter isFunction:state index:-1])
         {
-            returnCount = [LSCEngineAdapter getTop:state] - top;
-            if (returnCount > 1)
+            int returnCount = 0;
+            
+            [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
+                
+                [value pushWithContext:self.context];
+                
+            }];
+            
+            if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:errFuncIndex] == 0)
             {
-                LSCTuple *tuple = [[LSCTuple alloc] init];
-                for (int i = 1; i <= returnCount; i++)
+                returnCount = [LSCEngineAdapter getTop:state] - top;
+                if (returnCount > 1)
                 {
-                    LSCValue *value = [LSCValue valueWithContext:self.context atIndex:top + i];
-                    [tuple addReturnValue:[value toObject]];
+                    LSCTuple *tuple = [[LSCTuple alloc] init];
+                    for (int i = 1; i <= returnCount; i++)
+                    {
+                        LSCValue *value = [LSCValue valueWithContext:self.context atIndex:top + i];
+                        [tuple addReturnValue:[value toObject]];
+                    }
+                    retValue = [LSCValue tupleValue:tuple];
                 }
-                retValue = [LSCValue tupleValue:tuple];
+                else if (returnCount == 1)
+                {
+                    retValue = [LSCValue valueWithContext:self.context atIndex:-1];
+                }
+                
             }
-            else if (returnCount == 1)
+            else
             {
-                retValue = [LSCValue valueWithContext:self.context atIndex:-1];
+                //调用失败
+                returnCount = [LSCEngineAdapter getTop:state] - top;
             }
             
+            //弹出返回值
+            [LSCEngineAdapter pop:state count:returnCount];
         }
         else
         {
-            //调用失败
-            returnCount = [LSCEngineAdapter getTop:state] - top;
+            //弹出func
+            [LSCEngineAdapter pop:state count:1];
         }
         
-        //弹出返回值
-        [LSCEngineAdapter pop:state count:returnCount];
-    }
-    else
-    {
-        //弹出func
-        [LSCEngineAdapter pop:state count:1];
-    }
-    
-    //移除异常捕获方法
-    [LSCEngineAdapter remove:state index:errFuncIndex];
-
-    if (!retValue)
-    {
-        retValue = [LSCValue nilValue];
-    }
-    
-    //释放内存
-    [self.context gc];
+        //移除异常捕获方法
+        [LSCEngineAdapter remove:state index:errFuncIndex];
+        
+        if (!retValue)
+        {
+            retValue = [LSCValue nilValue];
+        }
+        
+        //释放内存
+        [self.context gc];
+        
+    }];
     
     return retValue;
 }

@@ -10,10 +10,16 @@
 #import "LSCEngineAdapter.h"
 #import "LSCDataExchanger.h"
 #import "LSCExportsTypeManager.h"
+#import "LSCOperationQueue.h"
 
 @class LSCSession;
 
 @interface LSCContext ()
+
+/**
+ 操作队列
+ */
+@property (nonatomic, strong) LSCOperationQueue *optQueue;
 
 /**
  *  异常处理器

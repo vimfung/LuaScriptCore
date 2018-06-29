@@ -80,9 +80,13 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
     LSCExportTypeDescriptor *typeDescriptor = [self _typeDescriptorWithObject:object];
     if (typeDescriptor)
     {
-        lua_State *state = self.context.currentSession.state;
-        [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
-        [LSCEngineAdapter pop:state count:1];
+        [self.context.optQueue performAction:^{
+            
+            lua_State *state = self.context.currentSession.state;
+            [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
+            [LSCEngineAdapter pop:state count:1];
+            
+        }];
         
         [self _initLuaObjectWithObject:object type:typeDescriptor];
     }
@@ -274,29 +278,33 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
  */
 - (void)_setupExportEnv
 {
-    //为_G设置元表，用于监听其对象的获取，从而找出哪些是导出类型
-    lua_State *state = self.context.currentSession.state;
-    [LSCEngineAdapter getGlobal:state name:"_G"];
-    
-    if (![LSCEngineAdapter isTable:state index:-1])
-    {
-        [LSCEngineAdapter error:state message:"Invalid '_G' object，setup the exporter fail."];
+    [self.context.optQueue performAction:^{
+        
+        //为_G设置元表，用于监听其对象的获取，从而找出哪些是导出类型
+        lua_State *state = self.context.currentSession.state;
+        [LSCEngineAdapter getGlobal:state name:"_G"];
+        
+        if (![LSCEngineAdapter isTable:state index:-1])
+        {
+            [LSCEngineAdapter error:state message:"Invalid '_G' object，setup the exporter fail."];
+            [LSCEngineAdapter pop:state count:1];
+            return;
+        }
+        
+        //创建_G元表
+        [LSCEngineAdapter newTable:state];
+        
+        //监听__index元方法
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushCClosure:globalIndexMetaMethodHandler n:1 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__index"];
+        
+        //绑定为_G元表
+        [LSCEngineAdapter setMetatable:state index:-2];
+        
         [LSCEngineAdapter pop:state count:1];
-        return;
-    }
-    
-    //创建_G元表
-    [LSCEngineAdapter newTable:state];
-    
-    //监听__index元方法
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushCClosure:globalIndexMetaMethodHandler n:1 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__index"];
-    
-    //绑定为_G元表
-    [LSCEngineAdapter setMetatable:state index:-2];
-    
-    [LSCEngineAdapter pop:state count:1];
+        
+    }];
 }
 
 /**
@@ -307,13 +315,15 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
 - (void)_prepareExportsTypeWithDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
 {
     lua_State *state = self.context.currentSession.state;
-
+    
     //判断父类是否为导出类型
     if (typeDescriptor.parentTypeDescriptor)
     {
-        //导入父级类型
-        [LSCEngineAdapter getGlobal:state name:typeDescriptor.parentTypeDescriptor.typeName.UTF8String];
-        [LSCEngineAdapter pop:state count:1];
+        [self.context.optQueue performAction:^{
+            //导入父级类型
+            [LSCEngineAdapter getGlobal:state name:typeDescriptor.parentTypeDescriptor.typeName.UTF8String];
+            [LSCEngineAdapter pop:state count:1];
+        }];
     }
     
     [self _exportsType:typeDescriptor state:state];
@@ -327,180 +337,184 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
  */
 - (void)_exportsType:(LSCExportTypeDescriptor *)typeDescriptor state:(lua_State *)state
 {
-    //创建类模块
-    [LSCEngineAdapter newTable:state];
-    
-    //设置类名, since ver 1.3
-    [LSCEngineAdapter pushString:typeDescriptor.typeName.UTF8String state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"name"];
-    
-    //构造函数
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushCClosure:objectCreateHandler n:1 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__call"];
-    
-    //关联本地类型
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)(typeDescriptor) state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"_nativeType"];
-
-    /**
-     fixed : 由于OC中类方法存在继承关系，因此，直接导出某个类定义的类方法无法满足这种继承关系。
-     例如：moduleName方法在Object中定义，但是当其子类调用时由于只能取到当前导出方法的类型(Object)，无法取到调用方法的类型(即Object的子类)，因此导致逻辑处理的异常。
-     所以，该处改为导出其继承的所有类方法来满足该功能需要。
-     **/
-    //导出声明的类方法
-    [self _exportsClassMethods:typeDescriptor state:state];
-    
-    //关联索引
-    [LSCEngineAdapter pushValue:-1 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__index"];
-    
-    //类型描述
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-    [LSCEngineAdapter pushCClosure:classToStringHandler n:2 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
-    
-    //获取父类型
-    LSCExportTypeDescriptor *parentTypeDescriptor = typeDescriptor.parentTypeDescriptor;
-
-    //关联父类模块
-    if (parentTypeDescriptor)
-    {
-        //存在父类，则直接设置父类为元表
-        [LSCEngineAdapter getGlobal:state name:parentTypeDescriptor.typeName.UTF8String];
-        if ([LSCEngineAdapter isTable:state index:-1])
-        {
-            //设置父类指向
-            [LSCEngineAdapter pushValue:-1 state:state];
-            [LSCEngineAdapter setField:state index:-3 name:"super"];
-            
-            //关联元表
-            [LSCEngineAdapter setMetatable:state index:-2];
-        }
-        else
-        {
-            [LSCEngineAdapter pop:state count:1];
-        }
-    }
-    else
-    {
-        //添加子类化对象方法
-        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-        [LSCEngineAdapter pushCClosure:subClassHandler n:1 state:state];
-        [LSCEngineAdapter setField:state index:-2 name:"subclass"];
+    [self.context.optQueue performAction:^{
         
-        //增加子类判断方法, since ver 1.3
-        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-        [LSCEngineAdapter pushCClosure:subclassOfHandler n:1 state:state];
-        [LSCEngineAdapter setField:state index:-2 name:"subclassOf"];
-        
-        //Object需要创建一个typeMapping方法，用于绑定原生类型，其方法原型: function Object.typeMapping(platform, nativeTypeName, alias);
-        //该方法在默认情况下无法找到原生类型时使用（默认情况会根据lua调用的类型名称类查询原生类型，如果名称不匹配则表示不存在），允许使用该方法来关联原生类型
-        //其中platform为平台字符串类型，分别为：ios,android,u3d
-        //nativeTypeName表示要关联的原生类型名称，为类型全称（包含名称空间+类型名称）
-        //alias表示类型在lua中表示的名称，可选，如果不填则取原生类型名称，否则使用传入名称
-        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-        [LSCEngineAdapter pushCClosure:typeMappingHandler n:1 state:state];
-        [LSCEngineAdapter setField:state index:-2 name:"typeMapping"];
-        
-        //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
+        //创建类模块
         [LSCEngineAdapter newTable:state];
         
-        //构造函数, Object需要在其元表中添加该构造方法
+        //设置类名, since ver 1.3
+        [LSCEngineAdapter pushString:typeDescriptor.typeName.UTF8String state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"name"];
+        
+        //构造函数
         [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
         [LSCEngineAdapter pushCClosure:objectCreateHandler n:1 state:state];
         [LSCEngineAdapter setField:state index:-2 name:"__call"];
         
+        //关联本地类型
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)(typeDescriptor) state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"_nativeType"];
+        
+        /**
+         fixed : 由于OC中类方法存在继承关系，因此，直接导出某个类定义的类方法无法满足这种继承关系。
+         例如：moduleName方法在Object中定义，但是当其子类调用时由于只能取到当前导出方法的类型(Object)，无法取到调用方法的类型(即Object的子类)，因此导致逻辑处理的异常。
+         所以，该处改为导出其继承的所有类方法来满足该功能需要。
+         **/
+        //导出声明的类方法
+        [self _exportsClassMethods:typeDescriptor state:state];
+        
+        //关联索引
+        [LSCEngineAdapter pushValue:-1 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__index"];
+        
         //类型描述
         [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-        [LSCEngineAdapter pushCClosure:classToStringHandler n:1 state:state];
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
+        [LSCEngineAdapter pushCClosure:classToStringHandler n:2 state:state];
         [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
-
-        [LSCEngineAdapter setMetatable:state index:-2];
-    }
-
-    [LSCEngineAdapter setGlobal:state name:typeDescriptor.typeName.UTF8String];
-
-    //---------创建实例对象原型表---------------
-    [LSCEngineAdapter newMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
-
-    [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
-    [LSCEngineAdapter setField:state index:-2 name:"class"];
-
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)(typeDescriptor) state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"_nativeType"];
-
-    [LSCEngineAdapter pushValue:-1 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__index"];
-    
-    //增加__newindex元方法监听，主要用于原型中注册属性
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushCClosure:prototypeNewIndexHandler n:1 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__newindex"];
-
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-    [LSCEngineAdapter pushCClosure:prototypeToStringHandler n:2 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
-
-    //给类元表绑定该实例元表
-    [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
-    [LSCEngineAdapter pushValue:-2 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"prototype"];
-    [LSCEngineAdapter pop:state count:1];
-    
-    //导出属性
-    NSArray<NSString *> *propertySelectorList = [self _exportsProperties:typeDescriptor state:state];
-
-    //导出实例方法
-    [self _exportsInstanceMethods:typeDescriptor
-             propertySelectorList:propertySelectorList
-                            state:state];
-
-    if (parentTypeDescriptor)
-    {
-        //关联父类
-        [LSCEngineAdapter getMetatable:state name:parentTypeDescriptor.prototypeTypeName.UTF8String];
-        if ([LSCEngineAdapter isTable:state index:-1])
+        
+        //获取父类型
+        LSCExportTypeDescriptor *parentTypeDescriptor = typeDescriptor.parentTypeDescriptor;
+        
+        //关联父类模块
+        if (parentTypeDescriptor)
         {
-            //设置父类访问属性 since ver 1.3
-            [LSCEngineAdapter pushValue:-1 state:state];
-            [LSCEngineAdapter setField:state index:-3 name:"super"];
-            
-            //设置父类元表
-            [LSCEngineAdapter setMetatable:state index:-2];
+            //存在父类，则直接设置父类为元表
+            [LSCEngineAdapter getGlobal:state name:parentTypeDescriptor.typeName.UTF8String];
+            if ([LSCEngineAdapter isTable:state index:-1])
+            {
+                //设置父类指向
+                [LSCEngineAdapter pushValue:-1 state:state];
+                [LSCEngineAdapter setField:state index:-3 name:"super"];
+                
+                //关联元表
+                [LSCEngineAdapter setMetatable:state index:-2];
+            }
+            else
+            {
+                [LSCEngineAdapter pop:state count:1];
+            }
         }
         else
         {
-            [LSCEngineAdapter pop:state count:1];
+            //添加子类化对象方法
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+            [LSCEngineAdapter pushCClosure:subClassHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"subclass"];
+            
+            //增加子类判断方法, since ver 1.3
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+            [LSCEngineAdapter pushCClosure:subclassOfHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"subclassOf"];
+            
+            //Object需要创建一个typeMapping方法，用于绑定原生类型，其方法原型: function Object.typeMapping(platform, nativeTypeName, alias);
+            //该方法在默认情况下无法找到原生类型时使用（默认情况会根据lua调用的类型名称类查询原生类型，如果名称不匹配则表示不存在），允许使用该方法来关联原生类型
+            //其中platform为平台字符串类型，分别为：ios,android,u3d
+            //nativeTypeName表示要关联的原生类型名称，为类型全称（包含名称空间+类型名称）
+            //alias表示类型在lua中表示的名称，可选，如果不填则取原生类型名称，否则使用传入名称
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+            [LSCEngineAdapter pushCClosure:typeMappingHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"typeMapping"];
+            
+            //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
+            [LSCEngineAdapter newTable:state];
+            
+            //构造函数, Object需要在其元表中添加该构造方法
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+            [LSCEngineAdapter pushCClosure:objectCreateHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"__call"];
+            
+            //类型描述
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+            [LSCEngineAdapter pushCClosure:classToStringHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
+            
+            [LSCEngineAdapter setMetatable:state index:-2];
         }
-    }
-    else
-    {
-        //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
-        [LSCEngineAdapter newTable:state];
         
-        //增加__newindex元方法监听，主要用于Object原型中注册属性
+        [LSCEngineAdapter setGlobal:state name:typeDescriptor.typeName.UTF8String];
+        
+        //---------创建实例对象原型表---------------
+        [LSCEngineAdapter newMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
+        
+        [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
+        [LSCEngineAdapter setField:state index:-2 name:"class"];
+        
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)(typeDescriptor) state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"_nativeType"];
+        
+        [LSCEngineAdapter pushValue:-1 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__index"];
+        
+        //增加__newindex元方法监听，主要用于原型中注册属性
         [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
         [LSCEngineAdapter pushCClosure:prototypeNewIndexHandler n:1 state:state];
         [LSCEngineAdapter setField:state index:-2 name:"__newindex"];
         
         [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-        [LSCEngineAdapter pushCClosure:prototypeToStringHandler n:1 state:state];
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
+        [LSCEngineAdapter pushCClosure:prototypeToStringHandler n:2 state:state];
         [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
         
-        [LSCEngineAdapter setMetatable:state index:-2];
+        //给类元表绑定该实例元表
+        [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
+        [LSCEngineAdapter pushValue:-2 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"prototype"];
+        [LSCEngineAdapter pop:state count:1];
         
-        //Object类需要增加一些特殊方法
-        //创建instanceOf方法 since ver 1.3
-        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-        [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-        [LSCEngineAdapter pushCClosure:instanceOfHandler n:2 state:state];
-        [LSCEngineAdapter setField:state index:-2 name:"instanceOf"];
-    }
-    
-    [LSCEngineAdapter pop:state count:1];
+        //导出属性
+        NSArray<NSString *> *propertySelectorList = [self _exportsProperties:typeDescriptor state:state];
+        
+        //导出实例方法
+        [self _exportsInstanceMethods:typeDescriptor
+                 propertySelectorList:propertySelectorList
+                                state:state];
+        
+        if (parentTypeDescriptor)
+        {
+            //关联父类
+            [LSCEngineAdapter getMetatable:state name:parentTypeDescriptor.prototypeTypeName.UTF8String];
+            if ([LSCEngineAdapter isTable:state index:-1])
+            {
+                //设置父类访问属性 since ver 1.3
+                [LSCEngineAdapter pushValue:-1 state:state];
+                [LSCEngineAdapter setField:state index:-3 name:"super"];
+                
+                //设置父类元表
+                [LSCEngineAdapter setMetatable:state index:-2];
+            }
+            else
+            {
+                [LSCEngineAdapter pop:state count:1];
+            }
+        }
+        else
+        {
+            //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
+            [LSCEngineAdapter newTable:state];
+            
+            //增加__newindex元方法监听，主要用于Object原型中注册属性
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+            [LSCEngineAdapter pushCClosure:prototypeNewIndexHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"__newindex"];
+            
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+            [LSCEngineAdapter pushCClosure:prototypeToStringHandler n:1 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
+            
+            [LSCEngineAdapter setMetatable:state index:-2];
+            
+            //Object类需要增加一些特殊方法
+            //创建instanceOf方法 since ver 1.3
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+            [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
+            [LSCEngineAdapter pushCClosure:instanceOfHandler n:2 state:state];
+            [LSCEngineAdapter setField:state index:-2 name:"instanceOf"];
+        }
+        
+        [LSCEngineAdapter pop:state count:1];
+        
+    }];
 }
 
 - (void)_exportsClassMethods:(LSCExportTypeDescriptor *)typeDescriptor
@@ -532,70 +546,75 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
             methodDict = [NSMutableDictionary dictionary];
         }
         
-        unsigned int methodCount = 0;
-        Method *methods = class_copyMethodList(metaType, &methodCount);
-        for (const Method *m = methods; m < methods + methodCount; m ++)
-        {
-            SEL selector = method_getName(*m);
+        [self.context.optQueue performAction:^{
             
-            NSString *selectorName = NSStringFromSelector(selector);
-            if (![selectorName hasPrefix:@"_"]
-                && ![selectorName hasPrefix:@"."]
-                && ![builtInExcludeMethodNames containsObject:selectorName]
-                && ![excludesMethodNames containsObject:selectorName])
+            unsigned int methodCount = 0;
+            Method *methods = class_copyMethodList(metaType, &methodCount);
+            for (const Method *m = methods; m < methods + methodCount; m ++)
             {
-                NSString *luaMethodName = [self _getLuaMethodNameWithSelectorName:selectorName];
+                SEL selector = method_getName(*m);
                 
-                //判断是否已导出
-                __block BOOL hasExists = NO;
-                [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
-                if (![LSCEngineAdapter isNil:state index:-1])
+                NSString *selectorName = NSStringFromSelector(selector);
+                if (![selectorName hasPrefix:@"_"]
+                    && ![selectorName hasPrefix:@"."]
+                    && ![builtInExcludeMethodNames containsObject:selectorName]
+                    && ![excludesMethodNames containsObject:selectorName])
                 {
-                    hasExists = YES;
-                }
-                [LSCEngineAdapter pop:state count:1];
-                
-                if (!hasExists)
-                {
-                    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-                    [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
-                    [LSCEngineAdapter pushCClosure:classMethodRouteHandler n:2 state:state];
+                    NSString *luaMethodName = [self _getLuaMethodNameWithSelectorName:selectorName];
                     
-                    [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
-                }
-                
-                NSMutableArray<LSCExportMethodDescriptor *> *methodList = methodDict[luaMethodName];
-                if (!methodList)
-                {
-                    methodList = [NSMutableArray array];
-                    [methodDict setObject:methodList forKey:luaMethodName];
-                }
-                
-                //获取方法签名
-                NSString *signStr = [self _getMethodSign:*m];
-                
-                hasExists = NO;
-                [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                   
-                    if ([obj.paramsSignature isEqualToString:signStr])
+                    //判断是否已导出
+                    __block BOOL hasExists = NO;
+                    [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
+                    if (![LSCEngineAdapter isNil:state index:-1])
                     {
                         hasExists = YES;
-                        *stop = YES;
+                    }
+                    [LSCEngineAdapter pop:state count:1];
+                    
+                    if (!hasExists)
+                    {
+                        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+                        [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
+                        [LSCEngineAdapter pushCClosure:classMethodRouteHandler n:2 state:state];
+                        
+                        [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
                     }
                     
-                }];
-                
-                if (!hasExists)
-                {
-                    NSMethodSignature *sign = [targetTypeDescriptor.nativeType methodSignatureForSelector:selector];
-                    LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] initWithSelector:selector methodSignature:sign paramsSignature:signStr];
+                    NSMutableArray<LSCExportMethodDescriptor *> *methodList = methodDict[luaMethodName];
+                    if (!methodList)
+                    {
+                        methodList = [NSMutableArray array];
+                        [methodDict setObject:methodList forKey:luaMethodName];
+                    }
                     
-                    [methodList addObject:methodDesc];
+                    //获取方法签名
+                    NSString *signStr = [self _getMethodSign:*m];
+                    
+                    hasExists = NO;
+                    [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                        
+                        if ([obj.paramsSignature isEqualToString:signStr])
+                        {
+                            hasExists = YES;
+                            *stop = YES;
+                        }
+                        
+                    }];
+                    
+                    if (!hasExists)
+                    {
+                        NSMethodSignature *sign = [targetTypeDescriptor.nativeType methodSignatureForSelector:selector];
+                        LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] initWithSelector:selector methodSignature:sign paramsSignature:signStr];
+                        
+                        [methodList addObject:methodDesc];
+                    }
+                    
                 }
-                
             }
-        }
-        free(methods);
+            free(methods);
+            
+        }];
+        
         
         typeDescriptor.classMethods = methodDict;
     }
@@ -774,73 +793,77 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
             methodDict = [NSMutableDictionary dictionary];
         }
         
-        unsigned int methodCount = 0;
-        Method *methods = class_copyMethodList(typeDescriptor.nativeType, &methodCount);
-        for (const Method *m = methods; m < methods + methodCount; m ++)
-        {
-            SEL selector = method_getName(*m);
+        [self.context.optQueue performAction:^{
             
-            NSString *methodName = NSStringFromSelector(selector);
-            if (![methodName hasPrefix:@"_"]
-                && ![methodName hasPrefix:@"."]
-                && ![methodName hasPrefix:@"init"]
-                && ![methodName isEqualToString:@"dealloc"]
-                && ![buildInExcludeMethodNames containsObject:methodName]
-                && ![propertySelectorList containsObject:methodName]
-                && ![excludesMethodNames containsObject:methodName])
+            unsigned int methodCount = 0;
+            Method *methods = class_copyMethodList(typeDescriptor.nativeType, &methodCount);
+            for (const Method *m = methods; m < methods + methodCount; m ++)
             {
-                NSString *luaMethodName = [self _getLuaMethodNameWithSelectorName:methodName];
+                SEL selector = method_getName(*m);
                 
-                //判断是否已导出
-                __block BOOL hasExists = NO;
-                [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
-                if (![LSCEngineAdapter isNil:state index:-1])
+                NSString *methodName = NSStringFromSelector(selector);
+                if (![methodName hasPrefix:@"_"]
+                    && ![methodName hasPrefix:@"."]
+                    && ![methodName hasPrefix:@"init"]
+                    && ![methodName isEqualToString:@"dealloc"]
+                    && ![buildInExcludeMethodNames containsObject:methodName]
+                    && ![propertySelectorList containsObject:methodName]
+                    && ![excludesMethodNames containsObject:methodName])
                 {
-                    hasExists = YES;
-                }
-                [LSCEngineAdapter pop:state count:1];
-                
-                if (!hasExists)
-                {
-                    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-                    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-                    [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
-                    [LSCEngineAdapter pushCClosure:instanceMethodRouteHandler n:3 state:state];
+                    NSString *luaMethodName = [self _getLuaMethodNameWithSelectorName:methodName];
                     
-                    [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
-                }
-                
-                NSMutableArray<LSCExportMethodDescriptor *> *methodList = methodDict[luaMethodName];
-                if (!methodList)
-                {
-                    methodList = [NSMutableArray array];
-                    [methodDict setObject:methodList forKey:luaMethodName];
-                }
-                
-                //获取方法签名
-                NSString *signStr = [self _getMethodSign:*m];
-                
-                hasExists = NO;
-                [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                    
-                    if ([obj.paramsSignature isEqualToString:signStr])
+                    //判断是否已导出
+                    __block BOOL hasExists = NO;
+                    [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
+                    if (![LSCEngineAdapter isNil:state index:-1])
                     {
                         hasExists = YES;
-                        *stop = YES;
+                    }
+                    [LSCEngineAdapter pop:state count:1];
+                    
+                    if (!hasExists)
+                    {
+                        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+                        [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
+                        [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
+                        [LSCEngineAdapter pushCClosure:instanceMethodRouteHandler n:3 state:state];
+                        
+                        [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
                     }
                     
-                }];
-                
-                if (!hasExists)
-                {
-                    NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:selector];
-                    LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] initWithSelector:selector methodSignature:sign paramsSignature:signStr];
-
-                    [methodList addObject:methodDesc];
+                    NSMutableArray<LSCExportMethodDescriptor *> *methodList = methodDict[luaMethodName];
+                    if (!methodList)
+                    {
+                        methodList = [NSMutableArray array];
+                        [methodDict setObject:methodList forKey:luaMethodName];
+                    }
+                    
+                    //获取方法签名
+                    NSString *signStr = [self _getMethodSign:*m];
+                    
+                    hasExists = NO;
+                    [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                        
+                        if ([obj.paramsSignature isEqualToString:signStr])
+                        {
+                            hasExists = YES;
+                            *stop = YES;
+                        }
+                        
+                    }];
+                    
+                    if (!hasExists)
+                    {
+                        NSMethodSignature *sign = [typeDescriptor.nativeType instanceMethodSignatureForSelector:selector];
+                        LSCExportMethodDescriptor *methodDesc = [[LSCExportMethodDescriptor alloc] initWithSelector:selector methodSignature:sign paramsSignature:signStr];
+                        
+                        [methodList addObject:methodDesc];
+                    }
                 }
             }
-        }
-        free(methods);
+            free(methods);
+            
+        }];
         
         typeDescriptor.instanceMethods = methodDict;
     }
@@ -891,36 +914,40 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
  */
 - (void)_initLuaObjectWithObject:(id)object type:(LSCExportTypeDescriptor *)typeDescriptor;
 {
-    lua_State *state = self.context.currentSession.state;
-    int errFuncIndex = [self.context catchLuaException];
-    
-    [self _attachLuaInstanceWithNativeObject:object type:typeDescriptor];
-    
-    //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
-    //调用实例对象的init方法
-    [LSCEngineAdapter getField:state index:-1 name:"init"];
-    if ([LSCEngineAdapter isFunction:state index:-1])
-    {
-        [LSCEngineAdapter pushValue:-2 state:state];
+    [self.context.optQueue performAction:^{
         
-        //将create传入的参数传递给init方法
-        //-4 代表有4个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象，异常捕获方法
-        int paramCount = [LSCEngineAdapter getTop:state] - 4;
-        //从索引2开始传入参数，ver2.2后使用冒号调用create方法，忽略第一个参数self
-        for (int i = 2; i <= paramCount; i++)
+        lua_State *state = self.context.currentSession.state;
+        int errFuncIndex = [self.context catchLuaException];
+        
+        [self _attachLuaInstanceWithNativeObject:object type:typeDescriptor];
+        
+        //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
+        //调用实例对象的init方法
+        [LSCEngineAdapter getField:state index:-1 name:"init"];
+        if ([LSCEngineAdapter isFunction:state index:-1])
         {
-            [LSCEngineAdapter pushValue:i state:state];
+            [LSCEngineAdapter pushValue:-2 state:state];
+            
+            //将create传入的参数传递给init方法
+            //-4 代表有4个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象，异常捕获方法
+            int paramCount = [LSCEngineAdapter getTop:state] - 4;
+            //从索引2开始传入参数，ver2.2后使用冒号调用create方法，忽略第一个参数self
+            for (int i = 2; i <= paramCount; i++)
+            {
+                [LSCEngineAdapter pushValue:i state:state];
+            }
+            
+            [LSCEngineAdapter pCall:state nargs:paramCount nresults:0 errfunc:errFuncIndex];
+        }
+        else
+        {
+            [LSCEngineAdapter pop:state count:1];       //出栈init方法
         }
         
-        [LSCEngineAdapter pCall:state nargs:paramCount nresults:0 errfunc:errFuncIndex];
-    }
-    else
-    {
-        [LSCEngineAdapter pop:state count:1];       //出栈init方法
-    }
-    
-    //移除异常捕获方法
-    [LSCEngineAdapter remove:state index:errFuncIndex];
+        //移除异常捕获方法
+        [LSCEngineAdapter remove:state index:errFuncIndex];
+        
+    }];
 }
 
 /**
@@ -932,58 +959,63 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
 - (void)_attachLuaInstanceWithNativeObject:(id)nativeObject
                                       type:(LSCExportTypeDescriptor *)typeDescriptor
 {
-    lua_State *state = self.context.currentSession.state;
-    
-    //先为实例对象在lua中创建内存
-    LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
-    if (nativeObject)
-    {
-        //创建本地实例对象，赋予lua的内存块并进行保留引用
-        ref -> value = (void *)CFBridgingRetain(nativeObject);
-    }
-    
-    //创建一个临时table作为元表，用于在lua上动态添加属性或方法
-    [LSCEngineAdapter newTable:state];
-    
-    ///变更索引为function，实现动态路由
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)nativeObject state:state];
-    [LSCEngineAdapter pushCClosure:instanceIndexHandler n:3 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__index"];
-    
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)nativeObject state:state];
-    [LSCEngineAdapter pushCClosure:instanceNewIndexHandler n:3 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__newindex"];
-
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__gc"];
-
-    [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-    [LSCEngineAdapter pushCClosure:objectToStringHandler n:1 state:state];
-    [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
-    
-    [LSCEngineAdapter pushValue:-1 state:state];
-    [LSCEngineAdapter setMetatable:state index:-3];
-    
-    [LSCEngineAdapter getMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
-    if ([LSCEngineAdapter isTable:state index:-1])
-    {
-        [LSCEngineAdapter setMetatable:state index:-2];
-    }
-    else
-    {
+    [self.context.optQueue performAction:^{
+        
+        lua_State *state = self.context.currentSession.state;
+        
+        //先为实例对象在lua中创建内存
+        LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
+        if (nativeObject)
+        {
+            //创建本地实例对象，赋予lua的内存块并进行保留引用
+            ref -> value = (void *)CFBridgingRetain(nativeObject);
+        }
+        
+        //创建一个临时table作为元表，用于在lua上动态添加属性或方法
+        [LSCEngineAdapter newTable:state];
+        
+        ///变更索引为function，实现动态路由
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)nativeObject state:state];
+        [LSCEngineAdapter pushCClosure:instanceIndexHandler n:3 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__index"];
+        
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)nativeObject state:state];
+        [LSCEngineAdapter pushCClosure:instanceNewIndexHandler n:3 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__newindex"];
+        
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushCClosure:objectDestroyHandler n:1 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__gc"];
+        
+        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+        [LSCEngineAdapter pushCClosure:objectToStringHandler n:1 state:state];
+        [LSCEngineAdapter setField:state index:-2 name:"__tostring"];
+        
+        [LSCEngineAdapter pushValue:-1 state:state];
+        [LSCEngineAdapter setMetatable:state index:-3];
+        
+        [LSCEngineAdapter getMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
+        if ([LSCEngineAdapter isTable:state index:-1])
+        {
+            [LSCEngineAdapter setMetatable:state index:-2];
+        }
+        else
+        {
+            [LSCEngineAdapter pop:state count:1];
+        }
+        
         [LSCEngineAdapter pop:state count:1];
-    }
+        
+        //将创建对象放入到_vars_表中，主要修复对象创建后，在init中调用方法或者访问属性，由于对象尚未记录在_vars_中，而循环创建lua对象，并导致栈溢出。
+        NSString *objectId = [NSString stringWithFormat:@"%p", nativeObject];
+        [self.context.dataExchanger setLubObjectByStackIndex:-1 objectId:objectId];
+        
+    }];
     
-    [LSCEngineAdapter pop:state count:1];
-    
-    //将创建对象放入到_vars_表中，主要修复对象创建后，在init中调用方法或者访问属性，由于对象尚未记录在_vars_中，而循环创建lua对象，并导致栈溢出。
-    NSString *objectId = [NSString stringWithFormat:@"%p", nativeObject];
-    [self.context.dataExchanger setLubObjectByStackIndex:-1 objectId:objectId];
 }
 
 /**
@@ -1069,32 +1101,38 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
                                                    typeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
                                                      propertyName:(NSString *)propertyName
 {
-    LSCExportPropertyDescriptor *propertyDescriptor = nil;
-    lua_State *state = session.state;
-    if (typeDescriptor)
-    {
-        [LSCEngineAdapter getMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
-        [LSCEngineAdapter pushString:propertyName.UTF8String state:state];
-        [LSCEngineAdapter rawGet:state index:-2];
-        
-        if ([LSCEngineAdapter isNil:state index:-1])
+    __block LSCExportPropertyDescriptor *propertyDescriptor = nil;
+    
+    [self.context.optQueue performAction:^{
+
+        lua_State *state = session.state;
+        if (typeDescriptor)
         {
-            //不存在
-            propertyDescriptor = [typeDescriptor.properties objectForKey:propertyName];
-            if (!propertyDescriptor)
+            [LSCEngineAdapter getMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
+            [LSCEngineAdapter pushString:propertyName.UTF8String state:state];
+            [LSCEngineAdapter rawGet:state index:-2];
+            
+            if ([LSCEngineAdapter isNil:state index:-1])
             {
-                if (typeDescriptor.parentTypeDescriptor)
+                //不存在
+                propertyDescriptor = [typeDescriptor.properties objectForKey:propertyName];
+                if (!propertyDescriptor)
                 {
-                    //递归父类
-                    propertyDescriptor = [self _findInstancePropertyWithSession:session
-                                                                 typeDescriptor:typeDescriptor.parentTypeDescriptor
-                                                                   propertyName:propertyName];
+                    if (typeDescriptor.parentTypeDescriptor)
+                    {
+                        //递归父类
+                        propertyDescriptor = [self _findInstancePropertyWithSession:session
+                                                                     typeDescriptor:typeDescriptor.parentTypeDescriptor
+                                                                       propertyName:propertyName];
+                    }
                 }
             }
+            
+            [LSCEngineAdapter pop:state count:2];
         }
         
-        [LSCEngineAdapter pop:state count:2];
-    }
+    }];
+    
     
     return propertyDescriptor;
 }
@@ -1114,45 +1152,51 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
                      typeDescriptor:(LSCExportTypeDescriptor *)typeDescriptor
                        propertyName:(NSString *)propertyName
 {
-    int retValueCount = 1;
-    lua_State *state = session.state;
-    if (typeDescriptor)
-    {
-        [LSCEngineAdapter getMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
-        [LSCEngineAdapter pushString:propertyName.UTF8String state:state];
-        [LSCEngineAdapter rawGet:state index:-2];
-
-        if ([LSCEngineAdapter isNil:state index:-1])
+    __block int retValueCount = 1;
+    
+    [self.context.optQueue performAction:^{
+        
+        lua_State *state = session.state;
+        if (typeDescriptor)
         {
-            [LSCEngineAdapter pop:state count:1];
+            [LSCEngineAdapter getMetatable:state name:typeDescriptor.prototypeTypeName.UTF8String];
+            [LSCEngineAdapter pushString:propertyName.UTF8String state:state];
+            [LSCEngineAdapter rawGet:state index:-2];
             
-            //不存在
-            LSCExportPropertyDescriptor *propertyDescriptor = [typeDescriptor.properties objectForKey:propertyName];
-            if (!propertyDescriptor)
+            if ([LSCEngineAdapter isNil:state index:-1])
             {
-                if (typeDescriptor.parentTypeDescriptor)
+                [LSCEngineAdapter pop:state count:1];
+                
+                //不存在
+                LSCExportPropertyDescriptor *propertyDescriptor = [typeDescriptor.properties objectForKey:propertyName];
+                if (!propertyDescriptor)
                 {
-                    //递归父类
-                    retValueCount = [self _instancePropertyWithSession:session
-                                                              instance:instance
-                                                        typeDescriptor:typeDescriptor.parentTypeDescriptor
-                                                          propertyName:propertyName];
+                    if (typeDescriptor.parentTypeDescriptor)
+                    {
+                        //递归父类
+                        retValueCount = [self _instancePropertyWithSession:session
+                                                                  instance:instance
+                                                            typeDescriptor:typeDescriptor.parentTypeDescriptor
+                                                              propertyName:propertyName];
+                    }
+                    else
+                    {
+                        [LSCEngineAdapter pushNil:state];
+                    }
                 }
                 else
                 {
-                    [LSCEngineAdapter pushNil:state];
+                    LSCValue *retValue = [propertyDescriptor invokeGetterWithInstance:instance
+                                                                       typeDescriptor:typeDescriptor];
+                    retValueCount = [session setReturnValue:retValue];
                 }
             }
-            else
-            {
-                LSCValue *retValue = [propertyDescriptor invokeGetterWithInstance:instance
-                                                                   typeDescriptor:typeDescriptor];
-                retValueCount = [session setReturnValue:retValue];
-            }
+            
+            [LSCEngineAdapter remove:state index:-1-retValueCount];
         }
         
-        [LSCEngineAdapter remove:state index:-1-retValueCount];
-    }
+    }];
+    
     
     return retValueCount;
 }

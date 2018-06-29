@@ -74,7 +74,9 @@
     }
     else
     {
-        [LSCEngineAdapter pushNil:self.state];
+        [self.context.optQueue performAction:^{
+            [LSCEngineAdapter pushNil:self.state];
+        }];
     }
     
     return count;
@@ -91,7 +93,13 @@
  */
 - (NSArray *)_parseArgumentsFromIndex:(int)index
 {
-    int top = [LSCEngineAdapter getTop:self.state];
+    
+    __block int top = 0;
+    
+    [self.context.optQueue performAction:^{
+        top = [LSCEngineAdapter getTop:self.state];
+    }];
+    
     if (top >= index)
     {
         NSMutableArray *arguments = [NSMutableArray array];

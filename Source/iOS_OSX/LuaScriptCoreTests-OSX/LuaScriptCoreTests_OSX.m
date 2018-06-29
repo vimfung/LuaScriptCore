@@ -95,18 +95,18 @@
 
 - (void)testRegisterModule
 {
-    LSCValue *resValue = [self.context evalScriptFromString:@"return TestModule.test();"];
+    LSCValue *resValue = [self.context evalScriptFromString:@"return TestModule:test();"];
     XCTAssertTrue([[resValue toString] isEqualToString:@"Hello World!"], "result value is not equal 'Hello World!'");
 }
 
 - (void)testRegisterClass
 {
-    [self.context evalScriptFromString:@"local p = Person.createPerson(); print(p); p.name = 'vim'; Person.printPersonName(p); p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"local p = Person:createPerson(); print(p); p.name = 'vim'; Person:printPersonName(p); p:speak('Hello World!');"];
 }
 
 - (void)testCreateObjectWithParams
 {
-    [self.context evalScriptFromString:@"function Person.prototype:init(value) print(value); end local p = Person.create('xxx'); print(p);"];
+    [self.context evalScriptFromString:@"function Person.prototype:init(value) print(value); end local p = Person('xxx'); print(p);"];
 }
 
 - (void)testClassModuleName
@@ -116,17 +116,17 @@
 
 - (void)testClassIsSubclassOf
 {
-    [self.context evalScriptFromString:@"print(Person.subclassOf(Object));"];
+    [self.context evalScriptFromString:@"print(Person:subclassOf(Object));"];
 }
 
 - (void)testClassIsInstanceOf
 {
-    [self.context evalScriptFromString:@"local p = Person.create(); print(p:instanceOf(Person)); print(p:instanceOf(Object));"];
+    [self.context evalScriptFromString:@"local p = Person(); print(p:instanceOf(Person)); print(p:instanceOf(Object));"];
 }
 
 - (void)testClassMethodInherited
 {
-    [self.context evalScriptFromString:@"print(Object); Person.subclass('ChinesePerson'); function Person.prototype:init () print(self.super); print ('Person init') end function ChinesePerson.prototype:init () self.super.init(self); print ('Chinese init'); end local c = ChinesePerson.create(); print(c); local p = Person.create(); print(p);"];
+    [self.context evalScriptFromString:@"print(Object); Person:subclass('ChinesePerson'); function Person.prototype:init () print(self.super); print ('Person init') end function ChinesePerson.prototype:init () self.super.init(self); print ('Chinese init'); end local c = ChinesePerson(); print(c); local p = Person(); print(p);"];
 }
 
 - (void)testSetGlobalVar
@@ -155,12 +155,12 @@
 
 - (void)testModuleTupleReturnValue
 {
-    [self.context evalScriptFromString:@"local a,b = TestModule.testTuple(); print(a, b);"];
+    [self.context evalScriptFromString:@"local a,b = TestModule:testTuple(); print(a, b);"];
 }
 
 - (void)testClassInstanceTupleReturnValue
 {
-    [self.context evalScriptFromString:@"local p = Person.create(); local a,b = p:test(); print(a, b);"];
+    [self.context evalScriptFromString:@"local p = Person(); local a,b = p:test(); print(a, b);"];
 }
 
 - (void)testFunctionInvokeReturn
@@ -180,19 +180,19 @@
 
 - (void)testObjProxy
 {
-    [self.context evalScriptFromString:@"print(Person); local p = Person.createNativePerson(); print(p); p.name = 'vim'; p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"print(Person); local p = Person:createNativePerson(); print(p); p.name = 'vim'; p:speak('Hello World!');"];
 }
 
 - (void)testClassImportAndObjectClass
 {
-    [self.context evalScriptFromString:@"print(Person, NativePerson); local p = NativePerson.createPerson(); print(p); p.name = 'abc'; p:speak('Hello World!');"];
+    [self.context evalScriptFromString:@"print(Person, NativePerson); local p = NativePerson:createPerson(); print(p); p.name = 'abc'; p:speak('Hello World!');"];
 }
 
 - (void)testRetainRelease
 {
-    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person.retainHandler(test);"];
-    [self.context evalScriptFromString:@"print('-------------1'); Person.callHandler(); Person.releaseHandler();"];
-    [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler();"];
+    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person:retainHandler(test);"];
+    [self.context evalScriptFromString:@"print('-------------1'); Person:callHandler(); Person:releaseHandler();"];
+    [self.context evalScriptFromString:@"print('-------------2'); Person:callHandler();"];
 }
 
 - (void)testRetainRelease_2
@@ -206,9 +206,9 @@
 
 - (void)testRetainRelease_3
 {
-    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person.retainHandler2(test);"];
-    [self.context evalScriptFromString:@"print('-------------1'); Person.callHandler2(); Person.releaseHandler2();"];
-    [self.context evalScriptFromString:@"print('-------------2'); Person.callHandler2();"];
+    [self.context evalScriptFromString:@"local test = function() print('test func') end; test(); Person:retainHandler2(test);"];
+    [self.context evalScriptFromString:@"print('-------------1'); Person:callHandler2(); Person:releaseHandler2();"];
+    [self.context evalScriptFromString:@"print('-------------2'); Person:callHandler2();"];
 }
 
 - (void)testCoroutine
@@ -238,7 +238,7 @@
 
 - (void)testNewTypeExporter
 {
-    [self.context evalScriptFromString:@"print(ChildLog); function ChildLog.prototype:init () print('ChildLog object init'); end; local t = ChildLog.create(); print(t); t.xxx = 'aaaa'; print (t.xxx); t.name = 'vim'; t:printName();"];
+    [self.context evalScriptFromString:@"print(SubLuaLog); function SubLuaLog.prototype:init () print('SubLuaLog object init'); end; local t = SubLuaLog(); print(t); t.xxx = 'aaaa'; print (t.xxx); t.name = 'vim'; t:printName();"];
 }
 
 - (void)testLuaFuncCall
@@ -248,6 +248,33 @@
     LSCValue *value = [self.context evalScriptFromString:@"return App"];
     LSCFunction *func = [[self.context evalScriptFromString:@"return App.onCreate"] toFunction];
     [func invokeWithArguments:@[value, [LSCValue integerValue:1024]]];
+}
+
+- (void)testMultiThreadCall
+{
+    XCTestExpectation *exp = [[XCTestExpectation alloc] initWithDescription:@""];
+    
+    dispatch_group_t group = dispatch_group_create();
+    
+    for (int i = 0; i < 100; i++)
+    {
+        dispatch_group_enter(group);
+        dispatch_group_async(group, dispatch_get_global_queue(0, 0), ^{
+            
+            [self.context evalScriptFromString:@"Person.prototype.age = {set = function(self, value) print('set value = ', value); self._value = value end, get = function(self) print('get value = ', self._value); return self._value end}; local p = Person:createPerson(); p.age = 20; print('p.age = ', p.age);"];
+            
+            dispatch_group_leave(group);
+            
+        });
+    }
+    
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        
+        [exp fulfill];
+        
+    });
+    
+    [self waitForExpectations:@[exp] timeout:20];
 }
 
 @end
