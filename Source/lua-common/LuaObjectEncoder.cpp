@@ -110,7 +110,7 @@ void LuaObjectEncoder::writeDouble(double value)
     writeBuffer(ds.bytes, 8);
 }
 
-void LuaObjectEncoder::writeString(const std::string &value)
+void LuaObjectEncoder::writeString(std::string const& value)
 {
     const char *cstrValue = value.c_str();
     size_t length = strlen(cstrValue);
@@ -156,7 +156,7 @@ int LuaObjectEncoder::getBufferLength()
     return _bufLength;
 }
 
-void LuaObjectEncoder::setMappingClassType(std::string className, std::string mappingClassName)
+void LuaObjectEncoder::setMappingClassType(std::string const& className, std::string const& mappingClassName)
 {
     _mappingClassesMap[className] = mappingClassName;
 }

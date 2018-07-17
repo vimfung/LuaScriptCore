@@ -17,6 +17,7 @@
 #include "LuaExportMethodDescriptor.hpp"
 #include "LuaObjectDescriptor.h"
 #include "LuaDataExchanger.h"
+#include "LuaOperationQueue.h"
 #include "StringUtils.h"
 
 #include <algorithm>
@@ -785,7 +786,7 @@ static int prototypeNewIndexHandler (lua_State *state)
     return 0;
 }
 
-LuaExportsTypeManager::LuaExportsTypeManager(LuaContext *context, std::string platform)
+LuaExportsTypeManager::LuaExportsTypeManager(LuaContext *context, std::string const& platform)
 {
     _context = context;
     _platform = platform;
@@ -809,7 +810,7 @@ LuaContext* LuaExportsTypeManager::context()
     return _context;
 }
 
-LuaExportTypeDescriptor* LuaExportsTypeManager::getExportTypeDescriptor(std::string name)
+LuaExportTypeDescriptor* LuaExportsTypeManager::getExportTypeDescriptor(std::string const& name)
 {
     std::map<std::string, LuaExportTypeDescriptor*>::iterator it = _exportTypes.find(name);
     if (it != _exportTypes.end())
@@ -831,7 +832,7 @@ void LuaExportsTypeManager::exportsType(LuaExportTypeDescriptor *typeDescriptor)
     }
 }
 
-bool LuaExportsTypeManager::_mappingType(std::string platform, std::string name, std::string alias)
+bool LuaExportsTypeManager::_mappingType(std::string const& platform, std::string const& name, std::string const& alias)
 {
     if (platform == _platform)
     {
@@ -842,26 +843,26 @@ bool LuaExportsTypeManager::_mappingType(std::string platform, std::string name,
     return false;
 }
 
-std::string LuaExportsTypeManager::_getTypeFullName(std::string name)
+std::string LuaExportsTypeManager::_getTypeFullName(std::string const& name)
 {
     std::map<std::string, std::string>::iterator it = _exportTypesMapping.find(name);
     if (it != _exportTypesMapping.end())
     {
-        name = it -> second;
+        return it -> second;
     }
 
     return name;
 }
 
-LuaExportTypeDescriptor* LuaExportsTypeManager::_createTypeDescriptor(std::string name)
+LuaExportTypeDescriptor* LuaExportsTypeManager::_createTypeDescriptor(std::string const& name)
 {
     //通知上下文加载原生类型
     _context->exportsNativeType(name);
 
     //重新获取类型
     LuaExportTypeDescriptor *typeDescriptor = NULL;
-    name = _getTypeFullName(name);
-    std::map<std::string, LuaExportTypeDescriptor*>::iterator it = _exportTypes.find(name);
+    std::string fullName = _getTypeFullName(name);
+    std::map<std::string, LuaExportTypeDescriptor*>::iterator it = _exportTypes.find(fullName);
     if (it != _exportTypes.end())
     {
         typeDescriptor = it -> second;
@@ -869,12 +870,12 @@ LuaExportTypeDescriptor* LuaExportsTypeManager::_createTypeDescriptor(std::strin
     return typeDescriptor;
 }
 
-LuaExportTypeDescriptor* LuaExportsTypeManager::_getMappingType(std::string name)
+LuaExportTypeDescriptor* LuaExportsTypeManager::_getMappingType(std::string const& name)
 {
-    name = _getTypeFullName(name);
+    std::string fullName = _getTypeFullName(name);
 
     LuaExportTypeDescriptor *typeDescriptor = NULL;
-    std::map<std::string, LuaExportTypeDescriptor*>::iterator it = _exportTypes.find(name);
+    std::map<std::string, LuaExportTypeDescriptor*>::iterator it = _exportTypes.find(fullName);
     if (it != _exportTypes.end())
     {
         typeDescriptor = it -> second;
@@ -882,7 +883,7 @@ LuaExportTypeDescriptor* LuaExportsTypeManager::_getMappingType(std::string name
     else
     {
         //未生成类型，则进行类型生成
-        typeDescriptor = _createTypeDescriptor(name);
+        typeDescriptor = _createTypeDescriptor(fullName);
     }
 
     return typeDescriptor;
@@ -899,8 +900,12 @@ void LuaExportsTypeManager::_prepareExportsType(lua_State *state, LuaExportTypeD
     
     if (parentTypeDescriptor != NULL)
     {
-        LuaEngineAdapter::getGlobal(state, parentTypeDescriptor -> typeName().c_str());
-        LuaEngineAdapter::pop(state, 1);
+        _context -> getOperationQueue() -> performAction([this, state, parentTypeDescriptor](){
+
+            LuaEngineAdapter::getGlobal(state, parentTypeDescriptor -> typeName().c_str());
+            LuaEngineAdapter::pop(state, 1);
+
+        });
     }
     
     _exportsType(state, typeDescriptor);
@@ -908,213 +913,226 @@ void LuaExportsTypeManager::_prepareExportsType(lua_State *state, LuaExportTypeD
 
 void LuaExportsTypeManager::_exportsType(lua_State *state, LuaExportTypeDescriptor *typeDescriptor)
 {
-    //创建类模块
-    LuaEngineAdapter::newTable(state);
-    
-    //设置类名, since ver 1.3
-    LuaEngineAdapter::pushString(state, typeDescriptor -> typeName().c_str());
-    LuaEngineAdapter::setField(state, -2, "name");
-    
-    //关联本地类型
-    LuaEngineAdapter::pushLightUserdata(state, (void *)(typeDescriptor));
-    LuaEngineAdapter::setField(state, -2, "_nativeType");
-    
-    //导出声明的类方法
-    _exportsClassMethods(state, typeDescriptor);
+    _context -> getOperationQueue() -> performAction([this, state, typeDescriptor](){
 
-    //构造函数
-    LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushCClosure(state, objectCreateHandler, 1);
-    LuaEngineAdapter::setField(state, -2, "__call");
-
-    //关联索引
-    LuaEngineAdapter::pushValue(state, -1);
-    LuaEngineAdapter::setField(state, -2, "__index");
-    
-    //类型描述
-    LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
-    LuaEngineAdapter::pushCClosure(state, classToStringHandler, 2);
-    LuaEngineAdapter::setField(state, -2, "__tostring");
-    
-    //获取父类型
-    LuaExportTypeDescriptor *parentTypeDescriptor = typeDescriptor -> parentTypeDescriptor();
-
-    //关联父类模块
-    if (parentTypeDescriptor != NULL)
-    {
-        //存在父类，则直接设置父类为元表
-        LuaEngineAdapter::getGlobal(state, parentTypeDescriptor -> typeName().c_str());
-        if (LuaEngineAdapter::isTable(state, -1))
-        {
-            //设置父类指向
-            LuaEngineAdapter::pushValue(state, -1);
-            LuaEngineAdapter::setField(state, -3, "super");
-            
-            //关联元表
-            LuaEngineAdapter::setMetatable(state, -2);
-        }
-        else
-        {
-            LuaEngineAdapter::pop(state, 1);
-        }
-    }
-    else
-    {
-        //添加子类化对象方法
-        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-        LuaEngineAdapter::pushCClosure(state, subClassHandler, 1);
-        LuaEngineAdapter::setField(state, -2, "subclass");
-
-        //增加子类判断方法, since ver 1.3
-        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-        LuaEngineAdapter::pushCClosure(state, subclassOfHandler, 1);
-        LuaEngineAdapter::setField(state, -2, "subclassOf");
-
-        //类型映射
-        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-        LuaEngineAdapter::pushCClosure(state, typeMappingHandler, 1);
-        LuaEngineAdapter::setField(state, -2, "typeMapping");
-        
-        //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
+        //创建类模块
         LuaEngineAdapter::newTable(state);
 
-        //构造函数, Object需要在其元表中添加该构造方法
+        //设置类名, since ver 1.3
+        LuaEngineAdapter::pushString(state, typeDescriptor -> typeName().c_str());
+        LuaEngineAdapter::setField(state, -2, "name");
+
+        //关联本地类型
+        LuaEngineAdapter::pushLightUserdata(state, (void *)(typeDescriptor));
+        LuaEngineAdapter::setField(state, -2, "_nativeType");
+
+        //导出声明的类方法
+        _exportsClassMethods(state, typeDescriptor);
+
+        //构造函数
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
         LuaEngineAdapter::pushCClosure(state, objectCreateHandler, 1);
         LuaEngineAdapter::setField(state, -2, "__call");
 
+        //关联索引
+        LuaEngineAdapter::pushValue(state, -1);
+        LuaEngineAdapter::setField(state, -2, "__index");
+
         //类型描述
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-        LuaEngineAdapter::pushCClosure(state, classToStringHandler, 1);
+        LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
+        LuaEngineAdapter::pushCClosure(state, classToStringHandler, 2);
         LuaEngineAdapter::setField(state, -2, "__tostring");
-        
-        LuaEngineAdapter::setMetatable(state, -2);
-    }
-    
-    LuaEngineAdapter::setGlobal(state, typeDescriptor -> typeName().c_str());
 
-    //---------创建实例对象原型表---------------
-    LuaEngineAdapter::newMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
+        //获取父类型
+        LuaExportTypeDescriptor *parentTypeDescriptor = typeDescriptor -> parentTypeDescriptor();
 
-    LuaEngineAdapter::getGlobal(state, typeDescriptor -> typeName().c_str());
-    LuaEngineAdapter::setField(state, -2, "class");
-
-    LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
-    LuaEngineAdapter::setField(state, -2, "_nativeType");
-
-    LuaEngineAdapter::pushValue(state, -1);
-    LuaEngineAdapter::setField(state, -2, "__index");
-
-    //增加__newindex元方法监听，主要用于原型中注册属性
-    LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushCClosure(state, prototypeNewIndexHandler, 1);
-    LuaEngineAdapter::setField(state, -2, "__newindex");
-
-    LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
-    LuaEngineAdapter::pushCClosure(state, prototypeToStringHandler, 2);
-    LuaEngineAdapter::setField(state, -2, "__tostring");
-
-    //给类元表绑定该实例元表
-    LuaEngineAdapter::getGlobal(state, typeDescriptor -> typeName().c_str());
-    LuaEngineAdapter::pushValue(state, -2);
-    LuaEngineAdapter::setField(state, -2, "prototype");
-    LuaEngineAdapter::pop(state, 1);
-
-    //导出实例方法
-    _exportsInstanceMethods(state, typeDescriptor);
-
-    if (parentTypeDescriptor != NULL)
-    {
-        //关联父类
-        LuaEngineAdapter::getMetatable(state, parentTypeDescriptor -> prototypeTypeName().c_str());
-        if (LuaEngineAdapter::isTable(state, -1))
+        //关联父类模块
+        if (parentTypeDescriptor != NULL)
         {
-            //设置父类访问属性 since ver 1.3
-            LuaEngineAdapter::pushValue(state, -1);
-            LuaEngineAdapter::setField(state, -3, "super");
+            //存在父类，则直接设置父类为元表
+            LuaEngineAdapter::getGlobal(state, parentTypeDescriptor -> typeName().c_str());
+            if (LuaEngineAdapter::isTable(state, -1))
+            {
+                //设置父类指向
+                LuaEngineAdapter::pushValue(state, -1);
+                LuaEngineAdapter::setField(state, -3, "super");
 
-            //设置父类元表
-            LuaEngineAdapter::setMetatable(state, -2);
+                //关联元表
+                LuaEngineAdapter::setMetatable(state, -2);
+            }
+            else
+            {
+                LuaEngineAdapter::pop(state, 1);
+            }
         }
         else
         {
-            LuaEngineAdapter::pop(state, 1);
-        }
-    }
-    else
-    {
-        //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
-        LuaEngineAdapter::newTable(state);
+            //添加子类化对象方法
+            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+            LuaEngineAdapter::pushCClosure(state, subClassHandler, 1);
+            LuaEngineAdapter::setField(state, -2, "subclass");
 
-        //增加__newindex元方法监听，主要用于Object原型中注册属性
+            //增加子类判断方法, since ver 1.3
+            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+            LuaEngineAdapter::pushCClosure(state, subclassOfHandler, 1);
+            LuaEngineAdapter::setField(state, -2, "subclassOf");
+
+            //类型映射
+            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+            LuaEngineAdapter::pushCClosure(state, typeMappingHandler, 1);
+            LuaEngineAdapter::setField(state, -2, "typeMapping");
+
+            //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
+            LuaEngineAdapter::newTable(state);
+
+            //构造函数, Object需要在其元表中添加该构造方法
+            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+            LuaEngineAdapter::pushCClosure(state, objectCreateHandler, 1);
+            LuaEngineAdapter::setField(state, -2, "__call");
+
+            //类型描述
+            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+            LuaEngineAdapter::pushCClosure(state, classToStringHandler, 1);
+            LuaEngineAdapter::setField(state, -2, "__tostring");
+
+            LuaEngineAdapter::setMetatable(state, -2);
+        }
+
+        LuaEngineAdapter::setGlobal(state, typeDescriptor -> typeName().c_str());
+
+        //---------创建实例对象原型表---------------
+        LuaEngineAdapter::newMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
+
+        LuaEngineAdapter::getGlobal(state, typeDescriptor -> typeName().c_str());
+        LuaEngineAdapter::setField(state, -2, "class");
+
+        LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
+        LuaEngineAdapter::setField(state, -2, "_nativeType");
+
+        LuaEngineAdapter::pushValue(state, -1);
+        LuaEngineAdapter::setField(state, -2, "__index");
+
+        //增加__newindex元方法监听，主要用于原型中注册属性
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
         LuaEngineAdapter::pushCClosure(state, prototypeNewIndexHandler, 1);
         LuaEngineAdapter::setField(state, -2, "__newindex");
 
         LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-        LuaEngineAdapter::pushCClosure(state, prototypeToStringHandler, 1);
+        LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
+        LuaEngineAdapter::pushCClosure(state, prototypeToStringHandler, 2);
         LuaEngineAdapter::setField(state, -2, "__tostring");
 
-        LuaEngineAdapter::setMetatable(state, -2);
+        //给类元表绑定该实例元表
+        LuaEngineAdapter::getGlobal(state, typeDescriptor -> typeName().c_str());
+        LuaEngineAdapter::pushValue(state, -2);
+        LuaEngineAdapter::setField(state, -2, "prototype");
+        LuaEngineAdapter::pop(state, 1);
 
-        //Object类需要增加一些特殊方法
-        //创建instanceOf方法 since ver 1.3
-        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-        LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
-        LuaEngineAdapter::pushCClosure(state, instanceOfHandler, 2);
-        LuaEngineAdapter::setField(state, -2, "instanceOf");
-    }
+        //导出实例方法
+        _exportsInstanceMethods(state, typeDescriptor);
 
-    LuaEngineAdapter::pop(state, 1);
+        if (parentTypeDescriptor != NULL)
+        {
+            //关联父类
+            LuaEngineAdapter::getMetatable(state, parentTypeDescriptor -> prototypeTypeName().c_str());
+            if (LuaEngineAdapter::isTable(state, -1))
+            {
+                //设置父类访问属性 since ver 1.3
+                LuaEngineAdapter::pushValue(state, -1);
+                LuaEngineAdapter::setField(state, -3, "super");
+
+                //设置父类元表
+                LuaEngineAdapter::setMetatable(state, -2);
+            }
+            else
+            {
+                LuaEngineAdapter::pop(state, 1);
+            }
+        }
+        else
+        {
+            //Object需要创建一个新table来作为元表，否则无法使用元方法，如：print(Object);
+            LuaEngineAdapter::newTable(state);
+
+            //增加__newindex元方法监听，主要用于Object原型中注册属性
+            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+            LuaEngineAdapter::pushCClosure(state, prototypeNewIndexHandler, 1);
+            LuaEngineAdapter::setField(state, -2, "__newindex");
+
+            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+            LuaEngineAdapter::pushCClosure(state, prototypeToStringHandler, 1);
+            LuaEngineAdapter::setField(state, -2, "__tostring");
+
+            LuaEngineAdapter::setMetatable(state, -2);
+
+            //Object类需要增加一些特殊方法
+            //创建instanceOf方法 since ver 1.3
+            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+            LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
+            LuaEngineAdapter::pushCClosure(state, instanceOfHandler, 2);
+            LuaEngineAdapter::setField(state, -2, "instanceOf");
+        }
+
+        LuaEngineAdapter::pop(state, 1);
+
+    });
 }
 
 void LuaExportsTypeManager::_exportsClassMethods(lua_State *state, LuaExportTypeDescriptor *typeDescriptor)
 {
-    std::list<std::string> methodNameList = typeDescriptor -> classMethodNameList();
-    for (std::list<std::string>::iterator it = methodNameList.begin(); it != methodNameList.end(); it++)
-    {
-        LuaEngineAdapter::getField(state, -1, (*it).c_str());
-        if (!LuaEngineAdapter::isFunction(state, -1))
+    _context -> getOperationQueue() -> performAction([this, state, typeDescriptor](){
+
+        std::list<std::string> methodNameList = typeDescriptor -> classMethodNameList();
+        for (std::list<std::string>::iterator it = methodNameList.begin(); it != methodNameList.end(); it++)
         {
-            LuaEngineAdapter::pop(state, 1);
-            
-            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-            LuaEngineAdapter::pushString(state, (*it).c_str());
-            LuaEngineAdapter::pushCClosure(state, classMethodRouteHandler, 2);
-            
-            LuaEngineAdapter::setField(state, -2, (*it).c_str());
+            LuaEngineAdapter::getField(state, -1, (*it).c_str());
+            if (!LuaEngineAdapter::isFunction(state, -1))
+            {
+                LuaEngineAdapter::pop(state, 1);
+
+                LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+                LuaEngineAdapter::pushString(state, (*it).c_str());
+                LuaEngineAdapter::pushCClosure(state, classMethodRouteHandler, 2);
+
+                LuaEngineAdapter::setField(state, -2, (*it).c_str());
+            }
+            else
+            {
+                LuaEngineAdapter::pop(state, 1);
+            }
         }
-        else
-        {
-            LuaEngineAdapter::pop(state, 1);
-        }
-    }
+
+    });
+
 }
 
 void LuaExportsTypeManager::_exportsInstanceMethods(lua_State *state, LuaExportTypeDescriptor *typeDescriptor)
 {
-    std::list<std::string> methodNameList = typeDescriptor -> instanceMethodNameList();
-    for (std::list<std::string>::iterator it = methodNameList.begin(); it != methodNameList.end(); it++)
-    {
-        LuaEngineAdapter::getField(state, -1, (*it).c_str());
-        if (!LuaEngineAdapter::isFunction(state, -1))
-        {
-            LuaEngineAdapter::pop(state, 1);
+    _context -> getOperationQueue() -> performAction([this, state, typeDescriptor](){
 
-            LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-            LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
-            LuaEngineAdapter::pushString(state, (*it).c_str());
-            LuaEngineAdapter::pushCClosure(state, instanceMethodRouteHandler, 3);
-
-            LuaEngineAdapter::setField(state, -2, (*it).c_str());
-        }
-        else
+        std::list<std::string> methodNameList = typeDescriptor -> instanceMethodNameList();
+        for (std::list<std::string>::iterator it = methodNameList.begin(); it != methodNameList.end(); it++)
         {
-            LuaEngineAdapter::pop(state, 1);
+            LuaEngineAdapter::getField(state, -1, (*it).c_str());
+            if (!LuaEngineAdapter::isFunction(state, -1))
+            {
+                LuaEngineAdapter::pop(state, 1);
+
+                LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+                LuaEngineAdapter::pushLightUserdata(state, (void *)typeDescriptor);
+                LuaEngineAdapter::pushString(state, (*it).c_str());
+                LuaEngineAdapter::pushCClosure(state, instanceMethodRouteHandler, 3);
+
+                LuaEngineAdapter::setField(state, -2, (*it).c_str());
+            }
+            else
+            {
+                LuaEngineAdapter::pop(state, 1);
+            }
         }
-    }
+
+    });
 }
 
 void LuaExportsTypeManager::_setupExportType()
@@ -1125,29 +1143,33 @@ void LuaExportsTypeManager::_setupExportType()
 
 void LuaExportsTypeManager::_setupExportEnv()
 {
-    //为_G设置元表，用于监听其对象的获取，从而找出哪些是导出类型
-    lua_State *state = _context -> getCurrentSession() -> getState();
-    LuaEngineAdapter::getGlobal(state, "_G");
-    
-    if (!LuaEngineAdapter::isTable(state, -1))
-    {
-        LuaEngineAdapter::error(state, "invalid '_G' object，setup the exporter fail.");
+    _context -> getOperationQueue() -> performAction([this](){
+
+        //为_G设置元表，用于监听其对象的获取，从而找出哪些是导出类型
+        lua_State *state = _context -> getCurrentSession() -> getState();
+        LuaEngineAdapter::getGlobal(state, "_G");
+
+        if (!LuaEngineAdapter::isTable(state, -1))
+        {
+            LuaEngineAdapter::error(state, "invalid '_G' object，setup the exporter fail.");
+            LuaEngineAdapter::pop(state, 1);
+            return;
+        }
+
+        //创建_G元表
+        LuaEngineAdapter::newTable(state);
+
+        //监听__index元方法
+        LuaEngineAdapter::pushLightUserdata(state, (void *)this);
+        LuaEngineAdapter::pushCClosure(state, globalIndexMetaMethodHandler, 1);
+        LuaEngineAdapter::setField(state, -2, "__index");
+
+        //绑定为_G元表
+        LuaEngineAdapter::setMetatable(state, -2);
+
         LuaEngineAdapter::pop(state, 1);
-        return;
-    }
-    
-    //创建_G元表
-    LuaEngineAdapter::newTable(state);
-    
-    //监听__index元方法
-    LuaEngineAdapter::pushLightUserdata(state, (void *)this);
-    LuaEngineAdapter::pushCClosure(state, globalIndexMetaMethodHandler, 1);
-    LuaEngineAdapter::setField(state, -2, "__index");
-    
-    //绑定为_G元表
-    LuaEngineAdapter::setMetatable(state, -2);
-    
-    LuaEngineAdapter::pop(state, 1);
+
+    });
 }
 
 void LuaExportsTypeManager::createLuaObject(LuaObjectDescriptor *objectDescriptor)
@@ -1155,11 +1177,15 @@ void LuaExportsTypeManager::createLuaObject(LuaObjectDescriptor *objectDescripto
     LuaExportTypeDescriptor *typeDescriptor = objectDescriptor -> getTypeDescriptor();
     if (typeDescriptor)
     {
-        lua_State *state = _context -> getCurrentSession() -> getState();
-        
-        //getGlobal可以使类型自动导入
-        LuaEngineAdapter::getGlobal(state, typeDescriptor -> typeName().c_str());
-        LuaEngineAdapter::pop(state, 1);
+        _context -> getOperationQueue() -> performAction([this, typeDescriptor](){
+
+            lua_State *state = _context -> getCurrentSession() -> getState();
+
+            //getGlobal可以使类型自动导入
+            LuaEngineAdapter::getGlobal(state, typeDescriptor -> typeName().c_str());
+            LuaEngineAdapter::pop(state, 1);
+
+        });
 
         _initLuaObject(objectDescriptor);
     }
@@ -1167,144 +1193,160 @@ void LuaExportsTypeManager::createLuaObject(LuaObjectDescriptor *objectDescripto
 
 void LuaExportsTypeManager::_initLuaObject(LuaObjectDescriptor *objectDescriptor)
 {
-    lua_State *state = _context -> getCurrentSession() -> getState();
-    int errFuncIndex = _context -> catchException();
+    _context -> getOperationQueue() -> performAction([this, objectDescriptor](){
 
-    _bindLuaInstance(objectDescriptor);
-    
-    //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
-    //调用实例对象的init方法
-    LuaEngineAdapter::getField(state, -1, "init");
-    if (LuaEngineAdapter::isFunction(state, -1))
-    {
-        LuaEngineAdapter::pushValue(state, -2);
-        
-        //将create传入的参数传递给init方法
-        //-4 代表有4个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象, 错误捕获方法
-        int paramCount = LuaEngineAdapter::getTop(state) - 4;
-        //从索引2开始传入参数，ver2.2后使用冒号调用create方法，忽略第一个参数self
-        for (int i = 2; i <= paramCount; i++)
+        lua_State *state = _context -> getCurrentSession() -> getState();
+        int errFuncIndex = _context -> catchException();
+
+        _bindLuaInstance(objectDescriptor);
+
+        //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
+        //调用实例对象的init方法
+        LuaEngineAdapter::getField(state, -1, "init");
+        if (LuaEngineAdapter::isFunction(state, -1))
         {
-            LuaEngineAdapter::pushValue(state, i);
+            LuaEngineAdapter::pushValue(state, -2);
+
+            //将create传入的参数传递给init方法
+            //-4 代表有4个非参数值在栈中，由栈顶开始计算，分别是：实例对象，init方法，实例对象, 错误捕获方法
+            int paramCount = LuaEngineAdapter::getTop(state) - 4;
+            //从索引2开始传入参数，ver2.2后使用冒号调用create方法，忽略第一个参数self
+            for (int i = 2; i <= paramCount; i++)
+            {
+                LuaEngineAdapter::pushValue(state, i);
+            }
+
+            LuaEngineAdapter::pCall(state, paramCount, 0, errFuncIndex);
         }
-        
-        LuaEngineAdapter::pCall(state, paramCount, 0, errFuncIndex);
-    }
-    else
-    {
-        LuaEngineAdapter::pop(state, 1);    //出栈init方法
-    }
-    
-    LuaEngineAdapter::remove(state, errFuncIndex); //出栈异常捕获方法
+        else
+        {
+            LuaEngineAdapter::pop(state, 1);    //出栈init方法
+        }
+
+        LuaEngineAdapter::remove(state, errFuncIndex); //出栈异常捕获方法
+
+    });
+
 }
 
 void LuaExportsTypeManager::_bindLuaInstance(LuaObjectDescriptor *objectDescriptor)
 {
-    lua_State *state = _context -> getCurrentSession() -> getState();
+    _context -> getOperationQueue() -> performAction([this, objectDescriptor](){
 
-    //先为实例对象在lua中创建内存
-    LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::newUserdata(state, sizeof(LuaUserdataRef));
+        lua_State *state = _context -> getCurrentSession() -> getState();
 
-    if (objectDescriptor != NULL)
-    {
-        //创建本地实例对象，赋予lua的内存块并进行保留引用
-        ref -> value = objectDescriptor;
-        
-        //引用对象
-        objectDescriptor -> retain();
-    }
-    
-    //创建一个临时table作为元表，用于在lua上动态添加属性或方法
-    LuaEngineAdapter::newTable(state);
+        //先为实例对象在lua中创建内存
+        LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::newUserdata(state, sizeof(LuaUserdataRef));
 
-    //设置__index元方法为路由方法，用于检测对象的属性
-    LuaEngineAdapter::pushLightUserdata(state, this);
-    LuaEngineAdapter::pushLightUserdata(state, objectDescriptor);
-    LuaEngineAdapter::pushCClosure(state, instanceIndexHandler, 2);
-    LuaEngineAdapter::setField(state, -2, "__index");
+        if (objectDescriptor != NULL)
+        {
+            //创建本地实例对象，赋予lua的内存块并进行保留引用
+            ref -> value = objectDescriptor;
 
-    LuaEngineAdapter::pushLightUserdata(state, this);
-    LuaEngineAdapter::pushLightUserdata(state, objectDescriptor);
-    LuaEngineAdapter::pushCClosure(state, instanceNewIndexHandler, 2);
-    LuaEngineAdapter::setField(state, -2, "__newindex");
+            //引用对象
+            objectDescriptor -> retain();
+        }
 
-    LuaEngineAdapter::pushLightUserdata(state, this);
-    LuaEngineAdapter::pushCClosure(state, objectDestroyHandler, 1);
-    LuaEngineAdapter::setField(state, -2, "__gc");
+        //创建一个临时table作为元表，用于在lua上动态添加属性或方法
+        LuaEngineAdapter::newTable(state);
 
-    LuaEngineAdapter::pushLightUserdata(state, this);
-    LuaEngineAdapter::pushCClosure(state, objectToStringHandler, 1);
-    LuaEngineAdapter::setField(state, -2, "__tostring");
+        //设置__index元方法为路由方法，用于检测对象的属性
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushLightUserdata(state, objectDescriptor);
+        LuaEngineAdapter::pushCClosure(state, instanceIndexHandler, 2);
+        LuaEngineAdapter::setField(state, -2, "__index");
 
-    LuaEngineAdapter::pushValue(state, -1);
-    LuaEngineAdapter::setMetatable(state, -3);
-    
-    LuaEngineAdapter::getMetatable(state, objectDescriptor -> getTypeDescriptor() -> prototypeTypeName().c_str());
-    if (LuaEngineAdapter::isTable(state, -1))
-    {
-        LuaEngineAdapter::setMetatable(state, -2);
-    }
-    else
-    {
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushLightUserdata(state, objectDescriptor);
+        LuaEngineAdapter::pushCClosure(state, instanceNewIndexHandler, 2);
+        LuaEngineAdapter::setField(state, -2, "__newindex");
+
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushCClosure(state, objectDestroyHandler, 1);
+        LuaEngineAdapter::setField(state, -2, "__gc");
+
+        LuaEngineAdapter::pushLightUserdata(state, this);
+        LuaEngineAdapter::pushCClosure(state, objectToStringHandler, 1);
+        LuaEngineAdapter::setField(state, -2, "__tostring");
+
+        LuaEngineAdapter::pushValue(state, -1);
+        LuaEngineAdapter::setMetatable(state, -3);
+
+        LuaEngineAdapter::getMetatable(state, objectDescriptor -> getTypeDescriptor() -> prototypeTypeName().c_str());
+        if (LuaEngineAdapter::isTable(state, -1))
+        {
+            LuaEngineAdapter::setMetatable(state, -2);
+        }
+        else
+        {
+            LuaEngineAdapter::pop(state, 1);
+        }
+
         LuaEngineAdapter::pop(state, 1);
-    }
 
-    LuaEngineAdapter::pop(state, 1);
-    
-    //将创建对象放入到_vars_表中，主要修复对象创建后，在init中调用方法或者访问属性，由于对象尚未记录在_vars_中，而循环创建lua对象，并导致栈溢出。
-    this -> context() -> getDataExchanger() -> setLuaObject(-1, objectDescriptor -> getExchangeId());
+        //将创建对象放入到_vars_表中，主要修复对象创建后，在init中调用方法或者访问属性，由于对象尚未记录在_vars_中，而循环创建lua对象，并导致栈溢出。
+        this -> context() -> getDataExchanger() -> setLuaObject(-1, objectDescriptor -> getExchangeId());
+
+    });
 }
 
 int LuaExportsTypeManager::_getInstancePropertyValue(LuaSession *session,
                                                      LuaObjectDescriptor *instance,
                                                      LuaExportTypeDescriptor *typeDescriptor,
-                                                     std::string propertyName)
+                                                     std::string const& propertyName)
 {
     int retValueCount = 1;
-    lua_State *state = session -> getState();
     if (typeDescriptor != NULL)
     {
-        LuaEngineAdapter::getMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
-        LuaEngineAdapter::pushString(state, propertyName.c_str());
-        LuaEngineAdapter::rawGet(state, -2);
+        _context -> getOperationQueue() -> performAction([=, &retValueCount](){
 
-        if (LuaEngineAdapter::isNil(state, -1))
-        {
-            LuaEngineAdapter::pop(state, 1);
+            lua_State *state = session -> getState();
 
-            //不存在
-            LuaExportPropertyDescriptor *propertyDescriptor = typeDescriptor -> getProperty(propertyName);
-            if (propertyDescriptor == NULL)
+            LuaEngineAdapter::getMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
+            LuaEngineAdapter::pushString(state, propertyName.c_str());
+            LuaEngineAdapter::rawGet(state, -2);
+
+            if (LuaEngineAdapter::isNil(state, -1))
             {
-                if (typeDescriptor -> parentTypeDescriptor() != NULL)
+                LuaEngineAdapter::pop(state, 1);
+
+                //不存在
+                LuaExportPropertyDescriptor *propertyDescriptor = typeDescriptor -> getProperty(propertyName);
+                if (propertyDescriptor == NULL)
                 {
-                    //递归父类
-                    retValueCount = _getInstancePropertyValue(
-                            session,
-                            instance,
-                            typeDescriptor -> parentTypeDescriptor(),
-                            propertyName);
+                    if (typeDescriptor -> parentTypeDescriptor() != NULL)
+                    {
+                        //递归父类
+                        retValueCount = _getInstancePropertyValue(
+                                session,
+                                instance,
+                                typeDescriptor -> parentTypeDescriptor(),
+                                propertyName);
+                    }
+                    else
+                    {
+                        LuaEngineAdapter::pushNil(state);
+                    }
                 }
                 else
                 {
-                    LuaEngineAdapter::pushNil(state);
+                    if (propertyDescriptor -> canRead())
+                    {
+                        LuaValue *retValue = propertyDescriptor -> invokeGetter(session, instance);
+                        retValueCount = session -> setReturnValue(retValue);
+                    }
+                    else
+                    {
+                        LuaEngineAdapter::pushNil(state);
+                    }
                 }
             }
-            else
-            {
-                if (propertyDescriptor -> canRead())
-                {
-                    LuaValue *retValue = propertyDescriptor -> invokeGetter(session, instance);
-                    retValueCount = session -> setReturnValue(retValue);
-                }
-                else
-                {
-                    LuaEngineAdapter::pushNil(state);
-                }
-            }
-        }
 
-        LuaEngineAdapter::remove(state, -1-retValueCount);
+            LuaEngineAdapter::remove(state, -1-retValueCount);
+
+        });
+
+
     }
 
     return retValueCount;
@@ -1313,31 +1355,38 @@ int LuaExportsTypeManager::_getInstancePropertyValue(LuaSession *session,
 
 LuaExportPropertyDescriptor* LuaExportsTypeManager::_findInstanceProperty(LuaSession *session,
                                                                           LuaExportTypeDescriptor *typeDescriptor,
-                                                                          std::string propertyName)
+                                                                          std::string const& propertyName)
 {
     LuaExportPropertyDescriptor *propertyDescriptor = NULL;
-    lua_State *state = session -> getState();
     if (typeDescriptor != NULL)
     {
-        LuaEngineAdapter::getMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
-        LuaEngineAdapter::pushString(state, propertyName.c_str());
-        LuaEngineAdapter::rawGet(state, -2);
+        _context -> getOperationQueue() -> performAction([=, &propertyDescriptor](){
 
-        if (LuaEngineAdapter::isNil(state, -1))
-        {
-            //不存在
-            propertyDescriptor = typeDescriptor -> getProperty(propertyName);
-            if (propertyDescriptor == NULL)
+            lua_State *state = session -> getState();
+
+            LuaEngineAdapter::getMetatable(state, typeDescriptor -> prototypeTypeName().c_str());
+            LuaEngineAdapter::pushString(state, propertyName.c_str());
+            LuaEngineAdapter::rawGet(state, -2);
+
+            if (LuaEngineAdapter::isNil(state, -1))
             {
-                if (typeDescriptor -> parentTypeDescriptor() != NULL)
+                //不存在
+                propertyDescriptor = typeDescriptor -> getProperty(propertyName);
+                if (propertyDescriptor == NULL)
                 {
-                    //递归父类
-                    propertyDescriptor = _findInstanceProperty(session, typeDescriptor -> parentTypeDescriptor(), propertyName);
+                    if (typeDescriptor -> parentTypeDescriptor() != NULL)
+                    {
+                        //递归父类
+                        propertyDescriptor = _findInstanceProperty(session, typeDescriptor -> parentTypeDescriptor(), propertyName);
+                    }
                 }
             }
-        }
 
-        LuaEngineAdapter::pop(state, 2);
+            LuaEngineAdapter::pop(state, 2);
+
+        });
+
+
     }
 
     return propertyDescriptor;

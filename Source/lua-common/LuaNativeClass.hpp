@@ -47,7 +47,7 @@ namespace cn
                 CreateInstanceByDecoderHandler _createInstanceByDecoderHandler;
 
             public:
-                LuaNativeClass(std::string className,
+                LuaNativeClass(std::string const& className,
                                CreateInstanceByDecoderHandler createInstanceByDecoderHandler);
                 
             public:
@@ -68,7 +68,7 @@ namespace cn
                  @param className 类名称
                  @param nativeClass 类型
                  */
-                static void registerClass(std::string className, LuaNativeClass* nativeClass);
+                static void registerClass(std::string const& className, LuaNativeClass* nativeClass);
                 
                 
                 /**
@@ -77,7 +77,7 @@ namespace cn
                  @param className 类名称
                  @return 类型
                  */
-                static LuaNativeClass* findClass(std::string className);
+                static LuaNativeClass* findClass(std::string const& className);
             };
         }
     }

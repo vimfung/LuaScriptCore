@@ -16,12 +16,12 @@ LuaNativeClassFactory& LuaNativeClassFactory::shareInstance()
     return factory;
 }
 
-void LuaNativeClassFactory::registerClass(std::string className, LuaNativeClass* nativeClass)
+void LuaNativeClassFactory::registerClass(std::string const& className, LuaNativeClass* nativeClass)
 {
     _classMap[className] = nativeClass;
 }
 
-LuaNativeClass* LuaNativeClassFactory::findClass(std::string className)
+LuaNativeClass* LuaNativeClassFactory::findClass(std::string const& className)
 {
     LuaClassMap::iterator it = _classMap.find(className);
     if (it != _classMap.end())

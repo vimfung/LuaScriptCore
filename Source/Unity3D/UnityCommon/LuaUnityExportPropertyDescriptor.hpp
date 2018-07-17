@@ -31,7 +31,7 @@ public:
      @param getterHandler getter处理器
      @param setterHandler  setter处理器
      */
-    LuaUnityExportPropertyDescriptor(std::string name,
+    LuaUnityExportPropertyDescriptor(std::string const& name,
                                      bool canRead,
                                      bool canWrite,
                                      LuaInstanceFieldGetterHandlerPtr getterHandler,

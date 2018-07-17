@@ -96,7 +96,7 @@ namespace cn
                  *
                  * @param value 字符串
                  */
-                LuaValue (std::string value);
+                LuaValue (std::string const& value);
 
                 /**
                  * 初始化
@@ -325,7 +325,7 @@ namespace cn
                  *
                  * @return 值对象
                  */
-                static LuaValue* StringValue(std::string value);
+                static LuaValue* StringValue(std::string const& value);
 
                 /**
                  * 创建一个二进制数组值对象

@@ -53,7 +53,7 @@ extern "C" {
      @param arguments 参数列表
      @return 返回值
      */
-    static LuaValue* luaMethodHandler(LuaContext *context, std::string methodName, LuaArgumentList arguments)
+    static LuaValue* luaMethodHandler(LuaContext *context, std::string const& methodName, LuaArgumentList arguments)
     {
         LuaMethodPtrMap methodPtrMap = _luaMethodPtrMap[context -> objectId()];
         LuaMethodPtrMap::iterator it = methodPtrMap.find(methodName);
@@ -105,7 +105,7 @@ extern "C" {
      @param context 上下文对象
      @param typeName 类型名称
      */
-    static void luaExportsNativeTypeHandler(LuaContext *context, std::string typeName)
+    static void luaExportsNativeTypeHandler(LuaContext *context, std::string const& typeName)
     {
         if (!typeName.empty() && typeName[0] != '_')
         {
@@ -119,7 +119,7 @@ extern "C" {
      @param context 上下文对象
      @param errMessage 错误信息
      */
-    static void luaExceptionHandler(LuaContext *context, std::string errMessage)
+    static void luaExceptionHandler(LuaContext *context, std::string const& errMessage)
     {
         LuaExceptionHandlerPtr handlerPtr = _luaExceptionPtrMap[context -> objectId()];
         if (handlerPtr != NULL)

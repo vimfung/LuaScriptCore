@@ -39,7 +39,7 @@ namespace cn
                  @param canRead 是否能读
                  @param canWrite 是否能写
                  */
-                LuaExportPropertyDescriptor(std::string name, bool canRead, bool canWrite);
+                LuaExportPropertyDescriptor(std::string const& name, bool canRead, bool canWrite);
                 
                 /**
                  初始化
@@ -48,7 +48,7 @@ namespace cn
                  @param getter 获取处理器
                  @param setter 设置处理器
                  */
-                LuaExportPropertyDescriptor(std::string name, LuaFunction *getter, LuaFunction *setter);
+                LuaExportPropertyDescriptor(std::string const& name, LuaFunction *getter, LuaFunction *setter);
                 
                 /**
                  销毁对象

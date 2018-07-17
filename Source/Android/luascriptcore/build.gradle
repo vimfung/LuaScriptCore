@@ -2,5 +2,5 @@ apply from: './compile.gradle'
 //apply from: './compile-5.1.5.gradle'    //lua 5.1.5 版本
 
 android {
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '27.0.3'
 }

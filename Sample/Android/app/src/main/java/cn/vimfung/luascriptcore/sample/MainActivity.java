@@ -1,10 +1,9 @@
 package cn.vimfung.luascriptcore.sample;
 
-import android.app.Application;
-import android.bluetooth.BluetoothClass;
+import android.annotation.SuppressLint;
 import android.os.Build;
-import android.os.Debug;
-import android.provider.Settings;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,14 +15,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
+import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.concurrent.locks.ReentrantLock;
 
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaExceptionHandler;
-import cn.vimfung.luascriptcore.LuaFunction;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
 import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
@@ -31,6 +29,7 @@ import cn.vimfung.luascriptcore.LuaValue;
 
 public class MainActivity extends AppCompatActivity {
 
+    final Object obj = new Object();
     private LuaContext _luaContext;
     private boolean _hasRegMethod;
     private boolean _hasRegModule;
@@ -46,18 +45,10 @@ public class MainActivity extends AppCompatActivity {
         //创建LuaContext
         Env.setup(this);
         _luaContext = Env.defaultContext();
-        _luaContext.registerMethod("testThreadFun", new LuaMethodHandler() {
-            @Override
-            public LuaValue onExecute(LuaValue[] arguments) {
-
-                return new LuaValue(new byte[1024 * 1024]);
-
-            }
-        });
-
         _luaContext.onException(new LuaExceptionHandler() {
             @Override
             public void onException(String message) {
+
 
                 Log.v("lua exception log", message);
 
@@ -65,29 +56,21 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //解析脚本按钮点击
-        Button evalScriptBtn = (Button) findViewById(R.id.evalScriptButton);
+        final Button evalScriptBtn = (Button) findViewById(R.id.evalScriptButton);
         if (evalScriptBtn != null)
         {
             evalScriptBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-
-//                            LuaValue retValue = _luaContext.evalScript("print(10); return 'Hello','World';");
-//                            Log.v("luaScriptCoreSample", retValue.toString());
-                            _luaContext.evalScript("testThreadFun(); print(\"end call....\");");
-
-                        }
-                    }).start();
+                    LuaValue retValue = _luaContext.evalScript("print(10);return 'Hello World';");
+                    Log.v("lsc", retValue.toString());
                 }
             });
         }
 
         //注册方法按钮点击
-        Button regMethodBtn = (Button) findViewById(R.id.regMethodButton);
+        final Button regMethodBtn = (Button) findViewById(R.id.regMethodButton);
         if (regMethodBtn != null)
         {
             regMethodBtn.setOnClickListener(new View.OnClickListener() {
@@ -98,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
                     {
                         //注册方法
                         _luaContext.registerMethod("getDeviceInfo", new LuaMethodHandler() {
+                            @SuppressLint("SetTextI18n")
                             @Override
                             public LuaValue onExecute(LuaValue[] arguments) {
 
@@ -106,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
                                 devInfoMap.put("deviceModel", Build.MODEL);
                                 devInfoMap.put("systemName", Build.PRODUCT);
                                 devInfoMap.put("systemVersion", Build.VERSION.RELEASE);
+
+                                regMethodBtn.setText("Hello World!");
 
                                 return new LuaValue(devInfoMap);
 
@@ -168,9 +154,9 @@ public class MainActivity extends AppCompatActivity {
             regClsBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("local p = Person:createPersonError(); print(p);");
-//                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
-//                    _luaContext.evalScript("print(Person); local obj = Person:createObj(); Person:CheckObj(obj);");
+//                    _luaContext.evalScript("local p = Person:createPersonError(); print(p);");
+                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
+                    _luaContext.evalScript("print(Person); local obj = Person:createObj(); Person:CheckObj(obj);");
                 }
             });
         }

@@ -42,7 +42,7 @@ namespace cn {
                  @param context 上下文对象
                  @param platform 平台类型
                  */
-                LuaExportsTypeManager(LuaContext *context, std::string platform);
+                LuaExportsTypeManager(LuaContext *context, std::string const& platform);
                 
                 /**
                  销毁对象
@@ -62,7 +62,7 @@ namespace cn {
                  @param name 类型名称
                  @return 类型描述对象
                  */
-                LuaExportTypeDescriptor* getExportTypeDescriptor(std::string name);
+                LuaExportTypeDescriptor* getExportTypeDescriptor(std::string const& name);
 
                 /**
                  导出类型
@@ -87,28 +87,28 @@ namespace cn {
                  * @param alias 别名
                  * @return  true 映射成功，否则失败
                  */
-                bool _mappingType(std::string platform, std::string name, std::string alias);
+                bool _mappingType(std::string const& platform, std::string const& name, std::string const& alias);
 
                 /**
                  * 获取类型完整名称
                  * @param name 映射类型名称
                  * @return 完整的类型名称
                  */
-                std::string _getTypeFullName(std::string name);
+                std::string _getTypeFullName(std::string const& name);
 
                 /**
                  * 创建类型描述
                  * @param name  类型名称
                  * @return 类型描述对象
                  */
-                LuaExportTypeDescriptor* _createTypeDescriptor(std::string name);
+                LuaExportTypeDescriptor* _createTypeDescriptor(std::string const& name);
 
                 /**
                  * 获取映射类型
                  * @param name  类型名称
                  * @return 类型描述对象
                  */
-                LuaExportTypeDescriptor* _getMappingType(std::string name);
+                LuaExportTypeDescriptor* _getMappingType(std::string const& name);
                 
                 /**
                  初始化Lua对象
@@ -145,7 +145,7 @@ namespace cn {
                 int _getInstancePropertyValue(LuaSession *session,
                                                 LuaObjectDescriptor *instance,
                                                 LuaExportTypeDescriptor *typeDescriptor,
-                                                std::string propertyName);
+                                                std::string const& propertyName);
 
                 /**
                  * 查找实例属性
@@ -157,7 +157,7 @@ namespace cn {
                  */
                 LuaExportPropertyDescriptor* _findInstanceProperty(LuaSession *session,
                                                                    LuaExportTypeDescriptor *typeDescriptor,
-                                                                   std::string propertyName);
+                                                                   std::string const& propertyName);
                 
             private:
                 

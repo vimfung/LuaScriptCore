@@ -51,7 +51,7 @@ namespace cn {
                  @param nativeTypeName 原生类型名称
                  @param parentTypeDescriptor 父级类型
                  */
-                LuaExportTypeDescriptor (std::string &nativeTypeName, LuaExportTypeDescriptor *parentTypeDescriptor);
+                LuaExportTypeDescriptor (std::string const& nativeTypeName, LuaExportTypeDescriptor *parentTypeDescriptor);
                 
                 /**
                  析构对象
@@ -113,7 +113,7 @@ namespace cn {
                  @param methodName 类方法名称
                  @param methodDescriptor 方法描述对象
                  */
-                void addClassMethod(std::string methodName, LuaExportMethodDescriptor *methodDescriptor);
+                void addClassMethod(std::string const& methodName, LuaExportMethodDescriptor *methodDescriptor);
                 
                 /**
                  添加实例方法
@@ -121,7 +121,7 @@ namespace cn {
                  @param methodName 方法名称
                  @param methodDescriptor 方法描述对象
                  */
-                void addInstanceMethod(std::string methodName, LuaExportMethodDescriptor *methodDescriptor);
+                void addInstanceMethod(std::string const& methodName, LuaExportMethodDescriptor *methodDescriptor);
                 
                 /**
                  添加属性
@@ -129,7 +129,7 @@ namespace cn {
                  @param propertyName 属性名称
                  @param propertyDescriptor 属性描述对象
                  */
-                void addProperty(std::string propertyName, LuaExportPropertyDescriptor *propertyDescriptor);
+                void addProperty(std::string const& propertyName, LuaExportPropertyDescriptor *propertyDescriptor);
                 
                 /**
                  获取类方法
@@ -138,7 +138,7 @@ namespace cn {
                  @param arguments 传入参数
                  @return 方法描述
                  */
-                LuaExportMethodDescriptor* getClassMethod(std::string methodName, LuaArgumentList arguments);
+                LuaExportMethodDescriptor* getClassMethod(std::string const& methodName, LuaArgumentList arguments);
                 
                 /**
                  获取实例方法
@@ -147,7 +147,7 @@ namespace cn {
                  @param arguments 传入参数
                  @return 方法描述
                  */
-                LuaExportMethodDescriptor* getInstanceMethod(std::string methodName, LuaArgumentList arguments);
+                LuaExportMethodDescriptor* getInstanceMethod(std::string const& methodName, LuaArgumentList arguments);
                 
                 /**
                  获取属性
@@ -155,7 +155,7 @@ namespace cn {
                  @param propertyName 属性名称
                  @return 属性对象
                  */
-                LuaExportPropertyDescriptor* getProperty(std::string propertyName);
+                LuaExportPropertyDescriptor* getProperty(std::string const& propertyName);
                 
             public:
                 
@@ -182,7 +182,7 @@ namespace cn {
                  @param subTypeName 子类型名称
                  @return 类型
                  */
-                virtual LuaExportTypeDescriptor* createSubType(LuaSession *session, std::string subTypeName);
+                virtual LuaExportTypeDescriptor* createSubType(LuaSession *session, std::string const& subTypeName);
                 
             private:
 
@@ -234,7 +234,7 @@ namespace cn {
                  @param isStatic 是否为静态方法
                  @return 方法描述
                  */
-                LuaExportMethodDescriptor* filterMethod(std::string methodName, LuaArgumentList arguments, bool isStatic);
+                LuaExportMethodDescriptor* filterMethod(std::string const& methodName, LuaArgumentList arguments, bool isStatic);
             };
             
         }

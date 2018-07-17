@@ -12,7 +12,7 @@
 
 using namespace cn::vimfung::luascriptcore;
 
-LuaNativeClass::LuaNativeClass(std::string className,
+LuaNativeClass::LuaNativeClass(std::string const& className,
                                CreateInstanceByDecoderHandler createInstanceByDecoderHandler)
 {
     _className = className;
@@ -31,12 +31,12 @@ void* LuaNativeClass::createInstance(LuaObjectDecoder *decoder)
     return NULL;
 }
 
-void LuaNativeClass::registerClass(std::string className, LuaNativeClass* nativeClass)
+void LuaNativeClass::registerClass(std::string const& className, LuaNativeClass* nativeClass)
 {
     LuaNativeClassFactory::shareInstance().registerClass(className, nativeClass);
 }
 
-LuaNativeClass* LuaNativeClass::findClass(std::string className)
+LuaNativeClass* LuaNativeClass::findClass(std::string const& className)
 {
     return LuaNativeClassFactory::shareInstance().findClass(className);
 }

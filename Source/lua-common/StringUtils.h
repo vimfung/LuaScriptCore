@@ -30,7 +30,7 @@ namespace cn
                  *
                  * @return 替换后的文本内容
                  */
-                static std::string replace (std::string text, std::string str, std::string replacement);
+                static std::string replace (std::string const& text, std::string const& str, std::string const& replacement);
                 
                 
 
@@ -52,7 +52,7 @@ namespace cn
                  @param repeatedCharIgnored 是否忽视待分割字符串中的重复分隔符，也就是说如果忽视，那么多个连续分隔符将被视为一个分隔符
                  @return 分割后字符串数组
                  */
-                static std::deque<std::string> split(std::string text, std::string delimStr, bool repeatedCharIgnored);
+                static std::deque<std::string> split(std::string text, std::string const& delimStr, bool repeatedCharIgnored);
             };
         }
     }

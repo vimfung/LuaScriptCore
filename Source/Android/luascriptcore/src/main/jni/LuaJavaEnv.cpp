@@ -106,7 +106,7 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
 /**
  * Lua异常处理器
  */
-static void _luaExceptionHandler (LuaContext *context, std::string message)
+static void _luaExceptionHandler (LuaContext *context, std::string const& message)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
@@ -129,7 +129,7 @@ static void _luaExceptionHandler (LuaContext *context, std::string message)
     LuaJavaEnv::resetEnv(env);
 }
 
-static void _luaExportsNativeTypeHandler(LuaContext *context, std::string typeName)
+static void _luaExportsNativeTypeHandler(LuaContext *context, std::string const& typeName)
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
@@ -168,15 +168,12 @@ JNIEnv* LuaJavaEnv::getEnv()
             status = _javaVM -> AttachCurrentThread(&_env, NULL);
             if(status >= 0)
             {
-                _envRetainCount ++;
                 _attatedThread = true;
             }
         }
-        else
-        {
-            _envRetainCount ++;
-        }
     }
+
+    _envRetainCount ++;
 
     return _env;
 }
@@ -366,4 +363,9 @@ jobject LuaJavaEnv::getExportTypeManager(JNIEnv *env)
 
     jmethodID defaultManagerMethodId = env -> GetStaticMethodID(exportTypeManagerCls, "getDefaultManager", "()Lcn/vimfung/luascriptcore/LuaExportTypeManager;");
     return env -> CallStaticObjectMethod(exportTypeManagerCls, defaultManagerMethodId);
+}
+
+jclass LuaJavaEnv::findClass(JNIEnv *env, std::string className)
+{
+    return env -> FindClass(className.c_str());
 }

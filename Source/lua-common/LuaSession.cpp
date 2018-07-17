@@ -6,6 +6,7 @@
 #include "LuaValue.h"
 #include "LuaTuple.h"
 #include "LuaEngineAdapter.hpp"
+#include "LuaOperationQueue.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -40,15 +41,20 @@ void LuaSession::parseArguments(LuaArgumentList &argumentList)
 
 void LuaSession::parseArguments(LuaArgumentList &argumentList, int fromIndex)
 {
-    int top = LuaEngineAdapter::getTop(_state);
-    if (top >= fromIndex)
-    {
-        for (int i = fromIndex; i <= top; i++)
+    _context -> getOperationQueue() -> performAction([=, &argumentList](){
+
+        int top = LuaEngineAdapter::getTop(_state);
+        if (top >= fromIndex)
         {
-            LuaValue *value = LuaValue::ValueByIndex(_context, i);
-            argumentList.push_back(value);
+            for (int i = fromIndex; i <= top; i++)
+            {
+                LuaValue *value = LuaValue::ValueByIndex(_context, i);
+                argumentList.push_back(value);
+            }
         }
-    }
+
+    });
+
 }
 
 
@@ -70,7 +76,9 @@ int LuaSession::setReturnValue(LuaValue *value)
     }
     else
     {
-        LuaEngineAdapter::pushNil(_state);
+        _context -> getOperationQueue() -> performAction([=](){
+            LuaEngineAdapter::pushNil(_state);
+        });
     }
 
     return count;
@@ -83,12 +91,15 @@ void LuaSession::checkException()
         //清空错误信息
         _hasErr = false;
 
-        LuaEngineAdapter::error(getState(), _lastErrMsg.c_str());
+        _context -> getOperationQueue() -> performAction([=](){
+            LuaEngineAdapter::error(getState(), _lastErrMsg.c_str());
+        });
+
         _lastErrMsg = "";
     }
 }
 
-void LuaSession::reportLuaException(std::string message)
+void LuaSession::reportLuaException(std::string const& message)
 {
     _hasErr = true;
     _lastErrMsg = message;

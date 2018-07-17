@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 24
-    buildToolsVersion '26.0.2'
+    buildToolsVersion '27.0.3'
     publishNonDefault true
 
     defaultConfig {
@@ -42,6 +42,7 @@ android {
         }
 
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -50,6 +51,7 @@ android {
         debug {
             jniDebuggable true
         }
+
     }
     sourceSets {
         main {

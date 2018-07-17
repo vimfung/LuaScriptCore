@@ -97,7 +97,7 @@ namespace cn {
                  * 报告Lua异常，与checkException配合使用可以让Lua中断执行
                  * @param message 异常描述消息
                  */
-                void reportLuaException(std::string message);
+                void reportLuaException(std::string const& message);
 
                 /**
                  * 检测异常，如果存在异常则进行中断lua执行

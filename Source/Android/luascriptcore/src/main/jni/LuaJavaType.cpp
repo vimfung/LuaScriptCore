@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include "LuaJavaType.h"
+#include "LuaJavaEnv.h"
 
 jclass LuaJavaType::fieldClass(JNIEnv *env)
 {
@@ -11,7 +12,7 @@ jclass LuaJavaType::fieldClass(JNIEnv *env)
 
     if (fieldClass == NULL)
     {
-        jclass jTmpClass = env -> FindClass("java/lang/reflect/Field");
+        jclass jTmpClass = LuaJavaEnv::findClass(env, "java/lang/reflect/Field");
         fieldClass = (jclass)env -> NewGlobalRef(jTmpClass);
         env -> DeleteLocalRef(jTmpClass);
     }
@@ -25,7 +26,7 @@ jclass LuaJavaType::methodClass(JNIEnv *env)
 
     if (methodClass == NULL)
     {
-        jclass jTmpClass = env -> FindClass("java/lang/reflect/Method");
+        jclass jTmpClass = LuaJavaEnv::findClass(env, "java/lang/reflect/Method");
         methodClass = (jclass)env -> NewGlobalRef(jTmpClass);
         env -> DeleteLocalRef(jTmpClass);
     }
@@ -39,7 +40,7 @@ jclass LuaJavaType::contextClass(JNIEnv *env)
 
     if (jLuaContext == NULL)
     {
-        jclass jLuaContextCls = env -> FindClass("cn/vimfung/luascriptcore/LuaContext");
+        jclass jLuaContextCls = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaContext");
         jLuaContext = (jclass)env -> NewGlobalRef(jLuaContextCls);
         env -> DeleteLocalRef(jLuaContextCls);
     }
@@ -53,7 +54,7 @@ jclass LuaJavaType::moduleClass(JNIEnv *env)
 
     if (jLuaModule == NULL)
     {
-        jclass jTmpClass = env -> FindClass("cn/vimfung/luascriptcore/LuaModule");
+        jclass jTmpClass = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaModule");
         jLuaModule = (jclass)env -> NewGlobalRef(jTmpClass);
         env -> DeleteLocalRef(jTmpClass);
     }
@@ -67,7 +68,7 @@ jclass LuaJavaType::luaValueClass(JNIEnv *env)
 
     if (jLuaValue == NULL)
     {
-        jclass jLuaValueCls = env -> FindClass("cn/vimfung/luascriptcore/LuaValue");
+        jclass jLuaValueCls = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaValue");
         jLuaValue = (jclass)env -> NewGlobalRef(jLuaValueCls);
         env -> DeleteLocalRef(jLuaValueCls);
     }
@@ -81,7 +82,7 @@ jclass LuaJavaType::luaValueTypeClass(JNIEnv *env)
 
     if (jLuaValueType == NULL)
     {
-        jclass jLuaValueCls = env -> FindClass("cn/vimfung/luascriptcore/LuaValueType");
+        jclass jLuaValueCls = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaValueType");
         jLuaValueType = (jclass)env -> NewGlobalRef(jLuaValueCls);
         env -> DeleteLocalRef(jLuaValueCls);
     }
@@ -95,7 +96,7 @@ jclass LuaJavaType::stringClass(JNIEnv *env)
 
     if (jStringCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("java/lang/String");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "java/lang/String");
         jStringCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -109,7 +110,7 @@ jclass LuaJavaType::shortClass(JNIEnv *env)
 
     if (jShortCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("java/lang/Short");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "java/lang/Short");
         jShortCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -123,7 +124,7 @@ jclass LuaJavaType::integerClass(JNIEnv *env)
 
     if (jIntegerCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("java/lang/Integer");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "java/lang/Integer");
         jIntegerCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -137,7 +138,7 @@ jclass LuaJavaType::doubleClass(JNIEnv *env)
 
     if (jDoubleCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("java/lang/Double");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "java/lang/Double");
         jDoubleCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -151,7 +152,7 @@ jclass LuaJavaType::floatClass(JNIEnv *env)
 
     if (jFloatCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("java/lang/Float");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "java/lang/Float");
         jFloatCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -165,7 +166,7 @@ jclass LuaJavaType::longClass(JNIEnv *env)
 
     if (jLongCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("java/lang/Long");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "java/lang/Long");
         jLongCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -179,7 +180,7 @@ jclass LuaJavaType::booleanClass(JNIEnv *env)
 
     if (jBooleanCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("java/lang/Boolean");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "java/lang/Boolean");
         jBooleanCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -193,7 +194,7 @@ jclass LuaJavaType::byteClass(JNIEnv *env)
 
     if (jByteCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("java/lang/Byte");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "java/lang/Byte");
         jByteCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -207,7 +208,7 @@ jclass LuaJavaType::bytesClass(JNIEnv *env)
 
     if (jByteArrayCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("[B");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[B");
         jByteArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -221,7 +222,7 @@ jclass LuaJavaType::byteArrayClass(JNIEnv *env)
 
     if (jByteArrayCls == NULL)
     {
-        jclass tmpClass = env -> FindClass("[Ljava/lang/Byte;");
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[Ljava/lang/Byte;");
         jByteArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
         env -> DeleteLocalRef(tmpClass);
     }
@@ -235,7 +236,7 @@ jclass LuaJavaType::arrayListClass(JNIEnv *env)
 
     if (jArrayList == NULL)
     {
-        jclass  jArrayListCls = env -> FindClass("java/util/ArrayList");
+        jclass  jArrayListCls = LuaJavaEnv::findClass(env, "java/util/ArrayList");
         jArrayList = (jclass)env -> NewGlobalRef(jArrayListCls);
         env -> DeleteLocalRef(jArrayListCls);
     }
@@ -249,7 +250,7 @@ jclass LuaJavaType::hashMapClass(JNIEnv *env)
 
     if (jHashMap == NULL)
     {
-        jclass jHashMapCls = env -> FindClass("java/util/HashMap");
+        jclass jHashMapCls = LuaJavaEnv::findClass(env, "java/util/HashMap");
         jHashMap = (jclass)env -> NewGlobalRef(jHashMapCls);
         env -> DeleteLocalRef(jHashMapCls);
     }
@@ -263,7 +264,7 @@ jclass LuaJavaType::luaBaseObjectClass(JNIEnv *env)
 
     if (jLuaBaseObject == NULL)
     {
-        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaBaseObject");
+        jclass jTempClass = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaBaseObject");
         jLuaBaseObject = (jclass)env -> NewGlobalRef(jTempClass);
         env -> DeleteLocalRef(jTempClass);
     }
@@ -277,7 +278,7 @@ jclass LuaJavaType::luaObjectClass(JNIEnv *env)
 
     if (jLuaObject == NULL)
     {
-        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/modules/oo/LuaObjectClass");
+        jclass jTempClass = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/modules/oo/LuaObjectClass");
         jLuaObject = (jclass)env -> NewGlobalRef(jTempClass);
         env -> DeleteLocalRef(jTempClass);
     }
@@ -291,7 +292,7 @@ jclass LuaJavaType::pointerClass(JNIEnv *env)
 
     if (jPointer == NULL)
     {
-        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaPointer");
+        jclass jTempClass = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaPointer");
         jPointer = (jclass)env -> NewGlobalRef(jTempClass);
         env -> DeleteLocalRef(jTempClass);
     }
@@ -305,7 +306,7 @@ jclass LuaJavaType::functionClass(JNIEnv *env)
 
     if (jFunction == NULL)
     {
-        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaFunction");
+        jclass jTempClass = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaFunction");
         jFunction = (jclass)env -> NewGlobalRef(jTempClass);
         env -> DeleteLocalRef(jTempClass);
     }
@@ -319,7 +320,7 @@ jclass LuaJavaType::tupleClass(JNIEnv *env)
 
     if (jTuple == NULL)
     {
-        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaTuple");
+        jclass jTempClass = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaTuple");
         jTuple = (jclass)env -> NewGlobalRef(jTempClass);
         env -> DeleteLocalRef(jTempClass);
     }
@@ -333,7 +334,7 @@ jclass LuaJavaType::exportTypeManagerClass(JNIEnv *env)
 
     if (jExportTypeManagerCls == NULL)
     {
-        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaExportTypeManager");
+        jclass jTempClass = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaExportTypeManager");
         jExportTypeManagerCls = (jclass)env -> NewGlobalRef(jTempClass);
         env -> DeleteLocalRef(jTempClass);
     }
@@ -347,7 +348,7 @@ jclass LuaJavaType::luaExportTypeClass(JNIEnv *env)
 
     if (jExportTypeCls == NULL)
     {
-        jclass jTempClass = env -> FindClass("cn/vimfung/luascriptcore/LuaExportType");
+        jclass jTempClass = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaExportType");
         jExportTypeCls = (jclass)env -> NewGlobalRef(jTempClass);
         env -> DeleteLocalRef(jTempClass);
     }

@@ -127,7 +127,7 @@ namespace cn {
                  @param key 键名称
                  @param value 键值
                  */
-                void setUserdata(std::string key, std::string value);
+                void setUserdata(std::string const& key, std::string const& value);
                 
                 /**
                  获取用户数据
@@ -135,7 +135,7 @@ namespace cn {
                  @param key 键名称
                  @return 键值
                  */
-                std::string getUserdata(std::string key);
+                std::string getUserdata(std::string const& key);
 
             public:
 

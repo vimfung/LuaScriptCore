@@ -34,7 +34,7 @@ namespace cn {
                  
                  @param methodSignature 方法签名
                  */
-                LuaExportMethodDescriptor(std::string name, std::string methodSignature);
+                LuaExportMethodDescriptor(std::string const& name, std::string const& methodSignature);
                 
                 
                 /**

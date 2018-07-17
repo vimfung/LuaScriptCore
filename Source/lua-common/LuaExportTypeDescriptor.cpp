@@ -34,7 +34,7 @@ LuaExportTypeDescriptor* LuaExportTypeDescriptor::objectTypeDescriptor()
     return objectTypeDescriptor;
 }
 
-LuaExportTypeDescriptor::LuaExportTypeDescriptor (std::string &nativeTypeName, LuaExportTypeDescriptor *parentTypeDescriptor)
+LuaExportTypeDescriptor::LuaExportTypeDescriptor (std::string const& nativeTypeName, LuaExportTypeDescriptor *parentTypeDescriptor)
 {
     //将类型中的点转换为下划线
     _nativeTypeName = nativeTypeName;
@@ -108,7 +108,7 @@ bool LuaExportTypeDescriptor::subtypeOfType(LuaExportTypeDescriptor *typeDescrip
     return false;
 }
 
-void LuaExportTypeDescriptor::addClassMethod(std::string methodName, LuaExportMethodDescriptor *methodDescriptor)
+void LuaExportTypeDescriptor::addClassMethod(std::string const& methodName, LuaExportMethodDescriptor *methodDescriptor)
 {
     std::list<LuaExportMethodDescriptor *> methods = _classMethods[methodName];
     methodDescriptor -> retain();
@@ -117,7 +117,7 @@ void LuaExportTypeDescriptor::addClassMethod(std::string methodName, LuaExportMe
     _classMethods[methodName] = methods;
 }
 
-void LuaExportTypeDescriptor::addInstanceMethod(std::string methodName, LuaExportMethodDescriptor *methodDescriptor)
+void LuaExportTypeDescriptor::addInstanceMethod(std::string const& methodName, LuaExportMethodDescriptor *methodDescriptor)
 {
     std::list<LuaExportMethodDescriptor *> methods = _instanceMethods[methodName];
     methodDescriptor -> retain();
@@ -126,7 +126,7 @@ void LuaExportTypeDescriptor::addInstanceMethod(std::string methodName, LuaExpor
     _instanceMethods[methodName] = methods;
 }
 
-void LuaExportTypeDescriptor::addProperty(std::string propertyName, LuaExportPropertyDescriptor *propertyDescriptor)
+void LuaExportTypeDescriptor::addProperty(std::string const& propertyName, LuaExportPropertyDescriptor *propertyDescriptor)
 {
     propertyDescriptor -> retain();
     propertyDescriptor -> typeDescriptor = this;
@@ -157,17 +157,17 @@ std::list<std::string> LuaExportTypeDescriptor::instanceMethodNameList()
     return nameList;
 }
 
-LuaExportMethodDescriptor* LuaExportTypeDescriptor::getClassMethod(std::string methodName, LuaArgumentList arguments)
+LuaExportMethodDescriptor* LuaExportTypeDescriptor::getClassMethod(std::string const& methodName, LuaArgumentList arguments)
 {
     return filterMethod(methodName, arguments, true);
 }
 
-LuaExportMethodDescriptor* LuaExportTypeDescriptor::getInstanceMethod(std::string methodName, LuaArgumentList arguments)
+LuaExportMethodDescriptor* LuaExportTypeDescriptor::getInstanceMethod(std::string const& methodName, LuaArgumentList arguments)
 {
     return filterMethod(methodName, arguments, false);
 }
 
-LuaExportPropertyDescriptor* LuaExportTypeDescriptor::getProperty(std::string propertyName)
+LuaExportPropertyDescriptor* LuaExportTypeDescriptor::getProperty(std::string const& propertyName)
 {
     PropertyMap::iterator it = _properties.find(propertyName);
     if (it != _properties.end())
@@ -188,12 +188,12 @@ void LuaExportTypeDescriptor::destroyInstance(LuaSession *session, LuaObjectDesc
     
 }
 
-LuaExportTypeDescriptor* LuaExportTypeDescriptor::createSubType(LuaSession *session, std::string subTypeName)
+LuaExportTypeDescriptor* LuaExportTypeDescriptor::createSubType(LuaSession *session, std::string const& subTypeName)
 {
     return new LuaExportTypeDescriptor(subTypeName, this);
 }
 
-LuaExportMethodDescriptor* LuaExportTypeDescriptor::filterMethod(std::string methodName, LuaArgumentList arguments, bool isStatic)
+LuaExportMethodDescriptor* LuaExportTypeDescriptor::filterMethod(std::string const& methodName, LuaArgumentList arguments, bool isStatic)
 {
     MethodList methodList;
     if (isStatic)

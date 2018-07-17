@@ -11,7 +11,7 @@
 
 using namespace cn::vimfung::luascriptcore;
 
-LuaExportMethodDescriptor::LuaExportMethodDescriptor(std::string name, std::string methodSignature)
+LuaExportMethodDescriptor::LuaExportMethodDescriptor(std::string const& name, std::string const& methodSignature)
 {
     _name = name;
     _methodSignature = methodSignature;

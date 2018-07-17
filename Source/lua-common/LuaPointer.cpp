@@ -13,6 +13,7 @@
 #include "StringUtils.h"
 #include "LuaContext.h"
 #include "LuaSession.h"
+#include "LuaOperationQueue.h"
 #include "lua.hpp"
 
 using namespace cn::vimfung::luascriptcore;
@@ -85,6 +86,10 @@ void LuaPointer::serialization (LuaObjectEncoder *encoder)
 
 void LuaPointer::push(LuaContext *context)
 {
-    lua_State *state = context -> getCurrentSession() -> getState();
-    LuaEngineAdapter::pushLightUserdata(state, getValue());
+    context -> getOperationQueue() -> performAction([=](){
+
+        lua_State *state = context -> getCurrentSession() -> getState();
+        LuaEngineAdapter::pushLightUserdata(state, getValue());
+
+    });
 }

@@ -16,7 +16,7 @@
 
 using namespace cn::vimfung::luascriptcore;
 
-std::string StringUtils::replace (std::string text, std::string str, std::string replacement)
+std::string StringUtils::replace (std::string const& text, std::string const& str, std::string const& replacement)
 {
     std::string ret;
 
@@ -67,11 +67,11 @@ std::string StringUtils::format (const char *format, ...)
     return str;
 }
 
-std::deque<std::string> StringUtils::split(std::string srcStr, std::string delimStr, bool repeatedCharIgnored)
+std::deque<std::string> StringUtils::split(std::string text, std::string const& delimStr, bool repeatedCharIgnored)
 {
     std::deque<std::string> resultStringVector;
-    std::replace_if(srcStr.begin(),
-                    srcStr.end(),
+    std::replace_if(text.begin(),
+                    text.end(),
                     [&](const char& c)
                     {
                         if (delimStr.find(c) != std::string::npos)
@@ -87,18 +87,18 @@ std::deque<std::string> StringUtils::split(std::string srcStr, std::string delim
                         
                     }/*pred*/,
                     delimStr.at(0));//将出现的所有分隔符都替换成为一个相同的字符（分隔符字符串的第一个）
-    size_t pos=srcStr.find(delimStr.at(0));
+    size_t pos=text.find(delimStr.at(0));
     std::string addedString="";
     while (pos!=std::string::npos)
     {
-        addedString=srcStr.substr(0,pos);
+        addedString=text.substr(0,pos);
         if (!addedString.empty()||!repeatedCharIgnored) {
             resultStringVector.push_back(addedString);
         }
-        srcStr.erase(srcStr.begin(), srcStr.begin()+pos+1);
-        pos=srcStr.find(delimStr.at(0));
+        text.erase(text.begin(), text.begin() + pos + 1);
+        pos=text.find(delimStr.at(0));
     }
-    addedString=srcStr;
+    addedString=text;
     if (!addedString.empty()||!repeatedCharIgnored) {
         resultStringVector.push_back(addedString);
     }

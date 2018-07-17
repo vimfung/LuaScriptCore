@@ -15,7 +15,7 @@
 #include "LuaObjectEncoder.hpp"
 #include <stdlib.h>
 
-LuaUnityExportPropertyDescriptor::LuaUnityExportPropertyDescriptor(std::string name,
+LuaUnityExportPropertyDescriptor::LuaUnityExportPropertyDescriptor(std::string const& name,
                                                                    bool canRead,
                                                                    bool canWrite,
                                                                    LuaInstanceFieldGetterHandlerPtr getterHandler,

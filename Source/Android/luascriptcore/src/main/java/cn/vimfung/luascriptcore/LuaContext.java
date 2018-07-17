@@ -5,12 +5,13 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Path;
+import android.os.AsyncTask;
 import android.os.Debug;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.ContactsContract;
 import android.util.Log;
-
-import org.joor.Reflect;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -128,6 +130,7 @@ public class LuaContext extends LuaBaseObject
                     try
                     {
                         String filePath = String.format("%s/lua/%s", getCacheDir(), fileName);
+//                        Log.v("lsc", String.format("======copy file = %s", filePath));
                         File file = new File(filePath);
                         File parentFile = file.getParentFile();
                         if (!parentFile.exists())
@@ -343,12 +346,14 @@ public class LuaContext extends LuaBaseObject
      */
     private LuaValue methodInvoke (String methodName, LuaValue[] arguments)
     {
+
         if (_methods.containsKey(methodName))
         {
-             return _methods.get(methodName).onExecute(arguments);
+            return _methods.get(methodName).onExecute(arguments);
         }
 
         return new LuaValue();
+
     }
 
     /**

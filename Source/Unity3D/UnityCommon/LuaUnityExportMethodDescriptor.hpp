@@ -38,7 +38,7 @@ public:
      @param methodSignature 方法签名
      @param handler  类方法处理器
      */
-    LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, LuaModuleMethodHandlerPtr handler);
+    LuaUnityExportMethodDescriptor(std::string const& name, std::string const& methodSignature, LuaModuleMethodHandlerPtr handler);
     
     /**
      初始化
@@ -47,7 +47,7 @@ public:
      @param methodSignature 方法签名
      @param handler  实例方法处理器
      */
-    LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, LuaInstanceMethodHandlerPtr handler);
+    LuaUnityExportMethodDescriptor(std::string const& name, std::string const& methodSignature, LuaInstanceMethodHandlerPtr handler);
     
 public:
     

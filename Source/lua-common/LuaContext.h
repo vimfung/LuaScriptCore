@@ -21,6 +21,7 @@ namespace cn
             class LuaSession;
             class LuaExportsTypeManager;
             class LuaExportTypeDescriptor;
+            class LuaOperationQueue;
 
             /**
              * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。
@@ -63,6 +64,11 @@ namespace cn
                  导出类型管理器
                  */
                 LuaExportsTypeManager *_exportsTypeManager;
+
+                /**
+                 * 操作队列
+                 */
+                LuaOperationQueue *_operationQueue;
                 
                 /**
                  是否需要进行内存回收
@@ -81,7 +87,7 @@ namespace cn
                  *
                  * @param platform 平台类型：ios,android,unity3d
                  */
-                LuaContext(std::string platform);
+                LuaContext(std::string const& platform);
 
                 /**
                  * 销毁上下文对象
@@ -100,7 +106,7 @@ namespace cn
                  * 导出原生类型
                  * @param typeName 类型名称
                  */
-                void exportsNativeType(std::string typeName);
+                void exportsNativeType(std::string const& typeName);
 
             public:
 
@@ -116,13 +122,13 @@ namespace cn
                  *
                  * @param message 异常消息
                  */
-                void raiseException (std::string message);
+                void raiseException (std::string const& message);
 
                 /**
                  * 输出异常信息
                  * @param message 异常消息
                  */
-                void outputExceptionMessage(std::string message);
+                void outputExceptionMessage(std::string const& message);
 
                 /**
                  * 捕获异常信息
@@ -138,7 +144,7 @@ namespace cn
                  *
                  * @param path 路径
                  */
-                void addSearchPath(std::string path);
+                void addSearchPath(std::string const& path);
 
                 /**
                  * 设置全局变量
@@ -146,7 +152,7 @@ namespace cn
                  * @param name 变量名称
                  * @param value 变量值
                  */
-                void setGlobal(std::string name, LuaValue *value);
+                void setGlobal(std::string const& name, LuaValue *value);
 
                 /**
                  * 获取全局变量
@@ -155,7 +161,7 @@ namespace cn
                  *
                  * @return 变量值
                  */
-                LuaValue* getGlobal(std::string name);
+                LuaValue* getGlobal(std::string const& name);
 
                 /**
                  * 保留Lua层的变量引用，使其不被GC所回收。
@@ -180,14 +186,14 @@ namespace cn
                  *
                  * @param script 脚本内容
                  */
-                LuaValue* evalScript(std::string script);
+                LuaValue* evalScript(std::string const& script);
 
                 /**
                  * 从lua文件中解析脚本
                  *
                  * @param path lua文件路径
                  */
-                LuaValue* evalScriptFromFile(std::string path);
+                LuaValue* evalScriptFromFile(std::string const& path);
 
                 /**
                  * 调用方法
@@ -195,7 +201,7 @@ namespace cn
                  * @param methodName 方法名称
                  * @param arguments 参数列表
                  */
-                LuaValue* callMethod(std::string methodName, LuaArgumentList *arguments);
+                LuaValue* callMethod(std::string const& methodName, LuaArgumentList *arguments);
 
                 /**
                  * 注册方法
@@ -203,7 +209,7 @@ namespace cn
                  * @param methodName 方法名称
                  * @param handler 方法处理
                  */
-                void registerMethod(std::string methodName, LuaMethodHandler handler);
+                void registerMethod(std::string const& methodName, LuaMethodHandler handler);
 
             public:
                 
@@ -221,7 +227,7 @@ namespace cn
                  *
                  * @return 方法处理器
                  */
-                LuaMethodHandler getMethodHandler(std::string methodName);
+                LuaMethodHandler getMethodHandler(std::string const& methodName);
 
                 /**
                  * 获取数据数据交换层
@@ -234,6 +240,12 @@ namespace cn
                  @return 导出类型管理器
                  */
                 LuaExportsTypeManager* getExportsTypeManager();
+
+                /**
+                 * 获取操作队列
+                 * @return 操作队列
+                 */
+                LuaOperationQueue* getOperationQueue();
 
                 /**
                  * 创建会话

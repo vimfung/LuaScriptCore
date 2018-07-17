@@ -12,7 +12,7 @@
 
 using namespace cn::vimfung::luascriptcore;
 
-LuaExportPropertyDescriptor::LuaExportPropertyDescriptor(std::string name, bool canRead, bool canWrite)
+LuaExportPropertyDescriptor::LuaExportPropertyDescriptor(std::string const& name, bool canRead, bool canWrite)
 {
     _name = name;
     _canRead = canRead;
@@ -21,7 +21,7 @@ LuaExportPropertyDescriptor::LuaExportPropertyDescriptor(std::string name, bool 
     _setter = NULL;
 }
 
-LuaExportPropertyDescriptor::LuaExportPropertyDescriptor(std::string name, LuaFunction *getter, LuaFunction *setter)
+LuaExportPropertyDescriptor::LuaExportPropertyDescriptor(std::string const& name, LuaFunction *getter, LuaFunction *setter)
 {
     _name = name;
     

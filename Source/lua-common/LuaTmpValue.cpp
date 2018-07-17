@@ -10,6 +10,7 @@
 #include "LuaContext.h"
 #include "LuaSession.h"
 #include "LuaEngineAdapter.hpp"
+#include "LuaOperationQueue.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -17,7 +18,11 @@ LuaTmpValue::LuaTmpValue(LuaContext *context, int index)
 {
     lua_State *state = context -> getCurrentSession() -> getState();
     _context = context;
-    _index = LuaEngineAdapter::absIndex(state, index);
+
+    _context -> getOperationQueue() -> performAction([=](){
+        _index = LuaEngineAdapter::absIndex(state, index);
+    });
+
     _parsedValue = NULL;
 }
 
@@ -130,8 +135,10 @@ void LuaTmpValue::push(LuaContext *context)
     }
     else
     {
-        lua_State *state = _context -> getCurrentSession() -> getState();
-        LuaEngineAdapter::pushValue(state, _index);
+        _context -> getOperationQueue() -> performAction([=](){
+            lua_State *state = _context -> getCurrentSession() -> getState();
+            LuaEngineAdapter::pushValue(state, _index);
+        });
     }
 }
 

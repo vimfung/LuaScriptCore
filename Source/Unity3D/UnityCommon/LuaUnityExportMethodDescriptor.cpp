@@ -15,13 +15,15 @@
 #include "StringUtils.h"
 #include <stdlib.h>
 
-LuaUnityExportMethodDescriptor::LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, LuaModuleMethodHandlerPtr handler) : LuaExportMethodDescriptor(name, methodSignature)
+LuaUnityExportMethodDescriptor::LuaUnityExportMethodDescriptor(std::string const& name, std::string const& methodSignature, LuaModuleMethodHandlerPtr handler)
+    : LuaExportMethodDescriptor(name, methodSignature)
 {
     _methodType = LuaUnityExportMethodTypeClass;
     _classMethodHandler = handler;
 }
 
-LuaUnityExportMethodDescriptor::LuaUnityExportMethodDescriptor(std::string name, std::string methodSignature, LuaInstanceMethodHandlerPtr handler) : LuaExportMethodDescriptor(name, methodSignature)
+LuaUnityExportMethodDescriptor::LuaUnityExportMethodDescriptor(std::string const& name, std::string const& methodSignature, LuaInstanceMethodHandlerPtr handler)
+    : LuaExportMethodDescriptor(name, methodSignature)
 {
     _methodType = LuaUnityExportMethodTypeInstance;
     _instanceMethodHandler = handler;

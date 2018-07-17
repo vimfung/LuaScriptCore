@@ -59,7 +59,7 @@ LuaValue::LuaValue(double value)
     _hasManagedObject = false;
 }
 
-LuaValue::LuaValue(std::string value)
+LuaValue::LuaValue(std::string const& value)
         : LuaObject()
 {
     _type = LuaValueTypeString;
@@ -288,11 +288,10 @@ LuaValue::~LuaValue()
             if (_type == LuaValueTypeString)
             {
                 //fixed：string无法直接通过delete释放，需要使用swap来实现释放操作
-                std::string tmpString;
-                tmpString.swap(*((std::string *)_value));
+                std::string().swap(*((std::string *)_value));
             }
 
-            delete (char *)_value;
+            delete[] (char *)_value;
         }
 
         _value = NULL;
@@ -319,7 +318,7 @@ LuaValue* LuaValue::NumberValue(double value)
     return new LuaValue(value);
 }
 
-LuaValue* LuaValue::StringValue(std::string value)
+LuaValue* LuaValue::StringValue(std::string const& value)
 {
     return new LuaValue(value);
 }

@@ -40,7 +40,7 @@ void LuaUnityEnv::bindExportsNativeTypeHandler (LuaExportsNativeTypeHandlerPtr h
     _exportsNativeTypeHandler = handler;
 }
 
-void LuaUnityEnv::setNativeObjectId(const void *instance, int nativeObjectId, std::string luaObjectId)
+void LuaUnityEnv::setNativeObjectId(const void *instance, int nativeObjectId, std::string const& luaObjectId)
 {
     if (_setNativeObjectIdHandler != NULL)
     {
@@ -60,7 +60,7 @@ std::string LuaUnityEnv::getClassNameByInstance(const void *instance)
     return clsName;
 }
 
-void LuaUnityEnv::exportsNativeType(int contextId, std::string typeName)
+void LuaUnityEnv::exportsNativeType(int contextId, std::string const& typeName)
 {
     if (_exportsNativeTypeHandler != NULL)
     {

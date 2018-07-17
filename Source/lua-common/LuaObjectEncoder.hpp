@@ -119,7 +119,7 @@ namespace cn
 
                  @param value 字符串
                  */
-                void writeString(const std::string &value);
+                void writeString(std::string const& value);
                 
                 /**
                  写入缓存数据
@@ -168,7 +168,7 @@ namespace cn
                  @param className 类型名称
                  @param mappingClassName 映射的类型名称
                  */
-                static void setMappingClassType(std::string className, std::string mappingClassName);
+                static void setMappingClassType(std::string const& className, std::string const& mappingClassName);
                 
                 /**
                  编码对象

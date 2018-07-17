@@ -27,7 +27,7 @@ public:
      @param name 类型名称
      @param parentTypeDescriptor 父级类型
      */
-    LuaUnityExportTypeDescriptor(std::string name, LuaExportTypeDescriptor *parentTypeDescriptor);
+    LuaUnityExportTypeDescriptor(std::string const& name, LuaExportTypeDescriptor *parentTypeDescriptor);
     
 public:
     
@@ -70,7 +70,7 @@ public:
      @param subTypeName 子类型名称
      @return 类型
      */
-    virtual LuaExportTypeDescriptor* createSubType(LuaSession *session, std::string subTypeName);
+    virtual LuaExportTypeDescriptor* createSubType(LuaSession *session, std::string const& subTypeName);
     
 };
 

@@ -11,12 +11,13 @@
 #include "LuaObjectDescriptor.h"
 #include "LuaSession.h"
 
-LuaUnityExportTypeDescriptor::LuaUnityExportTypeDescriptor(std::string name, LuaExportTypeDescriptor *parentTypeDescriptor) : LuaExportTypeDescriptor(name, parentTypeDescriptor)
+LuaUnityExportTypeDescriptor::LuaUnityExportTypeDescriptor(std::string const& name, LuaExportTypeDescriptor *parentTypeDescriptor)
+    : LuaExportTypeDescriptor(name, parentTypeDescriptor)
 {
     
 }
 
-LuaExportTypeDescriptor* LuaUnityExportTypeDescriptor::createSubType(LuaSession *session, std::string subTypeName)
+LuaExportTypeDescriptor* LuaUnityExportTypeDescriptor::createSubType(LuaSession *session, std::string const& subTypeName)
 {
     LuaUnityExportTypeDescriptor *subTypeDescriptor = new LuaUnityExportTypeDescriptor(subTypeName, this);
     

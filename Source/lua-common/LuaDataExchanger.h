@@ -74,7 +74,7 @@ namespace cn {
                  * @param stackIndex 栈索引
                  * @param linkId 连接标识
                  */
-                void setLuaObject(int stackIndex, const std::string &linkId);
+                void setLuaObject(int stackIndex, std::string const& linkId);
 
                 /**
                  * 保留对象对应在Lua中的引用
@@ -136,7 +136,7 @@ namespace cn {
                  * @param linkId 连接标识
                  * @param action 行为
                  */
-                void doObjectAction(std::string linkId, LuaObjectAction action);
+                void doObjectAction(std::string const& linkId, LuaObjectAction action);
             };
 
         }

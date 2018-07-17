@@ -40,7 +40,7 @@ namespace cn
                  @param className 类名称
                  @param nativeClass 类型
                  */
-                void registerClass(std::string className, LuaNativeClass* nativeClass);
+                void registerClass(std::string const& className, LuaNativeClass* nativeClass);
                 
                 
                 /**
@@ -49,7 +49,7 @@ namespace cn
                  @param className 类名称
                  @return 类型
                  */
-                LuaNativeClass* findClass(std::string className);
+                LuaNativeClass* findClass(std::string const& className);
                 
             };
             

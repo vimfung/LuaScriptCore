@@ -62,7 +62,7 @@ public:
      @param nativeObjectId 原生对象标识
      @param luaObjectId Lua对象标识
      */
-    void setNativeObjectId(const void *instance, int nativeObjectId, std::string luaObjectId);
+    void setNativeObjectId(const void *instance, int nativeObjectId, std::string const& luaObjectId);
     
     /**
      获取实例的类型名称
@@ -78,7 +78,7 @@ public:
      @param contextId 上下文标识
      @param typeName 类型名称
      */
-    void exportsNativeType(int contextId, std::string typeName);
+    void exportsNativeType(int contextId, std::string const& typeName);
 };
 
 #endif /* LuaUnityEnv_hpp */

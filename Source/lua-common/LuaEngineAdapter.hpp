@@ -180,7 +180,7 @@ namespace cn
                  @return 执行状态
                  */
                 static int loadFile (lua_State *state, const char *filename);
-                
+
                 /**
                  判断是否为Function类型
 

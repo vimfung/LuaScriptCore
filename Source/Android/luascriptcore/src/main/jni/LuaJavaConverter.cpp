@@ -108,7 +108,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         static jmethodID sizeMethodId = env -> GetMethodID(jHashMapClass, "size", "()I");
         static jmethodID keySetMethodId = env -> GetMethodID(jHashMapClass, "keySet", "()Ljava/util/Set;");
 
-        static jclass jSetClass = (jclass)env -> NewGlobalRef(env -> FindClass("java/util/Set"));
+        static jclass jSetClass = (jclass)env -> NewGlobalRef(LuaJavaEnv::findClass(env, "java/util/Set"));
         static jmethodID toArrayMethodId = env -> GetMethodID(jSetClass, "toArray", "()[Ljava/lang/Object;");
 
         LuaValueMap map;
@@ -237,6 +237,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
 LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext *context, jobject value)
 {
     //构造调用参数
+    env = LuaJavaEnv::getEnv();
+
     static jclass jLuaValueTypeClass = LuaJavaType::luaValueTypeClass(env);
     static jmethodID typeValueMethodId = env -> GetMethodID(jLuaValueTypeClass, "value", "()I");
 
@@ -326,7 +328,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             static jmethodID sizeMethodId = env -> GetMethodID(jHashMapClass, "size", "()I");
             static jmethodID keySetMethodId = env -> GetMethodID(jHashMapClass, "keySet", "()Ljava/util/Set;");
 
-            static jclass jSetClass = (jclass)env -> NewGlobalRef(env -> FindClass("java/util/Set"));
+            static jclass jSetClass = (jclass)env -> NewGlobalRef(LuaJavaEnv::findClass(env, "java/util/Set"));
             static jmethodID toArrayMethodId = env -> GetMethodID(jSetClass, "toArray", "()[Ljava/lang/Object;");
 
             LuaValueMap map;
@@ -473,6 +475,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
         default:
             break;
     }
+
+    LuaJavaEnv::resetEnv(env);
 
     return retValue;
 }

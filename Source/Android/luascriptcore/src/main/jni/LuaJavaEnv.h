@@ -25,7 +25,7 @@ namespace cn {
 /**
  * JNI的环境对象
  */
-class LuaJavaEnv
+class LuaJavaEnv : public LuaObject
 {
 public:
 
@@ -155,6 +155,17 @@ public:
      * @return 导出类型管理器
      */
     static jobject getExportTypeManager(JNIEnv *env);
+
+    /**
+     * 查找类型
+     *
+     * @param env JNI环境
+     * @param className 类型名称
+     * @return 类型
+     */
+    static jclass findClass(JNIEnv *env, std::string className);
+
+
 };
 
 

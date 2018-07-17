@@ -16,6 +16,7 @@
 #include "LuaDataExchanger.h"
 #include "LuaSession.h"
 #include "LuaEngineAdapter.hpp"
+#include "LuaOperationQueue.h"
 #include <typeinfo>
 
 using namespace cn::vimfung::luascriptcore;
@@ -72,74 +73,81 @@ void LuaFunction::push(LuaContext *context)
 
 LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
 {
-    lua_State *state = getContext() -> getCurrentSession() -> getState();
-
     LuaValue *retValue = NULL;
 
-    int errFuncIndex = getContext() -> catchException();
-    //记录栈顶位置，用于计算返回值数量
-    int top = LuaEngineAdapter::getTop(state);
-    getContext() -> getDataExchanger() -> getLuaObject(this);
+    getContext() -> getOperationQueue() -> performAction([=, &retValue]() {
 
-    if (LuaEngineAdapter::isFunction(state, -1))
-    {
-        int returnCount = 0;
+        lua_State *state = getContext() -> getCurrentSession() -> getState();
 
-        //初始化传递参数
-        for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
+
+
+        int errFuncIndex = getContext() -> catchException();
+        //记录栈顶位置，用于计算返回值数量
+        int top = LuaEngineAdapter::getTop(state);
+        getContext() -> getDataExchanger() -> getLuaObject(this);
+
+        if (LuaEngineAdapter::isFunction(state, -1))
         {
-            LuaValue *item = *i;
-            item->push(getContext());
-        }
+            int returnCount = 0;
 
-        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == 0)
-        {
-            //调用成功
-            returnCount = LuaEngineAdapter::getTop(state) - top;
-            if (returnCount > 1)
+            //初始化传递参数
+            for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
             {
-                LuaTuple *tuple = new LuaTuple();
-                for (int i = 1; i <= returnCount; i++)
+                LuaValue *item = *i;
+                item->push(getContext());
+            }
+
+            if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == 0)
+            {
+                //调用成功
+                returnCount = LuaEngineAdapter::getTop(state) - top;
+                if (returnCount > 1)
                 {
-                    LuaValue *value = LuaValue::ValueByIndex(getContext(), top + i);
-                    tuple -> addReturnValue(value);
-                    value -> release();
+                    LuaTuple *tuple = new LuaTuple();
+                    for (int i = 1; i <= returnCount; i++)
+                    {
+                        LuaValue *value = LuaValue::ValueByIndex(getContext(), top + i);
+                        tuple -> addReturnValue(value);
+                        value -> release();
+                    }
+
+                    retValue = LuaValue::TupleValue(tuple);
+
+                    tuple -> release();
                 }
-
-                retValue = LuaValue::TupleValue(tuple);
-
-                tuple -> release();
+                else if (returnCount == 1)
+                {
+                    retValue = LuaValue::ValueByIndex(getContext(), -1);
+                }
             }
-            else if (returnCount == 1)
+            else
             {
-                retValue = LuaValue::ValueByIndex(getContext(), -1);
+                //调用失败
+                returnCount = LuaEngineAdapter::getTop(state) - top;
             }
+
+            //弹出返回值
+            LuaEngineAdapter::pop(state, returnCount);
         }
         else
         {
-            //调用失败
-            returnCount = LuaEngineAdapter::getTop(state) - top;
+            //弹出function
+            LuaEngineAdapter::pop(state, 1);
         }
 
-        //弹出返回值
-        LuaEngineAdapter::pop(state, returnCount);
-    }
-    else
-    {
-        //弹出function
-        LuaEngineAdapter::pop(state, 1);
-    }
-    
-    //移除异常捕获方法
-    LuaEngineAdapter::remove(state, errFuncIndex);
+        //移除异常捕获方法
+        LuaEngineAdapter::remove(state, errFuncIndex);
 
-    if (!retValue)
-    {
-        retValue = new LuaValue();
-    }
+        if (!retValue)
+        {
+            retValue = new LuaValue();
+        }
 
-    //回收内存
-    getContext() -> gc();
+        //回收内存
+        getContext() -> gc();
+
+    });
+
 
     return retValue;
 }

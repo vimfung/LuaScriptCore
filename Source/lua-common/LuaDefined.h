@@ -48,7 +48,7 @@ namespace cn
 
             }LuaUserdata, *LuaUserdataRef;
 
-            typedef void (*LuaExceptionHandler) (LuaContext *context, std::string message);
+            typedef void (*LuaExceptionHandler) (LuaContext *context, std::string const& message);
             typedef std::deque<LuaValue *> LuaArgumentList;
             typedef std::deque<LuaValue *> LuaValueList;
             typedef std::map<std::string, LuaValue*> LuaValueMap;
@@ -57,9 +57,9 @@ namespace cn
             /**
              * 导出原生类型处理器
              */
-            typedef void (*LuaExportsNativeTypeHandler) (LuaContext *context, std::string typeName);
+            typedef void (*LuaExportsNativeTypeHandler) (LuaContext *context, std::string const& typeName);
 
-            typedef LuaValue* (*LuaMethodHandler) (LuaContext *context, std::string methodName, LuaArgumentList arguments);
+            typedef LuaValue* (*LuaMethodHandler) (LuaContext *context, std::string const& methodName, LuaArgumentList arguments);
             typedef LuaValue* (*LuaModuleMethodHandler) (LuaModule *module, std::string methodName, LuaArgumentList arguments);
             typedef LuaValue* (*LuaModuleGetterHandler) (LuaModule *module, std::string fieldName);
             typedef void (*LuaModuleSetterHandler) (LuaModule *module, std::string fieldName, LuaValue *value);
