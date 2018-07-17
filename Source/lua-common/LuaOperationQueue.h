@@ -9,6 +9,7 @@
 #include <mutex>
 #include <functional>
 #include <thread>
+#include <pthread.h>
 
 namespace cn {
     namespace vimfung {
@@ -23,6 +24,16 @@ namespace cn {
             public:
 
                 /**
+                 * 初始化
+                 */
+                LuaOperationQueue();
+
+                /**
+                 * 销毁
+                 */
+                ~LuaOperationQueue();
+
+                /**
                  * 执行操作
                  * @param action 操作内容
                  */
@@ -31,14 +42,9 @@ namespace cn {
             private:
 
                 /**
-                 * 当前线程ID
+                 * 锁
                  */
-                std::thread::id _curThreadId;
-
-                /**
-                 * 线程锁
-                 */
-                std::mutex _threadLocker;
+                pthread_mutex_t _lock;
             };
         }
     }

@@ -7,15 +7,13 @@
 //
 
 #import "LSCOperationQueue.h"
-
-static char const* OptQueueKey = "ScriptOptQueue";
+#import <pthread.h>
 
 @interface LSCOperationQueue ()
-
-/**
- 队列
- */
-@property (nonatomic) dispatch_queue_t queue;
+{
+@private
+    pthread_mutex_t _lock;
+}
 
 @end
 
@@ -25,22 +23,25 @@ static char const* OptQueueKey = "ScriptOptQueue";
 {
     if (self = [super init])
     {
-        self.queue = dispatch_queue_create("LuaScriptCore-Opt-Queue", DISPATCH_QUEUE_SERIAL);
-        dispatch_queue_set_specific(self.queue, OptQueueKey, &OptQueueKey, NULL);
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+        pthread_mutex_init(&_lock, &attr);
+        pthread_mutexattr_destroy(&attr);
     }
     return self;
 }
 
+- (void)dealloc
+{
+    pthread_mutex_destroy(&_lock);
+}
+
 - (void)performAction:(void (^)(void))block
 {
-    if (dispatch_get_specific(OptQueueKey))
-    {
-        block();
-    }
-    else
-    {
-        dispatch_sync(self.queue, block);
-    }
+    pthread_mutex_lock(&_lock);
+    block();
+    pthread_mutex_unlock(&_lock);
 }
 
 @end

@@ -195,6 +195,9 @@
 		7C90CBF41F6D2EE000B2AC0A /* LuaExportsTypeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7C90CBF21F6D2EE000B2AC0A /* LuaExportsTypeManager.cpp */; };
 		7C90CBF51F6D2EE000B2AC0A /* LuaExportsTypeManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7C90CBF21F6D2EE000B2AC0A /* LuaExportsTypeManager.cpp */; };
 		7C90CBF61F6D2EE000B2AC0A /* LuaExportsTypeManager.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 7C90CBF31F6D2EE000B2AC0A /* LuaExportsTypeManager.hpp */; };
+		7CBA739920FD90C3003AD193 /* LuaOperationQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CBA739720FD90C3003AD193 /* LuaOperationQueue.cpp */; };
+		7CBA739A20FD90C3003AD193 /* LuaOperationQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CBA739720FD90C3003AD193 /* LuaOperationQueue.cpp */; };
+		7CBA739B20FD90C3003AD193 /* LuaOperationQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CBA739820FD90C3003AD193 /* LuaOperationQueue.h */; };
 		7CD615061DDDC1FE00D0ECE2 /* LuaNativeClassFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CD615041DDDC1FE00D0ECE2 /* LuaNativeClassFactory.cpp */; };
 		7CD615071DDDC1FE00D0ECE2 /* LuaNativeClassFactory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CD615041DDDC1FE00D0ECE2 /* LuaNativeClassFactory.cpp */; };
 		7CD615081DDDC1FE00D0ECE2 /* LuaNativeClassFactory.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 7CD615051DDDC1FE00D0ECE2 /* LuaNativeClassFactory.hpp */; };
@@ -366,6 +369,8 @@
 		7CBA49E51DD5987D00D5880A /* lvm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lvm.h; sourceTree = "<group>"; };
 		7CBA49E61DD5987D00D5880A /* lzio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lzio.c; sourceTree = "<group>"; };
 		7CBA49E71DD5987D00D5880A /* lzio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lzio.h; sourceTree = "<group>"; };
+		7CBA739720FD90C3003AD193 /* LuaOperationQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LuaOperationQueue.cpp; sourceTree = "<group>"; };
+		7CBA739820FD90C3003AD193 /* LuaOperationQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuaOperationQueue.h; sourceTree = "<group>"; };
 		7CD615041DDDC1FE00D0ECE2 /* LuaNativeClassFactory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LuaNativeClassFactory.cpp; sourceTree = "<group>"; };
 		7CD615051DDDC1FE00D0ECE2 /* LuaNativeClassFactory.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LuaNativeClassFactory.hpp; sourceTree = "<group>"; };
 		7CDC7E001DDAD7D2002F82C9 /* LuaObjectEncoder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LuaObjectEncoder.cpp; sourceTree = "<group>"; };
@@ -452,6 +457,8 @@
 		7CBA49851DD5986800D5880A /* lua-common */ = {
 			isa = PBXGroup;
 			children = (
+				7CBA739720FD90C3003AD193 /* LuaOperationQueue.cpp */,
+				7CBA739820FD90C3003AD193 /* LuaOperationQueue.h */,
 				7C8499F81F0CE2FD006A99A2 /* LuaSession.cpp */,
 				7C8499F91F0CE2FD006A99A2 /* LuaSession.h */,
 				7C5318D71ECBF42E00E0EB17 /* LuaManagedObject.cpp */,
@@ -643,6 +650,7 @@
 				7C33DAA11FCFFB8800617E69 /* LuaUnityExportPropertyDescriptor.hpp in Headers */,
 				7C0B4D511F7CB53B0064A328 /* LuaUnityExportMethodDescriptor.hpp in Headers */,
 				7C60AA281DD95163000D56CA /* llimits.h in Headers */,
+				7CBA739B20FD90C3003AD193 /* LuaOperationQueue.h in Headers */,
 				7C60A9F81DD95110000D56CA /* LuaObject.h in Headers */,
 				7C60AA271DD95163000D56CA /* llex.h in Headers */,
 				7C60AA301DD95163000D56CA /* ltable.h in Headers */,
@@ -883,6 +891,7 @@
 				7CF1EDDF1E8FA7F600E28E59 /* StringUtils.cpp in Sources */,
 				7C60AA041DD95132000D56CA /* lctype.c in Sources */,
 				7C60AA171DD95132000D56CA /* lstrlib.c in Sources */,
+				7CBA739920FD90C3003AD193 /* LuaOperationQueue.cpp in Sources */,
 				7C90CBD51F6D02FA00B2AC0A /* LuaExportTypeDescriptor.cpp in Sources */,
 				7C60AA011DD95132000D56CA /* lbitlib.c in Sources */,
 				7C60AA021DD95132000D56CA /* lcode.c in Sources */,
@@ -951,6 +960,7 @@
 				7CF1EDE01E8FA7F600E28E59 /* StringUtils.cpp in Sources */,
 				7C651B541DD96577001C2552 /* LuaObjectManager.cpp in Sources */,
 				7C651B171DD964B9001C2552 /* llex.c in Sources */,
+				7CBA739A20FD90C3003AD193 /* LuaOperationQueue.cpp in Sources */,
 				7C90CBD61F6D02FA00B2AC0A /* LuaExportTypeDescriptor.cpp in Sources */,
 				7C651B081DD964B9001C2552 /* lapi.c in Sources */,
 				7C651B531DD96577001C2552 /* LuaObjectDescriptor.cpp in Sources */,
