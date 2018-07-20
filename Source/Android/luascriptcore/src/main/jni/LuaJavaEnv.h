@@ -165,6 +165,11 @@ public:
      */
     static jclass findClass(JNIEnv *env, std::string className);
 
+private:
+
+    JNIEnv *_jniEnv;
+    bool _attachedThread;
+    int _count;
 
 };
 

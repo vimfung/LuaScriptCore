@@ -6,6 +6,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <thread>
 #include "LuaJavaEnv.h"
 #include "LuaObjectManager.h"
 #include "LuaObjectDescriptor.h"
@@ -44,6 +45,11 @@ static std::map<jint, jobject> _javaObjectMap;
  * 对象实例的lua引用对照表
  */
 static std::map<int, cn::vimfung::luascriptcore::LuaObjectDescriptor*> _instanceMap;
+
+/**
+ * 环境引用表
+ */
+static std::map<std::thread::id, LuaJavaEnv *> _envRefs;
 
 /**
  * Lua方法处理器
@@ -157,42 +163,66 @@ void LuaJavaEnv::init(JavaVM *javaVM)
 
 JNIEnv* LuaJavaEnv::getEnv()
 {
-    if (_env == NULL)
+    //fixed：解决多线程下获取JNIEnv对象时出现崩溃问题。之前的方法处理有误，没有根据线程来保留JNIEnv对象
+    LuaJavaEnv *luaJavaEnv = NULL;
+    std::thread::id tid = std::this_thread::get_id();
+
+    auto it = _envRefs.find(tid);
+    if (it == _envRefs.end())
     {
+        //没有该线程的JNIEnv对象，开始获取对象
+
+        JNIEnv *env = NULL;
+        bool attachedThread = false;
         int status;
 
-        status = _javaVM -> GetEnv((void **)&_env, JNI_VERSION_1_4);
+        status = _javaVM -> GetEnv((void **)&env, JNI_VERSION_1_4);
 
         if(status < 0)
         {
-            status = _javaVM -> AttachCurrentThread(&_env, NULL);
+            status = _javaVM -> AttachCurrentThread(&env, NULL);
             if(status >= 0)
             {
-                _attatedThread = true;
+                attachedThread = true;
             }
         }
+
+        luaJavaEnv = new LuaJavaEnv();
+        luaJavaEnv -> _jniEnv = env;
+        luaJavaEnv -> _attachedThread = attachedThread;
+        luaJavaEnv -> _count = 1;
+
+        _envRefs[tid] = luaJavaEnv;
+    }
+    else
+    {
+        luaJavaEnv = it -> second;
+        luaJavaEnv -> _count ++;
     }
 
-    _envRetainCount ++;
-
-    return _env;
+    return luaJavaEnv -> _jniEnv;
 }
 
 void LuaJavaEnv::resetEnv(JNIEnv *env)
 {
-    if (env && _envRetainCount > 0)
+    //fixed:根据线程标识来释放对象
+    std::thread::id tid = std::this_thread::get_id();
+    auto it = _envRefs.find(tid);
+    if (it != _envRefs.end())
     {
-        _envRetainCount --;
-
-        if (_envRetainCount == 0)
+        LuaJavaEnv *luaJavaEnv = it -> second;
+        luaJavaEnv -> _count --;
+        if (luaJavaEnv -> _count <= 0)
         {
-            if(_attatedThread)
+            //回收
+            _envRefs.erase(it);
+
+            if (luaJavaEnv -> _attachedThread)
             {
                 _javaVM -> DetachCurrentThread();
-                _attatedThread = false;
             }
 
-            _env = NULL;
+            luaJavaEnv -> release();
         }
     }
 }
