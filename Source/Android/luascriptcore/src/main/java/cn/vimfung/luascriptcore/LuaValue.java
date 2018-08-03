@@ -1,7 +1,11 @@
 package cn.vimfung.luascriptcore;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Lua值对象
@@ -200,7 +204,7 @@ public class LuaValue extends LuaBaseObject
      * 初始化一个数组的LuaValue对象
      * @param value 数组
      */
-    public LuaValue (ArrayList value)
+    public LuaValue (List<?> value)
     {
         super();
         setArrayListValue(value);
@@ -211,7 +215,7 @@ public class LuaValue extends LuaBaseObject
      * @param nativeId 本地对象标识
      * @param value 数组
      */
-    protected LuaValue (int nativeId, ArrayList value)
+    protected LuaValue (int nativeId, List<?> value)
     {
         super(nativeId);
         setArrayListValue(value);
@@ -221,7 +225,7 @@ public class LuaValue extends LuaBaseObject
      * 设置数组列表
      * @param value 数组列表值
      */
-    private void setArrayListValue(ArrayList value)
+    private void setArrayListValue(List<?> value)
     {
         _type = LuaValueType.Array;
         _valueContainer = value;
@@ -231,7 +235,7 @@ public class LuaValue extends LuaBaseObject
      * 初始化一个哈希表的LuaValue对象
      * @param value 哈希表
      */
-    public LuaValue (HashMap value)
+    public LuaValue (Map<?, ?> value)
     {
         super();
         setHasMapValue(value);
@@ -242,7 +246,7 @@ public class LuaValue extends LuaBaseObject
      * @param nativeId 本地对象标识
      * @param value 哈希表
      */
-    protected LuaValue (int nativeId, HashMap value)
+    protected LuaValue (int nativeId, Map<?, ?> value)
     {
         super(nativeId);
         setHasMapValue(value);
@@ -252,7 +256,7 @@ public class LuaValue extends LuaBaseObject
      * 设置HashMap
      * @param value HashMap值
      */
-    private void setHasMapValue (HashMap value)
+    private void setHasMapValue (Map<?, ?> value)
     {
         _type = LuaValueType.Map;
         _valueContainer = value;
@@ -554,6 +558,23 @@ public class LuaValue extends LuaBaseObject
     }
 
     /**
+     * 转换为列表
+     * @return 列表对象
+     */
+    public List<?> toList()
+    {
+        if (_valueContainer != null)
+        {
+            if (_valueContainer instanceof List<?>)
+            {
+                return (List<?>) _valueContainer;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * 转换为哈希表
      * @return  哈希表
      */
@@ -564,6 +585,23 @@ public class LuaValue extends LuaBaseObject
             if (_valueContainer instanceof HashMap)
             {
                 return (HashMap) _valueContainer;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 转换为字典
+     * @return 字典对象
+     */
+    public Map<?, ?> toMap()
+    {
+        if (_valueContainer != null)
+        {
+            if (_valueContainer instanceof Map<?, ?>)
+            {
+                return (Map<?, ?>) _valueContainer;
             }
         }
 

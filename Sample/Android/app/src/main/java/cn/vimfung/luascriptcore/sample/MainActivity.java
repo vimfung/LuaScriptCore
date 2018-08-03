@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.ArraySet;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -16,7 +17,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -65,6 +70,59 @@ public class MainActivity extends AppCompatActivity {
 
                     LuaValue retValue = _luaContext.evalScript("print(10);return 'Hello World';");
                     Log.v("lsc", retValue.toString());
+
+                    //List Native -> Lua
+                    ArrayList<String> arrayList = new ArrayList<String>();
+                    arrayList.add("hahahahahah");
+                    arrayList.add("Hello World");
+                    LuaValue value = new LuaValue(arrayList);
+
+                    _luaContext.evalScript("function printArray (arr) print('--------', #arr); for i,v in ipairs(arr) do print(v); end end");
+
+                    LuaValue[] args = new LuaValue[] {value};
+                    _luaContext.callMethod("printArray", args);
+
+                    //List Lua -> Native
+                    LuaValue arrValue = _luaContext.evalScript("return {1, 'Hello World'};");
+                    Log.v("lsc", arrValue.toString());
+                    ArrayList arrayList1 = arrValue.toArrayList();
+                    for (Object obj : arrayList1)
+                    {
+                        Log.v("LTN ArrayList", obj.toString());
+                    }
+                    List<?> list = arrValue.toList();
+                    for (Object obj : list)
+                    {
+                        Log.v("LTN List", obj.toString());
+                    }
+
+                    //Map Native -> Lua
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put("Hello", "World");
+                    map.put("aaa", "bbb");
+                    LuaValue mapValue = new LuaValue(map);
+
+                    _luaContext.evalScript("function printMap (map) print('--------', #map); for k,v in pairs(map) do print(k, v); end end");
+
+                    LuaValue[] mapArgs = new LuaValue[] {mapValue};
+                    _luaContext.callMethod("printMap", mapArgs);
+
+                    //Map Lua -> Native
+                    LuaValue mapRetValue = _luaContext.evalScript("return {aaa=1, bbb='Hello World'};");
+                    Log.v("lsc", mapRetValue.toString());
+                    HashMap hashMap = mapRetValue.toHashMap();
+                    for (Object obj : hashMap.keySet())
+                    {
+                        Log.v("LTN HashMap", hashMap.get(obj).toString());
+                    }
+
+                    Map<?, ?> map2 = mapRetValue.toMap();
+                    for (Object obj : map2.keySet())
+                    {
+                        Log.v("LTN Map", map2.get(obj).toString());
+                    }
+
+
                 }
             });
         }

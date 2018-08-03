@@ -82,12 +82,12 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
 
         value = new LuaValue((const char *)bytes, (size_t)len);
     }
-    else if (env -> IsInstanceOf(object, LuaJavaType::arrayListClass(env)) == JNI_TRUE)
+    else if (env -> IsInstanceOf(object, LuaJavaType::listClass(env)) == JNI_TRUE)
     {
         //ArrayList
-        static jclass jArrayListClass = LuaJavaType::arrayListClass(env);
-        static jmethodID getMethodId = env -> GetMethodID(jArrayListClass, "get", "(I)Ljava/lang/Object;");
-        static jmethodID sizeMethodId = env -> GetMethodID(jArrayListClass, "size", "()I");
+        static jclass jListClass = LuaJavaType::listClass(env);
+        static jmethodID getMethodId = env -> GetMethodID(jListClass, "get", "(I)Ljava/lang/Object;");
+        static jmethodID sizeMethodId = env -> GetMethodID(jListClass, "size", "()I");
 
         LuaValueList list;
         jint len = env -> CallIntMethod(object, sizeMethodId);
@@ -100,10 +100,10 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
 
         value = new LuaValue(list);
     }
-    else if (env -> IsInstanceOf(object, LuaJavaType::hashMapClass(env)) == JNI_TRUE)
+    else if (env -> IsInstanceOf(object, LuaJavaType::mapClass(env)) == JNI_TRUE)
     {
         //HashMap
-        static jclass jHashMapClass = LuaJavaType::hashMapClass(env);
+        static jclass jHashMapClass = LuaJavaType::mapClass(env);
         static jmethodID getMethodId = env -> GetMethodID(jHashMapClass, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
         static jmethodID sizeMethodId = env -> GetMethodID(jHashMapClass, "size", "()I");
         static jmethodID keySetMethodId = env -> GetMethodID(jHashMapClass, "keySet", "()Ljava/util/Set;");
@@ -249,8 +249,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
     static jmethodID toBoolMethodId = env -> GetMethodID(jLuaValueClass, "toBoolean", "()Z");
     static jmethodID toStrMethodId = env -> GetMethodID(jLuaValueClass, "toString", "()Ljava/lang/String;");
     static jmethodID toByteArrMethodId = env -> GetMethodID(jLuaValueClass, "toByteArray", "()[B");
-    static jmethodID toListMethodId = env -> GetMethodID(jLuaValueClass, "toArrayList", "()Ljava/util/ArrayList;");
-    static jmethodID toMapMethodId = env -> GetMethodID(jLuaValueClass, "toHashMap", "()Ljava/util/HashMap;");
+    static jmethodID toListMethodId = env -> GetMethodID(jLuaValueClass, "toList", "()Ljava/util/List;");
+    static jmethodID toMapMethodId = env -> GetMethodID(jLuaValueClass, "toMap", "()Ljava/util/Map;");
     static jmethodID toPointerId = env -> GetMethodID(jLuaValueClass, "toPointer", "()Lcn/vimfung/luascriptcore/LuaPointer;");
     static jmethodID toFunctionId = env -> GetMethodID(jLuaValueClass, "toFunction", "()Lcn/vimfung/luascriptcore/LuaFunction;");
     static jmethodID toObjectId = env -> GetMethodID(jLuaValueClass, "toObject", "()Ljava/lang/Object;");
@@ -302,9 +302,9 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
         }
         case LuaValueTypeArray:
         {
-            static jclass jArrayListClass = LuaJavaType::arrayListClass(env);
-            static jmethodID getMethodId = env -> GetMethodID(jArrayListClass, "get", "(I)Ljava/lang/Object;");
-            static jmethodID sizeMethodId = env -> GetMethodID(jArrayListClass, "size", "()I");
+            static jclass jListClass = LuaJavaType::listClass(env);
+            static jmethodID getMethodId = env -> GetMethodID(jListClass, "get", "(I)Ljava/lang/Object;");
+            static jmethodID sizeMethodId = env -> GetMethodID(jListClass, "size", "()I");
 
             LuaValueList list;
             jobject arrayList = env -> CallObjectMethod(value, toListMethodId);
@@ -313,6 +313,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             {
                 jobject item = env -> CallObjectMethod(arrayList, getMethodId, i);
                 LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
+                list.push_back(valueItem);
                 env -> DeleteLocalRef(item);
             }
 
@@ -323,7 +324,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
         }
         case LuaValueTypeMap:
         {
-            static jclass jHashMapClass = LuaJavaType::hashMapClass(env);
+            static jclass jHashMapClass = LuaJavaType::mapClass(env);
             static jmethodID getMethodId = env -> GetMethodID(jHashMapClass, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
             static jmethodID sizeMethodId = env -> GetMethodID(jHashMapClass, "size", "()I");
             static jmethodID keySetMethodId = env -> GetMethodID(jHashMapClass, "keySet", "()Ljava/util/Set;");
@@ -673,13 +674,13 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContex
             }
             case LuaValueTypeArray:
             {
-                static jmethodID arrayInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILjava/util/ArrayList;)V");
+                static jmethodID arrayInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILjava/util/List;)V");
                 initMethodId = arrayInitMethodId;
                 break;
             }
             case LuaValueTypeMap:
             {
-                static jmethodID mapInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILjava/util/HashMap;)V");
+                static jmethodID mapInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILjava/util/Map;)V");
                 initMethodId = mapInitMethodId;
                 break;
             }

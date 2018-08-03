@@ -244,6 +244,20 @@ jclass LuaJavaType::arrayListClass(JNIEnv *env)
     return jArrayList;
 }
 
+static jclass LuaJavaType::listClass(JNIEnv *env)
+{
+    static jclass jList = NULL;
+
+    if (jList == NULL)
+    {
+        jclass  jListCls = LuaJavaEnv::findClass(env, "java/util/List");
+        jList = (jclass)env -> NewGlobalRef(jListCls);
+        env -> DeleteLocalRef(jListCls);
+    }
+
+    return jList;
+}
+
 jclass LuaJavaType::hashMapClass(JNIEnv *env)
 {
     static jclass jHashMap = NULL;
@@ -256,6 +270,20 @@ jclass LuaJavaType::hashMapClass(JNIEnv *env)
     }
 
     return jHashMap;
+}
+
+jclass LuaJavaType::mapClass(JNIEnv *env)
+{
+    static jclass jMap = NULL;
+
+    if (jMap == NULL)
+    {
+        jclass jMapCls = LuaJavaEnv::findClass(env, "java/util/Map");
+        jMap = (jclass)env -> NewGlobalRef(jMapCls);
+        env -> DeleteLocalRef(jMapCls);
+    }
+
+    return jMap;
 }
 
 jclass LuaJavaType::luaBaseObjectClass(JNIEnv *env)

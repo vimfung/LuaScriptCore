@@ -169,6 +169,13 @@ public:
     static jclass arrayListClass(JNIEnv *env);
 
     /**
+     * 获取List类型
+     * @param env JNI环境
+     * @return List类型
+     */
+    static jclass listClass(JNIEnv *env);
+
+    /**
      * 获取HashMap类
      *
      * @param env JNI环境
@@ -176,6 +183,13 @@ public:
      * @return HashMap类型
      */
     static jclass hashMapClass(JNIEnv *env);
+
+    /**
+     * 获取Map类型
+     * @param env JNI环境
+     * @return  Map类型
+     */
+    static jclass mapClass(JNIEnv *env);
 
     /**
      * 获取LuaBaseObject类型
