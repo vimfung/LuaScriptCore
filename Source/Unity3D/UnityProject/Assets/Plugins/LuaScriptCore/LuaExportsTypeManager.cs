@@ -168,6 +168,13 @@ namespace cn.vimfung.luascriptcore
 
 					string methodName = string.Format ("{0}_{1}", m.Name, methodSignature.ToString ());
 
+					LuaExclude isExclude = Attribute.GetCustomAttribute (m, typeof(LuaExclude), true) as LuaExclude;
+					if (isExclude != null)
+					{
+						//为过滤方法
+						continue;
+					}
+
 					if (m.IsStatic && m.IsPublic)
 					{
 						if (typeAnnotation != null
@@ -206,6 +213,13 @@ namespace cn.vimfung.luascriptcore
 			PropertyInfo[] propertys = t.GetProperties (BindingFlags.Instance | BindingFlags.Public);
 			foreach (PropertyInfo p in propertys) 
 			{
+				LuaExclude isExclude = Attribute.GetCustomAttribute (p, typeof(LuaExclude), true) as LuaExclude;
+				if (isExclude != null)
+				{
+					//为过滤方法
+					continue;
+				}
+
 				if (typeAnnotation != null 
 					&& typeAnnotation.excludeExportPropertyNames != null 
 					&& Array.IndexOf (typeAnnotation.excludeExportPropertyNames, p.Name) >= 0)

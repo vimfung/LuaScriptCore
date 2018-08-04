@@ -445,7 +445,14 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>整型值</returns>
 		public int toInteger()
 		{
-			return Convert.ToInt32 (_value);
+			try
+			{
+				return Convert.ToInt32 (_value);
+			}
+			catch(FormatException ex)
+			{
+				return 0;
+			}
 		}
 
 		/// <summary>
@@ -454,7 +461,14 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>布尔值</returns>
 		public bool toBoolean()
 		{
-			return Convert.ToBoolean (_value);
+			try
+			{
+				return Convert.ToBoolean (_value);
+			}
+			catch (FormatException ex)
+			{
+				return false;
+			}
 		}
 
 		/// <summary>
@@ -463,7 +477,15 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>双精度浮点值</returns>
 		public double toNumber()
 		{
-			return Convert.ToDouble (_value);
+			try
+			{
+				return Convert.ToDouble (_value);
+			}
+			catch (FormatException ex)
+			{
+				return 0.0;
+			}
+
 		}
 
 		/// <summary>
@@ -472,17 +494,24 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>二进制数据流</returns>
 		public byte[] toData()
 		{
-			switch (_type) 
+			try
 			{
-			case LuaValueType.Integer:
-				return BitConverter.GetBytes (Convert.ToInt32 (_value));
-			case LuaValueType.Number:
-				return BitConverter.GetBytes (Convert.ToDouble(_value));
-			case LuaValueType.String:
-				return Encoding.UTF8.GetBytes (Convert.ToString(_value));
-			case LuaValueType.Data:
-				return (byte[])_value;
-			default:
+				switch (_type) 
+				{
+				case LuaValueType.Integer:
+					return BitConverter.GetBytes (Convert.ToInt32 (_value));
+				case LuaValueType.Number:
+					return BitConverter.GetBytes (Convert.ToDouble(_value));
+				case LuaValueType.String:
+					return Encoding.UTF8.GetBytes (Convert.ToString(_value));
+				case LuaValueType.Data:
+					return (byte[])_value;
+				default:
+					return null;
+				}
+			}
+			catch (FormatException ex)
+			{
 				return null;
 			}
 		}
@@ -493,7 +522,14 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>字符串</returns>
 		public string toString()
 		{
-			return Convert.ToString (_value);
+			try
+			{
+				return Convert.ToString (_value);
+			}
+			catch (FormatException ex)
+			{
+				return null;
+			}
 		}
 
 		/// <summary>

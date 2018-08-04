@@ -2,6 +2,7 @@
 
 namespace cn.vimfung.luascriptcore
 {
+	[Obsolete("Use LuaExclude attribute instead.")]
 	[AttributeUsage(AttributeTargets.Class)]
 	public class LuaExportTypeAnnotation : Attribute
 	{
