@@ -67,6 +67,44 @@ class LuaExportTypeManager
     }
 
     /**
+     * 是否为排除字段
+     * @param field 字段信息
+     * @return true 表示为排除字段，否则不是
+     */
+    private boolean isExcludeField(Field field)
+    {
+        LuaExclude exclude = null;
+        Annotation[] annotations = field.getAnnotations();
+        for (Annotation annotation : annotations)
+        {
+            if (annotation.annotationType().equals(LuaExclude.class))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 是否为排除方法
+     * @param method 方法信息
+     * @return 表示为排除字段，否则不是
+     */
+    private boolean isExcludeMethod(Method method)
+    {
+        LuaExclude exclude = null;
+        Annotation[] annotations = method.getAnnotations();
+        for (Annotation annotation : annotations)
+        {
+            if (annotation.annotationType().equals(LuaExclude.class))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 获取类型签名
      * @param type  类型
      * @return  签名
@@ -432,6 +470,12 @@ class LuaExportTypeManager
                 continue;
             }
 
+            if (isExcludeField(field))
+            {
+                //为排除字段
+                continue;
+            }
+
             if (typeConfig != null && typeConfig.excludeExportFieldNames().length > 0)
             {
                 boolean isExclude = false;
@@ -486,6 +530,12 @@ class LuaExportTypeManager
                 continue;
             }
 
+            if (isExcludeMethod(method))
+            {
+                //为排除方法
+                continue;
+            }
+
             if (typeConfig != null && typeConfig.excludeExportInstanceMethodsNames().length > 0)
             {
                 boolean isExclude = false;
@@ -531,9 +581,9 @@ class LuaExportTypeManager
             if (Modifier.isStatic(modifier)
                     && Modifier.isPublic(modifier)
                     && !Modifier.isAbstract(modifier)
-                    && !methodName.equals("access$super"))
+                    && !methodName.equals("access$super")
+                    && !isExcludeMethod(method))
             {
-
                 if (typeConfig != null && typeConfig.excludeExportClassMethodNames().length > 0)
                 {
                     boolean isExclude = false;
