@@ -296,7 +296,7 @@ LuaObjectDescriptor* LuaJavaEnv::getAssociateInstanceRef(JNIEnv *env, jobject in
 {
     LuaObjectDescriptor *objectDescriptor = NULL;
 
-    if (env -> IsInstanceOf(instance, LuaJavaType::luaBaseObjectClass(env)) == JNI_TRUE)
+    if (instance != NULL && env -> IsInstanceOf(instance, LuaJavaType::luaBaseObjectClass(env)) == JNI_TRUE)
     {
         jfieldID nativeFieldId = env -> GetFieldID(env -> GetObjectClass(instance), "_nativeId", "I");
         jint nativeId = env -> GetIntField(instance, nativeFieldId);

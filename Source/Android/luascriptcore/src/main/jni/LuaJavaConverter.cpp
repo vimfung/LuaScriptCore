@@ -27,7 +27,11 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
 {
     LuaValue *value = NULL;
 
-    if (env -> IsInstanceOf(object, LuaJavaType::stringClass(env)) == JNI_TRUE)
+    if (env -> IsSameObject(object, NULL) == JNI_TRUE)
+    {
+        value = LuaValue::NilValue();
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::stringClass(env)) == JNI_TRUE)
     {
         //String类型
         jstring str = (jstring) object;
