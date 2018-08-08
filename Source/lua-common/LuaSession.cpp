@@ -11,7 +11,7 @@
 using namespace cn::vimfung::luascriptcore;
 
 LuaSession::LuaSession(lua_State *state, LuaContext *context, bool lightweight)
-    : _state(state), _context(context), _hasErr(false), _lightweight(lightweight)
+    : _state(state), _context(context), _lightweight(lightweight), _hasErr(false)
 {
 
 }

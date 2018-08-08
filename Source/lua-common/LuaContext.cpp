@@ -118,7 +118,7 @@ void WINAPI contextGCHandler(UINT wTimerID, UINT msg, DWORD dwUser, DWORD dwl, D
 	timeKillEvent(wTimerID);
 
 	//进行内存回收
-	for (std::vector<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
+	for (std::deque<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
 	{
 		LuaContext *context = *it;
 		context->gcHandler();

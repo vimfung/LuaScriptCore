@@ -9,7 +9,16 @@
 #include <mutex>
 #include <functional>
 #include <thread>
+
+#if _WINDOWS
+
+#include <windows.h>
+
+#else
+
 #include <pthread.h>
+
+#endif
 
 namespace cn {
     namespace vimfung {
@@ -44,7 +53,11 @@ namespace cn {
                 /**
                  * 锁
                  */
+#if _WINDOWS
+				CRITICAL_SECTION _lock;
+#else
                 pthread_mutex_t _lock;
+#endif
             };
         }
     }
