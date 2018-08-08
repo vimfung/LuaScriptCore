@@ -108,9 +108,9 @@ ext {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'org.jooq:joor-java-8:0.9.7'
-    testCompile 'junit:junit:4.12'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    api 'org.jooq:joor-java-8:0.9.7'
+    testImplementation 'junit:junit:4.12'
 }
 
 apply from: './installv1.gradle'
