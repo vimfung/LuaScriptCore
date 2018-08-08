@@ -2,7 +2,6 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 APP_PLATFORM := android-14
-
 LOCAL_MODULE := LuaScriptCore
 LOCAL_LDFLAGS := -Wl,--build-id
 LOCAL_LDLIBS := \
@@ -70,6 +69,7 @@ LOCAL_SRC_FILES := \
     ../../../../../lua-common/LuaExportsTypeManager.cpp \
     ../../../../../lua-common/LuaExportTypeDescriptor.cpp \
     ../../../../../lua-common/LuaExportPropertyDescriptor.cpp \
+    ../../../../../lua-common/LuaOperationQueue.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../lua-core-5.1.5/src

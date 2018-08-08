@@ -6,11 +6,12 @@ using System.Collections.Generic;
 
 public class LogModule : LuaExportType
 {
+	[LuaExclude]
 	public static void writeLog(String message)
 	{
 		Debug.LogFormat ("string log = {0}", message);
 	}
-
+		
 	public static void writeLog(int value)
 	{
 		Debug.LogFormat ("int log = {0}", value);

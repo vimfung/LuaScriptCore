@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import cn.vimfung.luascriptcore.LuaContext;
+import cn.vimfung.luascriptcore.LuaExclude;
 import cn.vimfung.luascriptcore.LuaExportType;
 import cn.vimfung.luascriptcore.LuaExportTypeConfig;
 import cn.vimfung.luascriptcore.LuaFunction;
@@ -20,11 +21,14 @@ import cn.vimfung.luascriptcore.LuaValue;
 public class Person implements LuaExportType
 {
     public String name;
+
+    @LuaExclude
     public void speak()
     {
         Log.v("luascriptcore", String.format("%s speak", name));
     }
 
+    @LuaExclude
     public void walk()
     {
         Log.v("luascriptcore", String.format("%s walk", name));

@@ -7,6 +7,7 @@ using System;
 public class Person : LuaExportType 
 {
 	private string _name;
+
 	public string name
 	{
 		get 

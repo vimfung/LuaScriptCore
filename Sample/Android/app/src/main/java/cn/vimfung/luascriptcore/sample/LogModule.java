@@ -2,6 +2,7 @@ package cn.vimfung.luascriptcore.sample;
 
 import android.util.Log;
 
+import cn.vimfung.luascriptcore.LuaExclude;
 import cn.vimfung.luascriptcore.LuaExportType;
 import cn.vimfung.luascriptcore.LuaTuple;
 

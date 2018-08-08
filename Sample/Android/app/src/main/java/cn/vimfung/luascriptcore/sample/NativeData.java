@@ -12,6 +12,7 @@ import cn.vimfung.luascriptcore.LuaExportTypeConfig;
 public class NativeData implements LuaExportType
 {
     public String dataId;
+
     private HashMap<String, String> _data = new HashMap<String, String>();
 
     public static Person createPerson()
