@@ -155,15 +155,60 @@ print (obj);
 
 # 最近更新
 
-## Release 2.2.1 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/2.2.1)
+## Release 2.3.0 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/2.3.0)
 
-本次更新内容包括：
+更新内容：
 
-1. 修复访问属性时导致堆栈错乱引发的一些未知问题
-2. 修复框架中的内存泄漏问题
-3. 优化抛出异常接口`raiseException`
-4. 修复一些不必现的崩溃问题
-5. 优化执行效率
+1. 增加线程安全机制
+2. lua核心升级至5.3.5版本
+3. 修复Android平台下使用`ArrayList`作为参数传入`callMethod`中无效问题。
+4. 允许Android、Unity平台下使用泛型作为参数传入lua。
+5. 修复Android平台下map中设置null元素转换失败问题
+6. Android和Unity平台下的`LuaExportTypeConfig`和`LuaExportTypeAnnotation`标注过期（后续版本将移除），使用`LuaExclude`注解（特性）来代替:
+
+**Android平台**
+
+```
+//调整前
+@LuaExportTypeConfig(excludeExportInstanceMethodsNames = {"method1", "method2"})
+class TargetClass implements LuaExportType
+{
+    public void method1 () {}
+    public void method2 () {}
+}
+
+//调整后
+class TargetClass implements LuaExportType
+{
+    @LuaExclude
+    public void method1 () {}
+
+    @LuaExclude
+    public void method2 () {}
+}
+```
+
+**Unity平台**
+
+```
+//调整前
+[LuaExportTypeAnnotation(excludeExportInstanceMethodNames=new string[]{"method1", "method2"})]
+class TargetClass : LuaExportType 
+{
+    public void method1 () {}
+    public void method2 () {}
+}
+
+//调整后
+class TargetClass : LuaExportType 
+{
+    [LuaExclude]
+    public void method1 () {}
+
+    [LuaExclude]
+    public void method2 () {}
+}
+```
 
 ## [更多更新历史](https://github.com/vimfung/LuaScriptCore/wiki/%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2)
 
