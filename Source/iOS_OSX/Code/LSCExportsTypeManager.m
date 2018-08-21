@@ -535,9 +535,9 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
             }
         }
         
-        NSArray *builtInExcludeMethodNames = @[@"excludeExportClassMethods",
-                                               @"excludeProperties",
-                                               @"excludeExportInstanceMethods"];
+        NSArray *builtInExcludeMethodNames = @[NSStringFromSelector(@selector(excludeExportClassMethods)),
+                                               NSStringFromSelector(@selector(excludeProperties)),
+                                               NSStringFromSelector(@selector(excludeExportInstanceMethods))];
         
         //解析方法
         NSMutableDictionary *methodDict = [typeDescriptor.classMethods mutableCopy];

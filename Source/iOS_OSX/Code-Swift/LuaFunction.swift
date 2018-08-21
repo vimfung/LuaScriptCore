@@ -6,25 +6,10 @@
 //  Copyright © 2016年 vimfung. All rights reserved.
 //
 
-/// Lua的方法对象类
-public class LuaFunction: NSObject
+public typealias LuaFunction = LSCFunction;
+
+extension LuaFunction
 {
-    var _rawFunction : LSCFunction;
-    
-    /// 初始化
-    public override init ()
-    {
-        _rawFunction = LSCFunction();
-    }
-    
-    /// 初始化
-    ///
-    /// - Parameter function: OC中的Lua方法对象实例
-    public init(rawFunction : LSCFunction)
-    {
-        _rawFunction = rawFunction;
-    }
-    
     /// 调用方法
     ///
     /// - Parameter arguments: 调用参数
@@ -36,7 +21,7 @@ public class LuaFunction: NSObject
             args.append(item.rawValue);
         }
         
-        let retValue : LSCValue = _rawFunction.invoke(withArguments: args);
+        let retValue : LSCValue = self.invoke(withArguments: args);
         return LuaValue(rawValue: retValue as LSCValue);
     }
 }

@@ -60,6 +60,23 @@ public class LuaValue: NSObject
     
     /// 初始化
     ///
+    /// - Parameter intValue: 64位整型值
+    public init(intValue : Int64)
+    {
+        _rawValue = LSCValue.number(NSNumber(value: intValue));
+    }
+    
+    
+    /// 初始化
+    ///
+    /// - Parameter intValue: 无符号64位整型值
+    public init(intValue : UInt64)
+    {
+        _rawValue = LSCValue.number(NSNumber(value: intValue));
+    }
+    
+    /// 初始化
+    ///
     /// - Parameter doubleValue: 双精度浮点型
     public init(doubleValue : Double)
     {
@@ -111,7 +128,7 @@ public class LuaValue: NSObject
     /// - Parameter pointerValue: 指针
     public init(pointerValue : LuaPointer)
     {
-        _rawValue = LSCValue.pointerValue(pointerValue._rawPointer);
+        _rawValue = LSCValue.pointerValue(pointerValue);
     }
     
     /// 初始化
@@ -119,7 +136,7 @@ public class LuaValue: NSObject
     /// - Parameter functionValue: 方法
     public init(functionValue : LuaFunction)
     {
-        _rawValue = LSCValue.functionValue(functionValue._rawFunction);
+        _rawValue = LSCValue.functionValue(functionValue);
     }
     
     /// 初始化
@@ -127,7 +144,7 @@ public class LuaValue: NSObject
     /// - Parameter tupleValue: 元组
     public init(tupleValue : LuaTuple)
     {
-        _rawValue = LSCValue.tupleValue(tupleValue._rawTuple);
+        _rawValue = LSCValue.tupleValue(tupleValue);
     }
     
     
@@ -243,7 +260,7 @@ public class LuaValue: NSObject
     {
         get
         {
-            return LuaFunction(rawFunction:_rawValue.toFunction());
+            return _rawValue.toFunction();
         }
     }
     
@@ -252,7 +269,7 @@ public class LuaValue: NSObject
     {
         get
         {
-            return LuaPointer(rawPointer: _rawValue.toPointer());
+            return rawValue.toPointer();
         }
     }
     
