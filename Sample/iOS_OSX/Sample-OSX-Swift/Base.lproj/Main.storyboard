@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="12118" systemVersion="16E195" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
+<document type="com.apple.InterfaceBuilder3.Cocoa.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" initialViewController="B8D-0N-5wS">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="12118"/>
+        <deployment identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="14113"/>
+        <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -668,6 +670,9 @@
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="196" y="240" width="480" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1680" height="1027"/>
+                        <connections>
+                            <outlet property="delegate" destination="B8D-0N-5wS" id="8FV-61-ecY"/>
+                        </connections>
                     </window>
                     <connections>
                         <segue destination="XfG-lQ-9wD" kind="relationship" relationship="window.shadowedContentViewController" id="cq2-FE-JQM"/>
@@ -686,7 +691,7 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <subviews>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="9JG-0j-LAz">
-                                <rect key="frame" x="164" y="212" width="152" height="32"/>
+                                <rect key="frame" x="44" y="212" width="152" height="32"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="140" id="bC9-GD-LKw"/>
                                 </constraints>
@@ -699,7 +704,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="tc1-xt-xIf">
-                                <rect key="frame" x="164" y="171" width="152" height="32"/>
+                                <rect key="frame" x="44" y="171" width="152" height="32"/>
                                 <buttonCell key="cell" type="push" title="Register Method" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="dU2-rZ-cBV">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -709,7 +714,7 @@
                                 </buttonCell>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="5sW-1B-Uce">
-                                <rect key="frame" x="164" y="130" width="152" height="32"/>
+                                <rect key="frame" x="44" y="130" width="152" height="32"/>
                                 <buttonCell key="cell" type="push" title="Call Lua Method" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="VU8-Nb-ytY">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -719,7 +724,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="OD2-uk-GlR">
-                                <rect key="frame" x="164" y="89" width="152" height="32"/>
+                                <rect key="frame" x="44" y="89" width="152" height="32"/>
                                 <buttonCell key="cell" type="push" title="Register Module" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="IuL-jS-GTA">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -729,7 +734,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="s2M-yy-keE">
-                                <rect key="frame" x="164" y="48" width="152" height="32"/>
+                                <rect key="frame" x="44" y="48" width="152" height="32"/>
                                 <buttonCell key="cell" type="push" title="Register Class" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="FYC-5z-wpy">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -739,7 +744,7 @@
                                 </connections>
                             </button>
                             <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FuS-aD-jCq">
-                                <rect key="frame" x="164" y="7" width="152" height="32"/>
+                                <rect key="frame" x="44" y="7" width="152" height="32"/>
                                 <buttonCell key="cell" type="push" title="Import Native Class" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="vjM-NX-6YZ">
                                     <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
                                     <font key="font" metaFont="system"/>
@@ -748,10 +753,24 @@
                                     </connections>
                                 </buttonCell>
                             </button>
+                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="bmC-2y-q1f">
+                                <rect key="frame" x="284" y="212" width="152" height="32"/>
+                                <buttonCell key="cell" type="push" title="Modules" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="syz-Ue-kw8">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <segue destination="Pf5-vX-TCF" kind="modal" id="dRe-EK-arU"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <constraints>
                             <constraint firstItem="s2M-yy-keE" firstAttribute="centerX" secondItem="OD2-uk-GlR" secondAttribute="centerX" id="4h8-TK-8v3"/>
+                            <constraint firstItem="bmC-2y-q1f" firstAttribute="top" secondItem="9JG-0j-LAz" secondAttribute="top" id="9tR-Ve-Rb9"/>
                             <constraint firstItem="tc1-xt-xIf" firstAttribute="top" secondItem="9JG-0j-LAz" secondAttribute="bottom" constant="20" id="DZR-yC-Ll4"/>
+                            <constraint firstItem="bmC-2y-q1f" firstAttribute="height" secondItem="9JG-0j-LAz" secondAttribute="height" id="EDb-2M-CMN"/>
+                            <constraint firstItem="bmC-2y-q1f" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" multiplier="1.5" id="FQt-G6-rjl"/>
+                            <constraint firstItem="bmC-2y-q1f" firstAttribute="width" secondItem="9JG-0j-LAz" secondAttribute="width" id="Isq-TA-Stp"/>
                             <constraint firstItem="OD2-uk-GlR" firstAttribute="top" secondItem="5sW-1B-Uce" secondAttribute="bottom" constant="20" id="Ppu-3f-fzs"/>
                             <constraint firstItem="s2M-yy-keE" firstAttribute="top" secondItem="OD2-uk-GlR" secondAttribute="bottom" constant="20" id="R2J-7E-leZ"/>
                             <constraint firstItem="tc1-xt-xIf" firstAttribute="width" secondItem="9JG-0j-LAz" secondAttribute="width" id="UHu-iu-v17"/>
@@ -764,7 +783,7 @@
                             <constraint firstItem="5sW-1B-Uce" firstAttribute="centerX" secondItem="tc1-xt-xIf" secondAttribute="centerX" id="hiV-M4-2sH"/>
                             <constraint firstItem="OD2-uk-GlR" firstAttribute="centerX" secondItem="5sW-1B-Uce" secondAttribute="centerX" id="iRB-zI-2x1"/>
                             <constraint firstItem="tc1-xt-xIf" firstAttribute="centerX" secondItem="9JG-0j-LAz" secondAttribute="centerX" id="jVC-pf-axd"/>
-                            <constraint firstItem="9JG-0j-LAz" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" id="oAv-3C-qBH"/>
+                            <constraint firstItem="9JG-0j-LAz" firstAttribute="centerX" secondItem="m2S-Jp-Qdl" secondAttribute="centerX" multiplier="0.5" id="oAv-3C-qBH"/>
                             <constraint firstItem="OD2-uk-GlR" firstAttribute="width" secondItem="5sW-1B-Uce" secondAttribute="width" id="p8I-Qu-8Zb"/>
                             <constraint firstItem="9JG-0j-LAz" firstAttribute="top" secondItem="m2S-Jp-Qdl" secondAttribute="top" constant="30" id="xV9-xm-pG8"/>
                         </constraints>
@@ -773,6 +792,73 @@
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="75" y="655"/>
+        </scene>
+        <!--Modules View Controller-->
+        <scene sceneID="Kbn-6d-Lj2">
+            <objects>
+                <viewController id="Pf5-vX-TCF" customClass="ModulesViewController" customModule="Sample_OSX_Swift" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="Q7M-mI-qOw">
+                        <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <subviews>
+                            <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3aV-H3-GuC">
+                                <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
+                                <clipView key="contentView" id="Mbo-mS-ScN">
+                                    <rect key="frame" x="1" y="1" width="448" height="298"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                    <subviews>
+                                        <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" indentationPerLevel="16" outlineTableColumn="dom-uX-Bar" id="3lh-rv-QO2">
+                                            <rect key="frame" x="0.0" y="0.0" width="448" height="298"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <size key="intercellSpacing" width="3" height="2"/>
+                                            <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                            <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                            <tableColumns>
+                                                <tableColumn identifier="" editable="NO" width="445" minWidth="40" maxWidth="1000" id="dom-uX-Bar">
+                                                    <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                                        <font key="font" metaFont="smallSystem"/>
+                                                        <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
+                                                    </tableHeaderCell>
+                                                    <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="IeQ-qb-YNr">
+                                                        <font key="font" metaFont="system"/>
+                                                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                    </textFieldCell>
+                                                    <tableColumnResizingMask key="resizingMask" resizeWithTable="YES"/>
+                                                </tableColumn>
+                                            </tableColumns>
+                                            <connections>
+                                                <outlet property="dataSource" destination="Pf5-vX-TCF" id="cYm-Rx-VDT"/>
+                                                <outlet property="delegate" destination="Pf5-vX-TCF" id="wfR-UU-2yG"/>
+                                            </connections>
+                                        </outlineView>
+                                    </subviews>
+                                </clipView>
+                                <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="yco-Xd-CgI">
+                                    <rect key="frame" x="1" y="119" width="223" height="15"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                                <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="NO" id="PNe-me-SAM">
+                                    <rect key="frame" x="224" y="17" width="15" height="102"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </scroller>
+                            </scrollView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="3aV-H3-GuC" firstAttribute="top" secondItem="Q7M-mI-qOw" secondAttribute="top" id="MgR-YB-Jzg"/>
+                            <constraint firstAttribute="bottom" secondItem="3aV-H3-GuC" secondAttribute="bottom" id="XPo-Sz-zfT"/>
+                            <constraint firstItem="3aV-H3-GuC" firstAttribute="leading" secondItem="Q7M-mI-qOw" secondAttribute="leading" id="cG6-dh-yo7"/>
+                            <constraint firstAttribute="trailing" secondItem="3aV-H3-GuC" secondAttribute="trailing" id="fAH-BV-P4T"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="outlineView" destination="3lh-rv-QO2" id="5ga-K8-PLl"/>
+                    </connections>
+                </viewController>
+                <customObject id="MwZ-uI-zBd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="642" y="661"/>
         </scene>
     </scenes>
 </document>

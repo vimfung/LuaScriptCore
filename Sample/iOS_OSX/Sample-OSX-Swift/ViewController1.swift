@@ -76,7 +76,7 @@ class ViewController1: NSViewController {
     /// - Parameter sender: 事件对象
     @IBAction func regModuleButtonClickedHandler(_ sender: Any)
     {
-        _ = _context.evalScript(script: "LogModule.writeLog('Hello Lua Module!');");
+        _ = _context.evalScript(script: "LogModule:writeLog('Hello Lua Module!');");
     }
     
     /// 注册类按钮点击
@@ -92,7 +92,7 @@ class ViewController1: NSViewController {
     /// - Parameter sender: 事件对象
     @IBAction func importNativeClassButtonClickedHandler(_ sender: Any)
     {
-        _ = _context.evalScript(script: "local Data = LSCTNativeData; print(Data); local d = Data.create(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));");
+        _ = _context.evalScript(script: "local Data = LSCTNativeData; print(Data); local d = Data(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));");
     }
 }
 

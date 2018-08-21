@@ -71,9 +71,9 @@
 - (IBAction)evalScriptButtonClickedHandler:(id)sender
 {
   //解析并执行Lua脚本
-  LSCValue *retValue =
-      [self.context evalScriptFromString:@"print(10);return 'Hello World';"];
-  NSLog(@"%@", [retValue toString]);
+//  LSCValue *retValue =
+//      [self.context evalScriptFromString:@"print(10);return 'Hello World';"];
+//  NSLog(@"%@", [retValue toString]);
 }
 
 
@@ -163,6 +163,12 @@
 - (IBAction)importNativeClassClickedHandler:(id)sender
 {
     [self.context evalScriptFromString:@"Object:typeMapping('ios', 'LSCTNativeData', 'Data'); print(Data); local d = Data(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));"];
+}
+
+//其他界面返回到此界面调用的方法
+- (IBAction)unwindSegue:(UIStoryboardSegue *)sender
+{
+    NSLog(@"unwindSegue %@", sender);
 }
 
 @end

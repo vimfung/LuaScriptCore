@@ -14,6 +14,14 @@ class ViewController: UIViewController {
     var _context : LuaContext = LuaContext();
     var _hasRegMethod : Bool = false;
     
+    override func viewDidLoad() {
+        
+        _context.onException { (msg) in
+            print("lua exception = \(msg ?? "")");
+        }
+        
+    }
+    
     /// 解析脚本按钮点击
     ///
     /// - Parameter sender: 事件对象
@@ -73,7 +81,7 @@ class ViewController: UIViewController {
     /// - Parameter sender: 事件对象
     @IBAction func regModuleButtonClickedHandler(_ sender: Any)
     {
-        _ = _context.evalScript(script: "LogModule.writeLog('Hello Lua Module!');");
+        _ = _context.evalScript(script: "LogModule:writeLog('Hello Lua Module!');");
     }
     
     
@@ -91,7 +99,8 @@ class ViewController: UIViewController {
     /// - Parameter sender: 事件对象
     @IBAction func importNativeClassButtonClickedHandler(_ sender: Any)
     {
-        _ = _context.evalScript(script: "local Data = LSCTNativeData; print(Data); local d = Data.create(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));");
+        _ = _context.evalScript(script: "local Data = LSCTNativeData; print(Data); local d = Data(); print(d); d.dataId = 'xxxx'; print(d.dataId); d:setData('xxx','testKey'); print(d:getData('testKey'));");
     }
+    
 }
 

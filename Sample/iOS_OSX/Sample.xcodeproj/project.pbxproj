@@ -26,6 +26,27 @@
 		7C21ED361DEFC39400507DA2 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
 		7C21ED381DEFCEFA00507DA2 /* LogModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED371DEFCEFA00507DA2 /* LogModule.swift */; };
 		7C21ED3D1DEFD41200507DA2 /* LSCTPerson.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED3C1DEFD41200507DA2 /* LSCTPerson.swift */; };
+		7C44C776212A68C8004D8D6F /* LSCHTTPTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C775212A68C8004D8D6F /* LSCHTTPTask.m */; };
+		7C44C777212A68C8004D8D6F /* LSCHTTPTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C775212A68C8004D8D6F /* LSCHTTPTask.m */; };
+		7C44C77E212AA0F6004D8D6F /* LSCEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C77D212AA0F6004D8D6F /* LSCEncoding.m */; };
+		7C44C77F212AA0F6004D8D6F /* LSCEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C77D212AA0F6004D8D6F /* LSCEncoding.m */; };
+		7C44C782212AA693004D8D6F /* LSCHTTPFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C781212AA693004D8D6F /* LSCHTTPFile.m */; };
+		7C44C783212AA693004D8D6F /* LSCHTTPFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C781212AA693004D8D6F /* LSCHTTPFile.m */; };
+		7C44C785212AAFDD004D8D6F /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C784212AAFDD004D8D6F /* HTTP.lua */; };
+		7C44C786212AAFDD004D8D6F /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C784212AAFDD004D8D6F /* HTTP.lua */; };
+		7C44C788212AB472004D8D6F /* HTTP-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C787212AB472004D8D6F /* HTTP-Sample.lua */; };
+		7C44C789212AB472004D8D6F /* HTTP-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C787212AB472004D8D6F /* HTTP-Sample.lua */; };
+		7C44C78C212AB873004D8D6F /* HttpModuleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C78B212AB873004D8D6F /* HttpModuleViewController.m */; };
+		7C49AE41212BC5850031D627 /* ModuleListViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE40212BC5850031D627 /* ModuleListViewController.m */; };
+		7C49AE45212BC63B0031D627 /* ModuleListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE44212BC63B0031D627 /* ModuleListViewController.swift */; };
+		7C49AE48212BC75C0031D627 /* EncodingModuleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE47212BC75C0031D627 /* EncodingModuleViewController.swift */; };
+		7C49AE4A212BC8F60031D627 /* PathModuleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE49212BC8F60031D627 /* PathModuleViewController.swift */; };
+		7C49AE4C212BCA150031D627 /* HttpModuleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE4B212BCA150031D627 /* HttpModuleViewController.swift */; };
+		7C49AE4E212BCA940031D627 /* LSCHTTPTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE4D212BCA940031D627 /* LSCHTTPTask.swift */; };
+		7C49AE4F212BCA940031D627 /* LSCHTTPTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE4D212BCA940031D627 /* LSCHTTPTask.swift */; };
+		7C49AE51212BE5140031D627 /* LSCHTTPFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE50212BE5140031D627 /* LSCHTTPFile.swift */; };
+		7C49AE52212BE5140031D627 /* LSCHTTPFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE50212BE5140031D627 /* LSCHTTPFile.swift */; };
+		7C49AE54212C15310031D627 /* ModulesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C49AE53212C15310031D627 /* ModulesViewController.swift */; };
 		7C5A61811D6AE2A3007D4308 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C5A61801D6AE2A3007D4308 /* AppDelegate.m */; };
 		7C5A61841D6AE2A3007D4308 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C5A61831D6AE2A3007D4308 /* main.m */; };
 		7C5A61871D6AE2A3007D4308 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C5A61861D6AE2A3007D4308 /* ViewController.m */; };
@@ -49,6 +70,36 @@
 		7CCA263B1EA45634007F20A9 /* LSCTNativeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */; };
 		7CCA263C1EA45634007F20A9 /* LSCTNativeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */; };
 		7CCA263E1EA4754E007F20A9 /* LSCTNativeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */; };
+		7CCF836E211BF91800BF7723 /* hello.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CCF8366211BF91800BF7723 /* hello.lua */; };
+		7CE28F44212B9F7B0042A3DC /* LSCPath.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F43212B9F7B0042A3DC /* LSCPath.m */; };
+		7CE28F45212B9F7B0042A3DC /* LSCPath.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F43212B9F7B0042A3DC /* LSCPath.m */; };
+		7CE28F48212BA1770042A3DC /* Encoding-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */; };
+		7CE28F49212BA1770042A3DC /* Encoding-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */; };
+		7CE28F4A212BA1770042A3DC /* Encoding-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */; };
+		7CE28F4B212BA1770042A3DC /* Encoding-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */; };
+		7CE28F4D212BA1880042A3DC /* Path-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F4C212BA1880042A3DC /* Path-Sample.lua */; };
+		7CE28F4E212BA1880042A3DC /* Path-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F4C212BA1880042A3DC /* Path-Sample.lua */; };
+		7CE28F4F212BA1880042A3DC /* Path-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F4C212BA1880042A3DC /* Path-Sample.lua */; };
+		7CE28F50212BA1880042A3DC /* Path-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F4C212BA1880042A3DC /* Path-Sample.lua */; };
+		7CE28F51212BA18C0042A3DC /* HTTP-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C787212AB472004D8D6F /* HTTP-Sample.lua */; };
+		7CE28F52212BA18C0042A3DC /* HTTP-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C787212AB472004D8D6F /* HTTP-Sample.lua */; };
+		7CE28F53212BA18E0042A3DC /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C784212AAFDD004D8D6F /* HTTP.lua */; };
+		7CE28F54212BA18F0042A3DC /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C784212AAFDD004D8D6F /* HTTP.lua */; };
+		7CE28F56212BA26F0042A3DC /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F55212BA26F0042A3DC /* Foundation.lua */; };
+		7CE28F57212BA26F0042A3DC /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F55212BA26F0042A3DC /* Foundation.lua */; };
+		7CE28F58212BA26F0042A3DC /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F55212BA26F0042A3DC /* Foundation.lua */; };
+		7CE28F59212BA26F0042A3DC /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F55212BA26F0042A3DC /* Foundation.lua */; };
+		7CE28F5C212BA39D0042A3DC /* EncodingModuleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F5B212BA39D0042A3DC /* EncodingModuleViewController.m */; };
+		7CE28F61212BA81C0042A3DC /* PathModuleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F60212BA81C0042A3DC /* PathModuleViewController.m */; };
+		7CE28F64212BAA690042A3DC /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F63212BAA690042A3DC /* timg.jpeg */; };
+		7CE28F65212BAA690042A3DC /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F63212BAA690042A3DC /* timg.jpeg */; };
+		7CE28F66212BAA690042A3DC /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F63212BAA690042A3DC /* timg.jpeg */; };
+		7CE28F67212BAA690042A3DC /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F63212BAA690042A3DC /* timg.jpeg */; };
+		7CE28F6B212BAE210042A3DC /* ModulesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F6A212BAE210042A3DC /* ModulesViewController.m */; };
+		7CE28F6D212BB6560042A3DC /* LSCEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F6C212BB6560042A3DC /* LSCEncoding.swift */; };
+		7CE28F6E212BB6560042A3DC /* LSCEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F6C212BB6560042A3DC /* LSCEncoding.swift */; };
+		7CE28F70212BB79B0042A3DC /* LSCPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F6F212BB79B0042A3DC /* LSCPath.swift */; };
+		7CE28F71212BB79B0042A3DC /* LSCPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F6F212BB79B0042A3DC /* LSCPath.swift */; };
 		7CE625121D93B3AA007533D7 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
 		7CE625131D93B3AA007533D7 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
 		7CE625141D93B3AA007533D7 /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625101D93B3AA007533D7 /* main.lua */; };
@@ -185,6 +236,25 @@
 		7C21ED101DEFBE9A00507DA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7C21ED371DEFCEFA00507DA2 /* LogModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogModule.swift; sourceTree = "<group>"; };
 		7C21ED3C1DEFD41200507DA2 /* LSCTPerson.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTPerson.swift; sourceTree = "<group>"; };
+		7C44C774212A68C8004D8D6F /* LSCHTTPTask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCHTTPTask.h; sourceTree = "<group>"; };
+		7C44C775212A68C8004D8D6F /* LSCHTTPTask.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCHTTPTask.m; sourceTree = "<group>"; };
+		7C44C77C212AA0F6004D8D6F /* LSCEncoding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCEncoding.h; sourceTree = "<group>"; };
+		7C44C77D212AA0F6004D8D6F /* LSCEncoding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCEncoding.m; sourceTree = "<group>"; };
+		7C44C780212AA693004D8D6F /* LSCHTTPFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCHTTPFile.h; sourceTree = "<group>"; };
+		7C44C781212AA693004D8D6F /* LSCHTTPFile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCHTTPFile.m; sourceTree = "<group>"; };
+		7C44C784212AAFDD004D8D6F /* HTTP.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = HTTP.lua; sourceTree = "<group>"; };
+		7C44C787212AB472004D8D6F /* HTTP-Sample.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = "HTTP-Sample.lua"; sourceTree = "<group>"; };
+		7C44C78A212AB873004D8D6F /* HttpModuleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HttpModuleViewController.h; sourceTree = "<group>"; };
+		7C44C78B212AB873004D8D6F /* HttpModuleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HttpModuleViewController.m; sourceTree = "<group>"; };
+		7C49AE3F212BC5850031D627 /* ModuleListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModuleListViewController.h; sourceTree = "<group>"; };
+		7C49AE40212BC5850031D627 /* ModuleListViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ModuleListViewController.m; sourceTree = "<group>"; };
+		7C49AE44212BC63B0031D627 /* ModuleListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModuleListViewController.swift; sourceTree = "<group>"; };
+		7C49AE47212BC75C0031D627 /* EncodingModuleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingModuleViewController.swift; sourceTree = "<group>"; };
+		7C49AE49212BC8F60031D627 /* PathModuleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathModuleViewController.swift; sourceTree = "<group>"; };
+		7C49AE4B212BCA150031D627 /* HttpModuleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpModuleViewController.swift; sourceTree = "<group>"; };
+		7C49AE4D212BCA940031D627 /* LSCHTTPTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSCHTTPTask.swift; sourceTree = "<group>"; };
+		7C49AE50212BE5140031D627 /* LSCHTTPFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSCHTTPFile.swift; sourceTree = "<group>"; };
+		7C49AE53212C15310031D627 /* ModulesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModulesViewController.swift; sourceTree = "<group>"; };
 		7C5A617D1D6AE2A3007D4308 /* Sample-OSX.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-OSX.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C5A617F1D6AE2A3007D4308 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		7C5A61801D6AE2A3007D4308 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -211,6 +281,21 @@
 		7CCA26391EA45634007F20A9 /* LSCTNativeData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTNativeData.h; sourceTree = "<group>"; };
 		7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCTNativeData.m; sourceTree = "<group>"; };
 		7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTNativeData.swift; sourceTree = "<group>"; };
+		7CCF8366211BF91800BF7723 /* hello.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = hello.lua; sourceTree = "<group>"; };
+		7CE28F42212B9F7B0042A3DC /* LSCPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCPath.h; sourceTree = "<group>"; };
+		7CE28F43212B9F7B0042A3DC /* LSCPath.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCPath.m; sourceTree = "<group>"; };
+		7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Encoding-Sample.lua"; sourceTree = "<group>"; };
+		7CE28F4C212BA1880042A3DC /* Path-Sample.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Path-Sample.lua"; sourceTree = "<group>"; };
+		7CE28F55212BA26F0042A3DC /* Foundation.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = Foundation.lua; sourceTree = "<group>"; };
+		7CE28F5A212BA39D0042A3DC /* EncodingModuleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EncodingModuleViewController.h; sourceTree = "<group>"; };
+		7CE28F5B212BA39D0042A3DC /* EncodingModuleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EncodingModuleViewController.m; sourceTree = "<group>"; };
+		7CE28F5F212BA81C0042A3DC /* PathModuleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PathModuleViewController.h; sourceTree = "<group>"; };
+		7CE28F60212BA81C0042A3DC /* PathModuleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PathModuleViewController.m; sourceTree = "<group>"; };
+		7CE28F63212BAA690042A3DC /* timg.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = timg.jpeg; path = ../../../../../../Downloads/timg.jpeg; sourceTree = "<group>"; };
+		7CE28F69212BAE210042A3DC /* ModulesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModulesViewController.h; sourceTree = "<group>"; };
+		7CE28F6A212BAE210042A3DC /* ModulesViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ModulesViewController.m; sourceTree = "<group>"; };
+		7CE28F6C212BB6560042A3DC /* LSCEncoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSCEncoding.swift; sourceTree = "<group>"; };
+		7CE28F6F212BB79B0042A3DC /* LSCPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSCPath.swift; sourceTree = "<group>"; };
 		7CE6250F1D93B3AA007533D7 /* dkjson.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dkjson.lua; sourceTree = "<group>"; };
 		7CE625101D93B3AA007533D7 /* main.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.lua; sourceTree = "<group>"; };
 		7CE625111D93B3AA007533D7 /* todo.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = todo.lua; sourceTree = "<group>"; };
@@ -267,6 +352,7 @@
 				7CA46E591DEFFE3C0014253A /* LogModule.swift */,
 				7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */,
 				7C78749C1EA4BE0E00FED498 /* LSCTNativeData.swift */,
+				7C49AE53212C15310031D627 /* ModulesViewController.swift */,
 			);
 			path = "Sample-OSX-Swift";
 			sourceTree = "<group>";
@@ -274,6 +360,7 @@
 		7C21ED031DEFBE9A00507DA2 /* Sample-iOS-Swift */ = {
 			isa = PBXGroup;
 			children = (
+				7C49AE46212BC7440031D627 /* ModuleViewControllers */,
 				7C21ED041DEFBE9A00507DA2 /* AppDelegate.swift */,
 				7C21ED061DEFBE9A00507DA2 /* ViewController.swift */,
 				7C21ED371DEFCEFA00507DA2 /* LogModule.swift */,
@@ -283,8 +370,107 @@
 				7C21ED0B1DEFBE9A00507DA2 /* Assets.xcassets */,
 				7C21ED0D1DEFBE9A00507DA2 /* LaunchScreen.storyboard */,
 				7C21ED101DEFBE9A00507DA2 /* Info.plist */,
+				7C49AE44212BC63B0031D627 /* ModuleListViewController.swift */,
 			);
 			path = "Sample-iOS-Swift";
+			sourceTree = "<group>";
+		};
+		7C44C761212A4DAE004D8D6F /* Modules */ = {
+			isa = PBXGroup;
+			children = (
+				7C44C778212AA090004D8D6F /* Foundation */,
+				7C44C762212A4DAE004D8D6F /* Network */,
+			);
+			name = Modules;
+			path = ../../Modules;
+			sourceTree = "<group>";
+		};
+		7C44C762212A4DAE004D8D6F /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				7C44C784212AAFDD004D8D6F /* HTTP.lua */,
+				7C44C763212A4DAE004D8D6F /* iOS */,
+				7CE28F3A212B9D790042A3DC /* Sample */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		7C44C763212A4DAE004D8D6F /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				7C44C764212A4DAE004D8D6F /* OC */,
+				7C44C765212A4DAE004D8D6F /* Swift */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		7C44C764212A4DAE004D8D6F /* OC */ = {
+			isa = PBXGroup;
+			children = (
+				7C44C774212A68C8004D8D6F /* LSCHTTPTask.h */,
+				7C44C775212A68C8004D8D6F /* LSCHTTPTask.m */,
+				7C44C780212AA693004D8D6F /* LSCHTTPFile.h */,
+				7C44C781212AA693004D8D6F /* LSCHTTPFile.m */,
+			);
+			path = OC;
+			sourceTree = "<group>";
+		};
+		7C44C765212A4DAE004D8D6F /* Swift */ = {
+			isa = PBXGroup;
+			children = (
+				7C49AE4D212BCA940031D627 /* LSCHTTPTask.swift */,
+				7C49AE50212BE5140031D627 /* LSCHTTPFile.swift */,
+			);
+			path = Swift;
+			sourceTree = "<group>";
+		};
+		7C44C778212AA090004D8D6F /* Foundation */ = {
+			isa = PBXGroup;
+			children = (
+				7CE28F55212BA26F0042A3DC /* Foundation.lua */,
+				7CE28F46212BA1590042A3DC /* Sample */,
+				7C44C779212AA099004D8D6F /* iOS */,
+			);
+			path = Foundation;
+			sourceTree = "<group>";
+		};
+		7C44C779212AA099004D8D6F /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				7C44C77B212AA0A7004D8D6F /* Swift */,
+				7C44C77A212AA09F004D8D6F /* OC */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		7C44C77A212AA09F004D8D6F /* OC */ = {
+			isa = PBXGroup;
+			children = (
+				7C44C77C212AA0F6004D8D6F /* LSCEncoding.h */,
+				7C44C77D212AA0F6004D8D6F /* LSCEncoding.m */,
+				7CE28F42212B9F7B0042A3DC /* LSCPath.h */,
+				7CE28F43212B9F7B0042A3DC /* LSCPath.m */,
+			);
+			path = OC;
+			sourceTree = "<group>";
+		};
+		7C44C77B212AA0A7004D8D6F /* Swift */ = {
+			isa = PBXGroup;
+			children = (
+				7CE28F6C212BB6560042A3DC /* LSCEncoding.swift */,
+				7CE28F6F212BB79B0042A3DC /* LSCPath.swift */,
+			);
+			path = Swift;
+			sourceTree = "<group>";
+		};
+		7C49AE46212BC7440031D627 /* ModuleViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				7C49AE47212BC75C0031D627 /* EncodingModuleViewController.swift */,
+				7C49AE49212BC8F60031D627 /* PathModuleViewController.swift */,
+				7C49AE4B212BCA150031D627 /* HttpModuleViewController.swift */,
+			);
+			path = ModuleViewControllers;
 			sourceTree = "<group>";
 		};
 		7C5A617E1D6AE2A3007D4308 /* Sample-OSX */ = {
@@ -298,6 +484,8 @@
 				7C5A618A1D6AE2A3007D4308 /* Main.storyboard */,
 				7C5A618D1D6AE2A3007D4308 /* Info.plist */,
 				7C5A61821D6AE2A3007D4308 /* Supporting Files */,
+				7CE28F69212BAE210042A3DC /* ModulesViewController.h */,
+				7CE28F6A212BAE210042A3DC /* ModulesViewController.m */,
 			);
 			path = "Sample-OSX";
 			sourceTree = "<group>";
@@ -313,6 +501,7 @@
 		7C6B12721D6AFD1400489D9E /* Sample-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				7CE28F5E212BA8010042A3DC /* ModuleViewControllers */,
 				7C6B12731D6AFD1400489D9E /* AppDelegate.h */,
 				7C6B12741D6AFD1400489D9E /* AppDelegate.m */,
 				7C6B12751D6AFD1400489D9E /* Assets.xcassets */,
@@ -322,6 +511,8 @@
 				7C6B127B1D6AFD1400489D9E /* main.m */,
 				7C6B127C1D6AFD1400489D9E /* ViewController.h */,
 				7C6B127D1D6AFD1400489D9E /* ViewController.m */,
+				7C49AE3F212BC5850031D627 /* ModuleListViewController.h */,
+				7C49AE40212BC5850031D627 /* ModuleListViewController.m */,
 			);
 			path = "Sample-iOS";
 			sourceTree = "<group>";
@@ -351,6 +542,7 @@
 			isa = PBXGroup;
 			children = (
 				7C88E88720240504000C15D5 /* LuaScriptCore.xcodeproj */,
+				7C44C761212A4DAE004D8D6F /* Modules */,
 				7CE625181D93B3C8007533D7 /* Common */,
 				7CE6250E1D93B3AA007533D7 /* LuaScript */,
 				7C6B12721D6AFD1400489D9E /* Sample-iOS */,
@@ -373,9 +565,41 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		7CE28F3A212B9D790042A3DC /* Sample */ = {
+			isa = PBXGroup;
+			children = (
+				7CE28F63212BAA690042A3DC /* timg.jpeg */,
+				7C44C787212AB472004D8D6F /* HTTP-Sample.lua */,
+			);
+			path = Sample;
+			sourceTree = "<group>";
+		};
+		7CE28F46212BA1590042A3DC /* Sample */ = {
+			isa = PBXGroup;
+			children = (
+				7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */,
+				7CE28F4C212BA1880042A3DC /* Path-Sample.lua */,
+			);
+			path = Sample;
+			sourceTree = "<group>";
+		};
+		7CE28F5E212BA8010042A3DC /* ModuleViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				7C44C78A212AB873004D8D6F /* HttpModuleViewController.h */,
+				7C44C78B212AB873004D8D6F /* HttpModuleViewController.m */,
+				7CE28F5A212BA39D0042A3DC /* EncodingModuleViewController.h */,
+				7CE28F5B212BA39D0042A3DC /* EncodingModuleViewController.m */,
+				7CE28F5F212BA81C0042A3DC /* PathModuleViewController.h */,
+				7CE28F60212BA81C0042A3DC /* PathModuleViewController.m */,
+			);
+			path = ModuleViewControllers;
+			sourceTree = "<group>";
+		};
 		7CE6250E1D93B3AA007533D7 /* LuaScript */ = {
 			isa = PBXGroup;
 			children = (
+				7CCF8366211BF91800BF7723 /* hello.lua */,
 				7CE6250F1D93B3AA007533D7 /* dkjson.lua */,
 				7CE625101D93B3AA007533D7 /* main.lua */,
 				7CE625111D93B3AA007533D7 /* todo.lua */,
@@ -586,8 +810,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				7CFE0B501DF00E4200C41B89 /* dkjson.lua in Resources */,
+				7CE28F59212BA26F0042A3DC /* Foundation.lua in Resources */,
+				7CE28F67212BAA690042A3DC /* timg.jpeg in Resources */,
+				7CE28F52212BA18C0042A3DC /* HTTP-Sample.lua in Resources */,
+				7CE28F4B212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7CFE0B511DF00E4200C41B89 /* main.lua in Resources */,
+				7CE28F50212BA1880042A3DC /* Path-Sample.lua in Resources */,
 				7CFE0B521DF00E4200C41B89 /* todo.lua in Resources */,
+				7CE28F54212BA18F0042A3DC /* HTTP.lua in Resources */,
 				7CFE0B531DF00E4200C41B89 /* test.lua in Resources */,
 				7C177C161DEFEE73008C9DF1 /* Assets.xcassets in Resources */,
 				7C177C191DEFEE73008C9DF1 /* Main.storyboard in Resources */,
@@ -599,12 +829,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C21ED331DEFC39400507DA2 /* dkjson.lua in Resources */,
+				7CE28F4A212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
+				7CE28F53212BA18E0042A3DC /* HTTP.lua in Resources */,
 				7C21ED341DEFC39400507DA2 /* main.lua in Resources */,
 				7C21ED351DEFC39400507DA2 /* todo.lua in Resources */,
+				7CE28F58212BA26F0042A3DC /* Foundation.lua in Resources */,
 				7C21ED361DEFC39400507DA2 /* test.lua in Resources */,
 				7C21ED0F1DEFBE9A00507DA2 /* LaunchScreen.storyboard in Resources */,
+				7CE28F51212BA18C0042A3DC /* HTTP-Sample.lua in Resources */,
+				7CE28F66212BAA690042A3DC /* timg.jpeg in Resources */,
 				7C21ED0C1DEFBE9A00507DA2 /* Assets.xcassets in Resources */,
 				7C21ED0A1DEFBE9A00507DA2 /* Main.storyboard in Resources */,
+				7CE28F4F212BA1880042A3DC /* Path-Sample.lua in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -612,11 +848,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C44C786212AAFDD004D8D6F /* HTTP.lua in Resources */,
+				7CE28F57212BA26F0042A3DC /* Foundation.lua in Resources */,
+				7CE28F65212BAA690042A3DC /* timg.jpeg in Resources */,
 				7CE625171D93B3AA007533D7 /* todo.lua in Resources */,
 				7C5A61891D6AE2A3007D4308 /* Assets.xcassets in Resources */,
 				7CE625151D93B3AA007533D7 /* main.lua in Resources */,
 				7CE625131D93B3AA007533D7 /* dkjson.lua in Resources */,
+				7CE28F4E212BA1880042A3DC /* Path-Sample.lua in Resources */,
 				7C210E051DCB5FD3000838F9 /* test.lua in Resources */,
+				7C44C789212AB472004D8D6F /* HTTP-Sample.lua in Resources */,
+				7CE28F49212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7C5A618C1D6AE2A3007D4308 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -627,11 +869,18 @@
 			files = (
 				7CE625141D93B3AA007533D7 /* main.lua in Resources */,
 				7C6B12811D6AFD1400489D9E /* Main.storyboard in Resources */,
+				7CE28F48212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7C6B127F1D6AFD1400489D9E /* Assets.xcassets in Resources */,
 				7C6B12801D6AFD1400489D9E /* LaunchScreen.storyboard in Resources */,
 				7C210E041DCB5FD3000838F9 /* test.lua in Resources */,
+				7C44C785212AAFDD004D8D6F /* HTTP.lua in Resources */,
+				7C44C788212AB472004D8D6F /* HTTP-Sample.lua in Resources */,
+				7CE28F64212BAA690042A3DC /* timg.jpeg in Resources */,
+				7CCF836E211BF91800BF7723 /* hello.lua in Resources */,
 				7CE625161D93B3AA007533D7 /* todo.lua in Resources */,
 				7CE625121D93B3AA007533D7 /* dkjson.lua in Resources */,
+				7CE28F4D212BA1880042A3DC /* Path-Sample.lua in Resources */,
+				7CE28F56212BA26F0042A3DC /* Foundation.lua in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -643,9 +892,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				7CA46E5C1DEFFE820014253A /* LSCTPerson.swift in Sources */,
+				7C49AE4F212BCA940031D627 /* LSCHTTPTask.swift in Sources */,
+				7C49AE54212C15310031D627 /* ModulesViewController.swift in Sources */,
+				7CE28F6E212BB6560042A3DC /* LSCEncoding.swift in Sources */,
 				7C177C141DEFEE73008C9DF1 /* ViewController1.swift in Sources */,
+				7C49AE52212BE5140031D627 /* LSCHTTPFile.swift in Sources */,
 				7C177C121DEFEE73008C9DF1 /* AppDelegate.swift in Sources */,
 				7CA46E5A1DEFFE3C0014253A /* LogModule.swift in Sources */,
+				7CE28F71212BB79B0042A3DC /* LSCPath.swift in Sources */,
 				7C78749D1EA4BE0E00FED498 /* LSCTNativeData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -655,10 +909,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C21ED3D1DEFD41200507DA2 /* LSCTPerson.swift in Sources */,
+				7CE28F6D212BB6560042A3DC /* LSCEncoding.swift in Sources */,
+				7C49AE45212BC63B0031D627 /* ModuleListViewController.swift in Sources */,
 				7C21ED071DEFBE9A00507DA2 /* ViewController.swift in Sources */,
 				7C21ED051DEFBE9A00507DA2 /* AppDelegate.swift in Sources */,
+				7C49AE4C212BCA150031D627 /* HttpModuleViewController.swift in Sources */,
+				7C49AE48212BC75C0031D627 /* EncodingModuleViewController.swift in Sources */,
 				7C21ED381DEFCEFA00507DA2 /* LogModule.swift in Sources */,
+				7CE28F70212BB79B0042A3DC /* LSCPath.swift in Sources */,
+				7C49AE4E212BCA940031D627 /* LSCHTTPTask.swift in Sources */,
 				7CCA263E1EA4754E007F20A9 /* LSCTNativeData.swift in Sources */,
+				7C49AE4A212BC8F60031D627 /* PathModuleViewController.swift in Sources */,
+				7C49AE51212BE5140031D627 /* LSCHTTPFile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -666,9 +928,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C44C777212A68C8004D8D6F /* LSCHTTPTask.m in Sources */,
 				7CCA263C1EA45634007F20A9 /* LSCTNativeData.m in Sources */,
 				7C5A61871D6AE2A3007D4308 /* ViewController.m in Sources */,
+				7CE28F6B212BAE210042A3DC /* ModulesViewController.m in Sources */,
+				7CE28F45212B9F7B0042A3DC /* LSCPath.m in Sources */,
+				7C44C783212AA693004D8D6F /* LSCHTTPFile.m in Sources */,
 				7C5A61841D6AE2A3007D4308 /* main.m in Sources */,
+				7C44C77F212AA0F6004D8D6F /* LSCEncoding.m in Sources */,
 				7CE6251C1D93B3C8007533D7 /* LogModule.m in Sources */,
 				7CE6252B1D93B435007533D7 /* LSCTPerson.m in Sources */,
 				7C5A61811D6AE2A3007D4308 /* AppDelegate.m in Sources */,
@@ -679,12 +946,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C44C776212A68C8004D8D6F /* LSCHTTPTask.m in Sources */,
+				7CE28F61212BA81C0042A3DC /* PathModuleViewController.m in Sources */,
 				7CCA263B1EA45634007F20A9 /* LSCTNativeData.m in Sources */,
 				7C1E5A4C1E0113EC00C3C2E2 /* LogModule.m in Sources */,
+				7CE28F44212B9F7B0042A3DC /* LSCPath.m in Sources */,
+				7C44C782212AA693004D8D6F /* LSCHTTPFile.m in Sources */,
+				7CE28F5C212BA39D0042A3DC /* EncodingModuleViewController.m in Sources */,
+				7C44C78C212AB873004D8D6F /* HttpModuleViewController.m in Sources */,
 				7C1E5A4D1E0113EC00C3C2E2 /* LSCTPerson.m in Sources */,
+				7C44C77E212AA0F6004D8D6F /* LSCEncoding.m in Sources */,
 				7C6B12841D6AFD1400489D9E /* ViewController.m in Sources */,
 				7C6B12831D6AFD1400489D9E /* main.m in Sources */,
 				7C6B127E1D6AFD1400489D9E /* AppDelegate.m in Sources */,
+				7C49AE41212BC5850031D627 /* ModuleListViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -980,6 +1255,7 @@
 				ENABLE_BITCODE = YES;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/Build/Products/Debug-iphonesimulator/include/LuaScriptCore-iOS\"";
 				INFOPLIST_FILE = "Sample-iOS/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.vimfung.Sample;
@@ -998,6 +1274,7 @@
 				ENABLE_BITCODE = YES;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/Build/Products/Debug-iphonesimulator/include/LuaScriptCore-iOS\"";
 				INFOPLIST_FILE = "Sample-iOS/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = cn.vimfung.Sample;
