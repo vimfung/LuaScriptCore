@@ -10,9 +10,10 @@ LuaScriptCore旨在能够在多种平台上方便地使用Lua。其提供了与�
 url = "https://vimfung.github.io/LuaScriptCore/";
 
 function printUrl(url)
-{
+
   print (url);
-}
+
+end
 ```
 
 在原生代码中可以如下面操作Lua变量和方法:
