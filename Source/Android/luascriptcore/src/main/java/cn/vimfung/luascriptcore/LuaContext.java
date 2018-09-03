@@ -68,6 +68,15 @@ public class LuaContext extends LuaBaseObject
     private static boolean _isSetupLuaFolder = false;
 
     /**
+     * 获取应用上下文对象
+     * @return 上下文对象
+     */
+    Context getApplicationContext()
+    {
+        return _context.getApplicationContext();
+    }
+
+    /**
      * 建立Lua目录结构
      */
     private void setupLuaFolder()
@@ -171,14 +180,13 @@ public class LuaContext extends LuaBaseObject
 
     /**
      * 创建上下文对象
-     *
-     * @param context  应用上下文对象
-     * @return Lua上下文对象
+     * @param env  环境信息
+     * @return  Lua上下文对象
      */
-    public static LuaContext create(Context context)
+    public static LuaContext create(LuaEnv env)
     {
         LuaContext luaContext = LuaNativeUtil.createContext();
-        luaContext._context = context;
+        luaContext._context = env.getAndroidApplicationContext();
 
         File cacheDir = new File (String.format("%s/lua", luaContext.getCacheDir()));
         if (!cacheDir.exists())
@@ -188,6 +196,19 @@ public class LuaContext extends LuaBaseObject
         luaContext.addSearchPath(cacheDir.toString());
 
         return luaContext;
+    }
+
+    /**
+     * 创建上下文对象
+     *
+     * @param context  应用上下文对象
+     * @return Lua上下文对象
+     */
+    public static LuaContext create(Context context)
+    {
+        LuaEnv env = LuaEnv.defaultEnv();
+        env.setAndroidApplicationContext(context);
+        return LuaContext.create(env);
     }
 
     /**
@@ -347,12 +368,17 @@ public class LuaContext extends LuaBaseObject
     private LuaValue methodInvoke (String methodName, LuaValue[] arguments)
     {
 
+        LuaValue retValue = null;
         if (_methods.containsKey(methodName))
         {
-            return _methods.get(methodName).onExecute(arguments);
+            retValue = _methods.get(methodName).onExecute(arguments);
+        }
+        else
+        {
+            retValue = new LuaValue();
         }
 
-        return new LuaValue();
+        return retValue;
 
     }
 

@@ -6,5 +6,5 @@ package cn.vimfung.luascriptcore;
  */
 public interface LuaExportType
 {
-    
+
 }

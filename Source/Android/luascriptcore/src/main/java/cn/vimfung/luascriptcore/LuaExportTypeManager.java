@@ -272,6 +272,7 @@ class LuaExportTypeManager
                 }
 
                 Object retValue = field.get(instance);
+
                 return new LuaValue(retValue);
             }
         }

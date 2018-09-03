@@ -138,7 +138,7 @@ static int subClassHandler (lua_State *state)
 
     if (typeDescriptor != NULL)
     {
-        std::string subclassName = LuaEngineAdapter::checkString(state, 1);
+        std::string subclassName = LuaEngineAdapter::checkString(state, 2);
 
         //构建子类型描述
         LuaExportTypeDescriptor *subTypeDescriptor = typeDescriptor -> createSubType(session, subclassName);

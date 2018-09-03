@@ -3,6 +3,7 @@ package cn.vimfung.luascriptcore;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -195,6 +196,26 @@ public class LuaValue extends LuaBaseObject
      * @param value 二进制数组值
      */
     private void setByteArrayValue(byte[] value)
+    {
+        _type = LuaValueType.Data;
+        _valueContainer = value;
+    }
+
+    /**
+     * 初始化一个字节数组的LuaValue对象
+     * @param value 字节数组
+     */
+    public LuaValue (Byte[] value)
+    {
+        super();
+        setByteArrayValue(value);
+    }
+
+    /**
+     * 设置二进制数组
+     * @param value 二进制数组
+     */
+    private void setByteArrayValue(Byte[] value)
     {
         _type = LuaValueType.Data;
         _valueContainer = value;
@@ -530,6 +551,17 @@ public class LuaValue extends LuaBaseObject
             if (_valueContainer instanceof byte[])
             {
                 return (byte[]) _valueContainer;
+            }
+            else if (_valueContainer instanceof Byte[])
+            {
+                final Byte[] srcBytes = (Byte[])_valueContainer;
+                byte[] bytes = new byte[srcBytes.length];
+                for (int i = 0; i < srcBytes.length; i++)
+                {
+                    bytes[i]= srcBytes[i];
+                }
+
+                return bytes;
             }
             else if (_valueContainer instanceof String)
             {
