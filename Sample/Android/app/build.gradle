@@ -20,10 +20,18 @@ android {
             jniDebuggable true
         }
     }
+    sourceSets {
+        main {
+            java.srcDirs = ["./src/main/java", "../../../Modules/Foundation/Android", "../../../Modules/Network/Android"];
+            assets.srcDirs = ["./src/main/assets", "../../../Modules/Foundation/Lua", "../../../Modules/Foundation/Sample", "../../../Modules/Network/Lua", "../../../Modules/Network/Sample"];
+        }
+    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.android.support:design:24.2.1'
     testImplementation 'junit:junit:4.12'
     implementation 'com.android.support:appcompat-v7:24.1.0'
     implementation 'com.blankj:utilcode:1.12.0'

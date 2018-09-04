@@ -32,8 +32,6 @@
 		7C44C77F212AA0F6004D8D6F /* LSCEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C77D212AA0F6004D8D6F /* LSCEncoding.m */; };
 		7C44C782212AA693004D8D6F /* LSCHTTPFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C781212AA693004D8D6F /* LSCHTTPFile.m */; };
 		7C44C783212AA693004D8D6F /* LSCHTTPFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C781212AA693004D8D6F /* LSCHTTPFile.m */; };
-		7C44C785212AAFDD004D8D6F /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C784212AAFDD004D8D6F /* HTTP.lua */; };
-		7C44C786212AAFDD004D8D6F /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C784212AAFDD004D8D6F /* HTTP.lua */; };
 		7C44C788212AB472004D8D6F /* HTTP-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C787212AB472004D8D6F /* HTTP-Sample.lua */; };
 		7C44C789212AB472004D8D6F /* HTTP-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C787212AB472004D8D6F /* HTTP-Sample.lua */; };
 		7C44C78C212AB873004D8D6F /* HttpModuleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C78B212AB873004D8D6F /* HttpModuleViewController.m */; };
@@ -71,6 +69,18 @@
 		7CCA263C1EA45634007F20A9 /* LSCTNativeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */; };
 		7CCA263E1EA4754E007F20A9 /* LSCTNativeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */; };
 		7CCF836E211BF91800BF7723 /* hello.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CCF8366211BF91800BF7723 /* hello.lua */; };
+		7CD374C621378979007C55ED /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374C521378979007C55ED /* Foundation.lua */; };
+		7CD374C721378979007C55ED /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374C521378979007C55ED /* Foundation.lua */; };
+		7CD374C821378979007C55ED /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374C521378979007C55ED /* Foundation.lua */; };
+		7CD374C921378979007C55ED /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374C521378979007C55ED /* Foundation.lua */; };
+		7CD374CC21378988007C55ED /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374CB21378988007C55ED /* HTTP.lua */; };
+		7CD374CD21378988007C55ED /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374CB21378988007C55ED /* HTTP.lua */; };
+		7CD374CE21378988007C55ED /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374CB21378988007C55ED /* HTTP.lua */; };
+		7CD374CF21378988007C55ED /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374CB21378988007C55ED /* HTTP.lua */; };
+		7CD374D121378AE1007C55ED /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374D021378AE1007C55ED /* timg.jpeg */; };
+		7CD374D221378AE1007C55ED /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374D021378AE1007C55ED /* timg.jpeg */; };
+		7CD374D321378AE1007C55ED /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374D021378AE1007C55ED /* timg.jpeg */; };
+		7CD374D421378AE1007C55ED /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CD374D021378AE1007C55ED /* timg.jpeg */; };
 		7CE28F44212B9F7B0042A3DC /* LSCPath.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F43212B9F7B0042A3DC /* LSCPath.m */; };
 		7CE28F45212B9F7B0042A3DC /* LSCPath.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F43212B9F7B0042A3DC /* LSCPath.m */; };
 		7CE28F48212BA1770042A3DC /* Encoding-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */; };
@@ -83,18 +93,8 @@
 		7CE28F50212BA1880042A3DC /* Path-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F4C212BA1880042A3DC /* Path-Sample.lua */; };
 		7CE28F51212BA18C0042A3DC /* HTTP-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C787212AB472004D8D6F /* HTTP-Sample.lua */; };
 		7CE28F52212BA18C0042A3DC /* HTTP-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C787212AB472004D8D6F /* HTTP-Sample.lua */; };
-		7CE28F53212BA18E0042A3DC /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C784212AAFDD004D8D6F /* HTTP.lua */; };
-		7CE28F54212BA18F0042A3DC /* HTTP.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C44C784212AAFDD004D8D6F /* HTTP.lua */; };
-		7CE28F56212BA26F0042A3DC /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F55212BA26F0042A3DC /* Foundation.lua */; };
-		7CE28F57212BA26F0042A3DC /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F55212BA26F0042A3DC /* Foundation.lua */; };
-		7CE28F58212BA26F0042A3DC /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F55212BA26F0042A3DC /* Foundation.lua */; };
-		7CE28F59212BA26F0042A3DC /* Foundation.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F55212BA26F0042A3DC /* Foundation.lua */; };
 		7CE28F5C212BA39D0042A3DC /* EncodingModuleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F5B212BA39D0042A3DC /* EncodingModuleViewController.m */; };
 		7CE28F61212BA81C0042A3DC /* PathModuleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F60212BA81C0042A3DC /* PathModuleViewController.m */; };
-		7CE28F64212BAA690042A3DC /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F63212BAA690042A3DC /* timg.jpeg */; };
-		7CE28F65212BAA690042A3DC /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F63212BAA690042A3DC /* timg.jpeg */; };
-		7CE28F66212BAA690042A3DC /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F63212BAA690042A3DC /* timg.jpeg */; };
-		7CE28F67212BAA690042A3DC /* timg.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 7CE28F63212BAA690042A3DC /* timg.jpeg */; };
 		7CE28F6B212BAE210042A3DC /* ModulesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F6A212BAE210042A3DC /* ModulesViewController.m */; };
 		7CE28F6D212BB6560042A3DC /* LSCEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F6C212BB6560042A3DC /* LSCEncoding.swift */; };
 		7CE28F6E212BB6560042A3DC /* LSCEncoding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CE28F6C212BB6560042A3DC /* LSCEncoding.swift */; };
@@ -242,7 +242,6 @@
 		7C44C77D212AA0F6004D8D6F /* LSCEncoding.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCEncoding.m; sourceTree = "<group>"; };
 		7C44C780212AA693004D8D6F /* LSCHTTPFile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCHTTPFile.h; sourceTree = "<group>"; };
 		7C44C781212AA693004D8D6F /* LSCHTTPFile.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCHTTPFile.m; sourceTree = "<group>"; };
-		7C44C784212AAFDD004D8D6F /* HTTP.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = HTTP.lua; sourceTree = "<group>"; };
 		7C44C787212AB472004D8D6F /* HTTP-Sample.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = "HTTP-Sample.lua"; sourceTree = "<group>"; };
 		7C44C78A212AB873004D8D6F /* HttpModuleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HttpModuleViewController.h; sourceTree = "<group>"; };
 		7C44C78B212AB873004D8D6F /* HttpModuleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = HttpModuleViewController.m; sourceTree = "<group>"; };
@@ -282,16 +281,17 @@
 		7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCTNativeData.m; sourceTree = "<group>"; };
 		7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTNativeData.swift; sourceTree = "<group>"; };
 		7CCF8366211BF91800BF7723 /* hello.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = hello.lua; sourceTree = "<group>"; };
+		7CD374C521378979007C55ED /* Foundation.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Foundation.lua; sourceTree = "<group>"; };
+		7CD374CB21378988007C55ED /* HTTP.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = HTTP.lua; sourceTree = "<group>"; };
+		7CD374D021378AE1007C55ED /* timg.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = timg.jpeg; path = ../Sample/timg.jpeg; sourceTree = "<group>"; };
 		7CE28F42212B9F7B0042A3DC /* LSCPath.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCPath.h; sourceTree = "<group>"; };
 		7CE28F43212B9F7B0042A3DC /* LSCPath.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCPath.m; sourceTree = "<group>"; };
 		7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Encoding-Sample.lua"; sourceTree = "<group>"; };
 		7CE28F4C212BA1880042A3DC /* Path-Sample.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Path-Sample.lua"; sourceTree = "<group>"; };
-		7CE28F55212BA26F0042A3DC /* Foundation.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = Foundation.lua; sourceTree = "<group>"; };
 		7CE28F5A212BA39D0042A3DC /* EncodingModuleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EncodingModuleViewController.h; sourceTree = "<group>"; };
 		7CE28F5B212BA39D0042A3DC /* EncodingModuleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EncodingModuleViewController.m; sourceTree = "<group>"; };
 		7CE28F5F212BA81C0042A3DC /* PathModuleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PathModuleViewController.h; sourceTree = "<group>"; };
 		7CE28F60212BA81C0042A3DC /* PathModuleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PathModuleViewController.m; sourceTree = "<group>"; };
-		7CE28F63212BAA690042A3DC /* timg.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = timg.jpeg; path = ../../../../../../Downloads/timg.jpeg; sourceTree = "<group>"; };
 		7CE28F69212BAE210042A3DC /* ModulesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ModulesViewController.h; sourceTree = "<group>"; };
 		7CE28F6A212BAE210042A3DC /* ModulesViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ModulesViewController.m; sourceTree = "<group>"; };
 		7CE28F6C212BB6560042A3DC /* LSCEncoding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSCEncoding.swift; sourceTree = "<group>"; };
@@ -388,7 +388,7 @@
 		7C44C762212A4DAE004D8D6F /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				7C44C784212AAFDD004D8D6F /* HTTP.lua */,
+				7CD374CA21378988007C55ED /* Lua */,
 				7C44C763212A4DAE004D8D6F /* iOS */,
 				7CE28F3A212B9D790042A3DC /* Sample */,
 			);
@@ -427,7 +427,7 @@
 		7C44C778212AA090004D8D6F /* Foundation */ = {
 			isa = PBXGroup;
 			children = (
-				7CE28F55212BA26F0042A3DC /* Foundation.lua */,
+				7CD374C421378979007C55ED /* Lua */,
 				7CE28F46212BA1590042A3DC /* Sample */,
 				7C44C779212AA099004D8D6F /* iOS */,
 			);
@@ -565,10 +565,26 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		7CD374C421378979007C55ED /* Lua */ = {
+			isa = PBXGroup;
+			children = (
+				7CD374C521378979007C55ED /* Foundation.lua */,
+			);
+			path = Lua;
+			sourceTree = "<group>";
+		};
+		7CD374CA21378988007C55ED /* Lua */ = {
+			isa = PBXGroup;
+			children = (
+				7CD374D021378AE1007C55ED /* timg.jpeg */,
+				7CD374CB21378988007C55ED /* HTTP.lua */,
+			);
+			path = Lua;
+			sourceTree = "<group>";
+		};
 		7CE28F3A212B9D790042A3DC /* Sample */ = {
 			isa = PBXGroup;
 			children = (
-				7CE28F63212BAA690042A3DC /* timg.jpeg */,
 				7C44C787212AB472004D8D6F /* HTTP-Sample.lua */,
 			);
 			path = Sample;
@@ -810,14 +826,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				7CFE0B501DF00E4200C41B89 /* dkjson.lua in Resources */,
-				7CE28F59212BA26F0042A3DC /* Foundation.lua in Resources */,
-				7CE28F67212BAA690042A3DC /* timg.jpeg in Resources */,
+				7CD374C921378979007C55ED /* Foundation.lua in Resources */,
+				7CD374D421378AE1007C55ED /* timg.jpeg in Resources */,
 				7CE28F52212BA18C0042A3DC /* HTTP-Sample.lua in Resources */,
 				7CE28F4B212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7CFE0B511DF00E4200C41B89 /* main.lua in Resources */,
 				7CE28F50212BA1880042A3DC /* Path-Sample.lua in Resources */,
 				7CFE0B521DF00E4200C41B89 /* todo.lua in Resources */,
-				7CE28F54212BA18F0042A3DC /* HTTP.lua in Resources */,
+				7CD374CF21378988007C55ED /* HTTP.lua in Resources */,
 				7CFE0B531DF00E4200C41B89 /* test.lua in Resources */,
 				7C177C161DEFEE73008C9DF1 /* Assets.xcassets in Resources */,
 				7C177C191DEFEE73008C9DF1 /* Main.storyboard in Resources */,
@@ -830,14 +846,14 @@
 			files = (
 				7C21ED331DEFC39400507DA2 /* dkjson.lua in Resources */,
 				7CE28F4A212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
-				7CE28F53212BA18E0042A3DC /* HTTP.lua in Resources */,
+				7CD374CE21378988007C55ED /* HTTP.lua in Resources */,
 				7C21ED341DEFC39400507DA2 /* main.lua in Resources */,
 				7C21ED351DEFC39400507DA2 /* todo.lua in Resources */,
-				7CE28F58212BA26F0042A3DC /* Foundation.lua in Resources */,
 				7C21ED361DEFC39400507DA2 /* test.lua in Resources */,
+				7CD374C821378979007C55ED /* Foundation.lua in Resources */,
 				7C21ED0F1DEFBE9A00507DA2 /* LaunchScreen.storyboard in Resources */,
 				7CE28F51212BA18C0042A3DC /* HTTP-Sample.lua in Resources */,
-				7CE28F66212BAA690042A3DC /* timg.jpeg in Resources */,
+				7CD374D321378AE1007C55ED /* timg.jpeg in Resources */,
 				7C21ED0C1DEFBE9A00507DA2 /* Assets.xcassets in Resources */,
 				7C21ED0A1DEFBE9A00507DA2 /* Main.storyboard in Resources */,
 				7CE28F4F212BA1880042A3DC /* Path-Sample.lua in Resources */,
@@ -848,15 +864,15 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C44C786212AAFDD004D8D6F /* HTTP.lua in Resources */,
-				7CE28F57212BA26F0042A3DC /* Foundation.lua in Resources */,
-				7CE28F65212BAA690042A3DC /* timg.jpeg in Resources */,
+				7CD374C721378979007C55ED /* Foundation.lua in Resources */,
 				7CE625171D93B3AA007533D7 /* todo.lua in Resources */,
+				7CD374D221378AE1007C55ED /* timg.jpeg in Resources */,
 				7C5A61891D6AE2A3007D4308 /* Assets.xcassets in Resources */,
 				7CE625151D93B3AA007533D7 /* main.lua in Resources */,
 				7CE625131D93B3AA007533D7 /* dkjson.lua in Resources */,
 				7CE28F4E212BA1880042A3DC /* Path-Sample.lua in Resources */,
 				7C210E051DCB5FD3000838F9 /* test.lua in Resources */,
+				7CD374CD21378988007C55ED /* HTTP.lua in Resources */,
 				7C44C789212AB472004D8D6F /* HTTP-Sample.lua in Resources */,
 				7CE28F49212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7C5A618C1D6AE2A3007D4308 /* Main.storyboard in Resources */,
@@ -867,20 +883,20 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7CD374CC21378988007C55ED /* HTTP.lua in Resources */,
 				7CE625141D93B3AA007533D7 /* main.lua in Resources */,
 				7C6B12811D6AFD1400489D9E /* Main.storyboard in Resources */,
 				7CE28F48212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7C6B127F1D6AFD1400489D9E /* Assets.xcassets in Resources */,
 				7C6B12801D6AFD1400489D9E /* LaunchScreen.storyboard in Resources */,
 				7C210E041DCB5FD3000838F9 /* test.lua in Resources */,
-				7C44C785212AAFDD004D8D6F /* HTTP.lua in Resources */,
 				7C44C788212AB472004D8D6F /* HTTP-Sample.lua in Resources */,
-				7CE28F64212BAA690042A3DC /* timg.jpeg in Resources */,
+				7CD374D121378AE1007C55ED /* timg.jpeg in Resources */,
 				7CCF836E211BF91800BF7723 /* hello.lua in Resources */,
 				7CE625161D93B3AA007533D7 /* todo.lua in Resources */,
 				7CE625121D93B3AA007533D7 /* dkjson.lua in Resources */,
 				7CE28F4D212BA1880042A3DC /* Path-Sample.lua in Resources */,
-				7CE28F56212BA26F0042A3DC /* Foundation.lua in Resources */,
+				7CD374C621378979007C55ED /* Foundation.lua in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

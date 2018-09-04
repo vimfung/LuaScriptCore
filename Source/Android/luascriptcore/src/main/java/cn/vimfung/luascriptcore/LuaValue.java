@@ -52,7 +52,7 @@ public class LuaValue extends LuaBaseObject
     public LuaValue(Integer value)
     {
         super();
-        setIntValue(value);
+        setLongValue(Long.valueOf(value));
     }
 
     /**
@@ -63,14 +63,24 @@ public class LuaValue extends LuaBaseObject
     protected LuaValue(int nativeId, Integer value)
     {
         super(nativeId);
-        setIntValue(value);
+        setLongValue(Long.valueOf(value));
     }
 
     /**
-     * 设置整型值
-     * @param value 整型值
+     * 初始化一个长整型的LuaValue对象
+     * @param value 长整型值
      */
-    private void setIntValue (Integer value)
+    public LuaValue(Long value)
+    {
+        super();
+        setLongValue(value);
+    }
+
+    /**
+     * 设置长整型值
+     * @param value 长整型值
+     */
+    private void setLongValue(Long value)
     {
         _type = LuaValueType.Integer;
         _valueContainer = value;
@@ -407,7 +417,11 @@ public class LuaValue extends LuaBaseObject
         {
             if (value instanceof Integer)
             {
-                setIntValue((Integer)value);
+                setLongValue(Long.valueOf((Integer)value));
+            }
+            else if (value instanceof Long)
+            {
+                setLongValue((Long) value);
             }
             else if (value instanceof Double)
             {
@@ -467,13 +481,13 @@ public class LuaValue extends LuaBaseObject
      * 转换为整数
      * @return 整数
      */
-    public int toInteger()
+    public long toInteger()
     {
         if (_valueContainer != null)
         {
             if (_valueContainer instanceof Number)
             {
-                return ((Number) _valueContainer).intValue();
+                return ((Number) _valueContainer).longValue();
             }
             else if (_valueContainer instanceof String)
             {

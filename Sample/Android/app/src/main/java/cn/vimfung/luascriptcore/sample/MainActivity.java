@@ -1,6 +1,7 @@
 package cn.vimfung.luascriptcore.sample;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -308,6 +309,20 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
 
                     _luaContext.evalScriptFromFile("defineProperty.lua");
+
+                }
+            });
+        }
+
+        Button modulesBtn = (Button) findViewById(R.id.modulesButton);
+        if (modulesBtn != null)
+        {
+            modulesBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    Intent intent = new Intent(MainActivity.this, ModulesActivity.class);
+                    startActivity(intent);
 
                 }
             });

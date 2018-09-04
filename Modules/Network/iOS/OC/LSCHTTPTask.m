@@ -92,6 +92,7 @@
     _faultHandler = faultHandler;
     
     _request.HTTPMethod = @"GET";
+    [self _fillHttpHeaders];
     [self _sendRequest];
 }
 
@@ -103,6 +104,7 @@
     _faultHandler = faultHandler;
     
     _request.HTTPMethod = @"POST";
+    [self _fillHttpHeaders];
     
     if (parameters)
     {
@@ -124,6 +126,7 @@
     _uploadProgressHandler = progressHandler;
     
     _request.HTTPMethod = @"POST";
+    [self _fillHttpHeaders];
     
     NSString *tmpBoundary = [NSString stringWithFormat:@"%u", arc4random() % (9999999 - 123400) + 123400];
     NSString *boundaryString = [NSString stringWithFormat:@"Boundary-%@", tmpBoundary];
@@ -146,6 +149,7 @@
     _downloadProgressHandler = progressHandler;
     
     _request.HTTPMethod = @"GET";
+    [self _fillHttpHeaders];
     [self _sendRequest];
 }
 
@@ -166,6 +170,23 @@
 }
 
 #pragma mark - Private
+
+/**
+ 填充HTTP请求头
+ */
+- (void)_fillHttpHeaders
+{
+    if (self.headers)
+    {
+        //设置HTTP头
+        __block typeof(self) theTask = self;
+        [self.headers enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSString * _Nonnull obj, BOOL * _Nonnull stop) {
+            
+            [theTask -> _request setValue:obj forHTTPHeaderField:key];
+            
+        }];
+    }
+}
 
 /**
  添加队列操作

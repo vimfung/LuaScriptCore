@@ -232,10 +232,10 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunc
                 for (int i = 0; i < length; ++i)
                 {
                     jobject item = env->GetObjectArrayElement(arguments, i);
-                    LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, item);
-                    if (value != NULL)
+                    LuaValue *argValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, item);
+                    if (argValue != NULL)
                     {
-                        argumentList.push_back(value);
+                        argumentList.push_back(argValue);
                     }
                     env -> DeleteLocalRef(item);
                 }

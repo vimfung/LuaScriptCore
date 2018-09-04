@@ -3,6 +3,9 @@ require("Foundation")
 Object:typeMapping("ios", "LSCHTTPTask", "HTTPTask");
 Object:typeMapping("ios", "LSCHTTPFile", "HTTPFile");
 
+Object:typeMapping("android", "cn.vimfung.luascriptcore.modules.network.HTTPTask", "HTTPTask");
+Object:typeMapping("android", "cn.vimfung.luascriptcore.modules.network.HTTPFile", "HTTPFile");
+
 Object:subclass("HTTP");
 
 -- 以GET方式发起HTTP请求

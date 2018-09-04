@@ -449,9 +449,10 @@ public class LuaContext extends LuaBaseObject
      */
     private void readAssetFileContent(String fileName, ByteArrayOutputStream outputStream)
     {
+        InputStream stream = null;
         try
         {
-            InputStream stream = _context.getAssets().open(fileName);
+            stream = _context.getAssets().open(fileName);
             byte[] buffer = new byte[1024];
 
             int hasRead = 0;
@@ -459,12 +460,24 @@ public class LuaContext extends LuaBaseObject
             {
                 outputStream.write(buffer, 0, hasRead);
             }
-
-            stream.close();
         }
         catch (IOException e)
         {
             e.printStackTrace();
+        }
+        finally
+        {
+            if (stream != null)
+            {
+                try
+                {
+                    stream.close();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 

@@ -248,7 +248,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
 
     static jclass jLuaValueClass = LuaJavaType::luaValueClass(env);
     static jmethodID typeMethodId = env -> GetMethodID(jLuaValueClass, "valueType", "()Lcn/vimfung/luascriptcore/LuaValueType;");
-    static jmethodID toIntMethodId = env -> GetMethodID(jLuaValueClass, "toInteger", "()I");
+    static jmethodID toIntMethodId = env -> GetMethodID(jLuaValueClass, "toInteger", "()J");
     static jmethodID toNumMethodId = env -> GetMethodID(jLuaValueClass, "toDouble", "()D");
     static jmethodID toBoolMethodId = env -> GetMethodID(jLuaValueClass, "toBoolean", "()Z");
     static jmethodID toStrMethodId = env -> GetMethodID(jLuaValueClass, "toString", "()Ljava/lang/String;");
@@ -271,7 +271,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             retValue = LuaValue::NilValue();
             break;
         case LuaValueTypeInteger:
-            retValue = LuaValue::IntegerValue(env -> CallIntMethod(value, toIntMethodId));
+            retValue = LuaValue::IntegerValue(env -> CallLongMethod(value, toIntMethodId));
             break;
         case LuaValueTypeNumber:
             retValue = LuaValue::NumberValue(env -> CallDoubleMethod(value, toNumMethodId));
