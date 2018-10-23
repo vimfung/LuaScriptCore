@@ -49,6 +49,7 @@ public class ModulesActivity extends AppCompatActivity {
             modules.add("Documents Path");
             modules.add("Caches Path");
             modules.add("Tmp Path");
+            modules.add("Exists Path");
         }
         else if (parentItem.equals("HTTP"))
         {
@@ -113,6 +114,10 @@ public class ModulesActivity extends AppCompatActivity {
                         else if (item.equals("Tmp Path"))
                         {
                             luaContext.evalScript("Path_Sample_tmpPath()");
+                        }
+                        else  if (item.equals("Exists Path"))
+                        {
+                            luaContext.evalScript("Path_Sample_exists()");
                         }
                     }
                     else if (finalParentItem.equals("HTTP"))

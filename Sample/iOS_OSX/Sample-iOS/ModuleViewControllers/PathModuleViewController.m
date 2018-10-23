@@ -55,6 +55,10 @@
             //Tmp Path
             [self.context evalScriptFromString:@"Path_Sample_tmpPath()"];
             break;
+        case 5:
+            //Exists Path
+            [self.context evalScriptFromString:@"Path_Sample_exists()"];
+            break;
         default:
             break;
     }

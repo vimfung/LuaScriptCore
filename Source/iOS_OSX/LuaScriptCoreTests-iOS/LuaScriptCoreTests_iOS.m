@@ -379,6 +379,11 @@
     [self.context evalScriptFromString:@"Object:subclass('Test'); print(Test); local t = Test(); print(t); print(t:instanceOf(Test)); Test:subclass('TestChild'); print(TestChild); local tc = TestChild(); print(tc:instanceOf(Test));"];
 }
 
+- (void)testGsub
+{
+    [self.context evalScriptFromString:@"local expertValue=\"%sadfml\"; expertValue = string.gsub(expertValue,\"%%28\",\"%(\"); print(expertValue);"];
+}
+
 - (void)tearDown
 {
     // Put teardown code here. This method is called after the invocation of each test method in the class.

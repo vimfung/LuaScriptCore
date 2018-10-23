@@ -70,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
 
+                    //Gsub
+                    _luaContext.evalScript("local expertValue=\"%sadfml\"; expertValue = string.gsub(expertValue,\"%%28\",\"%(\"); print(expertValue);");
+
 //                    LuaValue retValue = _luaContext.evalScript("print(10);return 'Hello World';");
 //                    Log.v("lsc", retValue.toString());
 //
@@ -99,13 +102,13 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //
                     //Map Native -> Lua
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("Hello", "World");
-                    map.put("aaa", "bbb");
-                    map.put("ccc", null);
-                    LuaValue mapValue = new LuaValue(map);
-
-                    _luaContext.evalScript("function printMap (map) print('--------', #map); for k,v in pairs(map) do print(k, v); end end");
+//                    HashMap<String, String> map = new HashMap<>();
+//                    map.put("Hello", "World");
+//                    map.put("aaa", "bbb");
+//                    map.put("ccc", null);
+//                    LuaValue mapValue = new LuaValue(map);
+//
+//                    _luaContext.evalScript("function printMap (map) print('--------', #map); for k,v in pairs(map) do print(k, v); end end");
 
 //                    LuaValue[] mapArgs = new LuaValue[] {mapValue};
 //                    _luaContext.callMethod("printMap", mapArgs);

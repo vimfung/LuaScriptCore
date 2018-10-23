@@ -36,6 +36,8 @@ class PathModuleViewController: UITableViewController
             _ = context.evalScript(script: "Path_Sample_cachesPath()");
         case 4:
             _ = context.evalScript(script: "Path_Sample_tmpPath()");
+        case 5:
+            _ = context.evalScript(script: "Path_Sample_exists()");
         default:
             break;
         }
