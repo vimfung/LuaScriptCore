@@ -128,7 +128,7 @@ namespace cn.vimfung.luascriptcore
 			AndroidJavaObject luaCacheDir = getLuaCacheDir ();
 			if (!luaCacheDir.Call<bool> ("exists", new object[0]))
 			{
-			luaCacheDir.Call<bool> ("mkdirs", new object[0]);
+				luaCacheDir.Call<bool> ("mkdirs", new object[0]);
 			}
 
 			addSearchPath (luaCacheDir.Call<string> ("toString", new object[0]));
@@ -153,6 +153,36 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="path">路径.</param>
 		public void addSearchPath(string path)
 		{
+			if (!path.StartsWith ("/") || path.StartsWith(Application.streamingAssetsPath))
+			{
+				#if UNITY_ANDROID && !UNITY_EDITOR
+
+				AndroidJavaObject luaCacheDir = getLuaCacheDir ();
+				if (!luaCacheDir.Call<bool> ("exists", new object[0]))
+				{
+					luaCacheDir.Call<bool> ("mkdirs", new object[0]);
+				}
+				string cachePath = luaCacheDir.Call<string> ("toString", new object[0]);
+
+				if (path.StartsWith(Application.streamingAssetsPath))
+				{
+					path = path.Substring(Application.streamingAssetsPath.Length + 1);
+				}
+
+				path = string.Format("{0}/{1}", cachePath, path);
+
+				#else
+
+
+				if (!path.StartsWith("/"))
+				{
+					path = string.Format("{0}/{1}", Application.streamingAssetsPath, path);
+				}
+
+				#endif
+			}
+
+
 			NativeUtils.addSearchPath (_nativeObjectId, path + "/?.lua");
 		}
 
@@ -328,6 +358,7 @@ namespace cn.vimfung.luascriptcore
 			}
 
 #endif
+
 			IntPtr resultPtr;
 			int size = NativeUtils.evalScriptFromFile (_nativeObjectId, filePath, out resultPtr);
 			LuaValue retValue = LuaObjectDecoder.DecodeObject (resultPtr, size, this) as LuaValue;
@@ -442,17 +473,6 @@ namespace cn.vimfung.luascriptcore
 		private static bool hasSetupLuaCacheDir = false;
 
 		/// <summary>
-		/// 获取当前的Activity
-		/// </summary>
-		/// <returns>当前的Activity.</returns>
-		private AndroidJavaObject getCurrentActivity()
-		{
-			AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-			AndroidJavaObject currentActivity  = unityPlayer.GetStatic<AndroidJavaObject>("currentActivity");
-			return currentActivity;
-		}
-
-		/// <summary>
 		/// 建立Lua的缓存目录，目的是将StreamingAsset中的lua文件拷贝出来。
 		/// </summary>
 		private void setupLuaCacheDir()
@@ -470,7 +490,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="path">目录路径.</param>
 		private void copyLuaFileFromAsset(string path)
 		{
-			AndroidJavaObject currentActivity = getCurrentActivity ();
+			AndroidJavaObject currentActivity = UNIEnv.getCurrentActivity ();
 			AndroidJavaObject assetManager = currentActivity.Call<AndroidJavaObject> ("getAssets", new object[0]);
 
 			string[] subpaths = assetManager.Call<string[]> ("list", path); 
@@ -479,19 +499,19 @@ namespace cn.vimfung.luascriptcore
 				//当前path为目录
 				foreach (string subpath in subpaths)
 				{
-					copyLuaFileFromAsset (string.Format ("{0}{1}/", path, subpath));
+					string targetPath = path == "" ? subpath : string.Format ("{0}/{1}", path, subpath);
+					copyLuaFileFromAsset (targetPath);
 				}
 			} 
 			else 
 			{
 				//当前path为文件
-				string fileName = path.Substring(0, path.Length - 1);
-				if (fileName.ToLower().EndsWith (".lua")) 
+				if (path.ToLower().EndsWith (".lua")) 
 				{
 					//为lua文件，则进行拷贝
-					string destFilePath = getLuaCacheFilePath(fileName);
+					string destFilePath = getLuaCacheFilePath(path);
 
-					AndroidJavaObject inputStream = assetManager.Call<AndroidJavaObject>("open", fileName);
+					AndroidJavaObject inputStream = assetManager.Call<AndroidJavaObject>("open", path);
 					using (MemoryStream ms = new MemoryStream())
 					{
 						try
@@ -550,7 +570,7 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>换粗目录对象.</returns>
 		private AndroidJavaObject getLuaCacheDir()
 		{
-			AndroidJavaObject currentActivity = getCurrentActivity ();
+			AndroidJavaObject currentActivity = UNIEnv.getCurrentActivity ();
 			AndroidJavaClass EnvironmentClass = new AndroidJavaClass ("android.os.Environment");
 
 			int perm = currentActivity.Call<int> ("checkCallingOrSelfPermission", new object[] { "android.permission.WRITE_EXTERNAL_STORAGE" });
@@ -566,8 +586,10 @@ namespace cn.vimfung.luascriptcore
 			{
 				cacheDir = currentActivity.Call<AndroidJavaObject> ("getCacheDir", new object[0]);
 			}
+			
+			string cachePath = cacheDir.Call<string>("toString", new object[0]);
 
-			return new AndroidJavaObject ("java.io.File", string.Format ("{0}/lua", cacheDir.Call<string>("toString", new object[0])));
+			return new AndroidJavaObject ("java.io.File", string.Format ("{0}/lua", cachePath));
 		}
 
 		#endif

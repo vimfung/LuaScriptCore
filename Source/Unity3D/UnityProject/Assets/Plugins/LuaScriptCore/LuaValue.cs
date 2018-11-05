@@ -503,7 +503,7 @@ namespace cn.vimfung.luascriptcore
 				case LuaValueType.Number:
 					return BitConverter.GetBytes (Convert.ToDouble(_value));
 				case LuaValueType.String:
-					return Encoding.UTF8.GetBytes (Convert.ToString(_value));
+					return System.Text.Encoding.UTF8.GetBytes (Convert.ToString(_value));
 				case LuaValueType.Data:
 					return (byte[])_value;
 				default:

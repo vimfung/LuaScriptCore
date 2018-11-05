@@ -43,10 +43,11 @@ public class Sample : MonoBehaviour {
 		if (!_isRegMethod) 
 		{
 			LuaContext.currentContext.registerMethod("getDeviceInfo", (arguments) => {
-
+				
 				Dictionary<string, LuaValue> info = new Dictionary<string, LuaValue>();
 				info.Add("productName", new LuaValue(Application.productName));
 				return new LuaValue(info);
+
 			});
 
 			LuaContext.currentContext.registerMethod ("testReturnTuple", (arguments) =>
@@ -166,5 +167,10 @@ public class Sample : MonoBehaviour {
 	public void definePropertyButtonClickedHandler ()
 	{
 		LuaContext.currentContext.evalScriptFromFile ("defineProperty.lua");
+	}
+
+	public void modulesButtonClickedHandler()
+	{
+		SceneManager.LoadScene ("ModulesScene");
 	}
 }

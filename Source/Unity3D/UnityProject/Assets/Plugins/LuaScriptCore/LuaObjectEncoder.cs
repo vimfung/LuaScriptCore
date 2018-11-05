@@ -98,8 +98,9 @@ namespace cn.vimfung.luascriptcore
 		{
 			if (value != null)
 			{
-				writeInt32 (value.Length);
-				_buffer.AddRange (Encoding.UTF8.GetBytes (value));
+				byte[] buf = System.Text.Encoding.UTF8.GetBytes (value);
+				writeInt32 (buf.Length);
+				_buffer.AddRange (buf);
 			}
 			else
 			{

@@ -48,6 +48,15 @@ namespace cn.vimfung.luascriptcore
 
 			//原生类型标识读取
 			decoder.readInt32 ();
+
+			//读取自定义数据
+			int userdataSize = decoder.readInt32 ();
+			for (int i = 0; i < userdataSize; i++)
+			{
+				decoder.readString ();
+				decoder.readString ();
+			}
+
 		}
 
 		/// <summary>

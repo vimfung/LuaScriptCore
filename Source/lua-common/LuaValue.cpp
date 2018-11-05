@@ -613,6 +613,7 @@ void LuaValue::serialization (LuaObjectEncoder *encoder)
             {
                 encoder -> writeString("");
             }
+            break;
         }
         default:
             break;

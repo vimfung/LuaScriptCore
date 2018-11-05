@@ -239,7 +239,7 @@ __android_log_print(ANDROID_LOG_INFO, "luascriptcore", "%s", s)
 #elif LUA_PLATFORM == LUA_PLATFORM_UNITY_EDITOR
 
 // Unity编辑器下需要使用该方法进行输出
-#define lua_writestring(s, l) unityDebug(s)
+#define lua_writestring(s, l) unityDebug("%s", s)
 
 #else
 

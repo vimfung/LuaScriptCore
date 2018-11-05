@@ -115,7 +115,7 @@ namespace cn.vimfung.luascriptcore
 				Buffer.BlockCopy (_buffer, _offset, stringBytes, 0, len);
 				_offset += len;
 
-				return Encoding.UTF8.GetString (stringBytes);
+				return System.Text.Encoding.UTF8.GetString (stringBytes);
 			}
 
 			return null;

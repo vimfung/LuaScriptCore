@@ -604,7 +604,7 @@ namespace cn.vimfung.luascriptcore
 			{
 				value = luaValue.toString();
 			}
-			else if (t.IsArray) 
+			else if (t.IsArray || typeof(IList).IsAssignableFrom(t)) 
 			{
 				//数组
 				if (t == typeof(byte[])) 
@@ -757,120 +757,129 @@ namespace cn.vimfung.luascriptcore
 					}
 				}
 			}
-			else if (t == typeof(Hashtable)) 
+			else if (typeof(IDictionary).IsAssignableFrom(t)) 
 			{
 				//字典
 				Dictionary<string, LuaValue> map = luaValue.toMap();
 				if (map != null) 
 				{
-					if (t == typeof(Dictionary<string, int>))
+					if (t.IsGenericType)
 					{
-						Dictionary<string, int> dict = new Dictionary<string, int> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map) 
-						{
-							dict.Add (kv.Key, kv.Value.toInteger ());
-						}
-						value = dict;
-					} 
-					else if (t == typeof(Dictionary<string, int>))
-					{
-						Dictionary<string, int> dict = new Dictionary<string, int> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map) 
-						{
-							dict.Add (kv.Key, kv.Value.toInteger ());
-						}
-						value = dict;
-					} 
-					else if (t == typeof(Dictionary<string, uint>))
-					{
-						Dictionary<string, uint> dict = new Dictionary<string, uint> ();
+						//为泛型
+						Type[] types = t.GetGenericArguments();
+						Type valueType = types [1];
+
+						IDictionary dict = Activator.CreateInstance(t) as IDictionary;
 						foreach (KeyValuePair<string, LuaValue> kv in map)
 						{
-							dict.Add (kv.Key, Convert.ToUInt32 (kv.Value.toInteger ()));
+							
+							dict.Add (kv.Key, getNativeValueForLuaValue(valueType, kv.Value));
 						}
+
 						value = dict;
 					}
-					else if (t == typeof(Dictionary<string, Int16>))
-					{
-						Dictionary<string, Int16> dict = new Dictionary<string, Int16> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map) 
-						{
-							dict.Add (kv.Key, Convert.ToInt16 (kv.Value.toInteger ()));
-						}
-						value = dict;
-					}
-					else if (t == typeof(Dictionary<string, UInt16>))
-					{
-						Dictionary<string, UInt16> dict = new Dictionary<string, UInt16> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map) 
-						{
-							dict.Add (kv.Key, Convert.ToUInt16 (kv.Value.toInteger ()));
-						}
-						value = dict;
-					}
-					else if (t == typeof(Dictionary<string, Int64>))
-					{
-						Dictionary<string, Int64> dict = new Dictionary<string, Int64> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map)
-						{
-							dict.Add (kv.Key, Convert.ToInt64 (kv.Value.toInteger ()));
-						}
-						value = dict;
-					}
-					else if (t == typeof(Dictionary<string, UInt64>))
-					{
-						Dictionary<string, UInt64> dict = new Dictionary<string, UInt64> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map)
-						{
-							dict.Add (kv.Key, Convert.ToUInt64 (kv.Value.toInteger ()));
-						}
-						value = dict;
-					} 
-					else if (t == typeof(Dictionary<string, bool>))
-					{
-						Dictionary<string, bool> dict = new Dictionary<string, bool> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map)
-						{
-							dict.Add (kv.Key, kv.Value.toBoolean ());
-						}
-						value = dict;
-					} 
-					else if (t == typeof(Dictionary<string, double>)) 
-					{
-						Dictionary<string, double> dict = new Dictionary<string, double> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map)
-						{
-							dict.Add (kv.Key, kv.Value.toNumber ());
-						}
-						value = dict;
-					}
-					else if (t == typeof(Dictionary<string, float>)) 
-					{
-						Dictionary<string, float> dict = new Dictionary<string, float> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map)
-						{
-							dict.Add (kv.Key, (float)kv.Value.toNumber ());
-						}
-						value = dict;
-					}
-					else if (t == typeof(Dictionary<string, string>))
-					{
-						Dictionary<string, string> dict = new Dictionary<string, string> ();
-						foreach (KeyValuePair<string, LuaValue> kv in map) 
-						{
-							dict.Add (kv.Key, kv.Value.toString ());
-						}
-						value = dict;
-					}
-					else 
+					else if (typeof(Hashtable).IsAssignableFrom(t))
 					{
 						Hashtable dict = new Hashtable ();
-						foreach (KeyValuePair<string, LuaValue> kv in map) 
+						foreach (KeyValuePair<string, LuaValue> kv in map)
 						{
 							dict.Add (kv.Key, kv.Value.toObject ());
 						}
 						value = dict;
 					}
+
+
+//					if (t == typeof(Dictionary<string, int>))
+//					{
+//						Dictionary<string, int> dict = new Dictionary<string, int> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, kv.Value.toInteger ());
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, uint>))
+//					{
+//						Dictionary<string, uint> dict = new Dictionary<string, uint> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, Convert.ToUInt32 (kv.Value.toInteger ()));
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, short>))
+//					{
+//						Dictionary<string, Int16> dict = new Dictionary<string, short> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, Convert.ToInt16 (kv.Value.toInteger ()));
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, ushort>))
+//					{
+//						Dictionary<string, UInt16> dict = new Dictionary<string, ushort> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, Convert.ToUInt16 (kv.Value.toInteger ()));
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, long>))
+//					{
+//						Dictionary<string, Int64> dict = new Dictionary<string, long> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, Convert.ToInt64 (kv.Value.toInteger ()));
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, ulong>))
+//					{
+//						Dictionary<string, UInt64> dict = new Dictionary<string, ulong> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, Convert.ToUInt64 (kv.Value.toInteger ()));
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, bool>))
+//					{
+//						Dictionary<string, bool> dict = new Dictionary<string, bool> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, kv.Value.toBoolean ());
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, double>))
+//					{
+//						Dictionary<string, double> dict = new Dictionary<string, double> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, kv.Value.toNumber ());
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, float>))
+//					{
+//						Dictionary<string, float> dict = new Dictionary<string, float> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, (float)kv.Value.toNumber ());
+//						}
+//						value = dict;
+//					}
+//					else if (t == typeof(Dictionary<string, string>))
+//					{
+//						Dictionary<string, string> dict = new Dictionary<string, string> ();
+//						foreach (KeyValuePair<string, LuaValue> kv in map)
+//						{
+//							dict.Add (kv.Key, kv.Value.toString ());
+//						}
+//						value = dict;
+//					}
+					
 				}
 			}
 			else
