@@ -154,7 +154,7 @@ print (obj);
 
 目前源码中不带有任何平台的Release库，在运行Sample时需要从[Relases](https://github.com/vimfung/LuaScriptCore/releases)页签中下载最新版本的库并放入Sample项目后运行。
 
-# API 文档
+# API文档
 
 - iOS / OS X [[Objective-C](https://github.com/vimfung/LuaScriptCore/wiki/API%E6%96%87%E6%A1%A3_iOS-OS-X_Objective-C)] [[Swift](https://github.com/vimfung/LuaScriptCore/wiki/API%E6%96%87%E6%A1%A3_iOS-OS-X_Swift)]
 - Android [[Java](https://github.com/vimfung/LuaScriptCore/wiki/API%E6%96%87%E6%A1%A3_Android_Java)]
