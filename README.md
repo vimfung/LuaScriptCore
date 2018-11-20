@@ -6,7 +6,7 @@ LuaScriptCore旨在能够在多种平台上方便地使用Lua。其提供了与�
 
 如，Lua中有如下定义
 
-```
+```lua
 url = "https://vimfung.github.io/LuaScriptCore/";
 
 function printUrl(url)
@@ -20,7 +20,7 @@ end
 
 **iOS/OSX**
 
-```
+```objc
 //获取变量
 LSCValue *urlValue = [context getGlobalForName:@"url"];
 NSLog(@"url = %@", [urlValue toString]);
@@ -31,7 +31,7 @@ NSLog(@"url = %@", [urlValue toString]);
 
 **Android**
 
-```
+```java
 //获取变量
 LuaValue urlValue = context.getGlobal("url");
 Log.d("LuaScriptCore", String.format("url = %s", urlValue.toString()));
@@ -42,7 +42,7 @@ context.callMethod("printUrl", new LuaValue[] {urlValue});
 
 **Unity3D**
 
-```
+```csharp
 //获取变量
 LuaValue urlValue = context.getGlobal ("url");
 Debug.LogFormat ("url = {0}", urlValue.toString ());
@@ -57,7 +57,7 @@ context.callMethod("printUrl", new List<LuaValue>(new LuaValue[] {urlValue}));
 
 **iOS/OSX**
 
-```
+```objc
 [context registerMethodWithName:@"log" block:^LSCValue *(NSArray<LSCValue *> *arguments) {
        
   NSLog(@"%@", [arguments[0] toString]);
@@ -68,7 +68,7 @@ context.callMethod("printUrl", new List<LuaValue>(new LuaValue[] {urlValue}));
 
 **Android**
 
-```
+```java
 context.registerMethod("log", new LuaMethodHandler() {
 
   @Override
@@ -82,7 +82,7 @@ context.registerMethod("log", new LuaMethodHandler() {
 
 **Unity3D**
 
-```
+```csharp
 LuaContext.currentContext.registerMethod("log", (List<LuaValue> arguments) => {
 
   Debug.Log(arguments[0].toString());
@@ -93,7 +93,7 @@ LuaContext.currentContext.registerMethod("log", (List<LuaValue> arguments) => {
 
 在Lua中则可以调用该方法：
 
-```
+```lua
 log("Hello World");
 ```
 
@@ -103,7 +103,7 @@ log("Hello World");
 
 **iOS**
 
-```
+```objc
 @interface LuaType : NSObject <LSCExportType>
 
 // 定义属性和方法...
@@ -113,7 +113,7 @@ log("Hello World");
 
 **Android**
 
-```
+```java
 class LuaType implements LuaExportType
 {
 // 定义属性和方法...
@@ -122,7 +122,7 @@ class LuaType implements LuaExportType
 
 **Unity3D**
 
-```
+```csharp
 class LuaType : LuaExportType 
 {
 // 定义属性和方法...
@@ -131,7 +131,7 @@ class LuaType : LuaExportType
 
 则可以在Lua中进行使用，如：
 
-```
+```lua
 local obj = LuaType();
 print (obj);
 ```
@@ -154,6 +154,12 @@ print (obj);
 
 目前源码中不带有任何平台的Release库，在运行Sample时需要从[Relases](https://github.com/vimfung/LuaScriptCore/releases)页签中下载最新版本的库并放入Sample项目后运行。
 
+# API 文档
+
+- iOS / OS X [[Objective-C](https://github.com/vimfung/LuaScriptCore/wiki/API%E6%96%87%E6%A1%A3_iOS-OS-X_Objective-C)] [[Swift](https://github.com/vimfung/LuaScriptCore/wiki/API%E6%96%87%E6%A1%A3_iOS-OS-X_Swift)]
+- Android [[Java](https://github.com/vimfung/LuaScriptCore/wiki/API%E6%96%87%E6%A1%A3_Android_Java)]
+- Unity3D [[C#](https://github.com/vimfung/LuaScriptCore/wiki/API%E6%96%87%E6%A1%A3_Unity3D_CS)]
+
 # 最近更新
 
 ## Release 2.3.0 - [下载](https://github.com/vimfung/LuaScriptCore/releases/tag/2.3.0)
@@ -169,7 +175,7 @@ print (obj);
 
 **Android平台**
 
-```
+```java
 //调整前
 @LuaExportTypeConfig(excludeExportInstanceMethodsNames = {"method1", "method2"})
 class TargetClass implements LuaExportType
@@ -191,7 +197,7 @@ class TargetClass implements LuaExportType
 
 **Unity平台**
 
-```
+```csharp
 //调整前
 [LuaExportTypeAnnotation(excludeExportInstanceMethodNames=new string[]{"method1", "method2"})]
 class TargetClass : LuaExportType 
