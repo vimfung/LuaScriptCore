@@ -21,9 +21,6 @@
         <option name="ASSETS_FOLDER_RELATIVE_PATH" value="/src/main/assets" />
       </configuration>
     </facet>
-    <facet type="Lua" name="Lua">
-      <configuration SdkName="Kahlua" />
-    </facet>
   </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_7">
     <output url="file://$MODULE_DIR$/build/intermediates/classes/debug" />

@@ -283,6 +283,16 @@ public class LuaValue: NSObject
         }
     }
     
+    
+    /// 转换为元组
+    public var tupleValue : LuaTuple
+    {
+        get
+        {
+            return _rawValue.toTuple();
+        }
+    }
+    
     /// 获取原始的Value值
     public var rawValue : LSCValue
     {

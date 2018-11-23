@@ -39,6 +39,15 @@ public class LuaContext: NSObject
         }
     }
     
+    
+    /// 抛出异常
+    ///
+    /// - Parameter message: 异常消息
+    public func raiseException(message : String) throws -> Void
+    {
+        self.rawContext.raiseException(withMessage: message);
+    }
+    
     /// 设置全局变量
     ///
     /// - Parameters:
@@ -110,6 +119,10 @@ public class LuaContext: NSObject
     /// - Returns: 返回值对象
     public func callMethod (methodName : String, arguments : Array<LuaValue>) -> LuaValue
     {
+        self.registerMethod(methodName: "testMethod") { (arguments) -> LuaValue in
+            return LuaValue(stringValue: "Hello World");
+        }
+        
         var args : Array<LSCValue> = Array<LSCValue>();
         for item in arguments {
             args.append(item.rawValue);

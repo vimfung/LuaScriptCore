@@ -148,7 +148,7 @@
 {
     if (self.valueType == LSCValueTypePtr)
     {
-        return (__bridge id)([(LSCPointer *)self.valueContainer value] -> value);
+        return (__bridge id)([[self toPointer] value] -> value);
     }
     
     return self.valueContainer;
@@ -158,7 +158,7 @@
 {
     if (self.valueType == LSCValueTypePtr)
     {
-        return nil;
+        return [NSString stringWithFormat:@"%p", [[self toPointer] value] -> value];
     }
     
     return [NSString stringWithFormat:@"%@", self.valueContainer];
@@ -175,7 +175,7 @@
         case LSCValueTypeString:
             return @([(NSString *)self.valueContainer doubleValue]);
         case LSCValueTypePtr:
-            return nil;
+            return @((NSInteger)[[self toPointer] value] -> value);
         default:
             return @((NSInteger)self.valueContainer);
     }
@@ -192,7 +192,7 @@
         case LSCValueTypeString:
             return [(NSString *)self.valueContainer integerValue];
         case LSCValueTypePtr:
-            return (int)[[self toPointer] value];
+            return (NSInteger)([[self toPointer] value] -> value);
         default:
             return (NSInteger)self.valueContainer;
     }
@@ -209,7 +209,7 @@
         case LSCValueTypeString:
             return [(NSString *)self.valueContainer doubleValue];
         case LSCValueTypePtr:
-            return 0.0;
+            return (double)(NSInteger)[[self toPointer] value] -> value;
         default:
             return (double)(NSInteger)self.valueContainer;
     }
@@ -226,9 +226,9 @@
         case LSCValueTypeString:
             return [(NSString *)self.valueContainer boolValue];
         case LSCValueTypePtr:
-            return NO;
+            return [[self toPointer] value] -> value != NULL;
         default:
-            return (BOOL)self.valueContainer;
+            return self.valueContainer != nil;
     }
 }
 

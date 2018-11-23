@@ -22,6 +22,18 @@ namespace cn.vimfung.luascriptcore
 				_context.releaseValue (_source);
 			}
 		}
+
+		/// <summary>
+		/// 获取源数据
+		/// </summary>
+		/// <value>数据对象.</value>
+		public LuaValue source
+		{
+			get
+			{
+				return _source;
+			}
+		}
 	}
 }
 

@@ -378,6 +378,7 @@
 		7C44C761212A4DAE004D8D6F /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				7C8472DF217F098200D235F3 /* UI */,
 				7C44C778212AA090004D8D6F /* Foundation */,
 				7C44C762212A4DAE004D8D6F /* Network */,
 			);
@@ -515,6 +516,53 @@
 				7C49AE40212BC5850031D627 /* ModuleListViewController.m */,
 			);
 			path = "Sample-iOS";
+			sourceTree = "<group>";
+		};
+		7C8472DF217F098200D235F3 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				7C8472E0217F098200D235F3 /* iOS */,
+				7C8472E1217F098200D235F3 /* Lua */,
+				7C8472E3217F098200D235F3 /* Sample */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		7C8472E0217F098200D235F3 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				7C8472EC217F099300D235F3 /* Swift */,
+				7C8472EB217F098F00D235F3 /* OC */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		7C8472E1217F098200D235F3 /* Lua */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Lua;
+			sourceTree = "<group>";
+		};
+		7C8472E3217F098200D235F3 /* Sample */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Sample;
+			sourceTree = "<group>";
+		};
+		7C8472EB217F098F00D235F3 /* OC */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = OC;
+			sourceTree = "<group>";
+		};
+		7C8472EC217F099300D235F3 /* Swift */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Swift;
 			sourceTree = "<group>";
 		};
 		7C88E88820240504000C15D5 /* Products */ = {

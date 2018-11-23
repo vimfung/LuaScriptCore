@@ -63,7 +63,7 @@ public class Sample : MonoBehaviour {
 
 			_isRegMethod = true;
 		}
-
+			
 		LuaContext.currentContext.evalScriptFromFile (string.Format("{0}/main.lua", Application.streamingAssetsPath));
 	}
 
