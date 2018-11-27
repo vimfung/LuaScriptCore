@@ -6,6 +6,8 @@
 #include "LuaJavaEnv.h"
 #include "LuaJavaObjectDescriptor.h"
 #include "LuaSession.h"
+#include "LuaJavaType.h"
+#include "LuaJavaConverter.h"
 
 LuaJavaExportTypeDescriptor::LuaJavaExportTypeDescriptor (std::string &typeName, JNIEnv *env, jclass jType, LuaExportTypeDescriptor *parentTypeDescriptor)
     : LuaExportTypeDescriptor(typeName, parentTypeDescriptor)
@@ -29,14 +31,42 @@ LuaObjectDescriptor* LuaJavaExportTypeDescriptor::createInstance(LuaSession *ses
 {
     JNIEnv *env = LuaJavaEnv::getEnv();
 
-    //创建实例对象
-    jclass objType = getJavaType();
-    jmethodID initMethodId = env->GetMethodID(objType, "<init>", "()V");
-    jobject jInstance = env->NewObject(objType, initMethodId);
+    //获取传入参数
+    LuaArgumentList args;
+    session -> parseArguments(args, 2);
 
-    LuaJavaObjectDescriptor *objectDescriptor = new LuaJavaObjectDescriptor(session -> getContext(), env, jInstance, this);
+    jobject jExportTypeManager = LuaJavaEnv::getExportTypeManager(env);
+    jclass jExportTypeManagerCls = LuaJavaType::exportTypeManagerClass(env);
+    jmethodID invokeMethodId = env -> GetMethodID(jExportTypeManagerCls, "constructorMethodRoute", "(Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/Class;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
 
-    env -> DeleteLocalRef(jInstance);
+    jobject jContext = LuaJavaEnv::getJavaLuaContext(env, session -> getContext());
+
+
+    int index = 0;
+    jobjectArray jArgs = env -> NewObjectArray((jsize)args.size(), LuaJavaType::luaValueClass(env), NULL);
+    for (LuaArgumentList::iterator it = args.begin(); it != args.end(); ++it)
+    {
+        LuaValue *argItem = *it;
+        jobject jArgItem = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, session -> getContext(), argItem);
+        env -> SetObjectArrayElement(jArgs, index, jArgItem);
+        env -> DeleteLocalRef(jArgItem);
+
+        index++;
+    }
+
+    jobject jReturnValue = env -> CallObjectMethod(jExportTypeManager, invokeMethodId, jContext, this -> getJavaType(), jArgs);
+
+    env -> DeleteLocalRef(jArgs);
+
+    LuaValue *returnValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, session -> getContext(), jReturnValue);
+    LuaJavaObjectDescriptor *objectDescriptor = dynamic_cast<LuaJavaObjectDescriptor *>(returnValue -> toObject());
+
+    //释放参数对象
+    for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+    {
+        LuaValue *value = *it;
+        value -> release();
+    }
 
     LuaJavaEnv::resetEnv(env);
 

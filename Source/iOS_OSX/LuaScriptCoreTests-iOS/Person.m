@@ -28,6 +28,24 @@ static LSCManagedValue *_managedFunc = nil;
     return self;
 }
 
+- (instancetype)initWithName:(NSString *)name
+{
+    if (self = [super init])
+    {
+        self.name = name;
+    }
+    return self;
+}
+
+- (instancetype)initWithName:(NSString *)name age:(NSInteger)age
+{
+    if (self = [super init])
+    {
+        self.name = name;
+    }
+    return self;
+}
+
 - (void)setName:(NSString *)name
 {
     _name = name;

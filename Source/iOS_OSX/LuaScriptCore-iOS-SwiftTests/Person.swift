@@ -23,6 +23,14 @@ class Person: NSObject, LuaExportType, LuaExportTypeAnnotation {
         return "Person";
     }
     
+    @objc override init() {
+        name = "vimfung";
+    }
+    
+    @objc init(name : String){
+        self.name = name;
+    }
+    
     @objc class func createPerson() -> Person
     {
         return Person();
@@ -35,9 +43,9 @@ class Person: NSObject, LuaExportType, LuaExportTypeAnnotation {
         print("\(name) speak : \(text)");
     }
     
-    @objc class func retainHandler (_ handler : LSCFunction) -> Void
+    @objc class func retainHandler (_ handler : LuaFunction) -> Void
     {
-        _func = LuaValue(functionValue: LuaFunction(rawFunction: handler));
+        _func = LuaValue(functionValue: handler);
         Env.defaultContext.retainValue(value: _func!);
     }
     
@@ -58,9 +66,9 @@ class Person: NSObject, LuaExportType, LuaExportTypeAnnotation {
         }
     }
     
-    @objc class func retainHandler2 (_ handler : LSCFunction) -> Void
+    @objc class func retainHandler2 (_ handler : LuaFunction) -> Void
     {
-        _managedFunc = LuaManagedValue(source: LuaValue(functionValue: LuaFunction(rawFunction: handler)), context: Env.defaultContext);
+        _managedFunc = LuaManagedValue(source: LuaValue(functionValue: handler), context: Env.defaultContext);
     }
     
     @objc class func releaseHandler2 ()

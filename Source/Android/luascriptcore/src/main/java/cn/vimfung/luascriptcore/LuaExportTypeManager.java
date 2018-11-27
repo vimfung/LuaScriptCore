@@ -1,12 +1,17 @@
 package cn.vimfung.luascriptcore;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -141,6 +146,194 @@ class LuaExportTypeManager
         }
 
         return "@";
+    }
+
+    /**
+     * 根据传入参数获取类型构造器
+     * @param targetType 目标类型
+     * @param type  类型
+     * @param arguments 参数
+     * @return 构造器
+     */
+    private Constructor getConstructor(Class targetType, Class type, LuaValue[] arguments)
+    {
+        int targetMatchDegree = 0;
+        Constructor targetConstructor = null;
+        Constructor defaultConstructor = null;
+
+        if (LuaExportType.class.isAssignableFrom(type))
+        {
+            Constructor[] constructors = type.getConstructors();
+
+            for (Constructor constructor : constructors)
+            {
+                int matchDegree = 0;
+                int index = 0;
+
+                Class[] paramTypes = constructor.getParameterTypes();
+
+                if (paramTypes.length == 0)
+                {
+                    //默认构造函数
+                    defaultConstructor = constructor;
+                }
+
+                if (paramTypes.length != arguments.length)
+                {
+                    continue;
+                }
+
+                boolean hasMatch = true;
+                for (Class paramType : paramTypes)
+                {
+                    LuaValue arg = arguments[index];
+
+                    if (int.class.isAssignableFrom(paramType)
+                            || long.class.isAssignableFrom(paramType)
+                            || short.class.isAssignableFrom(paramType)
+                            || Integer.class.isAssignableFrom(paramType)
+                            || Short.class.isAssignableFrom(paramType)
+                            || Long.class.isAssignableFrom(paramType))
+                    {
+                        if (arg.valueType() == LuaValueType.Integer || arg.valueType() == LuaValueType.Number)
+                        {
+                            matchDegree ++;
+                        }
+                    }
+                    else if (float.class.isAssignableFrom(paramType)
+                            || double.class.isAssignableFrom(paramType)
+                            || Float.class.isAssignableFrom(paramType)
+                            || Double.class.isAssignableFrom(paramType))
+                    {
+                        if (arg.valueType() == LuaValueType.Number)
+                        {
+                            matchDegree ++;
+                        }
+                    }
+                    else if (boolean.class.isAssignableFrom(paramType)
+                            || Boolean.class.isAssignableFrom(paramType))
+                    {
+                        if (arg.valueType() == LuaValueType.Boolean)
+                        {
+                            matchDegree ++;
+                        }
+                    }
+                    else if (String.class.isAssignableFrom(paramType))
+                    {
+                        if (arg.valueType() == LuaValueType.String)
+                        {
+                            matchDegree ++;
+                        }
+                    }
+                    else if (byte[].class.isAssignableFrom(paramType))
+                    {
+                        if (arg.valueType() == LuaValueType.Data || arg.valueType() == LuaValueType.String)
+                        {
+                            matchDegree ++;
+                        }
+                        else
+                        {
+                            hasMatch = false;
+                        }
+                    }
+                    else if (paramType.isArray() || List.class.isAssignableFrom(paramType))
+                    {
+                        if (arg.valueType() == LuaValueType.Array)
+                        {
+                            matchDegree++;
+                        }
+                        else
+                        {
+                            hasMatch = false;
+                        }
+                    }
+                    else if (Map.class.isAssignableFrom(paramType))
+                    {
+                        if (arg.valueType() == LuaValueType.Map)
+                        {
+                            matchDegree ++;
+                        }
+                        else
+                        {
+                            hasMatch = false;
+                        }
+                    }
+                    else
+                    {
+                        Object obj = arg.toObject();
+                        if (obj.getClass().isAssignableFrom(paramType))
+                        {
+                            matchDegree ++;
+                        }
+                        else
+                        {
+                            hasMatch = false;
+                        }
+                    }
+
+
+                    if (!hasMatch)
+                    {
+                        break;
+                    }
+
+                    index ++;
+                }
+
+                if (hasMatch && matchDegree > targetMatchDegree)
+                {
+                    targetConstructor = constructor;
+                    targetMatchDegree = matchDegree;
+                }
+            }
+
+            if (targetConstructor == null)
+            {
+                //检测父类构造方法
+                targetConstructor = getConstructor(targetType, type.getSuperclass(), arguments);
+            }
+
+            if (targetConstructor == null && targetType == type)
+            {
+                targetConstructor = defaultConstructor;
+            }
+        }
+
+        return targetConstructor;
+    }
+
+    /**
+     * 构造方法路由
+     * @param context       上下文
+     * @param type          类型
+     * @param arguments     参数列表
+     * @return  新构造对象
+     */
+    @SuppressWarnings("unchecked")
+    LuaValue constructorMethodRoute(LuaContext context, Class<? extends  LuaExportType> type, LuaValue[] arguments)
+    {
+        Constructor constructor = getConstructor(type, type, arguments);
+        if (constructor != null)
+        {
+            ArrayList<Object> args = new ArrayList<>();
+            Class[] paramTypes = constructor.getParameterTypes();
+            for (int i = 0; i < paramTypes.length; i++)
+            {
+                args.add(getArgValue(paramTypes[i], arguments[i]));
+            }
+
+            try
+            {
+                Object instance = constructor.newInstance(args.toArray(new Object[0]));
+                return new LuaValue(instance);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        return new LuaValue();
     }
 
     /**

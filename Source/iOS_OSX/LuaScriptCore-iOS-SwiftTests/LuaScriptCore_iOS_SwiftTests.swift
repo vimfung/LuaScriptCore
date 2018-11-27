@@ -28,6 +28,11 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
         super.tearDown()
     }
     
+    func testCreateObj()
+    {
+        _ = _context?.evalScript(script: "local p = Person(); print(p.name); local p2 = Person(\"xxxxxxx\"); print(p2.name);");
+    }
+    
     func testGetSetGlobal()
     {
         _context?.setGlobal(name: "abc", value: LuaValue(stringValue: "Hello World"));

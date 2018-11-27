@@ -802,33 +802,37 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
                 SEL selector = method_getName(*m);
                 
                 NSString *methodName = NSStringFromSelector(selector);
+                
                 if (![methodName hasPrefix:@"_"]
-                    && ![methodName hasPrefix:@"."]
-                    && ![methodName hasPrefix:@"init"]
-                    && ![methodName isEqualToString:@"dealloc"]
-                    && ![buildInExcludeMethodNames containsObject:methodName]
-                    && ![propertySelectorList containsObject:methodName]
-                    && ![excludesMethodNames containsObject:methodName])
+                         && ![methodName hasPrefix:@"."]
+                         && ![methodName isEqualToString:@"dealloc"]
+                         && ![buildInExcludeMethodNames containsObject:methodName]
+                         && ![propertySelectorList containsObject:methodName]
+                         && ![excludesMethodNames containsObject:methodName])
                 {
                     NSString *luaMethodName = [self _getLuaMethodNameWithSelectorName:methodName];
                     
-                    //判断是否已导出
-                    __block BOOL hasExists = NO;
-                    [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
-                    if (![LSCEngineAdapter isNil:state index:-1])
+                    if (![luaMethodName isEqualToString:@"init"])
                     {
-                        hasExists = YES;
-                    }
-                    [LSCEngineAdapter pop:state count:1];
-                    
-                    if (!hasExists)
-                    {
-                        [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
-                        [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
-                        [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
-                        [LSCEngineAdapter pushCClosure:instanceMethodRouteHandler n:3 state:state];
+                        //非初始化方法需要进行导出
+                        //判断是否已导出
+                        __block BOOL hasExists = NO;
+                        [LSCEngineAdapter getField:state index:-1 name:luaMethodName.UTF8String];
+                        if (![LSCEngineAdapter isNil:state index:-1])
+                        {
+                            hasExists = YES;
+                        }
+                        [LSCEngineAdapter pop:state count:1];
                         
-                        [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
+                        if (!hasExists)
+                        {
+                            [LSCEngineAdapter pushLightUserdata:(__bridge void *)self state:state];
+                            [LSCEngineAdapter pushLightUserdata:(__bridge void *)typeDescriptor state:state];
+                            [LSCEngineAdapter pushString:luaMethodName.UTF8String state:state];
+                            [LSCEngineAdapter pushCClosure:instanceMethodRouteHandler n:3 state:state];
+                            
+                            [LSCEngineAdapter setField:state index:-2 name:luaMethodName.UTF8String];
+                        }
                     }
                     
                     NSMutableArray<LSCExportMethodDescriptor *> *methodList = methodDict[luaMethodName];
@@ -841,7 +845,7 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
                     //获取方法签名
                     NSString *signStr = [self _getMethodSign:*m];
                     
-                    hasExists = NO;
+                    __block BOOL hasExists = NO;
                     [methodList enumerateObjectsUsingBlock:^(LSCExportMethodDescriptor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
                         
                         if ([obj.paramsSignature isEqualToString:signStr])
@@ -1411,7 +1415,25 @@ static int objectCreateHandler (lua_State *state)
         id instance = nil;
         if (typeDescriptor.nativeType != NULL)
         {
-            instance = [[typeDescriptor.nativeType alloc] init];
+            //获取参数传入类型，筛选适合的初始化方法
+            NSMutableArray *arguments = [[session parseArguments] mutableCopy];
+            NSInvocation *invocation = [exporter _invocationWithMethodName:@"init"
+                                                                 arguments:arguments
+                                                                  typeDesc:typeDescriptor
+                                                                  isStatic:NO];
+            
+            if (invocation)
+            {
+                LSCValue *retValue = [typeDescriptor _invokeMethodWithInstance:[typeDescriptor.nativeType alloc]
+                                                                    invocation:invocation
+                                                                     arguments:arguments];
+                instance = [retValue toObject];
+            }
+            else
+            {
+                instance = [[typeDescriptor.nativeType alloc] init];
+            }
+            
         }
         else
         {

@@ -22,13 +22,11 @@ public class Person implements LuaExportType
 {
     public String name;
 
-    @LuaExclude
     public void speak()
     {
         Log.v("luascriptcore", String.format("%s speak", name));
     }
 
-    @LuaExclude
     public void walk()
     {
         Log.v("luascriptcore", String.format("%s walk", name));
@@ -38,6 +36,17 @@ public class Person implements LuaExportType
     {
         Log.v("lsc", p.name);
     }
+
+    public Person ()
+    {
+
+    }
+
+    public Person (String name)
+    {
+        this.name = name;
+    }
+
 
     public static Person createPerson()
     {

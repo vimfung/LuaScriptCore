@@ -34,4 +34,8 @@
 
 + (char)returnChar;
 
+- (instancetype)initWithName:(NSString *)name;
+
+- (instancetype)initWithName:(NSString *)name age:(NSInteger)age;
+
 @end

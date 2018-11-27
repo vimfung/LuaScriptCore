@@ -42,6 +42,11 @@
     }];
 }
 
+- (void)testCreateObj
+{
+    [self.context evalScriptFromString:@"local p = Person(); print(p.name); local p2 = Person(\"xxxxxxx\", 18); print(p2.name);"];
+}
+
 - (void)testMultiThreadCall
 {
     XCTestExpectation *exp = [[XCTestExpectation alloc] initWithDescription:@""];
