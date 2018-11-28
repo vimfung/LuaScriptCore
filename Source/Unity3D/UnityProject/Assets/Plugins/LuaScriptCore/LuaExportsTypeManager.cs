@@ -376,17 +376,38 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeClassId">原生类型标识.</param>
 		/// <param name="instanceId">实例标识</param>
 		[MonoPInvokeCallback (typeof (LuaInstanceCreateHandleDelegate))]
-		private static Int64 _createInstance(int nativeClassId)
+		private static Int64 _createInstance(int contextId, int nativeClassId, IntPtr argumentsBuffer, int bufferSize)
 		{
 			Int64 refId = 0;
 			Type t = _exportsClass [nativeClassId];
 			if (t != null) 
 			{
-				//调用默认构造方法
-				ConstructorInfo ci = t.GetConstructor (Type.EmptyTypes);
+				LuaContext context = LuaContext.getContext (contextId);
+				List<LuaValue> arguments = getArgumentList (context, argumentsBuffer, bufferSize);
+
+				ConstructorInfo ci = getConstructor (t, t, arguments);
 				if (ci != null)
 				{
-					object instance = ci.Invoke (null);
+					ArrayList argsArr = new ArrayList ();
+					ParameterInfo[] parameters = ci.GetParameters ();
+					if (parameters.Length > 0 && arguments != null) 
+					{
+						int i = 0;
+						foreach (ParameterInfo p in parameters) 
+						{
+							if (i >= arguments.Count) 
+							{
+								break;
+							}
+
+							object value = getNativeValueForLuaValue(p.ParameterType, arguments[i]);
+							argsArr.Add (value);
+
+							i++;
+						}
+					}
+
+					object instance = ci.Invoke (argsArr.ToArray ());
 					if (instance != null)
 					{
 						LuaObjectReference objRef = new LuaObjectReference (instance);
@@ -396,6 +417,21 @@ namespace cn.vimfung.luascriptcore
 						refId = objRef.referenceId;
 					}
 				}
+
+//				//调用默认构造方法
+//				ConstructorInfo ci = t.GetConstructor (Type.EmptyTypes);
+//				if (ci != null)
+//				{
+//					object instance = ci.Invoke (null);
+//					if (instance != null)
+//					{
+//						LuaObjectReference objRef = new LuaObjectReference (instance);
+//						//添加引用避免被GC进行回收
+//						_instances.Add(objRef);
+//
+//						refId = objRef.referenceId;
+//					}
+//				}
 			}
 
 			return refId;
@@ -525,7 +561,7 @@ namespace cn.vimfung.luascriptcore
 				MethodInfo m = _exportsInstanceMethods[classId][methodName];
 				if (instance != null && m != null)
 				{
-					ArrayList argsArr = parseMethodParameters (context, m, argumentsBuffer, bufferSize);
+					ArrayList argsArr = parseMethodParameters (m, getArgumentList(context, argumentsBuffer, bufferSize));
 					object ret = m.Invoke (instance, argsArr != null ? argsArr.ToArray() : null);
 
 					LuaValue retValue = new LuaValue (ret);
@@ -561,7 +597,7 @@ namespace cn.vimfung.luascriptcore
 				//存在该方法, 进行调用
 				MethodInfo m = _exportsClassMethods [classId][methodName];
 
-				ArrayList argsArr = parseMethodParameters (context, m, arguments, size);
+				ArrayList argsArr = parseMethodParameters (m, getArgumentList(context, arguments, size));
 				object ret = m.Invoke (null, argsArr != null ? argsArr.ToArray() : null);
 				LuaValue retValue = new LuaValue (ret);
 
@@ -577,6 +613,156 @@ namespace cn.vimfung.luascriptcore
 			}
 
 			return IntPtr.Zero;
+		}
+
+		/// <summary>
+		/// 获取类型匹配的构造方法
+		/// </summary>
+		/// <returns>构造方法.</returns>
+		/// <param name="t">类型.</param>
+		/// <param name="arguments">参数列表.</param>
+		protected static ConstructorInfo getConstructor(Type targetType, Type t, List<LuaValue> arguments)
+		{
+			int targetMatchDegree = 0;
+			ConstructorInfo targetConstructor = null;
+			ConstructorInfo defaultConstructor = null;
+
+			if (t.GetInterface("cn.vimfung.luascriptcore.LuaExportType") != null)
+			{
+				ConstructorInfo[] constructors = t.GetConstructors ();
+				foreach (ConstructorInfo constructor in constructors)
+				{
+					int matchDegree = 0;
+					int index = 0;
+
+					ParameterInfo[] paramInfos = constructor.GetParameters ();
+					if (paramInfos.Length == 0)
+					{
+						//默认构造函数
+						defaultConstructor = constructor;
+					}
+
+					if (paramInfos.Length != arguments.Count)
+					{
+						continue;
+					}
+
+					bool hasMatch = true;
+					foreach (ParameterInfo paramInfo in paramInfos)
+					{
+						Type paramType = paramInfo.ParameterType;
+						LuaValue arg = arguments [index];
+
+						if (typeof(int) == paramType
+						    || typeof(long) == paramType
+						    || typeof(short) == paramType
+						    || typeof(uint) == paramType
+						    || typeof(ushort) == paramType
+						    || typeof(ulong) == paramType)
+						{
+							if (arg.type == LuaValueType.Integer || arg.type == LuaValueType.Number)
+							{
+								matchDegree++;
+							}
+						}
+						else if (typeof(float) == paramType
+						         || typeof(double) == paramType)
+						{
+							if (arg.type == LuaValueType.Number)
+							{
+								matchDegree++;
+							}
+						}
+						else if (typeof(bool) == paramType)
+						{
+							if (arg.type == LuaValueType.Boolean)
+							{
+								matchDegree++;
+							}
+						}
+						else if (typeof(string) == paramType)
+						{
+							if (arg.type == LuaValueType.String)
+							{
+								matchDegree++;
+							}
+						}
+						else if (typeof(byte[]) == paramType)
+						{
+							if (arg.type == LuaValueType.Data
+							    || arg.type == LuaValueType.String)
+							{
+								matchDegree++;
+							}
+							else
+							{
+								hasMatch = false;
+							}
+						}
+						else if (paramType.IsArray || typeof(IList).IsAssignableFrom (paramType))
+						{
+							if (arg.type == LuaValueType.Array)
+							{
+								matchDegree++;
+							}
+							else
+							{
+								hasMatch = false;
+							}
+						}
+						else if (typeof(IDictionary).IsAssignableFrom (t))
+						{
+							if (arg.type == LuaValueType.Map)
+							{
+								matchDegree++;
+							}
+							else
+							{
+								hasMatch = false;
+							}
+						}
+						else
+						{
+							object obj = arg.toObject ();
+							if (obj.GetType ().IsAssignableFrom (paramType))
+							{
+								matchDegree++;
+							}
+							else
+							{
+								hasMatch = false;
+							}
+						}
+
+						if (!hasMatch)
+						{
+							break;
+						}
+
+						index++;
+					}
+
+					if (hasMatch && matchDegree > targetMatchDegree)
+					{
+						targetConstructor = constructor;
+						targetMatchDegree = matchDegree;
+					}
+				}
+
+				if (targetConstructor == null)
+				{
+					//检测父类构造方法
+					targetConstructor = getConstructor(targetType, t.BaseType, arguments);
+				}
+
+				if (targetConstructor == null && targetType == t)
+				{
+					targetConstructor = defaultConstructor;
+				}
+					
+			}
+
+			return targetConstructor;
 		}
 
 		protected static object getNativeValueForLuaValue(Type t, LuaValue luaValue)
@@ -772,7 +958,6 @@ namespace cn.vimfung.luascriptcore
 						IDictionary dict = Activator.CreateInstance(t) as IDictionary;
 						foreach (KeyValuePair<string, LuaValue> kv in map)
 						{
-							
 							dict.Add (kv.Key, getNativeValueForLuaValue(valueType, kv.Value));
 						}
 
@@ -787,98 +972,6 @@ namespace cn.vimfung.luascriptcore
 						}
 						value = dict;
 					}
-
-
-//					if (t == typeof(Dictionary<string, int>))
-//					{
-//						Dictionary<string, int> dict = new Dictionary<string, int> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, kv.Value.toInteger ());
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, uint>))
-//					{
-//						Dictionary<string, uint> dict = new Dictionary<string, uint> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, Convert.ToUInt32 (kv.Value.toInteger ()));
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, short>))
-//					{
-//						Dictionary<string, Int16> dict = new Dictionary<string, short> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, Convert.ToInt16 (kv.Value.toInteger ()));
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, ushort>))
-//					{
-//						Dictionary<string, UInt16> dict = new Dictionary<string, ushort> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, Convert.ToUInt16 (kv.Value.toInteger ()));
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, long>))
-//					{
-//						Dictionary<string, Int64> dict = new Dictionary<string, long> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, Convert.ToInt64 (kv.Value.toInteger ()));
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, ulong>))
-//					{
-//						Dictionary<string, UInt64> dict = new Dictionary<string, ulong> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, Convert.ToUInt64 (kv.Value.toInteger ()));
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, bool>))
-//					{
-//						Dictionary<string, bool> dict = new Dictionary<string, bool> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, kv.Value.toBoolean ());
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, double>))
-//					{
-//						Dictionary<string, double> dict = new Dictionary<string, double> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, kv.Value.toNumber ());
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, float>))
-//					{
-//						Dictionary<string, float> dict = new Dictionary<string, float> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, (float)kv.Value.toNumber ());
-//						}
-//						value = dict;
-//					}
-//					else if (t == typeof(Dictionary<string, string>))
-//					{
-//						Dictionary<string, string> dict = new Dictionary<string, string> ();
-//						foreach (KeyValuePair<string, LuaValue> kv in map)
-//						{
-//							dict.Add (kv.Key, kv.Value.toString ());
-//						}
-//						value = dict;
-//					}
 					
 				}
 			}
@@ -891,14 +984,13 @@ namespace cn.vimfung.luascriptcore
 		}
 
 		/// <summary>
-		/// 解析方法的参数列表
+		/// 从原生编码对象中获取参数列表
 		/// </summary>
-		/// <returns>参数列表</returns>
-		/// <param name="context">上下文对象</param>
-		/// <param name="m">方法信息</param>
-		/// <param name="arguments">参数列表数据</param>
-		/// <param name="size">参数列表数据长度</param>
-		protected static ArrayList parseMethodParameters(LuaContext context, MethodInfo m, IntPtr arguments, int size)
+		/// <returns>参数列表.</returns>
+		/// <param name="context">上下文</param>
+		/// <param name="arguments">参数缓存.</param>
+		/// <param name="size">缓存长度.</param>
+		protected static List<LuaValue> getArgumentList(LuaContext context, IntPtr arguments, int size)
 		{
 			List<LuaValue> argumentsList = null;
 			if (arguments != IntPtr.Zero) 
@@ -915,20 +1007,33 @@ namespace cn.vimfung.luascriptcore
 				}
 			}
 
+			return argumentsList;
+		}
+
+		/// <summary>
+		/// 解析方法的参数列表
+		/// </summary>
+		/// <returns>参数列表</returns>
+		/// <param name="context">上下文对象</param>
+		/// <param name="m">方法信息</param>
+		/// <param name="arguments">参数列表数据</param>
+		/// <param name="size">参数列表数据长度</param>
+		protected static ArrayList parseMethodParameters(MethodInfo m, List<LuaValue> arguments)
+		{
 			ArrayList argsArr = null;
 			ParameterInfo[] parameters = m.GetParameters ();
-			if (parameters.Length > 0 && argumentsList != null) 
+			if (parameters.Length > 0 && arguments != null) 
 			{
 				int i = 0;
 				argsArr = new ArrayList ();
 				foreach (ParameterInfo p in parameters) 
 				{
-					if (i >= argumentsList.Count) 
+					if (i >= arguments.Count) 
 					{
 						break;
 					}
 
-					object value = getNativeValueForLuaValue(p.ParameterType, argumentsList[i]);
+					object value = getNativeValueForLuaValue(p.ParameterType, arguments[i]);
 					argsArr.Add (value);
 
 					i++;

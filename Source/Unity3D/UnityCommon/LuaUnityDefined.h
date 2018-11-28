@@ -41,7 +41,7 @@ extern "C" {
     /**
      Lua实例创建处理器
      */
-    typedef long long (*LuaInstanceCreateHandlerPtr) (int moduleId);
+    typedef long long (*LuaInstanceCreateHandlerPtr) (int contextId, int moduleId, const void *argumentsBuffer, int bufferSize);
 
     /**
      Lua实例销毁处理器

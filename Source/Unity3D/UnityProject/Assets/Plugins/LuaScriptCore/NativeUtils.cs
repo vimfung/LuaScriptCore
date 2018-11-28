@@ -19,7 +19,7 @@ namespace cn.vimfung.luascriptcore
 	public delegate void LuaExportsNativeTypeDelegate(int contextId, string typeName);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	public delegate Int64 LuaInstanceCreateHandleDelegate(int nativeClassId);
+	public delegate Int64 LuaInstanceCreateHandleDelegate(int contextId, int nativeClassId, IntPtr argumentsBuffer, int bufferSize);
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 	public delegate void LuaInstanceDestroyHandleDelegate(Int64 instancePtr);

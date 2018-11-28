@@ -20,11 +20,33 @@ public class Person : LuaExportType
 		}
 	}
 
+	public int age
+	{
+		get;
+		set;
+	}
+
+	public Person()
+	{
+		
+	}
+
+	public Person(int age)
+	{
+		this.age = age;
+	}
+
+	public Person(string name)
+	{
+		_name = name;
+	}
+
 	public static Person printPerson(Person p)
 	{
 		Debug.Log (p.name);
 		return p;
 	}
+
 
 	public static Person createPerson()
 	{

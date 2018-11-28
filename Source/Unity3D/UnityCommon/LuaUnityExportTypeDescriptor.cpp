@@ -10,6 +10,8 @@
 #include "LuaUnityEnv.hpp"
 #include "LuaObjectDescriptor.h"
 #include "LuaSession.h"
+#include "LuaValue.h"
+#include "LuaObjectEncoder.hpp"
 
 LuaUnityExportTypeDescriptor::LuaUnityExportTypeDescriptor(std::string const& name, LuaExportTypeDescriptor *parentTypeDescriptor)
     : LuaExportTypeDescriptor(name, parentTypeDescriptor)
@@ -34,13 +36,39 @@ LuaObjectDescriptor* LuaUnityExportTypeDescriptor::createInstance(LuaSession *se
     
     if (createInstanceHandler != NULL)
     {
-        long long instanceId = createInstanceHandler(objectId());
-        objectDescriptor = new LuaObjectDescriptor(session -> getContext(), (void *)instanceId, this);
+        LuaContext *context = session -> getContext();
+        
+        //解析参数
+        LuaArgumentList arguments;
+        session -> parseArguments(arguments, 2);
+        
+        //参数编码
+        LuaObjectEncoder *encoder = new LuaObjectEncoder(context);
+        encoder -> writeInt32((int)arguments.size());
+        
+        for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); ++it)
+        {
+            LuaValue *value = *it;
+            encoder -> writeObject(value);
+        }
+        
+        const void *paramsBuffer = encoder -> cloneBuffer();
+        long long instanceId = createInstanceHandler(context -> objectId(), objectId(), paramsBuffer, encoder -> getBufferLength());
+        encoder -> release();
+        
+        objectDescriptor = new LuaObjectDescriptor(context, (void *)instanceId, this);
         
         //设置本地对象标识
         LuaUnityEnv::sharedInstance() -> setNativeObjectId(objectDescriptor -> getObject(),
                                                            objectDescriptor -> objectId(),
                                                            objectDescriptor -> getExchangeId());
+        
+        //释放参数内存
+        for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); ++it)
+        {
+            LuaValue *value = *it;
+            value -> release();
+        }
     }
     
     return objectDescriptor;
