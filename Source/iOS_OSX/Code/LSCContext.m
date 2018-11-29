@@ -475,7 +475,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     {
         //进行定时内存回收检测
         self.needGC = YES;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_global_queue(0, 0), ^{
             
             [self.optQueue performAction:^{
                 [LSCEngineAdapter gc:self.currentSession.state what:LSCGCTypeCollect data:0];
