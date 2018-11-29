@@ -108,6 +108,19 @@ static LuaValue* catchLuaExceptionHandler (LuaContext *context, std::string cons
     return NULL;
 }
 
+static void executeGC()
+{
+    //进行内存回收
+    for (std::deque<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
+    {
+        LuaContext *context = *it;
+        context->gcHandler();
+        context->release();       // 回收后释放
+    }
+    //清空
+    _needsGCContextList.clear();
+}
+
 #if _WINDOWS
 
 void WINAPI contextGCHandler(UINT wTimerID, UINT msg, DWORD dwUser, DWORD dwl, DWORD dw2)
@@ -117,15 +130,9 @@ void WINAPI contextGCHandler(UINT wTimerID, UINT msg, DWORD dwUser, DWORD dwl, D
 	//重置计时器
 	timeKillEvent(wTimerID);
 
-	//进行内存回收
-	for (std::deque<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
-	{
-		LuaContext *context = *it;
-		context->gcHandler();
-		context->release();       // 回收后释放
-	}
-	//清空
-	_needsGCContextList.clear();
+    //进行内存回收
+    std::thread gcThread(executeGC);
+    gcThread.detach();
 }
 
 #else
@@ -144,14 +151,8 @@ static void contextGCHandler(int signo)
     setitimer(ITIMER_REAL, &itv, NULL);
 
     //进行内存回收
-    for (std::deque<LuaContext *>::iterator it = _needsGCContextList.begin(); it != _needsGCContextList.end(); it++)
-    {
-        LuaContext *context = *it;
-        context -> gcHandler();
-        context -> release();       // 回收后释放
-    }
-    //清空
-    _needsGCContextList.clear();
+    std::thread gcThread(executeGC);
+    gcThread.detach();
 }
 
 #endif
