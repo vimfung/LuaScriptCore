@@ -14,23 +14,7 @@ namespace cn.vimfung.luascriptcore
 	/// </summary>
 	internal class LuaExportsTypeManager
 	{
-		/// <summary>
-		/// 默认管理器对象
-		/// </summary>
-//		static private LuaExportsTypeManager _manager = new LuaExportsTypeManager();
-
-		/// <summary>
-		/// 获取默认lua导出管理器
-		/// </summary>
-		/// <value>管理器.</value>
-//		static internal LuaExportsTypeManager defaultManager
-//		{
-//			get
-//			{
-//				return _manager;
-//			}
-//		}
-
+		
 		/// <summary>
 		/// 基础数据类型映射表
 		/// </summary>
@@ -409,7 +393,7 @@ namespace cn.vimfung.luascriptcore
 		[MonoPInvokeCallback (typeof (LuaInstanceCreateHandleDelegate))]
 		private static Int64 _createInstance(int contextId, int nativeClassId, IntPtr argumentsBuffer, int bufferSize)
 		{
-			Int64 refId = 0;
+			Int64 refId = -1;
 			Type t = _exportsClass [nativeClassId];
 			if (t != null) 
 			{
@@ -448,21 +432,6 @@ namespace cn.vimfung.luascriptcore
 						refId = objRef.referenceId;
 					}
 				}
-
-//				//调用默认构造方法
-//				ConstructorInfo ci = t.GetConstructor (Type.EmptyTypes);
-//				if (ci != null)
-//				{
-//					object instance = ci.Invoke (null);
-//					if (instance != null)
-//					{
-//						LuaObjectReference objRef = new LuaObjectReference (instance);
-//						//添加引用避免被GC进行回收
-//						_instances.Add(objRef);
-//
-//						refId = objRef.referenceId;
-//					}
-//				}
 			}
 
 			return refId;
@@ -696,6 +665,13 @@ namespace cn.vimfung.luascriptcore
 				ConstructorInfo[] constructors = t.GetConstructors ();
 				foreach (ConstructorInfo constructor in constructors)
 				{
+					//检测是否为排除方法
+					LuaExclude isExclude = Attribute.GetCustomAttribute (constructor, typeof(LuaExclude), true) as LuaExclude;
+					if (isExclude != null)
+					{
+						continue;
+					}
+
 					int matchDegree = 0;
 					int index = 0;
 

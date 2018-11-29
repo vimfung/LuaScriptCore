@@ -93,7 +93,7 @@ class LuaExportTypeManager
     /**
      * 是否为排除方法
      * @param method 方法信息
-     * @return 表示为排除字段，否则不是
+     * @return true 表示为排除方法，否则不是
      */
     private boolean isExcludeMethod(Method method)
     {
@@ -106,6 +106,26 @@ class LuaExportTypeManager
                 return true;
             }
         }
+        return false;
+    }
+
+    /**
+     * 是否为排除构造方法
+     * @param constructor 构造方法
+     * @return true表示排除方法，否则不是
+     */
+    private boolean isExcludeConstructor(Constructor constructor)
+    {
+        LuaExclude exclude = null;
+        Annotation[] annotations = constructor.getAnnotations();
+        for (Annotation annotation : annotations)
+        {
+            if (annotation.annotationType().equals(LuaExclude.class))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -167,6 +187,12 @@ class LuaExportTypeManager
 
             for (Constructor constructor : constructors)
             {
+                //判断是否为排除构造方法
+                if(isExcludeConstructor(constructor))
+                {
+                    continue;
+                }
+
                 int matchDegree = 0;
                 int index = 0;
 

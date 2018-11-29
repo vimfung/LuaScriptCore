@@ -232,8 +232,9 @@ public class MainActivity extends AppCompatActivity {
             regClsBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    _luaContext.evalScript("local p = Person(); print(p);");
 //                    _luaContext.evalScript("local p = Person:createPersonError(); print(p);");
-                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
+//                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
 //                    _luaContext.evalScript("print(Person); local obj = Person:createObj(); Person:CheckObj(obj);");
 //                    _luaContext.evalScript("local p = Chinese(\"vimfung\"); print(p.name);");
                 }

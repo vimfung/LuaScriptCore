@@ -28,6 +28,7 @@ public class Person : LuaExportType
 		set;
 	}
 
+	[LuaExclude]
 	public Person()
 	{
 		

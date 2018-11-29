@@ -11,6 +11,7 @@
 #include "LuaObjectDescriptor.h"
 #include "LuaSession.h"
 #include "LuaValue.h"
+#include "LuaEngineAdapter.hpp"
 #include "LuaObjectEncoder.hpp"
 
 LuaUnityExportTypeDescriptor::LuaUnityExportTypeDescriptor(std::string const& name, LuaExportTypeDescriptor *parentTypeDescriptor)
@@ -56,12 +57,20 @@ LuaObjectDescriptor* LuaUnityExportTypeDescriptor::createInstance(LuaSession *se
         long long instanceId = createInstanceHandler(context -> objectId(), objectId(), paramsBuffer, encoder -> getBufferLength());
         encoder -> release();
         
-        objectDescriptor = new LuaObjectDescriptor(context, (void *)instanceId, this);
+        if (instanceId != -1)
+        {
+            objectDescriptor = new LuaObjectDescriptor(context, (void *)instanceId, this);
+            
+            //设置本地对象标识
+            LuaUnityEnv::sharedInstance() -> setNativeObjectId(objectDescriptor -> getObject(),
+                                                               objectDescriptor -> objectId(),
+                                                               objectDescriptor -> getExchangeId());
+        }
+        else
+        {
+            session -> reportLuaException("Unsupported constructor method");
+        }
         
-        //设置本地对象标识
-        LuaUnityEnv::sharedInstance() -> setNativeObjectId(objectDescriptor -> getObject(),
-                                                           objectDescriptor -> objectId(),
-                                                           objectDescriptor -> getExchangeId());
         
         //释放参数内存
         for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); ++it)

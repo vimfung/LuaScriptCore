@@ -2,6 +2,7 @@
 // Created by 冯鸿杰 on 2017/11/16.
 //
 
+#include <LuaEngineAdapter.hpp>
 #include "LuaJavaExportTypeDescriptor.h"
 #include "LuaJavaEnv.h"
 #include "LuaJavaObjectDescriptor.h"
@@ -58,8 +59,16 @@ LuaObjectDescriptor* LuaJavaExportTypeDescriptor::createInstance(LuaSession *ses
 
     env -> DeleteLocalRef(jArgs);
 
+    LuaJavaObjectDescriptor *objectDescriptor = NULL;
     LuaValue *returnValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, session -> getContext(), jReturnValue);
-    LuaJavaObjectDescriptor *objectDescriptor = dynamic_cast<LuaJavaObjectDescriptor *>(returnValue -> toObject());
+    if (returnValue -> getType() != LuaValueTypeNil)
+    {
+        objectDescriptor = dynamic_cast<LuaJavaObjectDescriptor *>(returnValue -> toObject());
+    }
+    else
+    {
+        session -> reportLuaException("Unsupported constructor method");
+    }
 
     //释放参数对象
     for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
