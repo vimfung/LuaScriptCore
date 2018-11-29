@@ -6,6 +6,8 @@ using System;
 
 public class Person : LuaExportType 
 {
+	public string msg;
+
 	private string _name;
 
 	public string name

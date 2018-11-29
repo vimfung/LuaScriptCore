@@ -101,7 +101,8 @@ public class Sample : MonoBehaviour {
 	/// </summary>
 	public void registerClassButtonClickedHandler()
 	{
-		LuaContext.currentContext.evalScript ("local p = Chinese(\"aaaa\"); print(p.name, p.age);");
+		LuaContext.currentContext.evalScript ("local p = Chinese(); p.msg = \"Hello World!\"; print(p.msg);");
+//		LuaContext.currentContext.evalScript ("local p = Chinese(\"aaaa\"); print(p.name, p.age);");
 //		LuaContext.currentContext.evalScript ("local p = Person:createPersonError(); print(p);");
 //		LuaContext.currentContext.evalScript ("print(Chinese); function Person.prototype:init() print('Person create'); end; local p = Person:createPerson(); print(p); p.name='xxxx'; p:speak(); p.intValue = 111; print('intValue', p.intValue); print(Person:printPerson(p));");
 	}

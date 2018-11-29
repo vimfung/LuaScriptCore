@@ -68,7 +68,12 @@ namespace cn.vimfung.luascriptcore
 		/// <summary>
 		/// 导出字段集合
 		/// </summary>
-		private static Dictionary<int, Dictionary<string, PropertyInfo>> _exportsFields = new Dictionary<int, Dictionary<string, PropertyInfo>> (); 
+		private static Dictionary<int, Dictionary<string, PropertyInfo>> _exportsProperties = new Dictionary<int, Dictionary<string, PropertyInfo>> (); 
+
+		/// <summary>
+		/// 导出字段集合
+		/// </summary>
+		private static Dictionary<int, Dictionary<string, FieldInfo>> _exportsFields = new Dictionary<int, Dictionary<string, FieldInfo>> ();
 
 		/// <summary>
 		/// 创建实例委托
@@ -207,8 +212,33 @@ namespace cn.vimfung.luascriptcore
 			}
 
 			//获取导出的字段
-			Dictionary<string, PropertyInfo> exportFields = new Dictionary<string, PropertyInfo> ();
+			Dictionary<string, FieldInfo> exportFields = new Dictionary<string, FieldInfo> ();
 			List<string> exportPropertyNames = new List<string> ();
+
+			FieldInfo[] fields = t.GetFields (BindingFlags.Instance | BindingFlags.Public);
+			foreach (FieldInfo f in fields)
+			{
+				LuaExclude isExclude = Attribute.GetCustomAttribute (f, typeof(LuaExclude), true) as LuaExclude;
+				if (isExclude != null)
+				{
+					//为过滤属性
+					continue;
+				}
+
+				if (typeAnnotation != null 
+					&& typeAnnotation.excludeExportPropertyNames != null 
+					&& Array.IndexOf (typeAnnotation.excludeExportPropertyNames, f.Name) >= 0)
+				{
+					//在过滤列表中
+					continue;
+				}
+
+				exportPropertyNames.Add(string.Format("{0}_rw", f.Name));
+				exportFields.Add (f.Name, f);
+			}
+
+			//获取导出的属性
+			Dictionary<string, PropertyInfo> exportProperties = new Dictionary<string, PropertyInfo> ();
 
 			PropertyInfo[] propertys = t.GetProperties (BindingFlags.Instance | BindingFlags.Public);
 			foreach (PropertyInfo p in propertys) 
@@ -216,7 +246,7 @@ namespace cn.vimfung.luascriptcore
 				LuaExclude isExclude = Attribute.GetCustomAttribute (p, typeof(LuaExclude), true) as LuaExclude;
 				if (isExclude != null)
 				{
-					//为过滤方法
+					//为过滤属性
 					continue;
 				}
 
@@ -239,7 +269,7 @@ namespace cn.vimfung.luascriptcore
 				}
 
 				exportPropertyNames.Add(string.Format("{0}_{1}", p.Name, actStringBuilder.ToString()));
-				exportFields.Add (p.Name, p);
+				exportProperties.Add (p.Name, p);
 			}
 
 			//创建导出的字段数据
@@ -354,7 +384,8 @@ namespace cn.vimfung.luascriptcore
 			_exportsClass[typeId] = t;
 			_exportsClassMethods[typeId] = exportClassMethods;
 			_exportsInstanceMethods[typeId] = exportInstanceMethods;
-			_exportsFields[typeId] = exportFields;
+			_exportsProperties[typeId] = exportProperties;
+			_exportsFields [typeId] = exportFields;
 
 			if (exportPropertyNamesPtr != IntPtr.Zero)
 			{
@@ -486,25 +517,44 @@ namespace cn.vimfung.luascriptcore
 		private static IntPtr _fieldGetter (int contextId, int classId, Int64 instancePtr, string fieldName)
 		{
 			IntPtr retValuePtr = IntPtr.Zero;
-			if (instancePtr != 0 
-				&& _exportsFields.ContainsKey(classId) 
-				&& _exportsFields[classId].ContainsKey(fieldName))
+			if (instancePtr != 0)
 			{
 				LuaContext context = LuaContext.getContext (contextId);
 				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
 				object instance = objRef.target;
-				PropertyInfo propertyInfo = _exportsFields[classId][fieldName];
-				if (instance != null && propertyInfo != null && propertyInfo.CanRead)
-				{
-					object retValue = propertyInfo.GetValue (instance, null);
-					LuaValue value = new LuaValue (retValue);
 
+				LuaValue value = null;
+
+				if (_exportsProperties.ContainsKey (classId)
+				    && _exportsProperties [classId].ContainsKey (fieldName))
+				{
+					PropertyInfo propertyInfo = _exportsProperties [classId] [fieldName];
+					if (instance != null && propertyInfo != null && propertyInfo.CanRead)
+					{
+						object retValue = propertyInfo.GetValue (instance, null);
+						value = new LuaValue (retValue);
+					}
+				}
+				else if (_exportsFields.ContainsKey (classId)
+				         && _exportsFields [classId].ContainsKey (fieldName))
+				{
+					FieldInfo fieldInfo = _exportsFields [classId] [fieldName];
+					if (instance != null && fieldInfo != null)
+					{
+						object retValue = fieldInfo.GetValue (instance);
+						value = new LuaValue (retValue);
+					}
+				}
+
+				if (value != null)
+				{
 					LuaObjectEncoder encoder = new LuaObjectEncoder (context);
 					encoder.writeObject (value);
 					byte[] bytes = encoder.bytes;
 					retValuePtr = Marshal.AllocHGlobal (bytes.Length);
 					Marshal.Copy (bytes, 0, retValuePtr, bytes.Length);
 				}
+
 			}
 
 			return retValuePtr;
@@ -521,21 +571,35 @@ namespace cn.vimfung.luascriptcore
 		[MonoPInvokeCallback (typeof (LuaInstanceFieldSetterHandleDelegate))]
 		private static void _fieldSetter (int contextId, int classId, Int64 instancePtr, string fieldName, IntPtr valueBuffer, int bufferSize)
 		{
-			if (instancePtr != 0
-				&& _exportsFields.ContainsKey(classId) 
-				&& _exportsFields[classId].ContainsKey(fieldName))
+			if (instancePtr != 0)
 			{
+				
 				LuaContext context = LuaContext.getContext (contextId);
 				LuaObjectReference objRef = LuaObjectReference.findObject (instancePtr);
 				object instance = objRef.target;
-				PropertyInfo propertyInfo = _exportsFields[classId][fieldName];
-				if (instance != null && propertyInfo != null && propertyInfo.CanWrite)
-				{
-					LuaObjectDecoder decoder = new LuaObjectDecoder (valueBuffer, bufferSize, context);
-					LuaValue value = decoder.readObject () as LuaValue;
+				LuaObjectDecoder decoder = new LuaObjectDecoder (valueBuffer, bufferSize, context);
+				LuaValue value = decoder.readObject () as LuaValue;
 
-					propertyInfo.SetValue(instance, getNativeValueForLuaValue (propertyInfo.PropertyType, value), null);
+
+				if (_exportsProperties.ContainsKey (classId)
+				    && _exportsProperties [classId].ContainsKey (fieldName))
+				{
+					PropertyInfo propertyInfo = _exportsProperties [classId] [fieldName];
+					if (instance != null && propertyInfo != null && propertyInfo.CanWrite)
+					{
+						propertyInfo.SetValue (instance, getNativeValueForLuaValue (propertyInfo.PropertyType, value), null);
+					}
 				}
+				else if (_exportsFields.ContainsKey (classId)
+				         && _exportsFields [classId].ContainsKey (fieldName))
+				{
+					FieldInfo fieldInfo = _exportsFields [classId] [fieldName];
+					if (instance != null && fieldInfo != null)
+					{
+						fieldInfo.SetValue (instance, getNativeValueForLuaValue (fieldInfo.FieldType, value));
+					}
+				}
+
 			}
 		}
 
