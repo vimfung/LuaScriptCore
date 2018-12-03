@@ -244,7 +244,7 @@ jclass LuaJavaType::arrayListClass(JNIEnv *env)
     return jArrayList;
 }
 
-static jclass LuaJavaType::listClass(JNIEnv *env)
+jclass LuaJavaType::listClass(JNIEnv *env)
 {
     static jclass jList = NULL;
 

@@ -28,11 +28,22 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
         super.tearDown()
     }
     
+    
+    /// 预期结果
+    /**
+     vimfung
+     xxxxxxx
+     */
     func testCreateObj()
     {
         _ = _context?.evalScript(script: "local p = Person(); print(p.name); local p2 = Person(\"xxxxxxx\"); print(p2.name);");
     }
     
+    
+    /// 预期结果
+    /**
+     value = Hello World
+     */
     func testGetSetGlobal()
     {
         _context?.setGlobal(name: "abc", value: LuaValue(stringValue: "Hello World"));
@@ -40,11 +51,25 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
         NSLog("value = %@", value.stringValue);
     }
     
+    
+    /// 预期结果
+    /**
+     [Person type]
+     [Person object<0x7fe42a31a538>]
+     vim speak : Hello World!
+    */
     func testClassImport()
     {
         _ = _context?.evalScript(script: "print(Person); local p = Person:createPerson(); print(p); p.name = 'vim'; p:speak('Hello World!');");
     }
     
+    /// 预期结果
+    /**
+     test func
+     -------------1
+     test func
+     -------------2
+     */
     func testRetainAndRelease()
     {
         _ = _context?.evalScript(script: "local test = function() print('test func') end; test(); Person:retainHandler(test);");
@@ -52,6 +77,13 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
         _ = _context?.evalScript(script: "print('-------------2'); Person:callHandler();");
     }
     
+    /// 预期结果
+    /**
+     test func
+     -------------1
+     test func
+     -------------2
+     */
     func testRetainAndRelease_2()
     {
         _ = _context?.evalScript(script: "local test = function() print('test func') end; test(); Person:retainHandler2(test);");
@@ -59,6 +91,12 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
         _ = _context?.evalScript(script: "print('-------------2'); Person:callHandler2();");
     }
     
+    /// 预期结果
+    /**
+     [Person type]
+     [Person object<0x7fc983107ab8>]
+     vim speak : Hello World!
+     */
     func testMultiThreadCall()
     {
         let exp = XCTestExpectation(description: "");

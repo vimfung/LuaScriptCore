@@ -37,7 +37,6 @@ public class Person implements LuaExportType
         Log.v("lsc", p.name);
     }
 
-    @LuaExclude
     public Person ()
     {
 
