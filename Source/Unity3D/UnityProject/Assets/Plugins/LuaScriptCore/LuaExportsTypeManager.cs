@@ -394,42 +394,46 @@ namespace cn.vimfung.luascriptcore
 		private static Int64 _createInstance(int contextId, int nativeClassId, IntPtr argumentsBuffer, int bufferSize)
 		{
 			Int64 refId = -1;
-			Type t = _exportsClass [nativeClassId];
-			if (t != null) 
+
+			if (_exportsClass.ContainsKey (nativeClassId))
 			{
-				LuaContext context = LuaContext.getContext (contextId);
-				List<LuaValue> arguments = getArgumentList (context, argumentsBuffer, bufferSize);
-
-				ConstructorInfo ci = getConstructor (t, t, arguments);
-				if (ci != null)
+				Type t = _exportsClass [nativeClassId];
+				if (t != null) 
 				{
-					ArrayList argsArr = new ArrayList ();
-					ParameterInfo[] parameters = ci.GetParameters ();
-					if (parameters.Length > 0 && arguments != null) 
+					LuaContext context = LuaContext.getContext (contextId);
+					List<LuaValue> arguments = getArgumentList (context, argumentsBuffer, bufferSize);
+
+					ConstructorInfo ci = getConstructor (t, t, arguments);
+					if (ci != null)
 					{
-						int i = 0;
-						foreach (ParameterInfo p in parameters) 
+						ArrayList argsArr = new ArrayList ();
+						ParameterInfo[] parameters = ci.GetParameters ();
+						if (parameters.Length > 0 && arguments != null) 
 						{
-							if (i >= arguments.Count) 
+							int i = 0;
+							foreach (ParameterInfo p in parameters) 
 							{
-								break;
+								if (i >= arguments.Count) 
+								{
+									break;
+								}
+
+								object value = getNativeValueForLuaValue(p.ParameterType, arguments[i]);
+								argsArr.Add (value);
+
+								i++;
 							}
-
-							object value = getNativeValueForLuaValue(p.ParameterType, arguments[i]);
-							argsArr.Add (value);
-
-							i++;
 						}
-					}
 
-					object instance = ci.Invoke (argsArr.ToArray ());
-					if (instance != null)
-					{
-						LuaObjectReference objRef = new LuaObjectReference (instance);
-						//添加引用避免被GC进行回收
-						_instances.Add(objRef);
+						object instance = ci.Invoke (argsArr.ToArray ());
+						if (instance != null)
+						{
+							LuaObjectReference objRef = new LuaObjectReference (instance);
+							//添加引用避免被GC进行回收
+							_instances.Add(objRef);
 
-						refId = objRef.referenceId;
+							refId = objRef.referenceId;
+						}
 					}
 				}
 			}
