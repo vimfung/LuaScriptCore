@@ -18,12 +18,4 @@ public class ExampleUnitTest {
     public void addition_isCorrect() throws Exception {
         assertEquals(4, 2 + 2);
     }
-
-    @Test
-    public void raiseException() throws Exception {
-
-        Env.sharedInstance().getContext().evalScript("local p = Person.create(); print(p);");
-        assertEquals(4, 2 + 2);
-
-    }
 }

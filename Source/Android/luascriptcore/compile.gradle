@@ -5,6 +5,10 @@ android {
     buildToolsVersion '27.0.3'
     publishNonDefault true
 
+    lintOptions {
+        abortOnError false
+    }
+
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 24
