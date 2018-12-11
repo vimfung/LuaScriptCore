@@ -1,8 +1,8 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 26
+    buildToolsVersion '28.0.3'
     publishNonDefault true
 
     lintOptions {
@@ -10,14 +10,14 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 24
+        minSdkVersion 16
+        targetSdkVersion 26
         versionCode 20200
         versionName "2.3.1"
 
         ndk {
             moduleName "LuaScriptCore"
-            stl "gnustl_static"
+            stl "c++_static"
             ldLibs "log"
             abiFilters "armeabi-v7a", "x86", "arm64-v8a", "x86_64"      //筛选只需要的架构，其中armeabi、mips、mips64已标记过时
         }
@@ -26,15 +26,14 @@ android {
 
             ndkBuild {
 
-                arguments "APP_STL=gnustl_static",
+                arguments "APP_STL=c++_static",
                         "NDK_DEBUG=1",
-                        "APP_PLATFORM=android-14",
-                        "NDK_TOOLCHAIN_VERSION=4.9"
+                        "APP_PLATFORM=android-16",
+                        "NDK_TOOLCHAIN_VERSION=clang"
 
                 cppFlags "-frtti",
                         "-fexceptions",
-                        "-std=gnu++11",
-                        "-Wno-format-contains-nul",
+                        "-std=c++11",
                         "-g",
                         "-Wno-deprecated-declarations",
                         "-fpermissive"
