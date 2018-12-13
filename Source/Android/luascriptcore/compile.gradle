@@ -10,10 +10,11 @@ android {
     }
 
     defaultConfig {
+
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 20200
-        versionName "2.3.1"
+        versionCode 20302
+        versionName "2.3.2"
 
         ndk {
             moduleName "LuaScriptCore"
@@ -99,7 +100,7 @@ ext {
     siteUrl = 'https://github.com/vimfung/LuaScriptCore'
     gitUrl = 'https://github.com/vimfung/LuaScriptCore.git'
 
-    libraryVersion = '2.3.1'
+    libraryVersion = '2.3.2'
 
     developerId = 'vimfung'
     developerName = 'Vim Fung'
