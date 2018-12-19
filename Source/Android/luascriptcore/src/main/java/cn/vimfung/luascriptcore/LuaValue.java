@@ -435,6 +435,10 @@ public class LuaValue extends LuaBaseObject
             {
                 setStringValue(value.toString());
             }
+            else if (value instanceof byte[])
+            {
+                setByteArrayValue((byte[]) value);
+            }
             else if (value instanceof ArrayList)
             {
                 setArrayListValue((ArrayList)value);

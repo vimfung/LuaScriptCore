@@ -30,6 +30,14 @@ class EncodingModuleViewController: UITableViewController {
            _ = context.evalScript(script: "Encoding_Sample_urlEncode()");
         case 1:
            _ = context.evalScript(script: "Encoding_Sample_urlDecode()");
+        case 2:
+            _ = context.evalScript(script: "Encoding_Sample_base64Encode()");
+        case 3:
+            _ = context.evalScript(script: "Encoding_Sample_base64Decode()");
+        case 4:
+            _ = context.evalScript(script: "Encoding_Sample_jsonEndode()");
+        case 5:
+            _ = context.evalScript(script: "Encoding_Sample_jsonDecode()");
         default:
             break;
         }

@@ -41,6 +41,10 @@ public class ModulesActivity extends AppCompatActivity {
         {
             modules.add("URL Encode");
             modules.add("URL Decode");
+            modules.add("Base64 Encode");
+            modules.add("Base64 Decode");
+            modules.add("JSON Encode");
+            modules.add("JSON Decode");
         }
         else if (parentItem.equals("Path"))
         {
@@ -89,6 +93,22 @@ public class ModulesActivity extends AppCompatActivity {
                         else if (item.equals("URL Decode"))
                         {
                             luaContext.evalScript("Encoding_Sample_urlDecode()");
+                        }
+                        else if (item.equals("Base64 Encode"))
+                        {
+                            luaContext.evalScript("Encoding_Sample_base64Encode()");
+                        }
+                        else if (item.equals("Base64 Decode"))
+                        {
+                            luaContext.evalScript("Encoding_Sample_base64Decode()");
+                        }
+                        else if (item.equals("JSON Encode"))
+                        {
+                            luaContext.evalScript("Encoding_Sample_jsonEndode()");
+                        }
+                        else if (item.equals("JSON Decode"))
+                        {
+                            luaContext.evalScript("Encoding_Sample_jsonDecode()");
                         }
                     }
                     else if (finalParentItem.equals("Path"))

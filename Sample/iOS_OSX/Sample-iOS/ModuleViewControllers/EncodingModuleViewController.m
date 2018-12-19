@@ -43,6 +43,22 @@
             //Url Decode
             [self.context evalScriptFromString:@"Encoding_Sample_urlDecode()"];
             break;
+        case 2:
+            //Base64 Encode
+            [self.context evalScriptFromString:@"Encoding_Sample_base64Encode()"];
+            break;
+        case 3:
+            //Base64 Decode
+            [self.context evalScriptFromString:@"Encoding_Sample_base64Decode()"];
+            break;
+        case 4:
+            //JSON Encode
+            [self.context evalScriptFromString:@"Encoding_Sample_jsonEndode()"];
+            break;
+        case 5:
+            //JSON Decode
+            [self.context evalScriptFromString:@"Encoding_Sample_jsonDecode()"];
+            break;
         default:
             break;
     }
