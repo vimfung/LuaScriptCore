@@ -583,6 +583,34 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>对象.</returns>
 		public object toObject()
 		{
+			//解包数组和字典中的元素
+			if (this.type == LuaValueType.Map)
+			{
+				Dictionary<string, LuaValue> map = toMap ();
+				if (map != null)
+				{
+					Hashtable dict = new Hashtable ();
+					foreach (KeyValuePair<string, LuaValue> kv in map)
+					{
+						dict.Add (kv.Key, kv.Value.toObject ());
+					}
+					return dict;
+				}
+			}
+			else if (this.type == LuaValueType.Array)
+			{
+				List<LuaValue> arr = toArray();
+				if (arr != null)
+				{
+					ArrayList objArr = new ArrayList ();
+					foreach (LuaValue item in arr) 
+					{
+						objArr.Add (item.toObject ());
+					}
+					return objArr.ToArray ();
+				}
+			}
+
 			if (_value is LuaObjectDescriptor)
 			{
 				return (_value as LuaObjectDescriptor).obj;

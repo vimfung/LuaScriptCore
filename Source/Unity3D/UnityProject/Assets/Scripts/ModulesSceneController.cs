@@ -80,7 +80,7 @@ public class ModulesSceneController : MonoBehaviour {
 					break;
 				case "Encoding":
 					_selectedItem = itemData;
-					listVC.dataSource = new List<string> () {"URL Encode", "URL Decode"};
+					listVC.dataSource = new List<string> () {"URL Encode", "URL Decode", "Base64 Encode", "Base64 Decode", "JSON Encode", "JSON Decode"};
 					listVC.reloadData();
 					break;
 				case "Path":
@@ -100,6 +100,22 @@ public class ModulesSceneController : MonoBehaviour {
 				case "URL Decode":
 					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Encoding-Sample.lua");
 					LuaContext.currentContext.evalScript("Encoding_Sample_urlDecode()");
+					break;
+				case "Base64 Encode":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Encoding-Sample.lua");
+					LuaContext.currentContext.evalScript("Encoding_Sample_base64Encode()");
+					break;
+				case "Base64 Decode":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Encoding-Sample.lua");
+					LuaContext.currentContext.evalScript("Encoding_Sample_base64Decode()");
+					break;
+				case "JSON Encode":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Encoding-Sample.lua");
+					LuaContext.currentContext.evalScript("Encoding_Sample_jsonEndode()");
+					break;
+				case "JSON Decode":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Encoding-Sample.lua");
+					LuaContext.currentContext.evalScript("Encoding_Sample_jsonDecode()");
 					break;
 				case "App Path":
 					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Path-Sample.lua");
