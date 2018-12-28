@@ -464,6 +464,30 @@ namespace cn
                  @return 执行结果
                  */
                 static int error (lua_State *state, const char *message);
+
+                /**
+                 * 创建线程
+                 * @param state 状态
+                 * @return 线程状态
+                 */
+                static lua_State* newThread(lua_State *state);
+
+                /**
+                 * 恢复线程
+                 * @param state 线程状态
+                 * @param fromThreadState 表示从哪条线程进行延续，没有可以设置为NULL
+                 * @param argumentCount 参数数量
+                 * @return 执行状态
+                 */
+                static int resumeThread(lua_State *state, lua_State *fromThreadState, int argumentCount);
+
+                /**
+                 * 挂起线程
+                 * @param state 线程状态
+                 * @param resultCount 返回值数量
+                 * @return 无
+                 */
+                static int yieldThread(lua_State *state, int resultCount);
             };
             
         }

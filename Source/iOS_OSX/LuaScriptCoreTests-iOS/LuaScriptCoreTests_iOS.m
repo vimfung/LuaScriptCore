@@ -18,6 +18,7 @@
 #import "Env.h"
 #import "SubLuaLog.h"
 #import "LSCOperationQueue.h"
+#import "LSCThread.h"
 #import <objc/message.h>
 
 #import "LSCEngineAdapter.h"
@@ -42,6 +43,22 @@
     }];
 }
 
+- (void)testThread
+{
+    XCTestExpectation *exp = [[XCTestExpectation alloc] initWithDescription:@""];
+    
+    LSCThread *t = [[LSCThread alloc] initWithContext:self.context handler:^LSCValue *(NSArray<LSCValue *> *arguments) {
+        
+        NSLog(@"arguments = %@", arguments);
+        [exp fulfill];
+        
+        return nil;
+    }];
+    
+    [t resumeWithArguments:@[[LSCValue integerValue:1024]]];
+    
+    [self waitForExpectations:@[exp] timeout:3000];
+}
 
 /**
  预期结果

@@ -206,7 +206,40 @@ static void contextStartGC(LuaContext *context)
 }
 
 LuaContext::LuaContext(std::string const& platform)
-        : LuaObject()
+        : LuaContext(platform, [this]() -> lua_State* {
+    return LuaEngineAdapter::newState();
+})
+{
+//    _operationQueue = new LuaOperationQueue();
+//
+//    _isActive = true;
+//    _exceptionHandler = NULL;
+//    _dataExchanger = new LuaDataExchanger(this);
+//
+//    _operationQueue -> performAction([this]() {
+//
+//        lua_State *state = LuaEngineAdapter::newState();
+//
+//        LuaEngineAdapter::GC(state, LUA_GCSTOP, 0);
+//        //加载标准库
+//        LuaEngineAdapter::openLibs(state);
+//        LuaEngineAdapter::GC(state, LUA_GCRESTART, 0);
+//
+//        _mainSession = new LuaSession(state, this, false);
+//
+//    });
+//
+//    _currentSession = NULL;
+//
+//    //初始化类型导出管理器
+//    _exportsTypeManager = new LuaExportsTypeManager(this, platform);
+//
+//    //注册错误捕获方法
+//    registerMethod(CatchLuaExceptionHandlerName, catchLuaExceptionHandler);
+}
+
+LuaContext::LuaContext(std::string const& platform, std::function<lua_State*(void)> const& createStateHandler)
+    : LuaObject()
 {
     _operationQueue = new LuaOperationQueue();
 
@@ -214,9 +247,9 @@ LuaContext::LuaContext(std::string const& platform)
     _exceptionHandler = NULL;
     _dataExchanger = new LuaDataExchanger(this);
 
-    _operationQueue -> performAction([this]() {
+    _operationQueue -> performAction([this, createStateHandler]() {
 
-        lua_State *state = LuaEngineAdapter::newState();
+        lua_State *state = createStateHandler();
 
         LuaEngineAdapter::GC(state, LUA_GCSTOP, 0);
         //加载标准库
@@ -228,7 +261,7 @@ LuaContext::LuaContext(std::string const& platform)
     });
 
     _currentSession = NULL;
-    
+
     //初始化类型导出管理器
     _exportsTypeManager = new LuaExportsTypeManager(this, platform);
 

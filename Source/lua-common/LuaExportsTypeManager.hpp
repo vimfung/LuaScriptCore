@@ -81,6 +81,12 @@ namespace cn {
             public:
 
                 /**
+                 * 获取平台类型
+                 * @return 平台类型
+                 */
+                std::string getPlatform();
+
+                /**
                  * 映射类型
                  * @param platform 平台类型
                  * @param name  类型名称

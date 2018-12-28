@@ -62,6 +62,14 @@ public:
     static jobject createJavaLuaContext(JNIEnv *env, LuaContext *context);
 
     /**
+     * 创建Lua线程
+     * @param env JNI环境
+     * @param context 上下文对象
+     * @return Lua线程
+     */
+    static jobject createJavaLuaThread(JNIEnv *env, LuaContext *context);
+
+    /**
      * 获取Java中的LuaContext对象
      *
      * @param env JNI环境

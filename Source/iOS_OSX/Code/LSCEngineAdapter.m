@@ -276,4 +276,22 @@
     return luaL_error(state, message);
 }
 
++ (lua_State *)newThread:(lua_State *)state
+{
+    return lua_newthread(state);
+}
+
++ (int)resumeThread:(lua_State *)state
+    fromThreadState:(lua_State *)fromThreadState
+           argCount:(int)argCount
+{
+    return lua_resume(state, fromThreadState, argCount);
+}
+
++ (int)yielyThread:(lua_State *)state
+       resultCount:(int)resultCount
+{
+    return lua_yield(state, resultCount);
+}
+
 @end

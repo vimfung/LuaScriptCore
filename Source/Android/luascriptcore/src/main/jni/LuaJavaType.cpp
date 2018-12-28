@@ -48,6 +48,20 @@ jclass LuaJavaType::contextClass(JNIEnv *env)
     return jLuaContext;
 }
 
+jclass LuaJavaType::threadClass(JNIEnv *env)
+{
+    static jclass jLuaThread = NULL;
+
+    if (jLuaThread == NULL)
+    {
+        jclass jLuaThreadCls = LuaJavaEnv::findClass(env, "cn/vimfung/luascriptcore/LuaThread");
+        jLuaThread = (jclass)env -> NewGlobalRef(jLuaThreadCls);
+        env -> DeleteLocalRef(jLuaThreadCls);
+    }
+
+    return jLuaThread;
+}
+
 jclass LuaJavaType::moduleClass(JNIEnv *env)
 {
     static jclass jLuaModule = NULL;

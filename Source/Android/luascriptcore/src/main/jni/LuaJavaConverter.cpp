@@ -23,6 +23,14 @@ LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject
     return (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
 }
 
+LuaThread* LuaJavaConverter::convertToThreadByJThread(JNIEnv *env, jobject thread)
+{
+    jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::threadClass(env), "_nativeId", "I");
+    jint nativeId = env -> GetIntField(thread, nativeIdFieldId);
+
+    return (LuaThread *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+}
+
 LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *context, jobject object)
 {
     LuaValue *value = NULL;

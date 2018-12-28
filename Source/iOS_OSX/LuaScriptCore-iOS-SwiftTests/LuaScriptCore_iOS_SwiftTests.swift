@@ -30,6 +30,24 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
     
     
     /// 预期结果
+    func testThread()
+    {
+        let exp:XCTestExpectation = XCTestExpectation(description: "");
+        
+        let t:LuaThread = LuaThread(context: _context!) { (arguments) -> LuaValue? in
+            
+            print("\(String(describing: arguments))");
+            exp.fulfill();
+            
+            return nil;
+        };
+        
+        t.resume(arguments: [LuaValue(intValue: 1024)]);
+        
+        self.wait(for: [exp], timeout: 3000);
+    }
+    
+    /// 预期结果
     /**
      vimfung
      xxxxxxx

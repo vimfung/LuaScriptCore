@@ -90,6 +90,14 @@ namespace cn
                 LuaContext(std::string const& platform);
 
                 /**
+                 * 初始化上下文对象
+                 *
+                 * @param platform 平台类型：ios,android,unity3d
+                 * @param createStateHandler 创建状态处理器
+                 */
+                LuaContext(std::string const& platform, std::function<lua_State*(void)> const& createStateHandler);
+
+                /**
                  * 销毁上下文对象
                  */
                 ~LuaContext();

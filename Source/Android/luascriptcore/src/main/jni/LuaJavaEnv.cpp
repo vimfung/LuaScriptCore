@@ -15,6 +15,7 @@
 #include "LuaValue.h"
 #include "LuaContext.h"
 #include "LuaDefine.h"
+#include "LuaThread.h"
 
 /**
  * Java虚拟机对象
@@ -108,6 +109,65 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
 
     return retValue;
 }
+
+/**
+ * Lua线程处理器
+ *
+ * @param context 上下文对象
+ * @param methodName 方法名称
+ * @param arguments 方法参数
+ *
+ * @returns 返回值
+ */
+static LuaValue* _luaThreadHandler (LuaContext *context, const std::string & methodName, LuaArgumentList arguments)
+{
+    JNIEnv *env = LuaJavaEnv::getEnv();
+    LuaValue *retValue = NULL;
+
+    jobject jcontext = LuaJavaEnv::getJavaLuaContext(env, context);
+    if (jcontext != NULL)
+    {
+        if (env -> IsSameObject(jcontext, NULL) != JNI_TRUE)
+        {
+            static jclass contenxtClass = LuaJavaType::threadClass(env);
+            static jmethodID invokeMethodID = env -> GetMethodID(contenxtClass, "methodInvoke", "(Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
+            static jclass luaValueClass = LuaJavaType::luaValueClass(env);
+
+            jstring jMethodName = env -> NewStringUTF(methodName.c_str());
+
+            //参数
+            jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
+            int index = 0;
+            for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
+            {
+                LuaValue *argument = *it;
+                jobject jArgument = LuaJavaConverter::convertToJavaLuaValueByLuaValue(env, context, argument);
+                env -> SetObjectArrayElement(argumentArr, index, jArgument);
+                env -> DeleteLocalRef(jArgument);
+                index++;
+            }
+
+            jobject result = env -> CallObjectMethod(jcontext, invokeMethodID, jMethodName, argumentArr);
+            if (result != NULL)
+            {
+                retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, result);
+                env -> DeleteLocalRef(result);
+            }
+            else
+            {
+                retValue = new LuaValue();
+            }
+
+            env -> DeleteLocalRef(argumentArr);
+            env -> DeleteLocalRef(jMethodName);
+        }
+    }
+
+    LuaJavaEnv::resetEnv(env);
+
+    return retValue;
+}
+
 
 /**
  * Lua异常处理器
@@ -238,6 +298,23 @@ jobject LuaJavaEnv::createJavaLuaContext(JNIEnv *env, LuaContext *context)
     _javaObjectMap[context -> objectId()] = env -> NewWeakGlobalRef(jcontext);
 
     return jcontext;
+}
+
+jobject LuaJavaEnv::createJavaLuaThread(JNIEnv *env, LuaContext *context)
+{
+    LuaThread *thread = new LuaThread(context, _luaThreadHandler);
+
+    static jclass threadClass = LuaJavaType::threadClass(env);
+    static jmethodID initMethodId = env -> GetMethodID(threadClass, "<init>", "(I)V");
+
+    int nativeId = LuaObjectManager::SharedInstance() -> putObject(thread);
+    jobject jthread = env -> NewObject(threadClass, initMethodId, nativeId);
+
+    _javaObjectMap[thread -> objectId()] = env -> NewWeakGlobalRef(jthread);
+
+    thread -> release();
+
+    return jthread;
 }
 
 jobject LuaJavaEnv::getJavaLuaContext(JNIEnv *env, LuaContext *context)

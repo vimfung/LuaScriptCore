@@ -43,6 +43,13 @@ public:
     static jclass contextClass(JNIEnv *env);
 
     /**
+     * 获取LuaThread类型
+     * @param env JNI环境
+     * @return LuaThread类型
+     */
+    static jclass threadClass(JNIEnv *env);
+
+    /**
      * 获取LuaModule类
      *
      * @param env JNI环境

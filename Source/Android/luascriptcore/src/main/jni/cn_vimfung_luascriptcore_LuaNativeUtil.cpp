@@ -18,6 +18,7 @@
 #include "LuaJavaExportPropertyDescriptor.h"
 #include "LuaExportsTypeManager.hpp"
 #include "StringUtils.h"
+#include "LuaThread.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -438,5 +439,69 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_raiseExceptio
         const char *messageCStr = env->GetStringUTFChars(message, 0);
         context -> getCurrentSession() -> reportLuaException(messageCStr);
         env->ReleaseStringUTFChars(message, messageCStr);
+    }
+}
+
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createThread(JNIEnv *env, jclass type, jobject jcontext)
+{
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
+    {
+        return LuaJavaEnv::createJavaLuaThread(env, context);
+    }
+
+    return NULL;
+}
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_resumeThread(JNIEnv *env, jclass type, jobject jthread, jobjectArray arguments)
+{
+    LuaThread *thread = LuaJavaConverter::convertToThreadByJThread(env, jthread);
+    if (thread != NULL)
+    {
+        LuaArgumentList argumentList;
+
+        if (arguments != NULL)
+        {
+            jsize length = env->GetArrayLength(arguments);
+            for (int i = 0; i < length; ++i)
+            {
+                jobject item = env->GetObjectArrayElement(arguments, i);
+                LuaValue *argValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, thread -> getContext(), item);
+                if (argValue != NULL)
+                {
+                    argumentList.push_back(argValue);
+                }
+
+                env -> DeleteLocalRef(item);
+            }
+        }
+
+        thread -> resume(argumentList);
+
+        //获取线程执行状态
+        jfieldID finishedFieldID =  env -> GetFieldID(LuaJavaType::threadClass(env), "_finished", "Z");
+        if (finishedFieldID != NULL)
+        {
+            env -> SetBooleanField(jthread, finishedFieldID, (jboolean)(thread -> hasFinished() ? JNI_TRUE : JNI_FALSE));
+        }
+
+        //释放参数内存
+        for (LuaArgumentList::iterator it = argumentList.begin(); it != argumentList.end() ; ++it)
+        {
+            LuaValue *item = *it;
+            item -> release();
+        }
+    }
+}
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_yieldThread(JNIEnv *env, jclass type, jobject jthread,
+                                                        jobject resultValue)
+{
+    LuaThread *thread = LuaJavaConverter::convertToThreadByJThread(env, jthread);
+    if (thread != NULL)
+    {
+        LuaValue *retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, thread -> getContext(), resultValue);
+        thread -> yield(retValue);
+        retValue -> release();
     }
 }

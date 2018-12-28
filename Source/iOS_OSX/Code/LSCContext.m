@@ -32,6 +32,15 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
 - (instancetype)init
 {
+    return [self initWithCreateStateHandler:^lua_State *{
+       
+        return [LSCEngineAdapter newState];
+        
+    }];
+}
+
+- (instancetype)initWithCreateStateHandler:(lua_State* (^)(void))handler
+{
     if (self = [super init])
     {
         self.methodBlocks = [NSMutableDictionary dictionary];
@@ -39,7 +48,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         self.optQueue = [[LSCOperationQueue alloc] init];
         [self.optQueue performAction:^{
             
-            lua_State *state = [LSCEngineAdapter newState];
+            lua_State *state = handler();
             
             [LSCEngineAdapter gc:state what:LSCGCTypeStop data:0];
             
@@ -75,7 +84,6 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
             
         }];
     }
-    
     return self;
 }
 

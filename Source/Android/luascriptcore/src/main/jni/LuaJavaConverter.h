@@ -15,6 +15,7 @@ namespace cn {
 
             class LuaContext;
             class LuaValue;
+            class LuaThread;
 
         }
     }
@@ -36,6 +37,15 @@ public:
      * @return C++中的LuaContext实例对象
      */
     static LuaContext* convertToContextByJLuaContext(JNIEnv *env, jobject context);
+
+    /**
+     * 转换Java中的LuaThread为C++中的LuaThread
+     *
+     * @param env JNI环境
+     * @param thread Java中的LuaThread实例对象
+     * @return C++中的LuaThread实例对象
+     */
+    static LuaThread* convertToThreadByJThread(JNIEnv *env, jobject thread);
 
     /**
      * 转换Java中的Object为C++中的LuaValue

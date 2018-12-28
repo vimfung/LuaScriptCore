@@ -30,6 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaExceptionHandler;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
+import cn.vimfung.luascriptcore.LuaThread;
 import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
 
@@ -316,6 +317,27 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        Button threadBtn = (Button) findViewById(R.id.threadButton);
+        if (threadBtn != null)
+        {
+            threadBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+
+                    LuaThread thread = LuaThread.create(_luaContext, new LuaMethodHandler() {
+                        @Override
+                        public LuaValue onExecute(LuaValue[] arguments) {
+
+                            LuaValue value = arguments[0];
+                            Log.v("lsc", String.format("%d", value.toInteger()));
+                            return null;
+                        }
+                    });
+                    thread.resume(new LuaValue[]{new LuaValue(1024)});
+                }
+            });
+        }
+
         Button modulesBtn = (Button) findViewById(R.id.modulesButton);
         if (modulesBtn != null)
         {
@@ -329,6 +351,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
     }
 
     /**

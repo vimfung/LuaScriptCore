@@ -480,4 +480,36 @@ typedef NS_ENUM(NSUInteger, LSCGCType) {
  */
 + (int)error:(lua_State *)state message:(const char *)message;
 
+
+/**
+ 创建新线程
+
+ @param state lua状态
+ @return 线程状态
+ */
++ (lua_State *)newThread:(lua_State *)state;
+
+
+/**
+ 恢复线程
+
+ @param state 线程状态
+ @param fromThreadState 表示从哪条线程进行延续，没有可以设置为NULL
+ @param argCount 参数数量
+ @return 返回参数数量
+ */
++ (int)resumeThread:(lua_State *)state
+    fromThreadState:(lua_State *)fromThreadState
+           argCount:(int)argCount;
+
+/**
+ 挂起线程
+
+ @param state 线程状态
+ @param resultCount 返回结果数量
+ @return 无
+ */
++ (int)yielyThread:(lua_State *)state
+       resultCount:(int)resultCount;
+
 @end

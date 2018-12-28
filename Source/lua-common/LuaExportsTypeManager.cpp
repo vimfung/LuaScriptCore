@@ -810,6 +810,11 @@ LuaContext* LuaExportsTypeManager::context()
     return _context;
 }
 
+std::string LuaExportsTypeManager::getPlatform()
+{
+    return _platform;
+}
+
 LuaExportTypeDescriptor* LuaExportsTypeManager::getExportTypeDescriptor(std::string const& name)
 {
     std::map<std::string, LuaExportTypeDescriptor*>::iterator it = _exportTypes.find(name);
