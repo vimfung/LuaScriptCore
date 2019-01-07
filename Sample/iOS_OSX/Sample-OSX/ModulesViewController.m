@@ -37,6 +37,7 @@
     [self.context evalScriptFromFile:@"Encoding-Sample.lua"];
     [self.context evalScriptFromFile:@"Path-Sample.lua"];
     [self.context evalScriptFromFile:@"HTTP-Sample.lua"];
+    [self.context evalScriptFromFile:@"Thread-Sample.lua"];
 }
 
 #pragma mark - NSOutlineViewDataSource
@@ -45,7 +46,7 @@
 {
     if (!item)
     {
-        return 3;
+        return 4;
     }
     else if ([item isEqualToString:@"Encoding"])
     {
@@ -58,6 +59,10 @@
     else if ([item isEqualToString:@"HTTP"])
     {
         return 4;
+    }
+    else if ([item isEqualToString:@"Thread"])
+    {
+        return 1;
     }
     
     return 0;
@@ -75,6 +80,8 @@
                 return @"Path";
             case 2:
                 return @"HTTP";
+            case 3:
+                return @"Thread";
             default:
                 return @"";
         }
@@ -125,6 +132,16 @@
                 return @"";
         }
     }
+    else if ([item isEqualToString:@"Thread"])
+    {
+        switch (index)
+        {
+            case 0:
+                return @"Run Thread";
+            default:
+                break;
+        }
+    }
     
     return @"";
 }
@@ -134,7 +151,8 @@
     if (!item
         || [item isEqualToString:@"Encoding"]
         || [item isEqualToString:@"Path"]
-        || [item isEqualToString:@"HTTP"])
+        || [item isEqualToString:@"HTTP"]
+        || [item isEqualToString:@"Thread"])
     {
         return YES;
     }
@@ -192,6 +210,10 @@
     else if ([item isEqualToString:@"Download File"])
     {
         [self.context evalScriptFromString:@"HTTP_Sample_download()"];
+    }
+    else if ([item isEqualToString:@"Run Thread"])
+    {
+        [self.context evalScriptFromString:@"Thread_Sample_run()"];
     }
 }
 

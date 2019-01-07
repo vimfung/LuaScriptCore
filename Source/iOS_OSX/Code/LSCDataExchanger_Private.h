@@ -8,6 +8,7 @@
 
 #import "LSCDataExchanger.h"
 #import "LSCContext_Private.h"
+#import "LSCOperationQueue.h"
 #import "lauxlib.h"
 #import "lua.h"
 #import "luaconf.h"
@@ -19,5 +20,16 @@
  上下文对象
  */
 @property (nonatomic, weak) LSCContext *context;
+
+/**
+ 获取Lua对象并入栈
+ 
+ @param nativeObject 原生对象
+ @param state 状态
+ @param queue 队列
+ */
+- (void)getLuaObject:(id)nativeObject
+               state:(lua_State *)state
+               queue:(LSCOperationQueue *)queue;
 
 @end

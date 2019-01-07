@@ -62,11 +62,26 @@ namespace cn {
                 void pushStack(LuaValue *value);
 
                 /**
+                 * 将数据压栈
+                 * @param value 值对象
+                 * @param state lua状态
+                 * @param queue 队列
+                 */
+                void pushStack(LuaValue *value, lua_State *state, LuaOperationQueue *queue);
+
+                /**
                  * 获取Lua对象并入栈
                  *
                  * @param object 原生对象
                  */
                 void getLuaObject(LuaObject *object);
+
+                /**
+                 * 获取Lua对象并入栈
+                 * @param object 原生对象
+                 * @param state lua状态
+                 */
+                void getLuaObject(LuaObject *object, lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  * 设置Lua对象
@@ -103,32 +118,42 @@ namespace cn {
                  * 入栈对象
                  *
                  * @param object 对象
+                 * @param state 状态
+                 * @param queue 队列
                  */
-                void pushStackByObject(LuaManagedObject *object);
+                void pushStackByObject(LuaManagedObject *object, lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  * 入栈表格
                  *
                  * @param list 数组
+                 * @param state 状态
+                 * @param queue 队列
                  */
-                void pushStackByTable(LuaValueList *list);
+                void pushStackByTable(LuaValueList *list, lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  * 入栈表格
                  *
                  * @param map 字典
                  */
-                void pushStackByTable(LuaValueMap *map);
+                void pushStackByTable(LuaValueMap *map, lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  * 开始获取_vars_表
+                 *
+                 * @param state 状态
+                 * @param queue 队列
                  */
-                void beginGetVarsTable();
+                void beginGetVarsTable(lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  * 结束获取_vars_表
+                 *
+                 * @param state 状态
+                 * @param queue 队列
                  */
-                void endGetVarsTable();
+                void endGetVarsTable(lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  * 执行对象行为

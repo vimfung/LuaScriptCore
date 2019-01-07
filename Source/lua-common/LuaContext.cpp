@@ -12,6 +12,7 @@
 #include "LuaEngineAdapter.hpp"
 #include "LuaExportsTypeManager.hpp"
 #include "LuaOperationQueue.h"
+#include "LuaCoroutine.h"
 #include <map>
 #include <list>
 #include <iostream>
@@ -42,6 +43,77 @@ static const char * CatchLuaExceptionHandlerName = "__catchExcepitonHandler";
  需要回收内存上下文列表
  */
 static std::deque<LuaContext *> _needsGCContextList;
+
+/**
+ * 线程处理器
+ * @param context 上下文对象
+ * @param handler 线程处理器
+ * @param arguments 参数列表
+ */
+static void threadHandler(LuaContext *context ,LuaFunction *handler, LuaArgumentList *arguments)
+{
+    LuaCoroutine *coroutine = new LuaCoroutine(context);
+    lua_State *state = coroutine -> getState();
+
+    //获取捕获错误方法索引
+    int errFuncIndex = 0;
+    LuaEngineAdapter::getGlobal(state, CatchLuaExceptionHandlerName);
+    if (LuaEngineAdapter::isFunction(state, -1))
+    {
+        errFuncIndex = LuaEngineAdapter::getTop(state);
+    }
+    else
+    {
+        LuaEngineAdapter::pop(state, 1);
+    }
+
+    int top = LuaEngineAdapter::getTop(state);
+    context -> getDataExchanger() -> getLuaObject(handler, state, NULL);
+
+    if (LuaEngineAdapter::isFunction(state, -1))
+    {
+
+        int returnCount = 0;
+
+        for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
+        {
+            LuaValue *item = *i;
+            context -> getDataExchanger() -> pushStack(item);
+        }
+
+        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == 0)
+        {
+            returnCount = LuaEngineAdapter::getTop(state) - top;
+        }
+        else
+        {
+            //调用失败
+            returnCount = LuaEngineAdapter::getTop(state) - top;
+        }
+
+        //弹出返回值
+        LuaEngineAdapter::pop(state, returnCount);
+    }
+    else
+    {
+        //弹出func
+        LuaEngineAdapter::pop(state, 1);
+    }
+
+    //移除异常捕获方法
+    LuaEngineAdapter::remove(state, errFuncIndex);
+
+    //释放参数
+    for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
+    {
+        LuaValue *item = *i;
+        item -> release();
+    }
+    delete arguments;
+
+    //释放内存
+    context -> gc();
+}
 
 /**
  * 方法路由处理器
@@ -639,6 +711,21 @@ void LuaContext::registerMethod(std::string const& methodName, LuaMethodHandler 
 
         });
     }
+}
+
+void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments)
+{
+    //赋值参数列表
+    LuaArgumentList *args = new LuaArgumentList();
+    for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
+    {
+        LuaValue *item = *i;
+        item -> retain();
+        args -> push_back(item);
+    }
+
+    std::thread t(&threadHandler, this, handler, args);
+    t.detach();
 }
 
 LuaMethodHandler LuaContext::getMethodHandler(std::string const& methodName)

@@ -77,18 +77,38 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
 
 - (void)createLuaObjectByObject:(id)object
 {
+    [self createLuaObjectByObject:object
+                            state:self.context.currentSession.state
+                            queue:self.context.optQueue];
+}
+
+- (void)createLuaObjectByObject:(id)object
+                          state:(lua_State *)state
+                          queue:(LSCOperationQueue *)queue
+{
     LSCExportTypeDescriptor *typeDescriptor = [self _typeDescriptorWithObject:object];
     if (typeDescriptor)
     {
-        [self.context.optQueue performAction:^{
+        void (^handler) (void) = ^{
             
-            lua_State *state = self.context.currentSession.state;
             [LSCEngineAdapter getGlobal:state name:typeDescriptor.typeName.UTF8String];
             [LSCEngineAdapter pop:state count:1];
             
-        }];
+        };
         
-        [self _initLuaObjectWithObject:object type:typeDescriptor];
+        if (queue)
+        {
+            [queue performAction:handler];
+        }
+        else
+        {
+            handler ();
+        }
+        
+        [self _initLuaObjectWithObject:object
+                                  type:typeDescriptor
+                                 state:state
+                                 queue:queue];
     }
 }
 
@@ -915,15 +935,22 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
  
  @param object 类型实例对象
  @param typeDescriptor 类型
+ @param state 状态
+ @param queue 队列
  */
-- (void)_initLuaObjectWithObject:(id)object type:(LSCExportTypeDescriptor *)typeDescriptor;
+- (void)_initLuaObjectWithObject:(id)object
+                            type:(LSCExportTypeDescriptor *)typeDescriptor
+                           state:(lua_State *)state
+                           queue:(LSCOperationQueue *)queue;
 {
-    [self.context.optQueue performAction:^{
+    void (^handler) (void) = ^{
         
-        lua_State *state = self.context.currentSession.state;
-        int errFuncIndex = [self.context catchLuaException];
+        int errFuncIndex = [self.context catchLuaExceptionWithState:state queue:queue];
         
-        [self _attachLuaInstanceWithNativeObject:object type:typeDescriptor];
+        [self _attachLuaInstanceWithNativeObject:object
+                                            type:typeDescriptor
+                                           state:state
+                                           queue:queue];
         
         //通过_createLuaInstanceWithState方法后会创建实例并放入栈顶
         //调用实例对象的init方法
@@ -951,7 +978,16 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
         //移除异常捕获方法
         [LSCEngineAdapter remove:state index:errFuncIndex];
         
-    }];
+    };
+    
+    if (queue)
+    {
+        [queue performAction:handler];
+    }
+    else
+    {
+        handler ();
+    }
 }
 
 /**
@@ -962,10 +998,10 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
  */
 - (void)_attachLuaInstanceWithNativeObject:(id)nativeObject
                                       type:(LSCExportTypeDescriptor *)typeDescriptor
+                                     state:(lua_State *)state
+                                     queue:(LSCOperationQueue *)queue
 {
-    [self.context.optQueue performAction:^{
-        
-        lua_State *state = self.context.currentSession.state;
+    void (^handler)(void) = ^{
         
         //先为实例对象在lua中创建内存
         LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter newUserdata:state size:sizeof(LSCUserdataRef)];
@@ -1018,7 +1054,16 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
         NSString *objectId = [NSString stringWithFormat:@"%p", nativeObject];
         [self.context.dataExchanger setLubObjectByStackIndex:-1 objectId:objectId];
         
-    }];
+    };
+    
+    if (queue)
+    {
+        [queue performAction:handler];
+    }
+    else
+    {
+        handler();
+    }
     
 }
 
@@ -1441,7 +1486,10 @@ static int objectCreateHandler (lua_State *state)
             instance = [[LSCVirtualInstance alloc] initWithTypeDescriptor:typeDescriptor];
         }
         
-        [exporter _initLuaObjectWithObject:instance type:typeDescriptor];
+        [exporter _initLuaObjectWithObject:instance
+                                      type:typeDescriptor
+                                     state:state
+                                     queue:exporter.context.optQueue];
     }
     else
     {
@@ -1561,7 +1609,7 @@ static int objectDestroyHandler (lua_State *state)
         //如果为userdata类型，则进行释放
         LSCUserdataRef ref = (LSCUserdataRef)[LSCEngineAdapter toUserdata:state index:1];
         
-        int errFuncIndex = [exporter.context catchLuaException];
+        int errFuncIndex = [exporter.context catchLuaExceptionWithState:state queue:exporter.context.optQueue];
         
         [LSCEngineAdapter pushValue:1 state:state];
         [LSCEngineAdapter getField:state index:-1 name:"destroy"];

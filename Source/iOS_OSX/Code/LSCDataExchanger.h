@@ -11,6 +11,7 @@
 @class LSCContext;
 @class LSCValue;
 @class LSCSession;
+@class LSCCoroutine;
 
 /**
  数据交换器，用于Lua->OC或者OC->Lua时数据的转换和内存管理方面的操作
@@ -39,6 +40,15 @@
  @param value 数据
  */
 - (void)pushStackWithValue:(LSCValue *)value;
+
+/**
+ 将数据入栈
+
+ @param value 数据
+ @param coroutine 协程
+ */
+- (void)pushStackWithValue:(LSCValue *)value
+                 coroutine:(LSCCoroutine *)coroutine;
 
 /**
  获取Lua对象并入栈

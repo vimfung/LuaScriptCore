@@ -161,6 +161,14 @@ namespace cn {
                  * @param context 上下文对象
                  */
                 virtual void push(LuaContext *context);
+
+                /**
+                 * 入栈数据
+                 *
+                 * @param state lua状态
+                 * @param queue 队列
+                 */
+                virtual void push(lua_State *state, LuaOperationQueue *queue);
             };
         }
     }

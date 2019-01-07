@@ -160,4 +160,21 @@ public class LuaContext: NSObject
             
         });
     }
+    
+    
+    /// 执行线程
+    ///
+    /// - Parameters:
+    ///   - function: 线程处理器
+    ///   - arguments: 参数列表
+    public func runThread(function : LuaFunction, arguments: Array<LuaValue>) -> Void
+    {
+        var args : Array<LSCValue> = Array<LSCValue>();
+        for item in arguments {
+            args.append(item.rawValue);
+        }
+        
+        rawContext.runThread(with: function, arguments: args);
+    }
+    
 }

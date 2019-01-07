@@ -152,24 +152,13 @@ public class LuaNativeUtil
             String[] classMethods);
 
     /**
-     * 创建线程
+     * 运行线程
      * @param context 上下文对象
-     * @return 线程对象
-     */
-    public static native LuaThread createThread(LuaContext context);
-
-    /**
-     * 恢复线程
-     * @param thread 线程对象
+     * @param handler 事件处理器
      * @param arguments 参数列表
      */
-    public static native void resumeThread(LuaThread thread, LuaValue[] arguments);
-
-    /**
-     * 挂起线程
-     * @param thread 线程对象
-     * @param resultValue 返回值
-     */
-    public static native void yieldThread(LuaThread thread, LuaValue resultValue);
+    public static native void runThread(LuaContext context,
+                                        LuaFunction handler,
+                                        LuaValue[] arguments);
 
 }

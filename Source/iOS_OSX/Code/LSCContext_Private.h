@@ -8,7 +8,7 @@
 
 #import "LSCContext.h"
 #import "LSCEngineAdapter.h"
-#import "LSCDataExchanger.h"
+#import "LSCDataExchanger_Private.h"
 #import "LSCExportsTypeManager.h"
 #import "LSCOperationQueue.h"
 
@@ -79,9 +79,12 @@
 /**
  捕获Lua异常
  
+ @param state lua状态
+ @param queue 队列
+ 
  @return 异常方法在堆栈中的位置
  */
-- (int)catchLuaException;
+- (int)catchLuaExceptionWithState:(lua_State *)state queue:(LSCOperationQueue *)queue;
 
 /**
  内存回收

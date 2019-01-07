@@ -71,10 +71,9 @@
 - (IBAction)evalScriptButtonClickedHandler:(id)sender
 {
     //解析并执行Lua脚本
-    //  LSCValue *retValue =
-    //      [self.context evalScriptFromString:@"print(10);return 'Hello World';"];
-    //  NSLog(@"%@", [retValue toString]);
-    NSLog(@"evalScriptButtonClickedHandler");
+      LSCValue *retValue =
+          [self.context evalScriptFromString:@"print(10);return 'Hello World';"];
+      NSLog(@"%@", [retValue toString]);
 }
 
 

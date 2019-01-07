@@ -24,6 +24,7 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         _ = context.evalScript(filePath: "Encoding-Sample.lua");
         _ = context.evalScript(filePath: "Path-Sample.lua");
         _ = context.evalScript(filePath: "HTTP-Sample.lua");
+        _ = context.evalScript(filePath: "Thread-Sample.lua");
     }
     
     func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int
@@ -31,7 +32,7 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         let strItem : String? = item as? String;
         if strItem == nil
         {
-            return 3;
+            return 4;
         }
         else if (strItem == "Encoding")
         {
@@ -44,6 +45,10 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         else if (strItem == "HTTP")
         {
             return 4;
+        }
+        else if (strItem == "Thread")
+        {
+            return 1;
         }
         
         return 0;
@@ -62,6 +67,8 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
                 return "Path";
             case 2:
                 return "HTTP";
+            case 3:
+                return "Thread";
             default:
                 return "";
             }
@@ -112,6 +119,16 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
                 return "";
             }
         }
+        else if strItem == "Thread"
+        {
+            switch (index)
+            {
+            case 0:
+                return "Run Thread";
+            default:
+                return "";
+            }
+        }
         
         return "";
     }
@@ -122,7 +139,8 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         if (strItem == nil
             || strItem == "Encoding"
             || strItem == "Path"
-            || strItem == "HTTP")
+            || strItem == "HTTP"
+            || strItem == "Thread")
         {
             return true;
         }
@@ -181,6 +199,10 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         else if item == "Download File"
         {
             _ = context.evalScript(script: "HTTP_Sample_download()");
+        }
+        else if item == "Run Thread"
+        {
+            _ = context.evalScript(script: "Thread_Sample_run()");
         }
     }
 }

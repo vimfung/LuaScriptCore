@@ -3,11 +3,8 @@ package cn.vimfung.luascriptcore.sample;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.ArraySet;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -17,20 +14,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.locks.ReentrantLock;
 
 import cn.vimfung.luascriptcore.LuaContext;
 import cn.vimfung.luascriptcore.LuaExceptionHandler;
 import cn.vimfung.luascriptcore.LuaMethodHandler;
-import cn.vimfung.luascriptcore.LuaThread;
 import cn.vimfung.luascriptcore.LuaTuple;
 import cn.vimfung.luascriptcore.LuaValue;
 
@@ -233,11 +224,10 @@ public class MainActivity extends AppCompatActivity {
             regClsBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    _luaContext.evalScript("local p = Person(); print(p);");
-//                    _luaContext.evalScript("local p = Person:createPersonError(); print(p);");
-//                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
-//                    _luaContext.evalScript("print(Person); local obj = Person:createObj(); Person:CheckObj(obj);");
-//                    _luaContext.evalScript("local p = Chinese(\"vimfung\"); print(p.name);");
+                    _luaContext.evalScript("local p = Person:createPersonError(); print(p);");
+                    _luaContext.evalScript("print(Chinese); function Chinese.prototype:init() print('Chinese create'); end; local person = Chinese(); print(person); person.name = 'vimfung'; print(person.name); person:speak(); person:walk();");
+                    _luaContext.evalScript("print(Person); local obj = Person:createObj(); Person:CheckObj(obj);");
+                    _luaContext.evalScript("local p = Chinese(\"vimfung\"); print(p.name);");
                 }
             });
         }
@@ -313,27 +303,6 @@ public class MainActivity extends AppCompatActivity {
 
                     _luaContext.evalScriptFromFile("defineProperty.lua");
 
-                }
-            });
-        }
-
-        Button threadBtn = (Button) findViewById(R.id.threadButton);
-        if (threadBtn != null)
-        {
-            threadBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    LuaThread thread = LuaThread.create(_luaContext, new LuaMethodHandler() {
-                        @Override
-                        public LuaValue onExecute(LuaValue[] arguments) {
-
-                            LuaValue value = arguments[0];
-                            Log.v("lsc", String.format("%d", value.toInteger()));
-                            return null;
-                        }
-                    });
-                    thread.resume(new LuaValue[]{new LuaValue(1024)});
                 }
             });
         }

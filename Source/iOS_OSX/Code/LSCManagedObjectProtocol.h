@@ -7,8 +7,10 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "LSCEngineAdapter.h"
 
 @class LSCContext;
+@class LSCOperationQueue;
 
 
 /**
@@ -33,5 +35,15 @@
  @return YES 表示已将对象入栈，NO 表示未将对象入栈
  */
 - (BOOL)pushWithContext:(LSCContext *)context;
+
+
+/**
+ 入栈数据
+
+ @param state lua状态
+ @param queue 队列
+ @return YES 表示已将对象入栈，NO 表示未将对象入栈
+ */
+- (BOOL)pushWithState:(lua_State *)state queue:(LSCOperationQueue *)queue;
 
 @end

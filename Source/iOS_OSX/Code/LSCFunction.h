@@ -9,12 +9,17 @@
 #import <Foundation/Foundation.h>
 
 @class LSCValue;
-
+@class LSCContext;
 
 /**
  Lua方法
  */
 @interface LSCFunction : NSObject
+
+/**
+ 上下文对象
+ */
+@property (nonatomic, strong, readonly) LSCContext *context;
 
 /**
  调用方法

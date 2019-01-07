@@ -81,10 +81,25 @@
 
 - (BOOL)pushWithContext:(LSCContext *)context
 {
-    [context.optQueue performAction:^{
-        lua_State *state = context.currentSession.state;
-        [LSCEngineAdapter pushLightUserdata:[self value] state:state];
-    }];
+    [self pushWithState:context.currentSession.state queue:context.optQueue];
+    return YES;
+}
+
+- (BOOL)pushWithState:(lua_State *)state queue:(LSCOperationQueue *)queue
+{
+    __weak typeof(self) thePointer = self;
+    void (^handler) (void) = ^{
+        [LSCEngineAdapter pushLightUserdata:[thePointer value] state:state];
+    };
+    
+    if (queue)
+    {
+        [queue performAction:handler];
+    }
+    else
+    {
+        handler ();
+    }
     
     return YES;
 }

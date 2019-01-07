@@ -6,21 +6,24 @@
 #define ANDROID_LUATHREAD_H
 
 
-#include "LuaContext.h"
+#include <lua.h>
+#include "LuaObject.h"
 
 namespace cn {
     namespace vimfung {
         namespace luascriptcore {
 
+            class LuaContext;
+
             /**
              * 线程
              */
-            class LuaThread : public LuaContext
+            class LuaCoroutine : public LuaObject
             {
             private:
                 LuaContext *_context;
-                bool _finished;
                 std::string _exchangeId;
+                lua_State *_state;
 
             public:
 
@@ -29,12 +32,12 @@ namespace cn {
                  * @param context 上下文对象
                  * @param handler 线程执行方法
                  */
-                LuaThread(LuaContext *context, LuaMethodHandler handler);
+                LuaCoroutine(LuaContext *context);
 
                 /**
                  * 释放对象
                  */
-                ~LuaThread();
+                ~LuaCoroutine();
 
             public:
 
@@ -45,22 +48,10 @@ namespace cn {
                 LuaContext* getContext();
 
                 /**
-                 * 判断线程是否执行完成
-                 * @return true 完成，false 未完成
+                 * 获取状态
+                 * @return 状态对象
                  */
-                bool hasFinished();
-
-                /**
-                 * 恢复线程
-                 * @param argumentList 参数列表
-                 */
-                void resume(LuaArgumentList argumentList);
-
-                /**
-                 * 挂起线程
-                 * @param resultValue 返回值
-                 */
-                void yield(LuaValue *resultValue);
+                lua_State* getState();
 
             };
         }

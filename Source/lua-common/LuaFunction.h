@@ -82,6 +82,13 @@ namespace cn {
                  * 入栈数据
                  */
                 virtual void push(LuaContext *context);
+
+                /**
+                 * 入栈数据
+                 * @param state 状态
+                 * @param queue 队列
+                 */
+                virtual void push(lua_State *state, LuaOperationQueue *queue);
             };
 
         }

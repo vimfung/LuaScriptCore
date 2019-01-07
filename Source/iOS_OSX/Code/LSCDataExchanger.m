@@ -13,6 +13,7 @@
 #import "LSCPointer.h"
 #import "LSCFunction_Private.h"
 #import "LSCTuple_Private.h"
+#import "LSCCoroutine+Private.h"
 #import "LSCManagedObjectProtocol.h"
 #import "LSCEngineAdapter.h"
 #import "LSCExportTypeDescriptor.h"
@@ -60,77 +61,24 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
 
 - (void)pushStackWithValue:(LSCValue *)value
 {
-    [self.context.optQueue performAction:^{
-        
-        lua_State *state = self.context.currentSession.state;
-        
-        //先判断_vars_中是否存在对象，如果存在则直接返回表中对象
-        switch (value.valueType)
-        {
-            case LSCValueTypeInteger:
-                [LSCEngineAdapter pushInteger:[value toInteger] state:state];
-                break;
-            case LSCValueTypeNumber:
-                [LSCEngineAdapter pushNumber:[value toDouble] state:state];
-                break;
-            case LSCValueTypeNil:
-                [LSCEngineAdapter pushNil:state];
-                break;
-            case LSCValueTypeString:
-                [LSCEngineAdapter pushString:[value toString].UTF8String state:state];
-                break;
-            case LSCValueTypeBoolean:
-                [LSCEngineAdapter pushBoolean:[value toBoolean] state:state];
-                break;
-            case LSCValueTypeArray:
-            {
-                [self pushStackWithObject:[value toArray]];
-                break;
-            }
-            case LSCValueTypeMap:
-            {
-                [self pushStackWithObject:[value toDictionary]];
-                break;
-            }
-            case LSCValueTypeData:
-            {
-                NSData *data = [value toData];
-                [LSCEngineAdapter pushString:data.bytes len:data.length state:state];
-                break;
-            }
-            case LSCValueTypeObject:
-            {
-                [self pushStackWithObject:[value toObject]];
-                break;
-            }
-            case LSCValueTypePtr:
-            {
-                [self pushStackWithObject:[value toPointer]];
-                break;
-            }
-            case LSCValueTypeFunction:
-            {
-                [self pushStackWithObject:[value toFunction]];
-                break;
-            }
-            case LSCValueTypeTuple:
-            {
-                [self pushStackWithTuple:[value toTuple] state:state];
-                break;
-            }
-            default:
-                [LSCEngineAdapter pushNil:state];
-                break;
-        }
-        
-    }];
+    [self pushStackWithValue:value
+                       state:self.context.currentSession.state
+                       queue:self.context.optQueue];
     
+}
+
+- (void)pushStackWithValue:(LSCValue *)value
+                 coroutine:(LSCCoroutine *)coroutine
+{
+    [self pushStackWithValue:value
+                       state:coroutine.state
+                       queue:nil];
 }
 
 - (void)getLuaObject:(id)nativeObject
 {
     lua_State *state = self.context.currentSession.state;
-    [self getLuaObject:nativeObject state:state];
+    [self getLuaObject:nativeObject state:state queue:self.context.optQueue];
 }
 
 - (void)setLubObjectByStackIndex:(NSInteger)index
@@ -216,14 +164,94 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
 
 #pragma mark - Private
 
+- (void)pushStackWithValue:(LSCValue *)value
+                     state:(lua_State *)state
+                     queue:(LSCOperationQueue *)queue
+{
+    __weak typeof(self) theExchanger = self;
+    void (^handler) (void) = ^{
+        
+        //先判断_vars_中是否存在对象，如果存在则直接返回表中对象
+        switch (value.valueType)
+        {
+            case LSCValueTypeInteger:
+                [LSCEngineAdapter pushInteger:[value toInteger] state:state];
+                break;
+            case LSCValueTypeNumber:
+                [LSCEngineAdapter pushNumber:[value toDouble] state:state];
+                break;
+            case LSCValueTypeNil:
+                [LSCEngineAdapter pushNil:state];
+                break;
+            case LSCValueTypeString:
+                [LSCEngineAdapter pushString:[value toString].UTF8String state:state];
+                break;
+            case LSCValueTypeBoolean:
+                [LSCEngineAdapter pushBoolean:[value toBoolean] state:state];
+                break;
+            case LSCValueTypeArray:
+            {
+                [theExchanger pushStackWithObject:[value toArray] state:state queue:queue];
+                break;
+            }
+            case LSCValueTypeMap:
+            {
+                [theExchanger pushStackWithObject:[value toDictionary] state:state queue:queue];
+                break;
+            }
+            case LSCValueTypeData:
+            {
+                NSData *data = [value toData];
+                [LSCEngineAdapter pushString:data.bytes len:data.length state:state];
+                break;
+            }
+            case LSCValueTypeObject:
+            {
+                [theExchanger pushStackWithObject:[value toObject] state:state queue:queue];
+                break;
+            }
+            case LSCValueTypePtr:
+            {
+                [theExchanger pushStackWithObject:[value toPointer] state:state queue:queue];
+                break;
+            }
+            case LSCValueTypeFunction:
+            {
+                [theExchanger pushStackWithObject:[value toFunction] state:state queue:queue];
+                break;
+            }
+            case LSCValueTypeTuple:
+            {
+                [theExchanger pushStackWithTuple:[value toTuple] state:state];
+                break;
+            }
+            default:
+                [LSCEngineAdapter pushNil:state];
+                break;
+        }
+    };
+    
+    if (queue)
+    {
+        [queue performAction:handler];
+    }
+    else
+    {
+        handler();
+    }
+}
+
 /**
  入栈对象
 
  @param object 需要入栈的对象
+ @param state lua状态
  */
 - (void)pushStackWithObject:(id)object
+                      state:(lua_State *)state
+                      queue:(LSCOperationQueue *)queue
 {
-    [self.context.optQueue performAction:^{
+    void (^handler) (void) = ^{
         
         lua_State *state = self.context.currentSession.state;
         
@@ -231,11 +259,11 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         {
             if ([object isKindOfClass:[NSDictionary class]])
             {
-                [self pushStackWithDictionary:object];
+                [self pushStackWithDictionary:object state:state queue:queue];
             }
             else if ([object isKindOfClass:[NSArray class]])
             {
-                [self pushStackWithArray:object];
+                [self pushStackWithArray:object state:state queue:queue];
             }
             else if ([object isKindOfClass:[NSNumber class]])
             {
@@ -252,7 +280,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             else
             {
                 //LSCFunction\LSCPointer\NSObject
-                [self doActionInVarsTableWithState:state block:^{
+                [self doActionInVarsTableWithState:state queue:queue block:^{
                     
                     NSString *objectId = nil;
                     if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
@@ -274,12 +302,12 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                         BOOL hasPushStack = NO;
                         if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
                         {
-                            hasPushStack = [(id<LSCManagedObjectProtocol>)object pushWithContext:self.context];
+                            hasPushStack = [(id<LSCManagedObjectProtocol>)object pushWithState:state queue:queue];
                         }
                         else if ([self.context.exportsTypeManager checkExportsTypeWithObject:object])
                         {
                             //为导出类型，让对象与Lua层对象进行关联
-                            [self.context.exportsTypeManager createLuaObjectByObject:object];
+                            [self.context.exportsTypeManager createLuaObjectByObject:object state:state queue:queue];
                             hasPushStack = YES;
                         }
                         
@@ -321,7 +349,16 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             [LSCEngineAdapter pushNil:state];
         }
         
-    }];
+    };
+    
+    if (queue)
+    {
+        [queue performAction:handler];
+    }
+    else
+    {
+        handler ();
+    }
 }
 
 /**
@@ -330,22 +367,31 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
  @param dictionary 字典
  */
 - (void)pushStackWithDictionary:(NSDictionary *)dictionary
+                          state:(lua_State *)state
+                          queue:(LSCOperationQueue *)queue
 {
-    [self.context.optQueue performAction:^{
-        
-        lua_State *state = self.context.currentSession.state;
+    __weak typeof(self) theExchanger = self;
+    void (^handler)(void) = ^{
         
         [LSCEngineAdapter newTable:state];
         
-        __weak typeof(self) theExchanger = self;
         [dictionary enumerateKeysAndObjectsUsingBlock:^(id _Nonnull key, id _Nonnull obj, BOOL *_Nonnull stop) {
             
-            [theExchanger pushStackWithObject:obj];
+            [theExchanger pushStackWithObject:obj state:state queue:queue];
             [LSCEngineAdapter setField:state index:-2 name:[[NSString stringWithFormat:@"%@", key] UTF8String]];
             
         }];
         
-    }];
+    };
+    
+    if (queue)
+    {
+        [queue performAction:handler];
+    }
+    else
+    {
+        handler();
+    }
 }
 
 /**
@@ -353,19 +399,17 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
 
  @param array 数组
  */
-- (void)pushStackWithArray:(NSArray *)array
+- (void)pushStackWithArray:(NSArray *)array state:(lua_State *)state queue:(LSCOperationQueue *)queue
 {
+    __weak typeof(self) theExchanger = self;
     [self.context.optQueue performAction:^{
-        
-        lua_State *state = self.context.currentSession.state;
         
         [LSCEngineAdapter newTable:state];
         
-        __weak typeof(self) theExchanger = self;
         [array enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL *_Nonnull stop) {
             
             // lua数组下标从1开始
-            [theExchanger pushStackWithObject:obj];
+            [theExchanger pushStackWithObject:obj state:state queue:queue];
             [LSCEngineAdapter rawSetI:state index:-2 n:(int)idx + 1];
             
         }];
@@ -397,9 +441,11 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
  @param state 状态
  @param block 操作行为
  */
-- (void)doActionInVarsTableWithState:(lua_State *)state block:(void (^)(void))block
+- (void)doActionInVarsTableWithState:(lua_State *)state
+                               queue:(LSCOperationQueue *)queue
+                               block:(void (^)(void))block
 {
-    [self.context.optQueue performAction:^{
+    void (^handler) (void) = ^{
         
         [LSCEngineAdapter getGlobal:state name:"_G"];
         if (![LSCEngineAdapter isTable:state index:-1])
@@ -442,7 +488,16 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         //弹出_G
         [LSCEngineAdapter pop:state count:1];
         
-    }];
+    };
+    
+    if (queue)
+    {
+        [queue performAction:handler];
+    }
+    else
+    {
+        handler ();
+    }
 }
 
 /**
@@ -760,10 +815,11 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                         objectId:(NSString *)objectId
                            state:(lua_State *)state
 {
-    [self.context.optQueue performAction:^{
+    LSCOperationQueue *queue = self.context.optQueue;
+    [queue performAction:^{
         
         int stackIndex = [LSCEngineAdapter absIndex:(int)index state:state];
-        [self doActionInVarsTableWithState:state block:^{
+        [self doActionInVarsTableWithState:state queue:queue block:^{
             
             //放入对象到_vars_表中
             [LSCEngineAdapter pushValue:(int)stackIndex state:state];
@@ -784,6 +840,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
  */
 - (void)getLuaObject:(id)nativeObject
                state:(lua_State *)state
+               queue:(LSCOperationQueue *)queue
 {
     if (nativeObject)
     {
@@ -794,13 +851,13 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             switch (((LSCValue *)nativeObject).valueType)
             {
                 case LSCValueTypeObject:
-                    [self getLuaObject:[(LSCValue *)nativeObject toObject] state:state];
+                    [self getLuaObject:[(LSCValue *)nativeObject toObject] state:state queue:queue];
                     break;
                 case LSCValueTypePtr:
-                    [self getLuaObject:[(LSCValue *)nativeObject toPointer] state:state];
+                    [self getLuaObject:[(LSCValue *)nativeObject toPointer] state:state queue:queue];
                     break;
                 case LSCValueTypeFunction:
-                    [self getLuaObject:[(LSCValue *)nativeObject toFunction] state:state];
+                    [self getLuaObject:[(LSCValue *)nativeObject toFunction] state:state queue:queue];
                     break;
                 default:
                     break;
@@ -817,16 +874,25 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         
         if (objectId)
         {
-            [self doActionInVarsTableWithState:state block:^{
+            [self doActionInVarsTableWithState:state queue:queue block:^{
                 
-                [self.context.optQueue performAction:^{
+                void (^handler)(void) = ^{
                    
                     [LSCEngineAdapter getField:state index:-1 name:objectId.UTF8String];
                     
                     //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
                     [LSCEngineAdapter insert:state index:-3];
                     
-                }];
+                };
+                
+                if (queue)
+                {
+                    [queue performAction:handler];
+                }
+                else
+                {
+                    handler();
+                }
                 
             }];
         }

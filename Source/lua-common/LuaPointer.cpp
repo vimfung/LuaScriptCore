@@ -93,3 +93,21 @@ void LuaPointer::push(LuaContext *context)
 
     });
 }
+
+void LuaPointer::push(lua_State *state, LuaOperationQueue *queue)
+{
+    auto handler = [=](){
+
+        LuaEngineAdapter::pushLightUserdata(state, getValue());
+
+    };
+
+    if (queue != NULL)
+    {
+        queue -> performAction(handler);
+    }
+    else
+    {
+        handler ();
+    }
+}

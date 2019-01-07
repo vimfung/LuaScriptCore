@@ -137,27 +137,31 @@ std::string LuaObjectDescriptor::getUserdata(std::string const& key)
 
 void LuaObjectDescriptor::push(LuaContext *context)
 {
+    push(context -> getCurrentSession() -> getState(), context -> getOperationQueue());
+}
+
+void LuaObjectDescriptor::push(lua_State *state, LuaOperationQueue *queue)
+{
     //先判断是否有过滤器进行过滤
     for (std::list<LuaObjectDescriptorPushFilter>::iterator it = _pushFilters.begin(); it != _pushFilters.end() ; ++it)
     {
         LuaObjectDescriptorPushFilter filter = *it;
-        if (filter != NULL && filter(context, this))
+        if (filter != NULL && filter(getContext(), this))
         {
             //返回，不往下执行
             return;
         }
     }
-    
+
     if (_typeDescriptor != NULL)
     {
         //如果为导出类型
-        context -> getExportsTypeManager() -> createLuaObject(this);
+        ///TODO:xxx
+        getContext() -> getExportsTypeManager() -> createLuaObject(this);
         return;
     }
 
-    context -> getOperationQueue() -> performAction([=](){
-
-        lua_State *state = context -> getCurrentSession() -> getState();
+    auto handler= [=](){
 
         //创建userdata
         LuaUserdataRef ref = (LuaUserdataRef)LuaEngineAdapter::newUserdata(state, sizeof(LuaUserdataRef));
@@ -179,8 +183,16 @@ void LuaObjectDescriptor::push(LuaContext *context)
 
         LuaEngineAdapter::setMetatable(state, -2);
 
-    });
+    };
 
+    if (queue != NULL)
+    {
+        queue -> performAction(handler);
+    }
+    else
+    {
+        handler();
+    }
 }
 
 void LuaObjectDescriptor::serialization (LuaObjectEncoder *encoder)

@@ -107,11 +107,7 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
 
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_raiseException(JNIEnv *, jclass, jobject, jstring);
 
-JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createThread(JNIEnv *env, jclass type, jobject context);
-
-JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_resumeThread(JNIEnv *env, jclass type, jobject thread, jobjectArray arguments);
-
-JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_yieldThread(JNIEnv *env, jclass type, jobject thread, jobject resultValue);
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_runThread(JNIEnv *, jclass, jobject, jobject, jobjectArray);
 
 #ifdef __cplusplus
 }

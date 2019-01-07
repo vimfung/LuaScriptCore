@@ -8,6 +8,7 @@
 #include "LuaObjectManager.h"
 #include <map>
 #include <typeinfo>
+#include <mutex>
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -23,13 +24,19 @@ static int _objSeqId = 0;
  */
 static ObjectPoolMap _objectPool;
 
+/**
+ * 对象池信号量
+ */
+static std::mutex _objectPoolMutex;
+
 LuaObject::LuaObject()
 {
     _retainCount = 1;
 
     _objSeqId ++;
     _objectId = _objSeqId;
-    
+
+    std::lock_guard<std::mutex> lck(_objectPoolMutex);
     _objectPool[_objectId] = this;
 }
 
@@ -44,12 +51,14 @@ LuaObject::LuaObject (LuaObjectDecoder *decoder)
         _objSeqId ++;
         _objectId = _objSeqId;
     }
-    
+
+    std::lock_guard<std::mutex> lck(_objectPoolMutex);
     _objectPool[_objectId] = this;
 }
 
 LuaObject::~LuaObject()
 {
+    std::lock_guard<std::mutex> lck(_objectPoolMutex);
     ObjectPoolMap::iterator it = _objectPool.find(_objectId);
     if (it != _objectPool.end())
     {
@@ -90,6 +99,7 @@ void LuaObject::serialization (LuaObjectEncoder *encoder)
 
 LuaObject* LuaObject::findObject(int objectId)
 {
+    std::lock_guard<std::mutex> lck(_objectPoolMutex);
     ObjectPoolMap::iterator it = _objectPool.find(objectId);
     
     if (it != _objectPool.end())

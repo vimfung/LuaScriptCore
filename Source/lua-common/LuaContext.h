@@ -8,6 +8,7 @@
 #include "lua.hpp"
 #include "LuaObject.h"
 #include "LuaDefined.h"
+#include "LuaFunction.h"
 
 namespace cn
 {
@@ -218,6 +219,13 @@ namespace cn
                  * @param handler 方法处理
                  */
                 void registerMethod(std::string const& methodName, LuaMethodHandler handler);
+
+                /**
+                 * 执行线程
+                 * @param handler  线程处理器
+                 * @param arguments 参数列表
+                 */
+                void runThread(LuaFunction *handler, LuaArgumentList *arguments);
 
             public:
                 

@@ -542,6 +542,11 @@ class LuaExportTypeManager
      */
     private Object getArgValue(Class<?> argType, LuaValue value)
     {
+        if (value == null || value.valueType() == LuaValueType.Nil)
+        {
+            return null;
+        }
+
         if (int.class.isAssignableFrom(argType))
         {
             return value.toInteger();

@@ -360,6 +360,16 @@ public class LuaContext extends LuaBaseObject
     }
 
     /**
+     * 执行线程
+     * @param handler 线程处理器
+     * @param arguments 参数列表
+     */
+    public void runThread(LuaFunction handler, LuaValue[] arguments)
+    {
+        LuaNativeUtil.runThread(this, handler, arguments);
+    }
+
+    /**
      * 调用方法
      * @param methodName    方法名称
      * @param arguments     方法的传入参数

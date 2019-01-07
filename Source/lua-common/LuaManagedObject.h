@@ -7,6 +7,7 @@
 
 #include <string>
 #include "LuaObject.h"
+#include "LuaEngineAdapter.hpp"
 
 namespace cn
 {
@@ -15,6 +16,7 @@ namespace cn
         namespace luascriptcore
         {
             class LuaContext;
+            class LuaOperationQueue;
 
             /**
              * 与Lua层有直接关系的对象，继承该类型可以使对象直接找对与其对应的Lua对象
@@ -57,8 +59,18 @@ namespace cn
 
                 /**
                  * 入栈数据
+                 *
+                 * @param context 上下文对象
                  */
                 virtual void push(LuaContext *context);
+
+                /**
+                 * 入栈数据
+                 *
+                 * @param state lua状态
+                 * @param queue 队列
+                 */
+                virtual void push(lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  序列化对象

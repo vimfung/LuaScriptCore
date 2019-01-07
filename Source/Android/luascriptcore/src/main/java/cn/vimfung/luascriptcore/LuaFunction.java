@@ -28,4 +28,13 @@ public class LuaFunction extends LuaBaseObject
     {
         return LuaNativeUtil.invokeFunction(_context, this, arguments);
     }
+
+    /**
+     * 获取上下文对象
+     * @return 上下文对象
+     */
+    public LuaContext getContext()
+    {
+        return _context;
+    }
 }

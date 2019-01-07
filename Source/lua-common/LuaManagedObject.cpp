@@ -26,6 +26,11 @@ void LuaManagedObject::push(LuaContext *context)
 
 }
 
+void LuaManagedObject::push(lua_State *state, LuaOperationQueue *queue)
+{
+
+}
+
 void LuaManagedObject::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);

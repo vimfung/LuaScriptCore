@@ -71,6 +71,11 @@ void LuaFunction::push(LuaContext *context)
     
 }
 
+void LuaFunction::push(lua_State *state, LuaOperationQueue *queue)
+{
+
+}
+
 LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
 {
     LuaValue *retValue = NULL;

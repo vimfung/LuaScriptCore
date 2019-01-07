@@ -42,7 +42,8 @@
         
         lua_State *state = self.context.currentSession.state;
         
-        int errFuncIndex = [self.context catchLuaException];
+        int errFuncIndex = [self.context catchLuaExceptionWithState:state
+                                                              queue:self.context.optQueue];
         int top = [LSCEngineAdapter getTop:state];
         [self.context.dataExchanger getLuaObject:self];
         
@@ -109,6 +110,12 @@
 #pragma mark - LSCManagedObjectProtocol
 
 - (BOOL)pushWithContext:(LSCContext *)context
+{
+    //由于function都是从lua层回传到原生层，因此在变量表中一定会有记录，所以这里不需要做任何push操作
+    return YES;
+}
+
+- (BOOL)pushWithState:(lua_State *)state queue:(LSCOperationQueue *)queue
 {
     //由于function都是从lua层回传到原生层，因此在变量表中一定会有记录，所以这里不需要做任何push操作
     return YES;

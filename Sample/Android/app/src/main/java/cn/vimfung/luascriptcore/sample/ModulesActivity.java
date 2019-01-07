@@ -35,6 +35,7 @@ public class ModulesActivity extends AppCompatActivity {
         {
             modules.add("Encoding");
             modules.add("Path");
+            modules.add("Thread");
             modules.add("HTTP");
         }
         else if (parentItem.equals("Encoding"))
@@ -54,6 +55,10 @@ public class ModulesActivity extends AppCompatActivity {
             modules.add("Caches Path");
             modules.add("Tmp Path");
             modules.add("Exists Path");
+        }
+        else if (parentItem.equals("Thread"))
+        {
+            modules.add("Run Thread");
         }
         else if (parentItem.equals("HTTP"))
         {
@@ -138,6 +143,15 @@ public class ModulesActivity extends AppCompatActivity {
                         else  if (item.equals("Exists Path"))
                         {
                             luaContext.evalScript("Path_Sample_exists()");
+                        }
+                    }
+                    else if (finalParentItem.equals("Thread"))
+                    {
+                        luaContext.evalScriptFromFile("Thread-Sample.lua");
+
+                        if (item.equals("Run Thread"))
+                        {
+                            luaContext.evalScript("Thread_Sample_run()");
                         }
                     }
                     else if (finalParentItem.equals("HTTP"))

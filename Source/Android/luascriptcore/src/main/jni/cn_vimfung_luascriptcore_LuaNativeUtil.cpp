@@ -18,7 +18,7 @@
 #include "LuaJavaExportPropertyDescriptor.h"
 #include "LuaExportsTypeManager.hpp"
 #include "StringUtils.h"
-#include "LuaThread.h"
+#include "LuaCoroutine.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -438,70 +438,46 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_raiseExceptio
     {
         const char *messageCStr = env->GetStringUTFChars(message, 0);
         context -> getCurrentSession() -> reportLuaException(messageCStr);
-        env->ReleaseStringUTFChars(message, messageCStr);
+        env -> ReleaseStringUTFChars(message, messageCStr);
     }
 }
 
-JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createThread(JNIEnv *env, jclass type, jobject jcontext)
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_runThread(JNIEnv *env, jclass type, jobject jcontext, jobject jhandler, jobjectArray arguments)
 {
     LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
     if (context != NULL)
     {
-        return LuaJavaEnv::createJavaLuaThread(env, context);
-    }
-
-    return NULL;
-}
-
-JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_resumeThread(JNIEnv *env, jclass type, jobject jthread, jobjectArray arguments)
-{
-    LuaThread *thread = LuaJavaConverter::convertToThreadByJThread(env, jthread);
-    if (thread != NULL)
-    {
-        LuaArgumentList argumentList;
-
-        if (arguments != NULL)
+        //获取LuaFunction
+        LuaValue *value = LuaJavaConverter::convertToLuaValueByJObject(env, context, jhandler);
+        if (value != NULL)
         {
-            jsize length = env->GetArrayLength(arguments);
-            for (int i = 0; i < length; ++i)
+            LuaArgumentList argumentList;
+
+            if (arguments != NULL)
             {
-                jobject item = env->GetObjectArrayElement(arguments, i);
-                LuaValue *argValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, thread -> getContext(), item);
-                if (argValue != NULL)
+                jsize length = env->GetArrayLength(arguments);
+                for (int i = 0; i < length; ++i)
                 {
-                    argumentList.push_back(argValue);
+                    jobject item = env->GetObjectArrayElement(arguments, i);
+                    LuaValue *argValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, item);
+                    if (argValue != NULL)
+                    {
+                        argumentList.push_back(argValue);
+                    }
+                    env -> DeleteLocalRef(item);
                 }
-
-                env -> DeleteLocalRef(item);
             }
+
+            context -> runThread(value -> toFunction(), &argumentList);
+
+            //释放参数内存
+            for (LuaArgumentList::iterator it = argumentList.begin(); it != argumentList.end() ; ++it)
+            {
+                LuaValue *item = *it;
+                item -> release();
+            }
+
+            value -> release();
         }
-
-        thread -> resume(argumentList);
-
-        //获取线程执行状态
-        jfieldID finishedFieldID =  env -> GetFieldID(LuaJavaType::threadClass(env), "_finished", "Z");
-        if (finishedFieldID != NULL)
-        {
-            env -> SetBooleanField(jthread, finishedFieldID, (jboolean)(thread -> hasFinished() ? JNI_TRUE : JNI_FALSE));
-        }
-
-        //释放参数内存
-        for (LuaArgumentList::iterator it = argumentList.begin(); it != argumentList.end() ; ++it)
-        {
-            LuaValue *item = *it;
-            item -> release();
-        }
-    }
-}
-
-JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_yieldThread(JNIEnv *env, jclass type, jobject jthread,
-                                                        jobject resultValue)
-{
-    LuaThread *thread = LuaJavaConverter::convertToThreadByJThread(env, jthread);
-    if (thread != NULL)
-    {
-        LuaValue *retValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, thread -> getContext(), resultValue);
-        thread -> yield(retValue);
-        retValue -> release();
     }
 }

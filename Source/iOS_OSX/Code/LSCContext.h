@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "LSCTypeDefinied.h"
 
+@class LSCFunction;
+
 /**
  *  Lua上下文对象
  */
@@ -105,5 +107,15 @@
  *  @param block      处理过程
  */
 - (void)registerMethodWithName:(NSString *)methodName block:(LSCFunctionHandler)block;
+
+
+/**
+ 将指定方法放入线程中执行
+
+ @param function 方法对象
+ @param arguments 参数
+ */
+- (void)runThreadWithFunction:(LSCFunction *)function
+                    arguments:(NSArray<LSCValue *> *)arguments;
 
 @end

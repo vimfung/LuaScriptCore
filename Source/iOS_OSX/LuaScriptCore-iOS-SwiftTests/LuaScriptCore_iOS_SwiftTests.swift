@@ -34,7 +34,7 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
     {
         let exp:XCTestExpectation = XCTestExpectation(description: "");
         
-        let t:LuaThread = LuaThread(context: _context!) { (arguments) -> LuaValue? in
+        let t:LuaCoroutine = LuaCoroutine(context: _context!) { (arguments) -> LuaValue? in
             
             print("\(String(describing: arguments))");
             exp.fulfill();

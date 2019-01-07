@@ -8,8 +8,10 @@
 
 #import <Foundation/Foundation.h>
 #import "LSCExportType.h"
+#import "LSCEngineAdapter.h"
 
 @class LSCContext;
+@class LSCOperationQueue;
 
 /**
  类型导出器
@@ -38,5 +40,16 @@
  @param object 对象实例
  */
 - (void)createLuaObjectByObject:(id)object;
+
+/**
+ 根据一个原生对象创建一个Lua对象
+
+ @param object 对象实例
+ @param state 状态
+ @param queue 队列
+ */
+- (void)createLuaObjectByObject:(id)object
+                          state:(lua_State *)state
+                          queue:(LSCOperationQueue *)queue;
 
 @end

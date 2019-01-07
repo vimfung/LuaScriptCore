@@ -15,7 +15,7 @@
 #include "LuaValue.h"
 #include "LuaContext.h"
 #include "LuaDefine.h"
-#include "LuaThread.h"
+#include "LuaCoroutine.h"
 
 /**
  * Java虚拟机对象
@@ -298,23 +298,6 @@ jobject LuaJavaEnv::createJavaLuaContext(JNIEnv *env, LuaContext *context)
     _javaObjectMap[context -> objectId()] = env -> NewWeakGlobalRef(jcontext);
 
     return jcontext;
-}
-
-jobject LuaJavaEnv::createJavaLuaThread(JNIEnv *env, LuaContext *context)
-{
-    LuaThread *thread = new LuaThread(context, _luaThreadHandler);
-
-    static jclass threadClass = LuaJavaType::threadClass(env);
-    static jmethodID initMethodId = env -> GetMethodID(threadClass, "<init>", "(I)V");
-
-    int nativeId = LuaObjectManager::SharedInstance() -> putObject(thread);
-    jobject jthread = env -> NewObject(threadClass, initMethodId, nativeId);
-
-    _javaObjectMap[thread -> objectId()] = env -> NewWeakGlobalRef(jthread);
-
-    thread -> release();
-
-    return jthread;
 }
 
 jobject LuaJavaEnv::getJavaLuaContext(JNIEnv *env, LuaContext *context)

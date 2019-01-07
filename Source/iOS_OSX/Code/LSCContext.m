@@ -12,6 +12,7 @@
 #import "LSCSession_Private.h"
 #import "LSCSession_Private.h"
 #import "LSCTuple.h"
+#import "LSCCoroutine+Private.h"
 #import <objc/runtime.h>
 
 /**
@@ -154,7 +155,6 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     }];
     
     LSCValue *retValue = [LSCValue valueWithContext:self atIndex:-1];
-    
     return retValue;
 }
 
@@ -171,11 +171,12 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 - (LSCValue *)evalScriptFromString:(NSString *)string
 {
     __block LSCValue *returnValue = nil;
-    [self.optQueue performAction:^{
+    LSCOperationQueue *queue = self.optQueue;
+    [queue performAction:^{
         
         lua_State *state = self.currentSession.state;
         
-        int errFuncIndex = [self catchLuaException];
+        int errFuncIndex = [self catchLuaExceptionWithState:state queue:queue];
         int curTop = [LSCEngineAdapter getTop:state];
         int returnCount = 0;
         
@@ -229,7 +230,8 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 {
     __block LSCValue *retValue = nil;
     
-    [self.optQueue performAction:^{
+    LSCOperationQueue *queue = self.optQueue;
+    [queue performAction:^{
         
         NSString *scriptFilePath = path;
         if (!scriptFilePath)
@@ -249,7 +251,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         lua_State *state = self.currentSession.state;
         
         
-        int errFuncIndex = [self catchLuaException];
+        int errFuncIndex = [self catchLuaExceptionWithState:state queue:queue];
         int curTop = [LSCEngineAdapter getTop:state];
         int returnCount = 0;
         
@@ -301,12 +303,13 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 - (LSCValue *)callMethodWithName:(NSString *)methodName
                        arguments:(NSArray<LSCValue *> *)arguments
 {
+    LSCOperationQueue *queue = self.optQueue;
     __block LSCValue *resultValue = nil;
-    [self.optQueue performAction:^{
+    [queue performAction:^{
         
         lua_State *state = self.currentSession.state;
 
-        int errFuncIndex = [self catchLuaException];
+        int errFuncIndex = [self catchLuaExceptionWithState:state queue:queue];
         int curTop = [LSCEngineAdapter getTop:state];
         
         [LSCEngineAdapter getGlobal:state name:methodName.UTF8String];
@@ -392,6 +395,70 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     
 }
 
+- (void)runThreadWithFunction:(LSCFunction *)function
+                    arguments:(NSArray<LSCValue *> *)arguments
+{
+    //创建一个协程状态
+    __weak typeof(self) theContext = self;
+    dispatch_queue_t queue = dispatch_queue_create("ThreadQueue", DISPATCH_QUEUE_SERIAL);
+    dispatch_async(queue, ^{
+        
+        LSCCoroutine *coroutine = [[LSCCoroutine alloc] initWithContext:theContext];
+        lua_State *state = coroutine.state;
+        
+        //获取捕获错误方法索引
+        int errFuncIndex = 0;
+        [LSCEngineAdapter getGlobal:state name:LSCCacheLuaExceptionHandlerName.UTF8String];
+        if ([LSCEngineAdapter isFunction:state index:-1])
+        {
+            errFuncIndex = [LSCEngineAdapter getTop:state];
+        }
+        else
+        {
+            [LSCEngineAdapter pop:state count:1];
+        }
+        
+        int top = [LSCEngineAdapter getTop:state];
+        [theContext.dataExchanger getLuaObject:function state:state queue:nil];
+        
+        if ([LSCEngineAdapter isFunction:state index:-1])
+        {
+            int returnCount = 0;
+            
+            [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
+                
+                [theContext.dataExchanger pushStackWithValue:value coroutine:coroutine];
+                
+            }];
+            
+            if ([LSCEngineAdapter pCall:state nargs:(int)arguments.count nresults:LUA_MULTRET errfunc:errFuncIndex] == 0)
+            {
+                returnCount = [LSCEngineAdapter getTop:state] - top;
+            }
+            else
+            {
+                //调用失败
+                returnCount = [LSCEngineAdapter getTop:state] - top;
+            }
+            
+            //弹出返回值
+            [LSCEngineAdapter pop:state count:returnCount];
+        }
+        else
+        {
+            //弹出func
+            [LSCEngineAdapter pop:state count:1];
+        }
+        
+        //移除异常捕获方法
+        [LSCEngineAdapter remove:state index:errFuncIndex];
+        
+        //释放内存
+        [theContext gc];
+        
+    });
+}
+
 #pragma mark - Private
 
 - (LSCSession *)makeSessionWithState:(lua_State *)state
@@ -458,12 +525,11 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
  @return 异常方法在堆栈中的位置
  */
-- (int)catchLuaException
+- (int)catchLuaExceptionWithState:(lua_State *)state queue:(LSCOperationQueue *)queue
 {
     __block int index = 0;
-    [self.optQueue performAction:^{
+    [queue performAction:^{
         
-        lua_State *state = self.currentSession.state;
         [LSCEngineAdapter getGlobal:state name:LSCCacheLuaExceptionHandlerName.UTF8String];
         if ([LSCEngineAdapter isFunction:state index:-1])
         {

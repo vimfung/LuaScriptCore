@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C14122C21DC530300952871 /* ThreadModuleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C14122B21DC530300952871 /* ThreadModuleViewController.swift */; };
+		7C14123421DC596E00952871 /* Thread-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CF700E221DB0A35006DAEE3 /* Thread-Sample.lua */; };
+		7C14123621DC59B300952871 /* LSCThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C14123521DC59B300952871 /* LSCThread.swift */; };
+		7C14123721DC59B300952871 /* LSCThread.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C14123521DC59B300952871 /* LSCThread.swift */; };
+		7C14123821DC5FEE00952871 /* Thread-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CF700E221DB0A35006DAEE3 /* Thread-Sample.lua */; };
 		7C177C121DEFEE73008C9DF1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */; };
 		7C177C141DEFEE73008C9DF1 /* ViewController1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C177C131DEFEE73008C9DF1 /* ViewController1.swift */; };
 		7C177C161DEFEE73008C9DF1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C177C151DEFEE73008C9DF1 /* Assets.xcassets */; };
@@ -108,6 +113,11 @@
 		7CE625171D93B3AA007533D7 /* todo.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625111D93B3AA007533D7 /* todo.lua */; };
 		7CE6251C1D93B3C8007533D7 /* LogModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE6251A1D93B3C8007533D7 /* LogModule.m */; };
 		7CE6252B1D93B435007533D7 /* LSCTPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE625291D93B435007533D7 /* LSCTPerson.m */; };
+		7CF700E021DB094C006DAEE3 /* LSCThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CF700DF21DB094C006DAEE3 /* LSCThread.m */; };
+		7CF700E121DB094C006DAEE3 /* LSCThread.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CF700DF21DB094C006DAEE3 /* LSCThread.m */; };
+		7CF700E321DB0A35006DAEE3 /* Thread-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CF700E221DB0A35006DAEE3 /* Thread-Sample.lua */; };
+		7CF700E421DB0A35006DAEE3 /* Thread-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CF700E221DB0A35006DAEE3 /* Thread-Sample.lua */; };
+		7CF700E721DB0D09006DAEE3 /* ThreadModuleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CF700E621DB0D09006DAEE3 /* ThreadModuleViewController.m */; };
 		7CFE0B501DF00E4200C41B89 /* dkjson.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE6250F1D93B3AA007533D7 /* dkjson.lua */; };
 		7CFE0B511DF00E4200C41B89 /* main.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625101D93B3AA007533D7 /* main.lua */; };
 		7CFE0B521DF00E4200C41B89 /* todo.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7CE625111D93B3AA007533D7 /* todo.lua */; };
@@ -220,6 +230,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7C14122B21DC530300952871 /* ThreadModuleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThreadModuleViewController.swift; sourceTree = "<group>"; };
+		7C14123521DC59B300952871 /* LSCThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSCThread.swift; sourceTree = "<group>"; };
 		7C177C0F1DEFEE73008C9DF1 /* Sample-OSX-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-OSX-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C177C111DEFEE73008C9DF1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7C177C131DEFEE73008C9DF1 /* ViewController1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ViewController1.swift; path = "Sample-OSX-Swift/ViewController1.swift"; sourceTree = SOURCE_ROOT; };
@@ -303,6 +315,11 @@
 		7CE6251A1D93B3C8007533D7 /* LogModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogModule.m; sourceTree = "<group>"; };
 		7CE625281D93B435007533D7 /* LSCTPerson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTPerson.h; sourceTree = "<group>"; };
 		7CE625291D93B435007533D7 /* LSCTPerson.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCTPerson.m; sourceTree = "<group>"; };
+		7CF700D721DB094C006DAEE3 /* LSCThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCThread.h; sourceTree = "<group>"; };
+		7CF700DF21DB094C006DAEE3 /* LSCThread.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCThread.m; sourceTree = "<group>"; };
+		7CF700E221DB0A35006DAEE3 /* Thread-Sample.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Thread-Sample.lua"; sourceTree = "<group>"; };
+		7CF700E521DB0D09006DAEE3 /* ThreadModuleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ThreadModuleViewController.h; sourceTree = "<group>"; };
+		7CF700E621DB0D09006DAEE3 /* ThreadModuleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ThreadModuleViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -447,6 +464,8 @@
 		7C44C77A212AA09F004D8D6F /* OC */ = {
 			isa = PBXGroup;
 			children = (
+				7CF700D721DB094C006DAEE3 /* LSCThread.h */,
+				7CF700DF21DB094C006DAEE3 /* LSCThread.m */,
 				7C44C77C212AA0F6004D8D6F /* LSCEncoding.h */,
 				7C44C77D212AA0F6004D8D6F /* LSCEncoding.m */,
 				7CE28F42212B9F7B0042A3DC /* LSCPath.h */,
@@ -460,6 +479,7 @@
 			children = (
 				7CE28F6C212BB6560042A3DC /* LSCEncoding.swift */,
 				7CE28F6F212BB79B0042A3DC /* LSCPath.swift */,
+				7C14123521DC59B300952871 /* LSCThread.swift */,
 			);
 			path = Swift;
 			sourceTree = "<group>";
@@ -470,6 +490,7 @@
 				7C49AE47212BC75C0031D627 /* EncodingModuleViewController.swift */,
 				7C49AE49212BC8F60031D627 /* PathModuleViewController.swift */,
 				7C49AE4B212BCA150031D627 /* HttpModuleViewController.swift */,
+				7C14122B21DC530300952871 /* ThreadModuleViewController.swift */,
 			);
 			path = ModuleViewControllers;
 			sourceTree = "<group>";
@@ -641,6 +662,7 @@
 		7CE28F46212BA1590042A3DC /* Sample */ = {
 			isa = PBXGroup;
 			children = (
+				7CF700E221DB0A35006DAEE3 /* Thread-Sample.lua */,
 				7CE28F47212BA1770042A3DC /* Encoding-Sample.lua */,
 				7CE28F4C212BA1880042A3DC /* Path-Sample.lua */,
 			);
@@ -656,6 +678,8 @@
 				7CE28F5B212BA39D0042A3DC /* EncodingModuleViewController.m */,
 				7CE28F5F212BA81C0042A3DC /* PathModuleViewController.h */,
 				7CE28F60212BA81C0042A3DC /* PathModuleViewController.m */,
+				7CF700E521DB0D09006DAEE3 /* ThreadModuleViewController.h */,
+				7CF700E621DB0D09006DAEE3 /* ThreadModuleViewController.m */,
 			);
 			path = ModuleViewControllers;
 			sourceTree = "<group>";
@@ -873,6 +897,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C14123821DC5FEE00952871 /* Thread-Sample.lua in Resources */,
 				7CFE0B501DF00E4200C41B89 /* dkjson.lua in Resources */,
 				7CD374C921378979007C55ED /* Foundation.lua in Resources */,
 				7CD374D421378AE1007C55ED /* timg.jpeg in Resources */,
@@ -892,6 +917,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C14123421DC596E00952871 /* Thread-Sample.lua in Resources */,
 				7C21ED331DEFC39400507DA2 /* dkjson.lua in Resources */,
 				7CE28F4A212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7CD374CE21378988007C55ED /* HTTP.lua in Resources */,
@@ -924,6 +950,7 @@
 				7C44C789212AB472004D8D6F /* HTTP-Sample.lua in Resources */,
 				7CE28F49212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7C5A618C1D6AE2A3007D4308 /* Main.storyboard in Resources */,
+				7CF700E421DB0A35006DAEE3 /* Thread-Sample.lua in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -934,6 +961,7 @@
 				7CD374CC21378988007C55ED /* HTTP.lua in Resources */,
 				7CE625141D93B3AA007533D7 /* main.lua in Resources */,
 				7C6B12811D6AFD1400489D9E /* Main.storyboard in Resources */,
+				7CF700E321DB0A35006DAEE3 /* Thread-Sample.lua in Resources */,
 				7CE28F48212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7C6B127F1D6AFD1400489D9E /* Assets.xcassets in Resources */,
 				7C6B12801D6AFD1400489D9E /* LaunchScreen.storyboard in Resources */,
@@ -957,6 +985,7 @@
 			files = (
 				7CA46E5C1DEFFE820014253A /* LSCTPerson.swift in Sources */,
 				7C49AE4F212BCA940031D627 /* LSCHTTPTask.swift in Sources */,
+				7C14123721DC59B300952871 /* LSCThread.swift in Sources */,
 				7C49AE54212C15310031D627 /* ModulesViewController.swift in Sources */,
 				7CE28F6E212BB6560042A3DC /* LSCEncoding.swift in Sources */,
 				7C177C141DEFEE73008C9DF1 /* ViewController1.swift in Sources */,
@@ -978,6 +1007,8 @@
 				7C21ED071DEFBE9A00507DA2 /* ViewController.swift in Sources */,
 				7C21ED051DEFBE9A00507DA2 /* AppDelegate.swift in Sources */,
 				7C49AE4C212BCA150031D627 /* HttpModuleViewController.swift in Sources */,
+				7C14123621DC59B300952871 /* LSCThread.swift in Sources */,
+				7C14122C21DC530300952871 /* ThreadModuleViewController.swift in Sources */,
 				7C49AE48212BC75C0031D627 /* EncodingModuleViewController.swift in Sources */,
 				7C21ED381DEFCEFA00507DA2 /* LogModule.swift in Sources */,
 				7CE28F70212BB79B0042A3DC /* LSCPath.swift in Sources */,
@@ -1000,6 +1031,7 @@
 				7C44C783212AA693004D8D6F /* LSCHTTPFile.m in Sources */,
 				7C5A61841D6AE2A3007D4308 /* main.m in Sources */,
 				7C44C77F212AA0F6004D8D6F /* LSCEncoding.m in Sources */,
+				7CF700E121DB094C006DAEE3 /* LSCThread.m in Sources */,
 				7CE6251C1D93B3C8007533D7 /* LogModule.m in Sources */,
 				7CE6252B1D93B435007533D7 /* LSCTPerson.m in Sources */,
 				7C5A61811D6AE2A3007D4308 /* AppDelegate.m in Sources */,
@@ -1014,6 +1046,7 @@
 				7CE28F61212BA81C0042A3DC /* PathModuleViewController.m in Sources */,
 				7CCA263B1EA45634007F20A9 /* LSCTNativeData.m in Sources */,
 				7C1E5A4C1E0113EC00C3C2E2 /* LogModule.m in Sources */,
+				7CF700E721DB0D09006DAEE3 /* ThreadModuleViewController.m in Sources */,
 				7CE28F44212B9F7B0042A3DC /* LSCPath.m in Sources */,
 				7C44C782212AA693004D8D6F /* LSCHTTPFile.m in Sources */,
 				7CE28F5C212BA39D0042A3DC /* EncodingModuleViewController.m in Sources */,
@@ -1024,6 +1057,7 @@
 				7C6B12831D6AFD1400489D9E /* main.m in Sources */,
 				7C6B127E1D6AFD1400489D9E /* AppDelegate.m in Sources */,
 				7C49AE41212BC5850031D627 /* ModuleListViewController.m in Sources */,
+				7CF700E021DB094C006DAEE3 /* LSCThread.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
