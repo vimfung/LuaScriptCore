@@ -8,6 +8,7 @@
 
 #import "LSCValue.h"
 #import "LSCSession_Private.h"
+#import "LSCTable+Private.h"
 
 @interface LSCValue ()
 
@@ -30,6 +31,14 @@
  对象是否被管理，YES 表示Lua对象随LSCValue释放而释放
  */
 @property (nonatomic) BOOL hasManagedObject;
+
+/**
+ 初始化
+
+ @param table 表结构
+ @return 值对象
+ */
++ (instancetype)tableValue:(LSCTable *)table;
 
 /**
  *  获取栈中的某个值
@@ -64,6 +73,14 @@
  *  @param context 上下文对象
  */
 - (void)pushWithContext:(LSCContext *)context;
+
+
+/**
+ 转换为Table对象
+
+ @return Table对象
+ */
+- (LSCTable *)toTable;
 
 
 @end

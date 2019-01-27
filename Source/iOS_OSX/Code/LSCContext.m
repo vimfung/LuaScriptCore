@@ -427,7 +427,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
             
             [arguments enumerateObjectsUsingBlock:^(LSCValue *_Nonnull value, NSUInteger idx, BOOL *_Nonnull stop) {
                 
-                [theContext.dataExchanger pushStackWithValue:value coroutine:coroutine];
+                [theContext.dataExchanger pushStackWithObject:value coroutine:coroutine];
                 
             }];
             

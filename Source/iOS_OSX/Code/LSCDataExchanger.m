@@ -9,7 +9,8 @@
 #import "LSCDataExchanger.h"
 #import "LSCDataExchanger_Private.h"
 #import "LSCSession_Private.h"
-#import "LSCValue.h"
+#import "LSCValue_Private.h"
+#import "LSCTable+Private.h"
 #import "LSCPointer.h"
 #import "LSCFunction_Private.h"
 #import "LSCTuple_Private.h"
@@ -59,20 +60,20 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     return [self valueByStackIndex:index withState:state];
 }
 
-- (void)pushStackWithValue:(LSCValue *)value
+- (void)pushStackWithObject:(id)object
 {
-    [self pushStackWithValue:value
-                       state:self.context.currentSession.state
-                       queue:self.context.optQueue];
+    [self pushStackWithObject:object
+                        state:self.context.currentSession.state
+                        queue:self.context.optQueue];
     
 }
 
-- (void)pushStackWithValue:(LSCValue *)value
-                 coroutine:(LSCCoroutine *)coroutine
+- (void)pushStackWithObject:(id)object
+                  coroutine:(LSCCoroutine *)coroutine
 {
-    [self pushStackWithValue:value
-                       state:coroutine.state
-                       queue:nil];
+    [self pushStackWithObject:object
+                        state:coroutine.state
+                        queue:nil];
 }
 
 - (void)getLuaObject:(id)nativeObject
@@ -109,6 +110,10 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                 case LSCValueTypeFunction:
                     [self retainLuaObject:[(LSCValue *)nativeObject toFunction]];
                     return;
+                case LSCValueTypeMap:
+                case LSCValueTypeArray:
+                    objectId = [((LSCValue *)nativeObject) toTable].linkId;
+                    break;
                 default:
                     break;
             }
@@ -145,6 +150,10 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                 case LSCValueTypeFunction:
                     [self releaseLuaObject:[(LSCValue *)nativeObject toFunction]];
                     return;
+                case LSCValueTypeMap:
+                case LSCValueTypeArray:
+                    objectId = [((LSCValue *)nativeObject) toTable].linkId;
+                    break;
                 default:
                     break;
             }
@@ -190,13 +199,9 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                 [LSCEngineAdapter pushBoolean:[value toBoolean] state:state];
                 break;
             case LSCValueTypeArray:
-            {
-                [theExchanger pushStackWithObject:[value toArray] state:state queue:queue];
-                break;
-            }
             case LSCValueTypeMap:
             {
-                [theExchanger pushStackWithObject:[value toDictionary] state:state queue:queue];
+                [theExchanger pushStackWithObject:[value toTable] state:state queue:queue];
                 break;
             }
             case LSCValueTypeData:
@@ -251,19 +256,22 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                       state:(lua_State *)state
                       queue:(LSCOperationQueue *)queue
 {
+    __weak typeof(self) theExchanger = self;
     void (^handler) (void) = ^{
-        
-        lua_State *state = self.context.currentSession.state;
         
         if (object)
         {
-            if ([object isKindOfClass:[NSDictionary class]])
+            if ([object isKindOfClass:[LSCValue class]])
             {
-                [self pushStackWithDictionary:object state:state queue:queue];
+                [theExchanger pushStackWithValue:object state:state queue:queue];
+            }
+            else if ([object isKindOfClass:[NSDictionary class]])
+            {
+                [theExchanger pushStackWithDictionary:object state:state queue:queue];
             }
             else if ([object isKindOfClass:[NSArray class]])
             {
-                [self pushStackWithArray:object state:state queue:queue];
+                [theExchanger pushStackWithArray:object state:state queue:queue];
             }
             else if ([object isKindOfClass:[NSNumber class]])
             {
@@ -277,15 +285,42 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
             {
                 [LSCEngineAdapter pushString:[object bytes] len:[object length] state:state];
             }
+            else if ([object isKindOfClass:[LSCTuple class]])
+            {
+                [theExchanger pushStackWithTuple:object state:state];
+            }
             else
             {
-                //LSCFunction\LSCPointer\NSObject
-                [self doActionInVarsTableWithState:state queue:queue block:^{
+                //LSCFunction\LSCPointer\LSCTable\NSObject
+                if ([object isKindOfClass:[LSCTable class]])
+                {
+                    LSCTable *table = object;
+                    if (!table.linkId)
+                    {
+                        //无关联ID时需要将table中的字典/数组入栈
+                        if (table.isArray)
+                        {
+                            [theExchanger pushStackWithArray:table.valueObject state:state queue:queue];
+                        }
+                        else
+                        {
+                            [theExchanger pushStackWithDictionary:table.valueObject state:state queue:queue];
+                        }
+                        return;
+                    }
+                }
+                
+                [theExchanger doActionInVarsTableWithState:state queue:queue block:^{
                     
                     NSString *objectId = nil;
                     if ([object conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
                     {
                         objectId = [(id<LSCManagedObjectProtocol>)object linkId];
+                    }
+                    else if ([object isKindOfClass:[LSCTable class]])
+                    {
+                        LSCTable *table = object;
+                        objectId = table.linkId;
                     }
                     else
                     {
@@ -304,10 +339,10 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                         {
                             hasPushStack = [(id<LSCManagedObjectProtocol>)object pushWithState:state queue:queue];
                         }
-                        else if ([self.context.exportsTypeManager checkExportsTypeWithObject:object])
+                        else if ([theExchanger.context.exportsTypeManager checkExportsTypeWithObject:object])
                         {
                             //为导出类型，让对象与Lua层对象进行关联
-                            [self.context.exportsTypeManager createLuaObjectByObject:object state:state queue:queue];
+                            [theExchanger.context.exportsTypeManager createLuaObjectByObject:object state:state queue:queue];
                             hasPushStack = YES;
                         }
                         
@@ -429,7 +464,7 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
     [tuple.returnValues enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         
         LSCValue *value = [LSCValue objectValue:obj];
-        [theDataExchanger pushStackWithValue:value];
+        [theDataExchanger pushStackWithObject:value];
         
     }];
 }
@@ -697,6 +732,10 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                     //出棧之前结果
                     [LSCEngineAdapter pop:state count:1];
                     
+                    LSCTable *table = nil;
+                    const void *userdata = [LSCEngineAdapter toPointer:state index:-1];
+                    objectId = [NSString stringWithFormat:@"%p", userdata];
+                    
                     //为Table数据
                     NSMutableDictionary *dictValue = [NSMutableDictionary dictionary];
                     NSMutableArray *arrayValue = [NSMutableArray array];
@@ -739,14 +778,20 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                         [LSCEngineAdapter pop:state count:1];
                     }
                     
-                    if (arrayValue)
+                    if (arrayValue && arrayValue.count > 0)
                     {
-                        value = [LSCValue arrayValue:arrayValue];
+                        table = [[LSCTable alloc] initWithArray:arrayValue
+                                                       objectId:objectId
+                                                        context:self.context];
                     }
                     else
                     {
-                        value = [LSCValue dictionaryValue:dictValue];
+                        table = [[LSCTable alloc] initWithDictionary:dictValue
+                                                            objectId:objectId
+                                                             context:self.context];
                     }
+                    
+                    value = [LSCValue tableValue:table];
                 }
                 
                 break;
@@ -859,6 +904,10 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
                 case LSCValueTypeFunction:
                     [self getLuaObject:[(LSCValue *)nativeObject toFunction] state:state queue:queue];
                     break;
+                case LSCValueTypeMap:
+                case LSCValueTypeArray:
+                    objectId = [((LSCValue *)nativeObject) toTable].linkId;
+                    break;
                 default:
                     break;
             }
@@ -866,6 +915,10 @@ static NSString *const RetainVarsTableName = @"_retainVars_";
         else if ([nativeObject conformsToProtocol:@protocol(LSCManagedObjectProtocol)])
         {
             objectId = [nativeObject linkId];
+        }
+        else if ([nativeObject isKindOfClass:[LSCTable class]])
+        {
+            objectId = ((LSCTable *)nativeObject).linkId;
         }
         else
         {

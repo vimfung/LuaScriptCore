@@ -35,19 +35,19 @@
 - (LSCValue *)valueByStackIndex:(int)index;
 
 /**
- 将数据入栈
+ 将对象入栈
 
- @param value 数据
+ @param object 对象
  */
-- (void)pushStackWithValue:(LSCValue *)value;
+- (void)pushStackWithObject:(id)object;
 
 /**
- 将数据入栈
+ 将对象入栈
 
- @param value 数据
+ @param object 对象
  @param coroutine 协程
  */
-- (void)pushStackWithValue:(LSCValue *)value
+- (void)pushStackWithObject:(id)object
                  coroutine:(LSCCoroutine *)coroutine;
 
 /**

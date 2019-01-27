@@ -26,7 +26,12 @@
 
 + (instancetype)numberValue:(NSNumber *)numberValue
 {
-    return [[self alloc] initWithType:LSCValueTypeNumber value:numberValue];
+    if (numberValue)
+    {
+        return [[self alloc] initWithType:LSCValueTypeNumber value:numberValue];
+    }
+    
+    return [self nilValue];
 }
 
 + (instancetype)booleanValue:(BOOL)boolValue
@@ -36,8 +41,13 @@
 
 + (instancetype)stringValue:(NSString *)stringValue
 {
-    return [[self alloc] initWithType:LSCValueTypeString
-                                value:[stringValue copy]];
+    if (stringValue)
+    {
+        return [[self alloc] initWithType:LSCValueTypeString
+                                    value:[stringValue copy]];
+    }
+    
+    return [self nilValue];
 }
 
 + (instancetype)integerValue:(NSInteger)integerValue
@@ -47,17 +57,44 @@
 
 + (instancetype)arrayValue:(NSArray *)arrayValue
 {
-    return [[self alloc] initWithType:LSCValueTypeArray value:arrayValue];
+    if (arrayValue)
+    {
+        LSCTable *table = [[LSCTable alloc] initWithArray:arrayValue objectId:nil context:nil];
+        return [[self alloc] initWithType:LSCValueTypeArray value:table];
+    }
+    
+    return [self nilValue];
 }
 
 + (instancetype)dictionaryValue:(NSDictionary *)dictionaryValue
 {
-    return [[self alloc] initWithType:LSCValueTypeMap value:dictionaryValue];
+    if (dictionaryValue)
+    {
+        LSCTable *table = [[LSCTable alloc] initWithDictionary:dictionaryValue objectId:nil context:nil];
+        return [[self alloc] initWithType:LSCValueTypeMap value:table];
+    }
+    
+    return [self nilValue];
+}
+
++ (instancetype)tableValue:(LSCTable *)table
+{
+    if (table)
+    {
+        return [[self alloc] initWithType:table.isArray ? LSCValueTypeArray : LSCValueTypeMap value:table];
+    }
+    
+    return [self nilValue];
 }
 
 + (instancetype)dataValue:(NSData *)dataValue
 {
-    return [[self alloc] initWithType:LSCValueTypeData value:dataValue];
+    if (dataValue)
+    {
+        return [[self alloc] initWithType:LSCValueTypeData value:dataValue];
+    }
+    
+    return [self nilValue];
 }
 
 + (instancetype)objectValue:(id)objectValue
@@ -112,22 +149,42 @@
 
 + (instancetype)pointerValue:(LSCPointer *)pointerValue
 {
-    return [[self alloc] initWithType:LSCValueTypePtr value:pointerValue];
+    if (pointerValue)
+    {
+        return [[self alloc] initWithType:LSCValueTypePtr value:pointerValue];
+    }
+    
+    return [self nilValue];
 }
 
 + (instancetype)functionValue:(LSCFunction *)functionValue
 {
-    return [[self alloc] initWithType:LSCValueTypeFunction value:functionValue];
+    if (functionValue)
+    {
+        return [[self alloc] initWithType:LSCValueTypeFunction value:functionValue];
+    }
+ 
+    return [self nilValue];
 }
 
 + (instancetype)tupleValue:(LSCTuple *)tupleValue
 {
-    return [[self alloc] initWithType:LSCValueTypeTuple value:tupleValue];
+    if (tupleValue)
+    {
+        return [[self alloc] initWithType:LSCValueTypeTuple value:tupleValue];
+    }
+    
+    return [self nilValue];
 }
 
 + (instancetype)typeValue:(LSCExportTypeDescriptor *)typeDescriptor
 {
-    return [[self alloc] initWithType:LSCValueTypeClass value:typeDescriptor];
+    if (typeDescriptor)
+    {
+        return [[self alloc] initWithType:LSCValueTypeClass value:typeDescriptor];
+    }
+    
+    return [self nilValue];
 }
 
 - (void)dealloc
@@ -141,7 +198,7 @@
 
 - (void)pushWithContext:(LSCContext *)context
 {
-    [context.dataExchanger pushStackWithValue:self];
+    [context.dataExchanger pushStackWithObject:self];
 }
 
 - (id)toObject
@@ -150,8 +207,22 @@
     {
         return (__bridge id)([[self toPointer] value] -> value);
     }
+    else if (self.valueType == LSCValueTypeMap || self.valueType == LSCValueTypeArray)
+    {
+        return [self toTable].valueObject;
+    }
     
     return self.valueContainer;
+}
+
+- (LSCTable *)toTable
+{
+    if (self.valueType == LSCValueTypeArray || self.valueType == LSCValueTypeMap)
+    {
+        return self.valueContainer;
+    }
+    
+    return nil;
 }
 
 - (NSString *)toString
@@ -159,6 +230,10 @@
     if (self.valueType == LSCValueTypePtr)
     {
         return [NSString stringWithFormat:@"%p", [[self toPointer] value] -> value];
+    }
+    else if (self.valueType == LSCValueTypeMap || self.valueType == LSCValueTypeArray)
+    {
+        return [NSString stringWithFormat:@"%@", [self toTable].valueObject];
     }
     
     return [NSString stringWithFormat:@"%@", self.valueContainer];
@@ -176,6 +251,9 @@
             return @([(NSString *)self.valueContainer doubleValue]);
         case LSCValueTypePtr:
             return @((NSInteger)[[self toPointer] value] -> value);
+        case LSCValueTypeMap:
+        case LSCValueTypeArray:
+            return @((NSInteger)[self toTable].valueObject);
         default:
             return @((NSInteger)self.valueContainer);
     }
@@ -193,6 +271,9 @@
             return [(NSString *)self.valueContainer integerValue];
         case LSCValueTypePtr:
             return (NSInteger)([[self toPointer] value] -> value);
+        case LSCValueTypeMap:
+        case LSCValueTypeArray:
+            return (NSInteger)[self toTable].valueObject;
         default:
             return (NSInteger)self.valueContainer;
     }
@@ -210,6 +291,9 @@
             return [(NSString *)self.valueContainer doubleValue];
         case LSCValueTypePtr:
             return (double)(NSInteger)[[self toPointer] value] -> value;
+        case LSCValueTypeMap:
+        case LSCValueTypeArray:
+            return (double)(NSInteger)[self toTable].valueObject;
         default:
             return (double)(NSInteger)self.valueContainer;
     }
@@ -250,7 +334,7 @@
 {
     if (self.valueType == LSCValueTypeArray)
     {
-        return self.valueContainer;
+        return [self toTable].valueObject;
     }
     
     return nil;
@@ -260,7 +344,7 @@
 {
     if (self.valueType == LSCValueTypeMap)
     {
-        return self.valueContainer;
+        return [self toTable].valueObject;
     }
     
     return nil;
@@ -271,6 +355,10 @@
     if (self.valueType == LSCValueTypePtr)
     {
         return self.valueContainer;
+    }
+    else if (self.valueType == LSCValueTypeMap || self.valueType == LSCValueTypeArray)
+    {
+        return [[LSCPointer alloc] initWithPtr:(__bridge const void *)([self toTable].valueObject)];
     }
     
     return [[LSCPointer alloc] initWithPtr:(__bridge const void *)(self.valueContainer)];
@@ -352,6 +440,15 @@
     {
         self.hasManagedObject = YES;
         [self.context.dataExchanger retainLuaObject:self];
+    }
+}
+
+- (void)setObject:(id)object forKeyPath:(NSString *)keyPath
+{
+    if (self.valueType == LSCValueTypeMap)
+    {
+        //更新本地缓存
+        [[self toTable] setObject:object forKeyPath:keyPath];
     }
 }
 

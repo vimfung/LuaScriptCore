@@ -19,6 +19,7 @@
 #import "SubLuaLog.h"
 #import "LSCOperationQueue.h"
 #import <objc/message.h>
+#import <JavaScriptCore/JavaScriptCore.h>
 
 #import "LSCEngineAdapter.h"
 
@@ -35,11 +36,40 @@
     [super setUp];
     
     self.context = [Env defaultContext];
+    
+    NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
+    [self.context addSearchPath:bundle.resourcePath];
+    
     [self.context onException:^(NSString *message) {
        
         NSLog(@"error = %@", message);
         
     }];
+}
+
+/**
+ 预期结果
+ -------- retvalue = {
+ a = 1;
+ b =     {
+ b = 1024;
+ d = cccccc;
+ };
+ c =     {
+ msg = "Hello World";
+ };
+ }
+ 1024.0    cccccc    Hello World
+ */
+- (void)testNativeSetTableObject
+{
+    LSCValue *value = [self.context evalScriptFromString:@"return require \"config\""];
+    [value setObject:@{@"b" : @(1024)} forKeyPath:@"b"];
+    [value setObject:@"Hello World" forKeyPath:@"c.msg"];
+    [value setObject:@"cccccc" forKeyPath:@"b.d"];
+    NSLog(@"-------- retvalue = %@", value);
+    
+    [self.context evalScriptFromString:@"local tbl = require \"config\"; print(tbl.b.b, tbl.b.d, tbl.c.msg);"];
 }
 
 /**
