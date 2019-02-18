@@ -423,6 +423,10 @@ public class LuaValue extends LuaBaseObject
             {
                 setLongValue((Long) value);
             }
+            else  if (value instanceof Float)
+            {
+                setDoubValue(((Float) value).doubleValue());
+            }
             else if (value instanceof Double)
             {
                 setDoubValue((Double)value);

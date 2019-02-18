@@ -547,15 +547,23 @@ class LuaExportTypeManager
             return null;
         }
 
-        if (int.class.isAssignableFrom(argType))
+        if (int.class.isAssignableFrom(argType) || Integer.class.isAssignableFrom(argType))
+        {
+            return (int)value.toInteger();
+        }
+        else if (long.class.isAssignableFrom(argType) || Long.class.isAssignableFrom(argType))
         {
             return value.toInteger();
         }
-        else if (double.class.isAssignableFrom(argType))
+        else if (float.class.isAssignableFrom(argType) || Float.class.isAssignableFrom(argType))
+        {
+            return (float)value.toDouble();
+        }
+        else if (double.class.isAssignableFrom(argType) || Double.class.isAssignableFrom(argType))
         {
             return value.toDouble();
         }
-        else if (boolean.class.isAssignableFrom(argType))
+        else if (boolean.class.isAssignableFrom(argType) || Boolean.class.isAssignableFrom(argType))
         {
             return value.toBoolean();
         }
