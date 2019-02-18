@@ -94,6 +94,202 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
 
         value = new LuaValue((const char *)bytes, (size_t)len);
     }
+    else if (env -> IsInstanceOf(object, LuaJavaType::intsClass(env)) == JNI_TRUE)
+    {
+        //int数组
+        jintArray intArr = (jintArray)object;
+        jsize len = env -> GetArrayLength(intArr);
+
+        LuaValueList list;
+        jint *intElms = env -> GetIntArrayElements(intArr, NULL);
+        for (int i = 0; i < len; i++)
+        {
+            LuaValue *elm = new LuaValue((long)*(intElms + i));
+            list.push_back(elm);
+        }
+        env -> ReleaseIntArrayElements(intArr, intElms, 0);
+
+        value = new LuaValue(list);
+
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::intArrayClass(env)) == JNI_TRUE)
+    {
+        //int数组
+        jmethodID  intValueMethodId = env -> GetMethodID(LuaJavaType::integerClass(env), "intValue", "()I");
+
+        jobjectArray intArr = (jobjectArray)object;
+        jsize len = env -> GetArrayLength(intArr);
+
+        LuaValueList list;
+        for (int i = 0; i < len; ++i)
+        {
+            jobject intItem = env -> GetObjectArrayElement(intArr, i);
+
+            jint val = env -> CallIntMethod(intItem, intValueMethodId);
+            LuaValue *elm = new LuaValue((long)val);
+            list.push_back(elm);
+
+            env -> DeleteLocalRef(intItem);
+        }
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::longsClass(env)) == JNI_TRUE)
+    {
+        //long数组
+        jlongArray longArr = (jlongArray)object;
+        jsize len = env -> GetArrayLength(longArr);
+
+        LuaValueList list;
+        jlong  *longElms = env -> GetLongArrayElements(longArr, NULL);
+        for (int i = 0; i < len; i++)
+        {
+            LuaValue *elm = new LuaValue((long)*(longElms + i));
+            list.push_back(elm);
+        }
+        env -> ReleaseLongArrayElements(longArr, longElms, 0);
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::longArrayClass(env)) == JNI_TRUE)
+    {
+        //long数组
+        jmethodID  valueMethodId = env -> GetMethodID(LuaJavaType::longClass(env), "longValue", "()J");
+
+        jobjectArray intArr = (jobjectArray)object;
+        jsize len = env -> GetArrayLength(intArr);
+
+        LuaValueList list;
+        for (int i = 0; i < len; ++i)
+        {
+            jobject item = env -> GetObjectArrayElement(intArr, i);
+
+            jlong val = env -> CallLongMethod(item, valueMethodId);
+            LuaValue *elm = new LuaValue((long)val);
+            list.push_back(elm);
+
+            env -> DeleteLocalRef(item);
+        }
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::floatsClass(env)) == JNI_TRUE)
+    {
+        //float数组
+        jfloatArray arr = (jfloatArray)object;
+        jsize len = env -> GetArrayLength(arr);
+
+        LuaValueList list;
+        jfloat *elms = env -> GetFloatArrayElements(arr, NULL);
+        for (int i = 0; i < len; i++)
+        {
+            LuaValue *elm = new LuaValue((double)*(elms + i));
+            list.push_back(elm);
+        }
+        env -> ReleaseFloatArrayElements(arr, elms, 0);
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::floatArrayClass(env)) == JNI_TRUE)
+    {
+        //float数组
+        jmethodID  valueMethodId = env -> GetMethodID(LuaJavaType::floatClass(env), "floatValue", "()F");
+
+        jobjectArray arr = (jobjectArray)object;
+        jsize len = env -> GetArrayLength(arr);
+
+        LuaValueList list;
+        for (int i = 0; i < len; ++i)
+        {
+            jobject item = env -> GetObjectArrayElement(arr, i);
+
+            jfloat val = env -> CallFloatMethod(item, valueMethodId);
+            LuaValue *elm = new LuaValue((double)val);
+            list.push_back(elm);
+
+            env -> DeleteLocalRef(item);
+        }
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::doublesClass(env)) == JNI_TRUE)
+    {
+        //double数组
+        jdoubleArray arr = (jdoubleArray)object;
+        jsize len = env -> GetArrayLength(arr);
+
+        LuaValueList list;
+        jdouble *elms = env -> GetDoubleArrayElements(arr, NULL);
+        for (int i = 0; i < len; i++)
+        {
+            LuaValue *elm = new LuaValue((double)*(elms + i));
+            list.push_back(elm);
+        }
+        env -> ReleaseDoubleArrayElements(arr, elms, 0);
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::doubleArrayClass(env)) == JNI_TRUE)
+    {
+        //double数组
+        jmethodID  valueMethodId = env -> GetMethodID(LuaJavaType::doubleClass(env), "doubleValue", "()D");
+
+        jobjectArray arr = (jobjectArray)object;
+        jsize len = env -> GetArrayLength(arr);
+
+        LuaValueList list;
+        for (int i = 0; i < len; ++i)
+        {
+            jobject item = env -> GetObjectArrayElement(arr, i);
+
+            jdouble val = env -> CallDoubleMethod(item, valueMethodId);
+            LuaValue *elm = new LuaValue((double)val);
+            list.push_back(elm);
+
+            env -> DeleteLocalRef(item);
+        }
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::booleansClass(env)) == JNI_TRUE)
+    {
+        //boolean数组
+        jbooleanArray arr = (jbooleanArray)object;
+        jsize len = env -> GetArrayLength(arr);
+
+        LuaValueList list;
+        jboolean *elms = env -> GetBooleanArrayElements(arr, NULL);
+        for (int i = 0; i < len; i++)
+        {
+            LuaValue *elm = new LuaValue((bool)*(elms + i));
+            list.push_back(elm);
+        }
+        env -> ReleaseBooleanArrayElements(arr, elms, 0);
+
+        value = new LuaValue(list);
+    }
+    else if (env -> IsInstanceOf(object, LuaJavaType::booleanArrayClass(env)) == JNI_TRUE)
+    {
+        //boolean数组
+        jmethodID  valueMethodId = env -> GetMethodID(LuaJavaType::booleanClass(env), "booleanValue", "()Z");
+
+        jobjectArray arr = (jobjectArray)object;
+        jsize len = env -> GetArrayLength(arr);
+
+        LuaValueList list;
+        for (int i = 0; i < len; ++i)
+        {
+            jobject item = env -> GetObjectArrayElement(arr, i);
+
+            jboolean val = env -> CallBooleanMethod(item, valueMethodId);
+            LuaValue *elm = new LuaValue((bool)val);
+            list.push_back(elm);
+
+            env -> DeleteLocalRef(item);
+        }
+
+        value = new LuaValue(list);
+    }
     else if (env -> IsInstanceOf(object, LuaJavaType::listClass(env)) == JNI_TRUE)
     {
         //ArrayList

@@ -167,6 +167,76 @@ public:
     static jclass byteArrayClass(JNIEnv *env);
 
     /**
+     * 获取int[]类型
+     * @param env JNI环境
+     * @return int[]类型
+     */
+    static jclass intsClass(JNIEnv *env);
+
+    /**
+     * 获取Integer[]类型
+     * @param env JNI环境
+     * @return Integer[]类型
+     */
+    static jclass intArrayClass(JNIEnv *env);
+
+    /**
+     * 获取long[]类型
+     * @param env JNI环境
+     * @return long[]
+     */
+    static jclass longsClass(JNIEnv *env);
+
+    /**
+     * 获取Long[]类型
+     * @param env JNI环境
+     * @return Long[]
+     */
+    static jclass longArrayClass(JNIEnv *env);
+
+    /**
+     * 获取float[]类型
+     * @param env JNI环境
+     * @return float[]
+     */
+    static jclass floatsClass(JNIEnv *env);
+
+    /**
+     * 获取Float[]类型
+     * @param env JNI环境
+     * @return Float[]
+     */
+    static jclass floatArrayClass(JNIEnv *env);
+
+    /**
+     * 获取double[]类型
+     * @param env JNI环境
+     * @return double[]
+     */
+    static jclass doublesClass(JNIEnv *env);
+
+    /**
+     * 获取Double[]类型
+     * @param env JNI环境
+     * @return Double[]
+     */
+    static jclass doubleArrayClass(JNIEnv *env);
+
+    /**
+     * 获取boolean[]类型
+     * @param env JNI环境
+     * @return boolean[]
+     */
+    static jclass booleansClass(JNIEnv *env);
+
+    /**
+     * 获取Boolean[]类型
+     * @param env JNI环境
+     * @return Boolean[]
+     */
+    static jclass booleanArrayClass(JNIEnv *env);
+
+    /**
      * 获取ArrayList类
      *
      * @param env JNI环境

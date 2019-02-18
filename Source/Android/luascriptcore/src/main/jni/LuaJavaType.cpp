@@ -244,6 +244,146 @@ jclass LuaJavaType::byteArrayClass(JNIEnv *env)
     return jByteArrayCls;
 }
 
+jclass LuaJavaType::intsClass(JNIEnv *env)
+{
+    static jclass jIntArrayCls = NULL;
+
+    if (jIntArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[I");
+        jIntArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jIntArrayCls;
+}
+
+jclass LuaJavaType::intArrayClass(JNIEnv *env)
+{
+    static jclass jIntArrayCls = NULL;
+
+    if (jIntArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[Ljava/lang/Integer;");
+        jIntArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jIntArrayCls;
+}
+
+jclass LuaJavaType::longsClass(JNIEnv *env)
+{
+    static jclass jLongArrayCls = NULL;
+
+    if (jLongArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[J");
+        jLongArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jLongArrayCls;
+}
+
+jclass LuaJavaType::longArrayClass(JNIEnv *env)
+{
+    static jclass jLongArrayCls = NULL;
+
+    if (jLongArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[Ljava/lang/Long;");
+        jLongArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jLongArrayCls;
+}
+
+jclass LuaJavaType::floatsClass(JNIEnv *env)
+{
+    static jclass jFloatArrayCls = NULL;
+
+    if (jFloatArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[F");
+        jFloatArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jFloatArrayCls;
+}
+
+jclass LuaJavaType::floatArrayClass(JNIEnv *env)
+{
+    static jclass jFloatArrayCls = NULL;
+
+    if (jFloatArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[Ljava/lang/Float;");
+        jFloatArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jFloatArrayCls;
+}
+
+jclass LuaJavaType::doublesClass(JNIEnv *env)
+{
+    static jclass jDoubleArrayCls = NULL;
+
+    if (jDoubleArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[D");
+        jDoubleArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jDoubleArrayCls;
+}
+
+jclass LuaJavaType::doubleArrayClass(JNIEnv *env)
+{
+    static jclass jDoubleArrayCls = NULL;
+
+    if (jDoubleArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[Ljava/lang/Double;");
+        jDoubleArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jDoubleArrayCls;
+}
+
+jclass LuaJavaType::booleansClass(JNIEnv *env)
+{
+    static jclass jBoolArrayCls = NULL;
+
+    if (jBoolArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[Z");
+        jBoolArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jBoolArrayCls;
+}
+
+jclass LuaJavaType::booleanArrayClass(JNIEnv *env)
+{
+    static jclass jBoolArrayCls = NULL;
+
+    if (jBoolArrayCls == NULL)
+    {
+        jclass tmpClass = LuaJavaEnv::findClass(env, "[Ljava/lang/Boolean;");
+        jBoolArrayCls = (jclass)env -> NewGlobalRef(tmpClass);
+        env -> DeleteLocalRef(tmpClass);
+    }
+
+    return jBoolArrayCls;
+}
+
 jclass LuaJavaType::arrayListClass(JNIEnv *env)
 {
     static jclass jArrayList = NULL;
