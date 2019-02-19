@@ -54,6 +54,12 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         jmethodID intValueMethodId = env -> GetMethodID(LuaJavaType::integerClass(env), "intValue", "()I");
         value = new LuaValue((long)env -> CallIntMethod(object, intValueMethodId));
     }
+    else if (env -> IsInstanceOf(object, LuaJavaType::longClass(env)) == JNI_TRUE)
+    {
+        //Long类型
+        jmethodID valueMethodId = env -> GetMethodID(LuaJavaType::longClass(env), "longValue", "()J");
+        value = new LuaValue((long)env -> CallLongMethod(object, valueMethodId));
+    }
     else if (env -> IsInstanceOf(object, LuaJavaType::doubleClass(env)) == JNI_TRUE)
     {
         //Double类型

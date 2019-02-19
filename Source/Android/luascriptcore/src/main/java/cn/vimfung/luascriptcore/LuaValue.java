@@ -415,7 +415,19 @@ public class LuaValue extends LuaBaseObject
     {
         if (value != null)
         {
-            if (value instanceof Integer)
+            if (value instanceof Character)
+            {
+                setLongValue(Long.valueOf((Character)value));
+            }
+            else if (value instanceof Byte)
+            {
+                setLongValue(Long.valueOf((Byte)value));
+            }
+            else if (value instanceof Short)
+            {
+               setLongValue(Long.valueOf((Short)value));
+            }
+            else if (value instanceof Integer)
             {
                 setLongValue(Long.valueOf((Integer)value));
             }
