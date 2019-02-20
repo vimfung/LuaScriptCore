@@ -449,10 +449,20 @@ std::string LuaJavaEnv::getJavaClassName(JNIEnv *env, jclass cls, bool simpleNam
 
 jobject LuaJavaEnv::getExportTypeManager(JNIEnv *env)
 {
-    jclass exportTypeManagerCls = LuaJavaType::exportTypeManagerClass(env);
+    //fixed: 修复直接返回CallStaticObjectMethod的返回值导致临时变量表溢出问题
+    static jobject exportTypeManager = NULL;
+    if (exportTypeManager == NULL)
+    {
+        jclass exportTypeManagerCls = LuaJavaType::exportTypeManagerClass(env);
 
-    jmethodID defaultManagerMethodId = env -> GetStaticMethodID(exportTypeManagerCls, "getDefaultManager", "()Lcn/vimfung/luascriptcore/LuaExportTypeManager;");
-    return env -> CallStaticObjectMethod(exportTypeManagerCls, defaultManagerMethodId);
+        jmethodID defaultManagerMethodId = env -> GetStaticMethodID(exportTypeManagerCls, "getDefaultManager", "()Lcn/vimfung/luascriptcore/LuaExportTypeManager;");
+        jobject manager = env -> CallStaticObjectMethod(exportTypeManagerCls, defaultManagerMethodId);
+        exportTypeManager = env -> NewWeakGlobalRef(manager);
+        env -> DeleteLocalRef(manager);
+    }
+
+    return exportTypeManager;
+
 }
 
 jclass LuaJavaEnv::findClass(JNIEnv *env, std::string className)

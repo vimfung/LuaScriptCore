@@ -455,13 +455,13 @@ public class LuaValue extends LuaBaseObject
             {
                 setByteArrayValue((byte[]) value);
             }
-            else if (value instanceof ArrayList)
+            else if (value instanceof List<?>)
             {
-                setArrayListValue((ArrayList)value);
+                setArrayListValue((List<?>)value);
             }
-            else if (value instanceof HashMap)
+            else if (value instanceof Map<?, ?>)
             {
-                setHasMapValue((HashMap)value);
+                setHasMapValue((Map<?, ?>)value);
             }
             else if (value instanceof LuaPointer)
             {

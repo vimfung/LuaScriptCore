@@ -42,6 +42,8 @@ LuaValue* LuaJavaExportPropertyDescriptor::invokeGetter(LuaSession *session, Lua
 
         LuaValue *returnValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, jReturnValue);
 
+        env -> DeleteLocalRef(jReturnValue);
+
         LuaJavaEnv::resetEnv(env);
 
         return returnValue;

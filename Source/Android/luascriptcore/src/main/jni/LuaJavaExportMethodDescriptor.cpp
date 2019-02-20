@@ -65,6 +65,8 @@ LuaValue* LuaJavaExportMethodDescriptor::invokeClassMethod(LuaSession *session, 
 
     LuaValue *returnValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, jReturnValue);
 
+    env -> DeleteLocalRef(jReturnValue);
+
     LuaJavaEnv::resetEnv(env);
 
     return returnValue;
@@ -107,6 +109,8 @@ LuaValue* LuaJavaExportMethodDescriptor::invokeInstanceMethod(LuaSession *sessio
     env -> DeleteLocalRef(jArgs);
 
     LuaValue *returnValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, jReturnValue);
+
+    env -> DeleteLocalRef(jReturnValue);
 
     LuaJavaEnv::resetEnv(env);
 

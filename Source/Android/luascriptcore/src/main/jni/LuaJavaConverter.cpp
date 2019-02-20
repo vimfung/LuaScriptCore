@@ -309,6 +309,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         {
             jobject item = env -> CallObjectMethod(object, getMethodId, i);
             LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
+            list.push_back(valueItem);
             env -> DeleteLocalRef(item);
         }
 
