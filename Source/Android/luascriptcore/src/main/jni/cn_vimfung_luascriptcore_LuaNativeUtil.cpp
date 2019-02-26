@@ -370,6 +370,7 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
             fieldComps.clear();
 
             env -> ReleaseStringUTFChars(fieldName, fieldNameCStr);
+            env -> DeleteLocalRef(fieldName);
         }
 
         //注册实例方法
@@ -388,6 +389,7 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
             methodComps.clear();
 
             env -> ReleaseStringUTFChars(methodName, methodNameCStr);
+            env -> DeleteLocalRef(methodName);
         }
 
         //注册类方法
@@ -406,6 +408,7 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
             methodComps.clear();
 
             env -> ReleaseStringUTFChars(methodName, methodNameCStr);
+            env -> DeleteLocalRef(methodName);
         }
 
         // 导出类型

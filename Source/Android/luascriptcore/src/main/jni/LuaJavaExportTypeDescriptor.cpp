@@ -61,9 +61,12 @@ LuaObjectDescriptor* LuaJavaExportTypeDescriptor::createInstance(LuaSession *ses
 
     LuaJavaObjectDescriptor *objectDescriptor = NULL;
     LuaValue *returnValue = LuaJavaConverter::convertToLuaValueByJLuaValue(env, session -> getContext(), jReturnValue);
+    env -> DeleteLocalRef(jReturnValue);
+
     if (returnValue -> getType() != LuaValueTypeNil)
     {
         objectDescriptor = dynamic_cast<LuaJavaObjectDescriptor *>(returnValue -> toObject());
+        objectDescriptor -> retain();
     }
     else
     {
@@ -76,6 +79,8 @@ LuaObjectDescriptor* LuaJavaExportTypeDescriptor::createInstance(LuaSession *ses
         LuaValue *value = *it;
         value -> release();
     }
+
+    returnValue -> release();
 
     LuaJavaEnv::resetEnv(env);
 

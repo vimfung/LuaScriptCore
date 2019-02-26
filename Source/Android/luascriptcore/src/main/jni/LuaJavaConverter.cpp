@@ -366,6 +366,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         if (pointer != NULL)
         {
             value = new LuaValue(pointer);
+            pointer -> release();
         }
         else
         {
@@ -382,6 +383,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         if (function != NULL)
         {
             value = new LuaValue(function);
+            function -> release();
         }
         else
         {
@@ -411,6 +413,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         }
 
         value = new LuaValue(tuple);
+        tuple -> release();
     }
     else if (env -> IsSameObject(object, NULL) != JNI_TRUE)
     {
@@ -588,6 +591,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             if (pointer != NULL)
             {
                 retValue = new LuaValue(pointer);
+                pointer -> release();
             }
             else
             {
@@ -610,6 +614,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             if (function != NULL)
             {
                 retValue = new LuaValue(function);
+                function -> release();
             }
             else
             {
@@ -644,6 +649,7 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             }
 
             retValue = new LuaValue(tuple);
+            tuple -> release();
 
             env -> DeleteLocalRef(jTuple);
 
