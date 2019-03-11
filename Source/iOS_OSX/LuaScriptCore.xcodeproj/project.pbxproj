@@ -444,6 +444,8 @@
 		7CBA750F20FDC265003AD193 /* lunity.c in Sources */ = {isa = PBXBuildFile; fileRef = 7CBA750B20FDC264003AD193 /* lunity.c */; };
 		7CBA751020FDC265003AD193 /* lunity.c in Sources */ = {isa = PBXBuildFile; fileRef = 7CBA750B20FDC264003AD193 /* lunity.c */; };
 		7CBA751120FDC265003AD193 /* lunity.c in Sources */ = {isa = PBXBuildFile; fileRef = 7CBA750B20FDC264003AD193 /* lunity.c */; };
+		7CC1E4422236478500C321F8 /* LSCError.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CC1E4412236478500C321F8 /* LSCError.m */; };
+		7CC1E4432236478500C321F8 /* LSCError.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CC1E4412236478500C321F8 /* LSCError.m */; };
 		7CE3AE661F613F0600804F35 /* SubLuaLog.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CE3AE651F613F0600804F35 /* SubLuaLog.m */; };
 		7CE5F5B11F6236BD00AE09BF /* Chinese.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3ED1ECD498400177720 /* Chinese.m */; };
 		7CE5F5B21F6236BF00AE09BF /* English.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3F01ECD499600177720 /* English.m */; };
@@ -698,6 +700,8 @@
 		7CBA73E620FDBB8E003AD193 /* lundump.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lundump.h; sourceTree = "<group>"; };
 		7CBA750A20FDC264003AD193 /* lunity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lunity.h; sourceTree = "<group>"; };
 		7CBA750B20FDC264003AD193 /* lunity.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lunity.c; sourceTree = "<group>"; };
+		7CC1E4402236478500C321F8 /* LSCError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LSCError.h; path = Code/LSCError.h; sourceTree = "<group>"; };
+		7CC1E4412236478500C321F8 /* LSCError.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = LSCError.m; path = Code/LSCError.m; sourceTree = "<group>"; };
 		7CE3AE641F613F0600804F35 /* SubLuaLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SubLuaLog.h; sourceTree = "<group>"; };
 		7CE3AE651F613F0600804F35 /* SubLuaLog.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SubLuaLog.m; sourceTree = "<group>"; };
 		7CE5F5C91F623F2C00AE09BF /* LuaExportType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LuaExportType.swift; sourceTree = "<group>"; };
@@ -912,6 +916,8 @@
 				7C4E068A21EF24F700BAA2C8 /* LSCTable+Private.h */,
 				7C4E068221EF24A400BAA2C8 /* LSCTable.h */,
 				7C4E068321EF24A400BAA2C8 /* LSCTable.m */,
+				7CC1E4402236478500C321F8 /* LSCError.h */,
+				7CC1E4412236478500C321F8 /* LSCError.m */,
 			);
 			name = LuaScriptCore;
 			sourceTree = "<group>";
@@ -1664,6 +1670,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7CBA743020FDBB8E003AD193 /* lfunc.c in Sources */,
+				7CC1E4432236478500C321F8 /* LSCError.m in Sources */,
 				7C8EA2B11FCFBA5F000F58BF /* LSCExportMethodDescriptor.m in Sources */,
 				7CBA748E20FDBB8E003AD193 /* ltablib.c in Sources */,
 				7CBA742820FDBB8E003AD193 /* loadlib.c in Sources */,
@@ -1723,6 +1730,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7CBA742F20FDBB8E003AD193 /* lfunc.c in Sources */,
+				7CC1E4422236478500C321F8 /* LSCError.m in Sources */,
 				7C8EA2B01FCFBA5F000F58BF /* LSCExportMethodDescriptor.m in Sources */,
 				7CBA748D20FDBB8E003AD193 /* ltablib.c in Sources */,
 				7CBA742720FDBB8E003AD193 /* loadlib.c in Sources */,

@@ -12,6 +12,12 @@
 #include <stdio.h>
 #include "lua.hpp"
 
+extern "C"
+{
+    #include "ldo.h"
+}
+
+
 namespace cn
 {
     namespace vimfung
@@ -488,6 +494,15 @@ namespace cn
                  * @return 无
                  */
                 static int yieldThread(lua_State *state, int resultCount);
+
+                /**
+                 * 保护执行过程
+                 * @param state 状态
+                 * @param func 执行过程
+                 * @param userdata 用户数据
+                 * @return 执行状态，成功则返回LUA_OK
+                 */
+                static int rawRunProtected(lua_State *state, Pfunc func, void *userdata);
             };
             
         }

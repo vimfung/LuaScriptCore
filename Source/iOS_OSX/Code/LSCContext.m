@@ -13,6 +13,7 @@
 #import "LSCSession_Private.h"
 #import "LSCTuple.h"
 #import "LSCCoroutine+Private.h"
+#import "LSCError.h"
 #import <objc/runtime.h>
 
 /**
@@ -115,11 +116,8 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
 - (void)raiseExceptionWithMessage:(NSString *)message
 {
-    [self.optQueue performAction:^{
-        [LSCEngineAdapter error:self.mainSession.state message:message.UTF8String];
-    }];
-    
-    @throw [NSException exceptionWithName:@"LuaScriptCoreException" reason:message userInfo:nil];
+    LSCError *error = [[LSCError alloc] initWithSession:self.currentSession message:message];
+    [self raiseExceptionWithError:error];
 }
 
 - (void)onException:(LSCExceptionHandler)handler
@@ -461,6 +459,26 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
 #pragma mark - Private
 
+/**
+ 抛出异常
+
+ @param error 异常信息
+ */
+- (void)raiseExceptionWithError:(LSCError *)error
+{
+    if (error)
+    {
+        [self.optQueue performAction:^{
+            
+            [LSCEngineAdapter rawRunProtected:error.session.state
+                                         func:raiseLuaException
+                                     userdata:(void *)error.message.UTF8String];
+            
+        }];
+    }
+    
+}
+
 - (LSCSession *)makeSessionWithState:(lua_State *)state
                          lightweight:(BOOL)lightweight
 {
@@ -473,6 +491,9 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
 - (void)destroySession:(LSCSession *)session
 {
+    [self raiseExceptionWithError:session.lastError];
+    [session clearError];
+    
     if (_currentSession == session)
     {
         self.currentSession = session.prevSession;
@@ -561,6 +582,19 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 }
 
 #pragma mark - c func
+
+
+/**
+ 抛出Lua异常
+
+ @param state 状态
+ @param ud 异常信息
+ */
+static void raiseLuaException(lua_State *state, void *ud)
+{
+    const char *msg = (const char *)ud;
+    [LSCEngineAdapter error:state message:msg];
+}
 
 /**
  C方法路由处理器

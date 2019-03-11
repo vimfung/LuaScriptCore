@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "lua.h"
+#import "ldo.h"
 
 
 /**
@@ -511,5 +512,18 @@ typedef NS_ENUM(NSUInteger, LSCGCType) {
  */
 + (int)yielyThread:(lua_State *)state
        resultCount:(int)resultCount;
+
+
+/**
+ 保护执行过程
+
+ @param state 状态
+ @param func 处理过程
+ @param userdata 用户数据
+ @return 执行状态，成功返回LUA_OK
+ */
++ (int)rawRunProtected:(lua_State *)state
+                  func:(Pfunc)func
+              userdata:(void *)userdata;
 
 @end

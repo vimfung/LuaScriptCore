@@ -294,4 +294,11 @@
     return lua_yield(state, resultCount);
 }
 
++ (int)rawRunProtected:(lua_State *)state
+                  func:(Pfunc)func
+              userdata:(void *)userdata
+{
+    return luaD_rawrunprotected(state, func, userdata);
+}
+
 @end

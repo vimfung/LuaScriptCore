@@ -46,7 +46,6 @@ LOCAL_SRC_FILES := \
 	../../../../../lua-core/src/ltable.c \
 	../../../../../lua-core/src/ltablib.c \
 	../../../../../lua-core/src/ltm.c \
-	../../../../../lua-core/src/lua.hpp \
 	../../../../../lua-core/src/lundump.c \
 	../../../../../lua-core/src/lunity.c \
 	../../../../../lua-core/src/lutf8lib.c \
@@ -76,6 +75,7 @@ LOCAL_SRC_FILES := \
     ../../../../../lua-common/LuaExportPropertyDescriptor.cpp \
     ../../../../../lua-common/LuaOperationQueue.cpp \
     ../../../../../lua-common/LuaCoroutine.cpp \
+    ../../../../../lua-common/LuaError.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../lua-core/src

@@ -12,6 +12,7 @@
 #import "LSCTuple_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCEngineAdapter.h"
+#import "LSCError.h"
 
 @interface LSCSession ()
 
@@ -29,6 +30,7 @@
 {
     if (self = [super init])
     {
+        NSLog(@"----------make session = %p", self);
         _state = state;
         _context = context;
         self.lightweight = lightweight;
@@ -39,6 +41,7 @@
 
 - (void)dealloc
 {
+    NSLog(@"----------dealloc session = %p", self);
     if (!self.lightweight)
     {
         //释放内存
@@ -113,6 +116,16 @@
     }
     
     return nil;
+}
+
+- (void)reportLuaExceptionWithMessage:(NSString *)message
+{
+    _lastError = [[LSCError alloc] initWithSession:self message:message];
+}
+
+- (void)clearError
+{
+    _lastError = nil;
 }
 
 @end

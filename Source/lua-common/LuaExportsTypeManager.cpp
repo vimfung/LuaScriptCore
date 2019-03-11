@@ -33,18 +33,16 @@ using namespace cn::vimfung::luascriptcore;
 static int typeMappingHandler(lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
+    LuaSession *session = manager -> context() -> makeSession(state, false);
+
 
     if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
     {
-        LuaEngineAdapter::error(state, "please use the colon syntax to call the method");
-        return 0;
+        session -> reportLuaException("please use the colon syntax to call the method");
     }
-
-    LuaSession *session = manager -> context() -> makeSession(state, false);
-
-    if (LuaEngineAdapter::getTop(state) < 4)
+    else if (LuaEngineAdapter::getTop(state) < 4)
     {
-        LuaEngineAdapter::error(state, "`typeMapping` method need to pass 3 parameters");
+        session -> reportLuaException("`typeMapping` method need to pass 3 parameters");
     }
     else
     {
@@ -83,16 +81,27 @@ static int objectCreateHandler (lua_State *state)
 
     if (typeDescriptor != NULL)
     {
-        LuaObjectDescriptor *objectDescriptor = typeDescriptor -> createInstance(session);
+        try
+        {
+            LuaObjectDescriptor *objectDescriptor = typeDescriptor -> createInstance(session);
 
-        session -> checkException();
+            manager -> _initLuaObject(objectDescriptor);
+            objectDescriptor -> release();
+        }
+        catch (std::exception & e)
+        {
+            std::string errMsg = StringUtils::format("construct instance fail :  %s", e.what());
+            session -> reportLuaException(errMsg);
+        }
+        catch (...)
+        {
+            session -> reportLuaException("construct instance fail : Unknown Error!");
+        }
 
-        manager -> _initLuaObject(objectDescriptor);
-        objectDescriptor -> release();
     }
     else
     {
-        LuaEngineAdapter::error(state, "can't construct instance, Invalid type!");
+        session -> reportLuaException("can't construct instance, Invalid type!");
     }
 
     
@@ -112,43 +121,41 @@ static int subClassHandler (lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
     LuaContext *context = manager -> context();
+    LuaSession *session = context -> makeSession(state, false);
 
     if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
     {
-        LuaEngineAdapter::error(state, "please use the colon syntax to call the method");
-        return 0;
+        session -> reportLuaException("please use the colon syntax to call the method");
     }
-
-    if (LuaEngineAdapter::getTop(state) < 2 || LuaEngineAdapter::type(state, 2) != LUA_TSTRING)
+    else if (LuaEngineAdapter::getTop(state) < 2 || LuaEngineAdapter::type(state, 2) != LUA_TSTRING)
     {
-        LuaEngineAdapter::error(state, "missing parameter subclass name or argument type mismatch.");
-        return 0;
-    }
-    
-    LuaSession *session = context -> makeSession(state, false);
-
-    //获取传入类型
-    LuaExportTypeDescriptor *typeDescriptor = NULL;
-    LuaEngineAdapter::getField(state, 1, "_nativeType");
-    if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
-    {
-        typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
-    }
-    LuaEngineAdapter::pop(state, 1);
-
-    if (typeDescriptor != NULL)
-    {
-        std::string subclassName = LuaEngineAdapter::checkString(state, 2);
-
-        //构建子类型描述
-        LuaExportTypeDescriptor *subTypeDescriptor = typeDescriptor -> createSubType(session, subclassName);
-        manager -> exportsType(subTypeDescriptor);
-        manager -> _prepareExportsType(state, typeDescriptor);
-        subTypeDescriptor -> release();
+        session -> reportLuaException("missing parameter subclass name or argument type mismatch.");
     }
     else
     {
-        LuaEngineAdapter::error(state, "can't subclass type! Invalid base type.");
+        //获取传入类型
+        LuaExportTypeDescriptor *typeDescriptor = NULL;
+        LuaEngineAdapter::getField(state, 1, "_nativeType");
+        if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
+        {
+            typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+        }
+        LuaEngineAdapter::pop(state, 1);
+
+        if (typeDescriptor != NULL)
+        {
+            std::string subclassName = LuaEngineAdapter::checkString(state, 2);
+
+            //构建子类型描述
+            LuaExportTypeDescriptor *subTypeDescriptor = typeDescriptor -> createSubType(session, subclassName);
+            manager -> exportsType(subTypeDescriptor);
+            manager -> _prepareExportsType(state, typeDescriptor);
+            subTypeDescriptor -> release();
+        }
+        else
+        {
+            session -> reportLuaException("can't subclass type! Invalid base type.");
+        }
     }
     
     context -> destorySession(session);
@@ -164,18 +171,6 @@ static int subClassHandler (lua_State *state)
  */
 static int subclassOfHandler (lua_State *state)
 {
-    if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
-    {
-        LuaEngineAdapter::error(state, "Please use the colon syntax to call the method");
-        return 0;
-    }
-
-    if (LuaEngineAdapter::getTop(state) < 2 || LuaEngineAdapter::type(state, 2) != LUA_TTABLE)
-    {
-        LuaEngineAdapter::pushBoolean(state, false);
-        return 1;
-    }
-    
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
     
     LuaContext *context = manager -> context();
@@ -183,39 +178,50 @@ static int subclassOfHandler (lua_State *state)
 
     bool flag = false;
 
-    LuaExportTypeDescriptor *typeDescriptor = NULL;
-    if (LuaEngineAdapter::type(state, 1) == LUA_TTABLE)
+    if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
     {
-        LuaEngineAdapter::getField(state, 1, "_nativeClass");
-        if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
-        {
-            typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
-        }
-        LuaEngineAdapter::pop(state, 1);
+        session -> reportLuaException("Please use the colon syntax to call the method");
     }
-
-    LuaExportTypeDescriptor *checkTypeDescriptor = NULL;
-    if (LuaEngineAdapter::type(state, 2) == LUA_TTABLE)
+    else if (LuaEngineAdapter::getTop(state) < 2 || LuaEngineAdapter::type(state, 2) != LUA_TTABLE)
     {
-        LuaEngineAdapter::getField(state, 2, "_nativeType");
-        if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
-        {
-            checkTypeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
-        }
-        LuaEngineAdapter::pop(state, 1);
-    }
-
-    if (typeDescriptor != NULL && checkTypeDescriptor != NULL)
-    {
-        flag = typeDescriptor -> subtypeOfType(checkTypeDescriptor);
+        session -> reportLuaException("missing parameter `type` or argument type mismatch.");
     }
     else
     {
-        LuaEngineAdapter::error(state, "Unknown error.");
+        LuaExportTypeDescriptor *typeDescriptor = NULL;
+        if (LuaEngineAdapter::type(state, 1) == LUA_TTABLE)
+        {
+            LuaEngineAdapter::getField(state, 1, "_nativeClass");
+            if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
+            {
+                typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+            }
+            LuaEngineAdapter::pop(state, 1);
+        }
+
+        LuaExportTypeDescriptor *checkTypeDescriptor = NULL;
+        if (LuaEngineAdapter::type(state, 2) == LUA_TTABLE)
+        {
+            LuaEngineAdapter::getField(state, 2, "_nativeType");
+            if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
+            {
+                checkTypeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+            }
+            LuaEngineAdapter::pop(state, 1);
+        }
+
+        if (typeDescriptor != NULL && checkTypeDescriptor != NULL)
+        {
+            flag = typeDescriptor -> subtypeOfType(checkTypeDescriptor);
+        }
+        else
+        {
+            session -> reportLuaException("Unknown error.");
+        }
     }
 
     LuaEngineAdapter::pushBoolean(state, flag);
-    
+
     context -> destorySession(session);
     
     return 1;
@@ -248,7 +254,7 @@ static int classToStringHandler (lua_State *state)
     }
     else
     {
-        LuaEngineAdapter::error(state, "Can not describe unknown type.");
+        session -> reportLuaException("Can not describe unknown type.");
         LuaEngineAdapter::pushNil(state);
     }
     
@@ -280,9 +286,6 @@ static int objectDestroyHandler (lua_State *state)
             
             LuaObjectDescriptor *objDesc = args[0] -> toObject();
             objDesc -> getTypeDescriptor() -> destroyInstance(session, objDesc);
-
-            //检测异常
-            session -> checkException();
             
             int errFuncIndex = manager -> context() -> catchException();
             
@@ -349,7 +352,7 @@ static int prototypeToStringHandler (lua_State *state)
     }
     else
     {
-        LuaEngineAdapter::error(state, "can not describe unknown prototype.");
+        session -> reportLuaException("can not describe unknown prototype.");
         LuaEngineAdapter::pushNil(state);
     }
 
@@ -384,7 +387,7 @@ static int objectToStringHandler (lua_State *state)
     }
     else
     {
-        LuaEngineAdapter::error(state, "can not describe unknown object.");
+        session -> reportLuaException("can not describe unknown object.");
         LuaEngineAdapter::pushNil(state);
     }
     
@@ -408,45 +411,44 @@ static int objectToStringHandler (lua_State *state)
  */
 static int instanceOfHandler (lua_State *state)
 {
-    if (LuaEngineAdapter::getTop(state) < 2)
-    {
-        LuaEngineAdapter::pushBoolean(state, false);
-        return 1;
-    }
-
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
 
     LuaContext *context = manager -> context();
     LuaSession *session = context -> makeSession(state, false);
+    bool flag = false;
 
-    //获取实例类型
-    LuaExportTypeDescriptor *typeDescriptor = NULL;
-    LuaEngineAdapter::getField(state, 1, "_nativeType");
-    if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
+    if (LuaEngineAdapter::getTop(state) < 2)
     {
-        typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+        session -> reportLuaException("missing parameter `type` or argument type mismatch.");
     }
-    LuaEngineAdapter::pop(state, 1);
-
-    if (typeDescriptor != NULL)
+    else
     {
-        if (LuaEngineAdapter::type(state, 2) == LUA_TTABLE)
+        //获取实例类型
+        LuaExportTypeDescriptor *typeDescriptor = NULL;
+        LuaEngineAdapter::getField(state, 1, "_nativeType");
+        if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
         {
-            LuaEngineAdapter::getField(state, 2, "_nativeType");
-            if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
-            {
-                LuaExportTypeDescriptor *checkTypeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
-                
-                bool flag = typeDescriptor -> subtypeOfType(checkTypeDescriptor);
-                LuaEngineAdapter::pushBoolean(state, flag);
+            typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+        }
+        LuaEngineAdapter::pop(state, 1);
 
-                return 1;
+        if (typeDescriptor != NULL)
+        {
+            if (LuaEngineAdapter::type(state, 2) == LUA_TTABLE)
+            {
+                LuaEngineAdapter::getField(state, 2, "_nativeType");
+                if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
+                {
+                    LuaExportTypeDescriptor *checkTypeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, -1);
+
+                    flag = typeDescriptor -> subtypeOfType(checkTypeDescriptor);
+
+                }
             }
         }
     }
 
-    LuaEngineAdapter::pushBoolean(state, false);
-
+    LuaEngineAdapter::pushBoolean(state, flag);
     context -> destorySession(session);
     
     return 1;
@@ -464,16 +466,15 @@ static int classMethodRouteHandler(lua_State *state)
     
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
     const char *methodName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(2));
+    LuaContext *context = manager -> context();
+    LuaSession *session = context -> makeSession(state, false);
 
     if (LuaEngineAdapter::type(state, 1) != LUA_TTABLE)
     {
-        LuaEngineAdapter::error(state, "please use the colon syntax to call the method");
+        session -> reportLuaException("please use the colon syntax to call the method");
     }
     else
     {
-        LuaContext *context = manager -> context();
-        LuaSession *session = context -> makeSession(state, false);
-
         LuaExportTypeDescriptor *typeDescriptor = NULL;
         LuaEngineAdapter::getField(state, 1, "_nativeType");
         if (LuaEngineAdapter::type(state, -1) == LUA_TLIGHTUSERDATA)
@@ -490,10 +491,22 @@ static int classMethodRouteHandler(lua_State *state)
             LuaExportMethodDescriptor *methodDescriptor = typeDescriptor -> getClassMethod(methodName, args);
             if (methodDescriptor != NULL)
             {
-                LuaValue *retValue = methodDescriptor -> invoke(session, args);
+                LuaValue *retValue = NULL;
 
-                //检测异常
-                session -> checkException();
+                try
+                {
+                    retValue = methodDescriptor -> invoke(session, args);
+                }
+                catch (std::exception & e)
+                {
+                    std::string errMsg = StringUtils::format("call `%s` method fail : %s", methodName, e.what());
+                    session -> reportLuaException(errMsg);
+                }
+                catch (...)
+                {
+                    std::string errMsg = StringUtils::format("call `%s` method fail : Unknown Error!", methodName);
+                    session -> reportLuaException(errMsg);
+                }
 
                 if (retValue != NULL)
                 {
@@ -513,12 +526,12 @@ static int classMethodRouteHandler(lua_State *state)
         else
         {
             std::string errMsg = StringUtils::format("call `%s` method fail : invalid type", methodName);
-            LuaEngineAdapter::error(state, errMsg.c_str());
+            session -> reportLuaException(errMsg);
         }
-
-        //销毁会话
-        context -> destorySession(session);
     }
+
+    //销毁会话
+    context -> destorySession(session);
     
     return retCount;
 }
@@ -538,43 +551,55 @@ static int instanceMethodRouteHandler(lua_State *state)
     std::string methodName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(3));
     
     LuaContext *context = manager -> context();
+    LuaSession *session = context -> makeSession(state, false);
     
     if (LuaEngineAdapter::type(state, 1) != LUA_TUSERDATA)
     {
         std::string errMsg = "call " + methodName + " method error : missing self parameter, please call by instance:methodName(param)";
-        LuaEngineAdapter::error(state, errMsg.c_str());
+        session -> reportLuaException(errMsg);
         
         //回收内存
         LuaEngineAdapter::GC(state, LUA_GCCOLLECT, 0);
-        
-        return 0;
     }
-    
-    LuaSession *session = context -> makeSession(state, false);
-    LuaArgumentList args;
-    session -> parseArguments(args);
-    
-    LuaExportMethodDescriptor *methodDescriptor = typeDescriptor -> getInstanceMethod(methodName, args);
-    if (methodDescriptor != NULL)
+    else
     {
-        LuaValue *retValue = methodDescriptor -> invoke(session, args);
+        LuaArgumentList args;
+        session -> parseArguments(args);
 
-        //检测异常
-        session -> checkException();
-       
-        if (retValue != NULL)
+        LuaExportMethodDescriptor *methodDescriptor = typeDescriptor -> getInstanceMethod(methodName, args);
+        if (methodDescriptor != NULL)
         {
-            returnCount = session -> setReturnValue(retValue);
-            //释放返回值
-            retValue -> release();
+            LuaValue *retValue = NULL;
+
+            try
+            {
+                retValue = methodDescriptor -> invoke(session, args);
+            }
+            catch (std::exception & e)
+            {
+                std::string errMsg = StringUtils::format("call `%s` method fail : %s", methodName.c_str(), e.what());
+                session -> reportLuaException(errMsg);
+            }
+            catch (...)
+            {
+                std::string errMsg = StringUtils::format("call `%s` method fail : Unknown Error!", methodName.c_str());
+                session -> reportLuaException(errMsg);
+            }
+
+            if (retValue != NULL)
+            {
+                returnCount = session -> setReturnValue(retValue);
+                //释放返回值
+                retValue -> release();
+            }
         }
-    }
-    
-    //释放参数内存
-    for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
-    {
-        LuaValue *item = *it;
-        item -> release();
+
+        //释放参数内存
+        for (LuaArgumentList::iterator it = args.begin(); it != args.end() ; ++it)
+        {
+            LuaValue *item = *it;
+            item -> release();
+        }
     }
     
     context -> destorySession(session);
@@ -607,9 +632,23 @@ static int instanceNewIndexHandler (lua_State *state)
     {
         //调用对象属性
         LuaValue *value = LuaValue::TmpValue(manager -> context(), 3);
-        propertyDescriptor -> invokeSetter(session, instance, value);
-        //检测异常
-        session -> checkException();
+
+        try
+        {
+            propertyDescriptor -> invokeSetter(session, instance, value);
+        }
+        catch (std::exception & e)
+        {
+            std::string errMsg = StringUtils::format("set `%s` property fail : %s", key.c_str(), e.what());
+            session -> reportLuaException(errMsg);
+        }
+        catch (...)
+        {
+            std::string errMsg = StringUtils::format("set `%s` property fail : Unknown Error!", key.c_str());
+            session -> reportLuaException(errMsg);
+        }
+
+
         value -> release();
     }
     else
@@ -705,8 +744,6 @@ static int instanceIndexHandler(lua_State *state)
     {
         LuaEngineAdapter::pop(state, 1);
         retValueCount = exporter -> _getInstancePropertyValue(session, instance, instance -> getTypeDescriptor(), key);
-        //检测异常
-        session -> checkException();
     }
     
     LuaEngineAdapter::remove(state, -1-retValueCount);
@@ -1156,7 +1193,7 @@ void LuaExportsTypeManager::_setupExportEnv()
 
         if (!LuaEngineAdapter::isTable(state, -1))
         {
-            LuaEngineAdapter::error(state, "invalid '_G' object，setup the exporter fail.");
+            _context -> getCurrentSession() -> reportLuaException("invalid '_G' object，setup the exporter fail.");
             LuaEngineAdapter::pop(state, 1);
             return;
         }
@@ -1337,8 +1374,22 @@ int LuaExportsTypeManager::_getInstancePropertyValue(LuaSession *session,
                 {
                     if (propertyDescriptor -> canRead())
                     {
-                        LuaValue *retValue = propertyDescriptor -> invokeGetter(session, instance);
-                        retValueCount = session -> setReturnValue(retValue);
+                        try
+                        {
+                            LuaValue *retValue = propertyDescriptor -> invokeGetter(session, instance);
+                            retValueCount = session -> setReturnValue(retValue);
+                        }
+                        catch (std::exception & e)
+                        {
+                            std::string errMsg = StringUtils::format("get `%s` property fail : %s", propertyName.c_str(), e.what());
+                            session -> reportLuaException(errMsg);
+                        }
+                        catch (...)
+                        {
+                            std::string errMsg = StringUtils::format("get `%s` property fail : Unknown Error!", propertyName.c_str());
+                            session -> reportLuaException(errMsg);
+                        }
+
                     }
                     else
                     {

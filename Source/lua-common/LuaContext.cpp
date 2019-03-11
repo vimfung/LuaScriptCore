@@ -32,6 +32,8 @@
 
 #endif
 
+#include "LuaError.h"
+
 using namespace cn::vimfung::luascriptcore;
 
 /**
@@ -43,6 +45,17 @@ static const char * CatchLuaExceptionHandlerName = "__catchExcepitonHandler";
  需要回收内存上下文列表
  */
 static std::deque<LuaContext *> _needsGCContextList;
+
+/**
+ * 抛出Lua异常
+ * @param state 状态
+ * @param ud 用户数据
+*/
+static void _raiseLuaException(lua_State *state, void *ud)
+{
+    const char *msg = (const char *)ud;
+    LuaEngineAdapter::error(state, msg);
+}
 
 /**
  * 线程处理器
@@ -138,9 +151,6 @@ static int methodRouteHandler(lua_State *state) {
         session -> parseArguments(args);
 
         LuaValue *retValue = handler (context, methodName, args);
-
-        //检测异常
-        session -> checkException();
 
         if (retValue != NULL)
         {
@@ -381,6 +391,9 @@ LuaSession* LuaContext::makeSession(lua_State *state, bool lightweight)
 
 void LuaContext::destorySession(LuaSession *session)
 {
+    raiseException(session -> getLastError());
+    session -> clearError();
+
     if (_currentSession == session)
     {
         _currentSession = _currentSession -> prevSession;
@@ -412,8 +425,22 @@ void LuaContext::onException(LuaExceptionHandler handler)
 
 void LuaContext::raiseException (std::string const& message)
 {
-    getCurrentSession() -> reportLuaException(message);
-    throw std::runtime_error(message);
+    LuaError *error = new LuaError(getCurrentSession(), message);
+    raiseException(error);
+}
+
+void LuaContext::raiseException(LuaError *error)
+{
+    if (error != NULL)
+    {
+        _operationQueue -> performAction([=](){
+
+            LuaEngineAdapter::rawRunProtected(error -> getSession() -> getState(),
+                                              _raiseLuaException,
+                                              (void *)error -> getMessage().c_str());
+
+        });
+    }
 }
 
 void LuaContext::outputExceptionMessage(std::string const& message)

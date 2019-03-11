@@ -7,7 +7,11 @@
 //
 
 #import "LSCOperationQueue.h"
+#import "LSCEngineAdapter.h"
+#import "LSCSession_Private.h"
 #import <pthread.h>
+
+#import "ldo.h"
 
 @interface LSCOperationQueue ()
 {
@@ -26,9 +30,12 @@
         pthread_mutexattr_t attr;
         pthread_mutexattr_init(&attr);
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+        
         pthread_mutex_init(&_lock, &attr);
+        
         pthread_mutexattr_destroy(&attr);
     }
+    
     return self;
 }
 

@@ -56,7 +56,6 @@ add_library( # Sets the name of the library.
              ../../../../../lua-core/src/ltable.c
              ../../../../../lua-core/src/ltablib.c
              ../../../../../lua-core/src/ltm.c
-             ../../../../../lua-core/src/lua.hpp
              ../../../../../lua-core/src/lundump.c
              ../../../../../lua-core/src/lunity.c
              ../../../../../lua-core/src/lutf8lib.c
@@ -83,7 +82,8 @@ add_library( # Sets the name of the library.
              ../../../../../lua-common/LuaExportMethodDescriptor.cpp
              ../../../../../lua-common/LuaExportsTypeManager.cpp
              ../../../../../lua-common/LuaExportTypeDescriptor.cpp
-             ../../../../../lua-common/LuaExportPropertyDescriptor.cpp)
+             ../../../../../lua-common/LuaExportPropertyDescriptor.cpp
+             ../../../../../lua-common/LuaError.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because system libraries are included in the search path by

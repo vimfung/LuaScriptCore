@@ -23,6 +23,7 @@ namespace cn
             class LuaExportsTypeManager;
             class LuaExportTypeDescriptor;
             class LuaOperationQueue;
+            class LuaError;
 
             /**
              * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。
@@ -94,6 +95,14 @@ namespace cn
                  * 销毁上下文对象
                  */
                 ~LuaContext();
+
+            private:
+
+                /**
+                 * 抛出异常
+                 * @param error 异常信息
+                 */
+                void raiseException(LuaError *error);
 
             public:
 

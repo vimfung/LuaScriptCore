@@ -7,17 +7,20 @@
 #include "LuaTuple.h"
 #include "LuaEngineAdapter.hpp"
 #include "LuaOperationQueue.h"
+#include "LuaError.h"
 
 using namespace cn::vimfung::luascriptcore;
 
 LuaSession::LuaSession(lua_State *state, LuaContext *context, bool lightweight)
-    : _state(state), _context(context), _lightweight(lightweight), _hasErr(false)
+    : _state(state), _context(context), _lightweight(lightweight), _lastError(NULL)
 {
 
 }
 
 LuaSession::~LuaSession()
 {
+    clearError();
+
     if (!_lightweight)
     {
         _context -> gc();
@@ -84,23 +87,22 @@ int LuaSession::setReturnValue(LuaValue *value)
     return count;
 }
 
-void LuaSession::checkException()
+LuaError* LuaSession::getLastError()
 {
-    if (_hasErr)
+    return _lastError;
+}
+
+void LuaSession::clearError()
+{
+    if (_lastError != NULL)
     {
-        //清空错误信息
-        _hasErr = false;
-
-        _context -> getOperationQueue() -> performAction([=](){
-            LuaEngineAdapter::error(getState(), _lastErrMsg.c_str());
-        });
-
-        _lastErrMsg = "";
+        _lastError -> release();
+        _lastError = NULL;
     }
 }
 
 void LuaSession::reportLuaException(std::string const& message)
 {
-    _hasErr = true;
-    _lastErrMsg = message;
+    clearError();
+    _lastError = new LuaError(this, message);
 }

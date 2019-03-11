@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 @class LSCValue;
+@class LSCError;
 
 /**
  会话，从Lua调用原生方法时依靠此会话来处理参数和返回值
@@ -19,6 +20,11 @@
  前一个会话
  */
 @property (nonatomic, weak) LSCSession *prevSession;
+
+/**
+ 最近一次的错误信息
+ */
+@property (nonatomic, readonly) LSCError *lastError;
 
 /**
  解析并获取参数
@@ -42,5 +48,17 @@
  @returns 参数数量
  */
 - (int)setReturnValue:(LSCValue *)value;
+
+/**
+ 报告错误信息
+
+ @param message 错误信息
+ */
+- (void)reportLuaExceptionWithMessage:(NSString *)message;
+
+/**
+ 清除错误信息
+ */
+- (void)clearError;
 
 @end

@@ -285,3 +285,8 @@ int LuaEngineAdapter::yieldThread(lua_State *state, int resultCount)
 {
     return lua_yield(state, resultCount);
 }
+
+int LuaEngineAdapter::rawRunProtected(lua_State *state, Pfunc func, void *userdata)
+{
+    return luaD_rawrunprotected(state, func, userdata);
+}

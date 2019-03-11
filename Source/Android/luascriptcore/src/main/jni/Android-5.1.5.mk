@@ -71,6 +71,7 @@ LOCAL_SRC_FILES := \
     ../../../../../lua-common/LuaExportPropertyDescriptor.cpp \
     ../../../../../lua-common/LuaOperationQueue.cpp \
     ../../../../../lua-common/LuaCoroutine.cpp \
+    ../../../../../lua-common/LuaError.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../lua-core-5.1.5/src

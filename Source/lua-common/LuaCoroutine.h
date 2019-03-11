@@ -6,7 +6,7 @@
 #define ANDROID_LUATHREAD_H
 
 
-#include <lua.h>
+#include "lua.h"
 #include "LuaObject.h"
 
 namespace cn {

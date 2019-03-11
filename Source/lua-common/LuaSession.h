@@ -15,6 +15,7 @@ namespace cn {
 
             class LuaContext;
             class LuaValue;
+            class LuaError;
 
             /**
              * 会话，从Lua调用原生方法时依靠此会话来处理参数和返回值
@@ -27,8 +28,10 @@ namespace cn {
                 LuaContext *_context;
                 bool _lightweight;
 
-                bool _hasErr;                   //是否存在异常
-                std::string _lastErrMsg;        //记录最后一次异常信息
+//                bool _hasErr;                   //是否存在异常
+//                std::string _lastErrMsg;        //记录最后一次异常信息
+
+                LuaError *_lastError;           //最后一次异常信息
                 
             public:
 
@@ -67,6 +70,17 @@ namespace cn {
                  */
                 LuaSession* prevSession;
 
+                /**
+                 * 获取错误信息
+                 * @return true 错误，false 执行正常
+                 */
+                LuaError* getLastError();
+
+                /**
+                 * 清除错误
+                 */
+                void clearError();
+
             public:
 
                 /**
@@ -102,7 +116,7 @@ namespace cn {
                 /**
                  * 检测异常，如果存在异常则进行中断lua执行
                  */
-                void checkException();
+//                void checkException();
             };
         }
     }
