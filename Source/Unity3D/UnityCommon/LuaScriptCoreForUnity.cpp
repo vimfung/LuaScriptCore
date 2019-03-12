@@ -222,7 +222,7 @@ extern "C" {
         LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
         if (context != NULL && message != NULL)
         {
-            context -> getCurrentSession() -> reportLuaException(message);
+            context -> raiseException(message);
         }
     }
     

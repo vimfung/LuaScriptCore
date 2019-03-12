@@ -207,7 +207,6 @@ namespace cn.vimfung.luascriptcore
 		public void raiseException(string message)
 		{
 			NativeUtils.raiseException (_nativeObjectId, message);
-			throw new Exception (message);
 		}
 
 		/// <summary>

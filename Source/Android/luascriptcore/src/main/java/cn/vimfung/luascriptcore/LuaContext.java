@@ -224,7 +224,6 @@ public class LuaContext extends LuaBaseObject
     public void raiseException (String message) throws Error
     {
         LuaNativeUtil.raiseException(this, message);
-        throw new Error(message);
     }
 
     /**
