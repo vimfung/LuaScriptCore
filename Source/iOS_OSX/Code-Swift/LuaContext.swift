@@ -96,7 +96,18 @@ public class LuaContext: NSObject
     /// - Returns: 返回值对象
     public func evalScript (script : String) -> LuaValue
     {
-        let retValue : LSCValue = self.rawContext.evalScript(from: script);
+        return evalScript(script: script, scriptController: nil);
+    }
+    
+    /// 解析脚本
+    ///
+    /// - Parameters:
+    ///   - script: 脚本字符串
+    ///   - config: 执行脚本配置
+    /// - Returns: 返回值对象
+    public func evalScript (script : String, scriptController : LuaScriptController?) -> LuaValue
+    {
+        let retValue : LSCValue = self.rawContext.evalScript(from: script, scriptController: scriptController);
         return LuaValue(rawValue: retValue as LSCValue);
     }
     
@@ -106,10 +117,20 @@ public class LuaContext: NSObject
     /// - Returns: 返回值对象
     public func evalScript (filePath : String) -> LuaValue
     {
-        let retValue : LSCValue = self.rawContext.evalScript(fromFile: filePath);
-        return LuaValue(rawValue: retValue as LSCValue);
+        return evalScript(filePath: filePath, scriptController: nil);
     }
     
+    /// 解析脚本
+    ///
+    /// - Parameters:
+    ///   - filePath: 文件路径
+    ///   - config: 执行脚本配置
+    /// - Returns: 返回值对象
+    public func evalScript (filePath : String, scriptController : LuaScriptController?) -> LuaValue
+    {
+        let retValue : LSCValue = self.rawContext.evalScript(fromFile: filePath, scriptController: scriptController);
+        return LuaValue(rawValue: retValue as LSCValue);
+    }
     
     /// 调用方法
     ///
@@ -118,6 +139,20 @@ public class LuaContext: NSObject
     ///   - arguments: 参数列表
     /// - Returns: 返回值对象
     public func callMethod (methodName : String, arguments : Array<LuaValue>) -> LuaValue
+    {
+        return callMethod(methodName: methodName, arguments: arguments, scriptController: nil);
+    }
+    
+    /// 调用方法
+    ///
+    /// - Parameters:
+    ///   - methodName: 方法名称
+    ///   - arguments: 参数列表
+    ///   - config: 执行脚本配置
+    /// - Returns: 返回值对象
+    public func callMethod (methodName : String,
+                            arguments : Array<LuaValue>,
+                            scriptController : LuaScriptController?) -> LuaValue
     {
         self.registerMethod(methodName: "testMethod") { (arguments) -> LuaValue in
             return LuaValue(stringValue: "Hello World");
@@ -128,9 +163,8 @@ public class LuaContext: NSObject
             args.append(item.rawValue);
         }
         
-        let retValue : LSCValue = self.rawContext.callMethod(withName: methodName, arguments: args);
+        let retValue : LSCValue = self.rawContext.callMethod(withName: methodName, arguments: args, scriptController: scriptController);
         return LuaValue(rawValue: retValue as LSCValue);
-        
     }
     
     /// 注册方法
@@ -169,12 +203,25 @@ public class LuaContext: NSObject
     ///   - arguments: 参数列表
     public func runThread(function : LuaFunction, arguments: Array<LuaValue>) -> Void
     {
+        runThread(function: function, arguments: arguments, scriptController: nil);
+    }
+    
+    
+    /// 执行线程
+    ///
+    /// - Parameters:
+    ///   - function: 线程处理器
+    ///   - arguments: 参数列表
+    ///   - config: 执行脚本配置
+    public func runThread(function : LuaFunction,
+                          arguments: Array<LuaValue>,
+                          scriptController: LuaScriptController?) -> Void
+    {
         var args : Array<LSCValue> = Array<LSCValue>();
         for item in arguments {
             args.append(item.rawValue);
         }
         
-        rawContext.runThread(with: function, arguments: args);
+        rawContext.runThread(with: function, arguments: args, scriptController: scriptController);
     }
-    
 }

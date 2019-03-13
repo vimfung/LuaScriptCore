@@ -10,6 +10,7 @@
 #import "LSCTypeDefinied.h"
 
 @class LSCFunction;
+@class LSCScriptController;
 
 /**
  *  Lua上下文对象
@@ -82,6 +83,16 @@
 - (LSCValue *)evalScriptFromString:(NSString *)string;
 
 /**
+ 解析脚本
+
+ @param string 脚本字符串
+ @param scriptController 脚本控制器
+ @return 返回值
+ */
+- (LSCValue *)evalScriptFromString:(NSString *)string
+                  scriptController:(LSCScriptController *)scriptController;
+
+/**
  *  解析脚本
  *
  *  @param path 脚本路径
@@ -89,6 +100,17 @@
  *  @return 返回值
  */
 - (LSCValue *)evalScriptFromFile:(NSString *)path;
+
+
+/**
+ 解析脚本
+
+ @param path 脚本路径
+ @param scriptController 脚本控制器
+ @return 返回值
+ */
+- (LSCValue *)evalScriptFromFile:(NSString *)path
+                scriptController:(LSCScriptController *)scriptController;
 
 /**
  *  调用方法
@@ -98,7 +120,21 @@
  *
  *  @return 返回值
  */
-- (LSCValue *)callMethodWithName:(NSString *)methodName arguments:(NSArray<LSCValue *> *)arguments;
+- (LSCValue *)callMethodWithName:(NSString *)methodName
+                       arguments:(NSArray<LSCValue *> *)arguments;
+
+
+/**
+ 调用方法
+
+ @param methodName 方法名称
+ @param arguments 参数
+ @param scriptController 脚本控制器
+ @return 返回值
+ */
+- (LSCValue *)callMethodWithName:(NSString *)methodName
+                       arguments:(NSArray<LSCValue *> *)arguments
+                scriptController:(LSCScriptController *)scriptController;
 
 /**
  *  注册方法
@@ -117,5 +153,17 @@
  */
 - (void)runThreadWithFunction:(LSCFunction *)function
                     arguments:(NSArray<LSCValue *> *)arguments;
+
+
+/**
+ 将指定方法放入线程中执行
+
+ @param function 方法对象
+ @param arguments 参数
+ @param scriptController 脚本控制器
+ */
+- (void)runThreadWithFunction:(LSCFunction *)function
+                    arguments:(NSArray<LSCValue *> *)arguments
+             scriptController:(LSCScriptController *)scriptController;
 
 @end

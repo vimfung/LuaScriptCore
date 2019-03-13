@@ -26,7 +26,12 @@ public class LuaFunction extends LuaBaseObject
      */
     public LuaValue invoke(LuaValue[] arguments)
     {
-        return LuaNativeUtil.invokeFunction(_context, this, arguments);
+        return invoke(arguments, null);
+    }
+
+    public LuaValue invoke(LuaValue[] arguments, LuaScriptController scriptController)
+    {
+        return LuaNativeUtil.invokeFunction(_context, this, arguments, scriptController);
     }
 
     /**

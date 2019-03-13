@@ -72,6 +72,14 @@ public:
     static jobject getJavaLuaContext(JNIEnv *env, LuaContext *context);
 
     /**
+     * 创建Java的脚本控制器对象
+     * @param env
+     * @param scriptController
+     * @return
+     */
+    static jobject createJavaLuaScriptController(JNIEnv *env, LuaScriptController *scriptController);
+
+    /**
      * 关联对象实例
      *
      * @param env JNI环境

@@ -16,6 +16,7 @@ namespace cn {
             class LuaValue;
             class LuaObjectDecoder;
             class LuaObjectEncoder;
+            class LuaScriptController;
 
             /**
              * 方法对象, 表示了一个对应在Lua中的function，在lua中传入一个function到本地方法，将会自动转换为此类型的实例对象。
@@ -75,6 +76,14 @@ namespace cn {
                  * @return 返回值
                  */
                 LuaValue* invoke(LuaArgumentList *arguments);
+
+                /**
+                 * 调用方法
+                 * @param arguments 参数列表
+                 * @param scriptController 脚本控制器
+                 * @return 返回值
+                 */
+                LuaValue* invoke(LuaArgumentList *arguments, LuaScriptController *scriptController);
 
             public:
 

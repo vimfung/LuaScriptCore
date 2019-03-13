@@ -14,6 +14,7 @@ namespace cn {
         namespace luascriptcore {
 
             class LuaContext;
+            class LuaScriptController;
 
             /**
              * 线程
@@ -24,6 +25,7 @@ namespace cn {
                 LuaContext *_context;
                 std::string _exchangeId;
                 lua_State *_state;
+                LuaScriptController *_scriptController;   //脚本控制器
 
             public:
 
@@ -53,6 +55,17 @@ namespace cn {
                  */
                 lua_State* getState();
 
+                /**
+                 * 获取脚本控制器
+                 * @return 脚本控制器
+                 */
+                LuaScriptController* getScriptController();
+
+                /**
+                 * 设置脚本控制器
+                 * @param scriptController 脚本控制器，设置为NULL时表示清空控制器
+                 */
+                void setScriptController(LuaScriptController *scriptController);
             };
         }
     }

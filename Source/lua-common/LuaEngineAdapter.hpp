@@ -503,6 +503,15 @@ namespace cn
                  * @return 执行状态，成功则返回LUA_OK
                  */
                 static int rawRunProtected(lua_State *state, Pfunc func, void *userdata);
+
+                /**
+                 * 设置钩子
+                 * @param state 状态
+                 * @param hook 钩子函数
+                 * @param mask 钩子类型, 为0时表示取消钩子
+                 * @param count 数量，仅用于类型LUA_MASKCOUNT
+                 */
+                static void setHook(lua_State *state, lua_Hook hook, int mask, int count);
             };
             
         }

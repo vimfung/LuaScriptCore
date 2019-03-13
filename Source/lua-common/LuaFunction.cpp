@@ -78,13 +78,20 @@ void LuaFunction::push(lua_State *state, LuaOperationQueue *queue)
 
 LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
 {
+    return LuaFunction::invoke(arguments, NULL);
+}
+
+
+LuaValue* LuaFunction::invoke(LuaArgumentList *arguments, LuaScriptController *scriptController)
+{
     LuaValue *retValue = NULL;
 
     getContext() -> getOperationQueue() -> performAction([=, &retValue]() {
 
-        lua_State *state = getContext() -> getCurrentSession() -> getState();
+        LuaSession *session = getContext() -> getCurrentSession();
+        lua_State *state = session -> getState();
 
-
+        session->setScriptController(scriptController);
 
         int errFuncIndex = getContext() -> catchException();
         //记录栈顶位置，用于计算返回值数量
@@ -150,6 +157,8 @@ LuaValue* LuaFunction::invoke(LuaArgumentList *arguments)
 
         //回收内存
         getContext() -> gc();
+
+        session -> setScriptController(NULL);
 
     });
 

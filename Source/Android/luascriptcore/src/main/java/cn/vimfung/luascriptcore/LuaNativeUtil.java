@@ -83,9 +83,10 @@ public class LuaNativeUtil
      * 解析Lua脚本
      * @param contextNativeId   上下文的本地标识
      * @param script            Lua脚本
+     * @param scriptController  脚本控制器
      * @return                  返回值
      */
-    public static native LuaValue evalScript (int contextNativeId, String script);
+    public static native LuaValue evalScript (int contextNativeId, String script, LuaScriptController scriptController);
 
     /**
      * 解析Lua脚本文件
@@ -93,7 +94,7 @@ public class LuaNativeUtil
      * @param path              Lua脚本文件路径
      * @return                  返回值
      */
-    public static native LuaValue evalScriptFromFile (int contextNativeId, String path);
+    public static native LuaValue evalScriptFromFile (int contextNativeId, String path, LuaScriptController scriptController);
 
     /**
      * 执行Lua方法
@@ -102,7 +103,7 @@ public class LuaNativeUtil
      * @param arguments         方法参数列表
      * @return                  返回值
      */
-    public static native LuaValue callMethod (int contextNativeId, String methodName, LuaValue[] arguments);
+    public static native LuaValue callMethod (int contextNativeId, String methodName, LuaValue[] arguments, LuaScriptController scriptController);
 
     /**
      * 注册Lua方法
@@ -122,12 +123,14 @@ public class LuaNativeUtil
      * @param context   上下文对象
      * @param func      方法对象
      * @param arguments 参数列表
+     * @param scriptController 脚本控制器
      * @return  返回值
      */
     public static native LuaValue invokeFunction (
             LuaContext context,
             LuaFunction func,
-            LuaValue[] arguments);
+            LuaValue[] arguments,
+            LuaScriptController scriptController);
 
     /**
      * 注册类型
@@ -156,9 +159,31 @@ public class LuaNativeUtil
      * @param context 上下文对象
      * @param handler 事件处理器
      * @param arguments 参数列表
+     * @param scriptController 脚本控制器
      */
     public static native void runThread(LuaContext context,
                                         LuaFunction handler,
-                                        LuaValue[] arguments);
+                                        LuaValue[] arguments,
+                                        LuaScriptController scriptController);
+
+    /**
+     * 创建脚本控制器
+     *
+     * @return 脚本控制器
+     */
+    public static native LuaScriptController createScriptController ();
+
+    /**
+     * 设置脚本控制器超时时间
+     * @param controller 脚本控制器
+     * @param timeout 超时时间
+     */
+    public static native void scriptControllerSetTimeout(LuaScriptController controller, int timeout);
+
+    /**
+     * 强制退出脚本执行
+     * @param controller 脚本控制器
+     */
+    public static native void scriptControllerForceExit(LuaScriptController controller);
 
 }

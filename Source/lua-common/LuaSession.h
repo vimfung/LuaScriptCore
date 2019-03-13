@@ -16,6 +16,7 @@ namespace cn {
             class LuaContext;
             class LuaValue;
             class LuaError;
+            class LuaScriptController;
 
             /**
              * 会话，从Lua调用原生方法时依靠此会话来处理参数和返回值
@@ -27,12 +28,9 @@ namespace cn {
                 lua_State *_state;
                 LuaContext *_context;
                 bool _lightweight;
-
-//                bool _hasErr;                   //是否存在异常
-//                std::string _lastErrMsg;        //记录最后一次异常信息
-
                 LuaError *_lastError;           //最后一次异常信息
-                
+                LuaScriptController *_scriptController;   //脚本控制器
+
             public:
 
                 /**
@@ -77,6 +75,12 @@ namespace cn {
                 LuaError* getLastError();
 
                 /**
+                 * 获取脚本控制器
+                 * @return 脚本控制器
+                 */
+                LuaScriptController* getScriptController();
+
+                /**
                  * 清除错误
                  */
                 void clearError();
@@ -114,9 +118,11 @@ namespace cn {
                 void reportLuaException(std::string const& message);
 
                 /**
-                 * 检测异常，如果存在异常则进行中断lua执行
+                 * 设置脚本控制器
+                 * @param scriptController 脚本控制器，传入NULL表示清空脚本控制器
                  */
-//                void checkException();
+                void setScriptController(LuaScriptController *scriptController);
+
             };
         }
     }

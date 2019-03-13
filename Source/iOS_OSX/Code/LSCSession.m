@@ -12,7 +12,13 @@
 #import "LSCTuple_Private.h"
 #import "LSCContext_Private.h"
 #import "LSCEngineAdapter.h"
+#import "LSCScriptController+Private.h"
 #import "LSCError.h"
+
+/**
+ 执行脚本配置
+ */
+static NSMutableDictionary<NSString *, LSCSession *> *hookSessions = nil;
 
 @interface LSCSession ()
 
@@ -30,7 +36,6 @@
 {
     if (self = [super init])
     {
-        NSLog(@"----------make session = %p", self);
         _state = state;
         _context = context;
         self.lightweight = lightweight;
@@ -41,7 +46,8 @@
 
 - (void)dealloc
 {
-    NSLog(@"----------dealloc session = %p", self);
+    self.scriptController = nil;
+    
     if (!self.lightweight)
     {
         //释放内存
@@ -85,6 +91,53 @@
     return count;
 }
 
+- (void)setScriptController:(LSCScriptController *)scriptController
+{
+    if (!scriptController)
+    {
+        if (!_scriptController)
+        {
+            return;
+        }
+        
+        if (_scriptController)
+        {
+            //重置标识
+            _scriptController.isForceExit = NO;
+            _scriptController.startTime = 0;
+            _scriptController = nil;
+        }
+        
+        NSString *key = [NSString stringWithFormat:@"%p", _state];
+        [hookSessions removeObjectForKey:key];
+        
+        [_context.optQueue performAction:^{
+            [LSCEngineAdapter setHook:self -> _state hook:hookLineFunc mask:0 count:0];
+        }];
+        
+        return;
+    }
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        hookSessions = [NSMutableDictionary dictionary];
+    });
+    
+    NSString *key = [NSString stringWithFormat:@"%p", _state];
+    LSCSession *oldSession = hookSessions[key];
+    if (oldSession)
+    {
+        oldSession.scriptController = nil;
+    }
+    
+    _scriptController = scriptController;
+    [hookSessions setObject:self forKey:key];
+    
+    [_context.optQueue performAction:^{
+        [LSCEngineAdapter setHook:self -> _state hook:hookLineFunc mask:LUA_MASKLINE count:0];
+    }];
+}
+
 #pragma mark - Private
 
 
@@ -126,6 +179,33 @@
 - (void)clearError
 {
     _lastError = nil;
+}
+
+#pragma mark - lua hook method
+
+static void hookLineFunc(lua_State *state, lua_Debug *ar)
+{
+    NSString *key = [NSString stringWithFormat:@"%p", state];
+    LSCSession *session = hookSessions[key];
+    LSCScriptController *scriptController = session.scriptController;
+    
+    if (scriptController.isForceExit)
+    {
+        [LSCEngineAdapter error:state message:"script exit..."];
+    }
+    else if (scriptController.timeout > 0)
+    {
+        if (scriptController.startTime < 1)
+        {
+            scriptController.startTime = CFAbsoluteTimeGetCurrent();
+        }
+        
+        if (CFAbsoluteTimeGetCurrent() - scriptController.startTime > scriptController.timeout)
+        {
+            [LSCEngineAdapter error:state message:"script exit..."];
+        }
+    }
+    
 }
 
 @end

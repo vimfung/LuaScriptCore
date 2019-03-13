@@ -54,7 +54,7 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_catchExceptio
  * Signature: (ILjava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;
  */
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_evalScript
-  (JNIEnv *, jclass, jint, jstring);
+  (JNIEnv *, jclass, jint, jstring, jobject);
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
@@ -62,7 +62,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_evalScript
  * Signature: (ILjava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;
  */
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_evalScriptFromFile
-  (JNIEnv *, jclass, jint, jstring);
+  (JNIEnv *, jclass, jint, jstring, jobject);
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
@@ -70,7 +70,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_evalScript
  * Signature: (ILjava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;
  */
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_callMethod
-  (JNIEnv *, jclass, jint, jstring, jobjectArray);
+  (JNIEnv *, jclass, jint, jstring, jobjectArray, jobject);
 
 /*
  * Class:     cn_vimfung_luascriptcore_LuaNativeUtil
@@ -94,7 +94,7 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_releaseNative
  * Signature: (Lcn/vimfung/luascriptcore/LuaContext;Lcn/vimfung/luascriptcore/LuaFunction;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;
  */
 JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_invokeFunction
-  (JNIEnv *, jclass, jobject, jobject, jobjectArray);
+  (JNIEnv *, jclass, jobject, jobject, jobjectArray, jobject);
 
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_retainValue
         (JNIEnv *, jclass, jobject, jobject);
@@ -107,7 +107,13 @@ JNIEXPORT jboolean JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_registerT
 
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_raiseException(JNIEnv *, jclass, jobject, jstring);
 
-JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_runThread(JNIEnv *, jclass, jobject, jobject, jobjectArray);
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_runThread(JNIEnv *, jclass, jobject, jobject, jobjectArray, jobject);
+
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_createScriptController(JNIEnv *, jclass);
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_scriptControllerSetTimeout(JNIEnv *, jclass, jobject, jint);
+
+JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_scriptControllerForceExit(JNIEnv *, jclass, jobject);
 
 #ifdef __cplusplus
 }

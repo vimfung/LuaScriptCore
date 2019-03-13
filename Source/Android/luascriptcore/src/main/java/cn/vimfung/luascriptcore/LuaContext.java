@@ -286,11 +286,22 @@ public class LuaContext extends LuaBaseObject
      */
     public LuaValue evalScript (String script)
     {
+       return evalScript(script, null);
+    }
+
+    /**
+     * 解析Lua脚本
+     * @param script    脚本
+     * @param scriptController  脚本控制器
+     * @return 执行后返回值
+     */
+    public LuaValue evalScript (String script, LuaScriptController scriptController)
+    {
         //拷贝资源包中的所有lua文件到临时目录中
         //fixed : lua字符串包含对资源包中文件的引用
         setupLuaFolder();
 
-        return LuaNativeUtil.evalScript(_nativeId, script);
+        return LuaNativeUtil.evalScript(_nativeId, script, scriptController);
     }
 
     /**
@@ -299,6 +310,17 @@ public class LuaContext extends LuaBaseObject
      * @return  执行后返回值
      */
     public LuaValue evalScriptFromFile (String filePath)
+    {
+        return evalScriptFromFile(filePath, null);
+    }
+
+    /**
+     * 解析Lua脚本文件
+     * @param filePath Lua文件路径
+     * @param scriptController  脚本控制器
+     * @return 执行后返回值
+     */
+    public LuaValue evalScriptFromFile (String filePath, LuaScriptController scriptController)
     {
         //拷贝资源包中的所有lua文件到临时目录中
         //fixed : 其他路径下的lua文件包含对资源包中文件的引用
@@ -319,7 +341,7 @@ public class LuaContext extends LuaBaseObject
         }
 
         File f = new File(filePath);
-        retValue = LuaNativeUtil.evalScriptFromFile(_nativeId, filePath);
+        retValue = LuaNativeUtil.evalScriptFromFile(_nativeId, filePath, scriptController);
 
         if (retValue == null)
         {
@@ -337,7 +359,19 @@ public class LuaContext extends LuaBaseObject
      */
     public LuaValue callMethod(String methodName, LuaValue[] arguments)
     {
-        return LuaNativeUtil.callMethod(_nativeId, methodName, arguments);
+        return callMethod(methodName, arguments, null);
+    }
+
+    /**
+     * 调用Lua的方法
+     * @param methodName    方法名称
+     * @param arguments     参数列表
+     * @param scriptController  脚本控制器
+     * @return  返回值
+     */
+    public LuaValue callMethod(String methodName, LuaValue[] arguments, LuaScriptController scriptController)
+    {
+        return LuaNativeUtil.callMethod(_nativeId, methodName, arguments, scriptController);
     }
 
     /**
@@ -365,7 +399,18 @@ public class LuaContext extends LuaBaseObject
      */
     public void runThread(LuaFunction handler, LuaValue[] arguments)
     {
-        LuaNativeUtil.runThread(this, handler, arguments);
+        runThread(handler, arguments, null);
+    }
+
+    /**
+     * 执行线程
+     * @param handler 线程处理器
+     * @param arguments 参数列表
+     * @param scriptController 脚本控制器
+     */
+    public void runThread(LuaFunction handler, LuaValue[] arguments, LuaScriptController scriptController)
+    {
+        LuaNativeUtil.runThread(this, handler, arguments, scriptController);
     }
 
     /**

@@ -17,18 +17,28 @@
 
 LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject context)
 {
-    jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::contextClass(env), "_nativeId", "I");
-    jint nativeId = env -> GetIntField(context, nativeIdFieldId);
+    if (context != NULL)
+    {
+        jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::contextClass(env), "_nativeId", "I");
+        jint nativeId = env -> GetIntField(context, nativeIdFieldId);
 
-    return (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+        return (LuaContext *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+    }
+
+    return NULL;
 }
 
-LuaThread* LuaJavaConverter::convertToThreadByJThread(JNIEnv *env, jobject thread)
+LuaScriptController* LuaJavaConverter::convertToScriptControllerByJScriptController(JNIEnv *env, jobject scriptController)
 {
-    jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::threadClass(env), "_nativeId", "I");
-    jint nativeId = env -> GetIntField(thread, nativeIdFieldId);
+    if (scriptController != NULL)
+    {
+        jfieldID nativeIdFieldId = env -> GetFieldID(LuaJavaType::scriptControllerClass(env), "_nativeId", "I");
+        jint nativeId = env -> GetIntField(scriptController, nativeIdFieldId);
 
-    return (LuaThread *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+        return (LuaScriptController *)LuaObjectManager::SharedInstance() -> getObject(nativeId);
+    }
+
+    return NULL;
 }
 
 LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *context, jobject object)
@@ -366,7 +376,6 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         if (pointer != NULL)
         {
             value = new LuaValue(pointer);
-            pointer -> release();
         }
         else
         {
@@ -383,7 +392,6 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
         if (function != NULL)
         {
             value = new LuaValue(function);
-            function -> release();
         }
         else
         {
@@ -591,7 +599,6 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             if (pointer != NULL)
             {
                 retValue = new LuaValue(pointer);
-                pointer -> release();
             }
             else
             {
@@ -614,7 +621,6 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
             if (function != NULL)
             {
                 retValue = new LuaValue(function);
-                function -> release();
             }
             else
             {

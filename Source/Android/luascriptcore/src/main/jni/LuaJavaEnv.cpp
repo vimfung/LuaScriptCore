@@ -16,6 +16,7 @@
 #include "LuaContext.h"
 #include "LuaDefine.h"
 #include "LuaCoroutine.h"
+#include "LuaScriptController.h"
 
 /**
  * Java虚拟机对象
@@ -298,6 +299,19 @@ jobject LuaJavaEnv::createJavaLuaContext(JNIEnv *env, LuaContext *context)
     _javaObjectMap[context -> objectId()] = env -> NewWeakGlobalRef(jcontext);
 
     return jcontext;
+}
+
+jobject LuaJavaEnv::createJavaLuaScriptController(JNIEnv *env, LuaScriptController *scriptController)
+{
+    static jclass scriptControllerClass = LuaJavaType::scriptControllerClass(env);
+    static jmethodID initMethodId = env -> GetMethodID(scriptControllerClass, "<init>", "(I)V");
+
+    int nativeId = LuaObjectManager::SharedInstance() -> putObject(scriptController);
+    jobject jScriptController = env -> NewObject(scriptControllerClass, initMethodId, nativeId);
+
+    _javaObjectMap[scriptController -> objectId()] = env -> NewWeakGlobalRef(jScriptController);
+
+    return jScriptController;
 }
 
 jobject LuaJavaEnv::getJavaLuaContext(JNIEnv *env, LuaContext *context)

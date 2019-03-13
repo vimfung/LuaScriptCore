@@ -168,11 +168,20 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
 - (LSCValue *)evalScriptFromString:(NSString *)string
 {
+    return [self evalScriptFromString:string scriptController:nil];
+}
+
+- (LSCValue *)evalScriptFromString:(NSString *)string
+                  scriptController:(LSCScriptController *)scriptController
+{
     __block LSCValue *returnValue = nil;
     LSCOperationQueue *queue = self.optQueue;
     [queue performAction:^{
         
-        lua_State *state = self.currentSession.state;
+        LSCSession *session = self.currentSession;
+        lua_State *state = session.state;
+        
+        session.scriptController = scriptController;
         
         int errFuncIndex = [self catchLuaExceptionWithState:state queue:queue];
         int curTop = [LSCEngineAdapter getTop:state];
@@ -219,12 +228,20 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         //回收内存
         [self gc];
         
+        session.scriptController = nil;
+        
     }];
     
     return returnValue;
 }
 
 - (LSCValue *)evalScriptFromFile:(NSString *)path
+{
+    return [self evalScriptFromFile:path scriptController:nil];
+}
+
+- (LSCValue *)evalScriptFromFile:(NSString *)path
+                scriptController:(LSCScriptController *)scriptController
 {
     __block LSCValue *retValue = nil;
     
@@ -246,8 +263,10 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
             scriptFilePath = [NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] resourcePath], scriptFilePath];
         }
         
-        lua_State *state = self.currentSession.state;
+        LSCSession *session = self.currentSession;
+        lua_State *state = session.state;
         
+        session.scriptController = scriptController;
         
         int errFuncIndex = [self catchLuaExceptionWithState:state queue:queue];
         int curTop = [LSCEngineAdapter getTop:state];
@@ -293,6 +312,8 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         //回收内存
         [self gc];
         
+        session.scriptController = nil;
+        
     }];
     
     return retValue;
@@ -301,12 +322,22 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 - (LSCValue *)callMethodWithName:(NSString *)methodName
                        arguments:(NSArray<LSCValue *> *)arguments
 {
+    return [self callMethodWithName:methodName arguments:arguments scriptController:nil];
+}
+
+- (LSCValue *)callMethodWithName:(NSString *)methodName
+                       arguments:(NSArray<LSCValue *> *)arguments
+                scriptController:(LSCScriptController *)scriptController
+{
     LSCOperationQueue *queue = self.optQueue;
     __block LSCValue *resultValue = nil;
     [queue performAction:^{
         
-        lua_State *state = self.currentSession.state;
-
+        LSCSession *session = self.currentSession;
+        lua_State *state = session.state;
+        
+        session.scriptController = scriptController;
+        
         int errFuncIndex = [self catchLuaExceptionWithState:state queue:queue];
         int curTop = [LSCEngineAdapter getTop:state];
         
@@ -362,6 +393,8 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         //内存回收
         [self gc];
         
+        session.scriptController = nil;
+        
     }];
     
     return resultValue;
@@ -396,6 +429,13 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 - (void)runThreadWithFunction:(LSCFunction *)function
                     arguments:(NSArray<LSCValue *> *)arguments
 {
+    [self runThreadWithFunction:function arguments:arguments scriptController:nil];
+}
+
+- (void)runThreadWithFunction:(LSCFunction *)function
+                    arguments:(NSArray<LSCValue *> *)arguments
+             scriptController:(LSCScriptController *)scriptController
+{
     //创建一个协程状态
     __weak typeof(self) theContext = self;
     dispatch_queue_t queue = dispatch_queue_create("ThreadQueue", DISPATCH_QUEUE_SERIAL);
@@ -403,6 +443,8 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         
         LSCCoroutine *coroutine = [[LSCCoroutine alloc] initWithContext:theContext];
         lua_State *state = coroutine.state;
+        
+        coroutine.scriptController = scriptController;
         
         //获取捕获错误方法索引
         int errFuncIndex = 0;
@@ -453,6 +495,8 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         
         //释放内存
         [theContext gc];
+        
+        coroutine.scriptController = nil;
         
     });
 }

@@ -16,6 +16,7 @@ namespace cn {
             class LuaContext;
             class LuaValue;
             class LuaThread;
+            class LuaScriptController;
 
         }
     }
@@ -42,10 +43,10 @@ public:
      * 转换Java中的LuaThread为C++中的LuaThread
      *
      * @param env JNI环境
-     * @param thread Java中的LuaThread实例对象
-     * @return C++中的LuaThread实例对象
+     * @param scriptController Java中的LuaScriptController对象
+     * @return C++中的LuaScriptController实例对象
      */
-    static LuaThread* convertToThreadByJThread(JNIEnv *env, jobject thread);
+    static LuaScriptController* convertToScriptControllerByJScriptController(JNIEnv *env, jobject scriptController);
 
     /**
      * 转换Java中的Object为C++中的LuaValue

@@ -29,6 +29,7 @@
 
 #include <sys/time.h>
 #include <unistd.h>
+#include <LuaDefine.h>
 
 #endif
 
@@ -62,11 +63,15 @@ static void _raiseLuaException(lua_State *state, void *ud)
  * @param context 上下文对象
  * @param handler 线程处理器
  * @param arguments 参数列表
+ * @param scriptController 脚本控制器
  */
-static void threadHandler(LuaContext *context ,LuaFunction *handler, LuaArgumentList *arguments)
+static void threadHandler(LuaContext *context, LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController)
 {
     LuaCoroutine *coroutine = new LuaCoroutine(context);
     lua_State *state = coroutine -> getState();
+
+    //设置脚本执行配置
+    coroutine->setScriptController(scriptController);
 
     //获取捕获错误方法索引
     int errFuncIndex = 0;
@@ -94,7 +99,7 @@ static void threadHandler(LuaContext *context ,LuaFunction *handler, LuaArgument
             context -> getDataExchanger() -> pushStack(item);
         }
 
-        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == 0)
+        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == LUA_OK)
         {
             returnCount = LuaEngineAdapter::getTop(state) - top;
         }
@@ -105,6 +110,7 @@ static void threadHandler(LuaContext *context ,LuaFunction *handler, LuaArgument
         }
 
         //弹出返回值
+        LOGI("=========thread completed");
         LuaEngineAdapter::pop(state, returnCount);
     }
     else
@@ -126,6 +132,12 @@ static void threadHandler(LuaContext *context ,LuaFunction *handler, LuaArgument
 
     //释放内存
     context -> gc();
+
+    //取消设置脚本执行配置
+    coroutine -> setScriptController(NULL);
+
+    //释放协程
+    coroutine -> release();
 }
 
 /**
@@ -520,11 +532,20 @@ LuaValue* LuaContext::getGlobal(std::string const& name)
 
 LuaValue* LuaContext::evalScript(std::string const& script)
 {
+    return LuaContext::evalScript(script, NULL);
+}
+
+LuaValue* LuaContext::evalScript(std::string const& script, LuaScriptController *scriptController)
+{
     LuaValue *retValue = NULL;
 
-    _operationQueue -> performAction([this, &script, &retValue](){
+    _operationQueue -> performAction([this, &script, &retValue, &scriptController](){
 
-        lua_State *state = getCurrentSession() -> getState();
+        LuaSession *session = getCurrentSession();
+        lua_State *state = session -> getState();
+
+        //设置脚本执行配置
+        session->setScriptController(scriptController);
 
         int errFuncIndex = catchException();
         int curTop = LuaEngineAdapter::getTop(state);
@@ -575,6 +596,9 @@ LuaValue* LuaContext::evalScript(std::string const& script)
         //释放内存
         gc();
 
+        //取消脚本执行配置
+        session -> setScriptController(NULL);
+
     });
 
     return retValue;
@@ -582,11 +606,20 @@ LuaValue* LuaContext::evalScript(std::string const& script)
 
 LuaValue* LuaContext::evalScriptFromFile(std::string const& path)
 {
+    return LuaContext::evalScriptFromFile(path, NULL);
+}
+
+LuaValue* LuaContext::evalScriptFromFile(std::string const& path, LuaScriptController *scriptController)
+{
     LuaValue *retValue = NULL;
 
-    _operationQueue -> performAction([this, &path, &retValue](){
+    _operationQueue -> performAction([this, &path, &retValue, &scriptController](){
 
-        lua_State *state = getCurrentSession() -> getState();
+        LuaSession *session = getCurrentSession();
+        lua_State *state = session -> getState();
+
+        //设置脚本执行配置
+        session->setScriptController(scriptController);
 
         int errFuncIndex = catchException();
         int curTop = LuaEngineAdapter::getTop(state);
@@ -637,6 +670,9 @@ LuaValue* LuaContext::evalScriptFromFile(std::string const& path)
         //释放内存
         gc();
 
+        //取消脚本执行配置
+        session -> setScriptController(NULL);
+
     });
 
     return retValue;
@@ -644,10 +680,19 @@ LuaValue* LuaContext::evalScriptFromFile(std::string const& path)
 
 LuaValue* LuaContext::callMethod(std::string const& methodName, LuaArgumentList *arguments)
 {
-    LuaValue *resultValue = NULL;
-    _operationQueue -> performAction([this, &methodName, &arguments, &resultValue]() {
+    return LuaContext::callMethod(methodName, arguments, NULL);
+}
 
-        lua_State *state = getCurrentSession() -> getState();
+LuaValue* LuaContext::callMethod(std::string const& methodName, LuaArgumentList *arguments, LuaScriptController *scriptController)
+{
+    LuaValue *resultValue = NULL;
+    _operationQueue -> performAction([this, &methodName, &arguments, &resultValue, &scriptController]() {
+
+        LuaSession *session = getCurrentSession();
+        lua_State *state = session -> getState();
+
+        //设置脚本执行配置
+        session->setScriptController(scriptController);
 
         int errFuncIndex = catchException();
         int curTop = LuaEngineAdapter::getTop(state);
@@ -713,6 +758,9 @@ LuaValue* LuaContext::callMethod(std::string const& methodName, LuaArgumentList 
         //回收内存
         gc();
 
+        //取消设置脚本执行配置
+        session -> setScriptController(NULL);
+
     });
 
     return resultValue;
@@ -739,6 +787,11 @@ void LuaContext::registerMethod(std::string const& methodName, LuaMethodHandler 
 
 void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments)
 {
+    LuaContext::runThread(handler, arguments, NULL);
+}
+
+void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController)
+{
     //赋值参数列表
     LuaArgumentList *args = new LuaArgumentList();
     for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
@@ -748,7 +801,7 @@ void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments)
         args -> push_back(item);
     }
 
-    std::thread t(&threadHandler, this, handler, args);
+    std::thread t(&threadHandler, this, handler, args, scriptController);
     t.detach();
 }
 

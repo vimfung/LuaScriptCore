@@ -290,3 +290,8 @@ int LuaEngineAdapter::rawRunProtected(lua_State *state, Pfunc func, void *userda
 {
     return luaD_rawrunprotected(state, func, userdata);
 }
+
+void LuaEngineAdapter::setHook(lua_State *state, lua_Hook hook, int mask, int count)
+{
+    lua_sethook(state, hook, mask, count);
+}

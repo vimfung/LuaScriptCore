@@ -526,4 +526,18 @@ typedef NS_ENUM(NSUInteger, LSCGCType) {
                   func:(Pfunc)func
               userdata:(void *)userdata;
 
+
+/**
+ 设置钩子
+
+ @param state 状态
+ @param hook 钩子函数
+ @param mask 钩子类型, 为0时表示取消钩子
+ @param count 数量，仅用于类型LUA_MASKCOUNT
+ */
++ (void)setHook:(lua_State *)state
+           hook:(lua_Hook)hook
+           mask:(int)mask
+          count:(int)count;
+
 @end

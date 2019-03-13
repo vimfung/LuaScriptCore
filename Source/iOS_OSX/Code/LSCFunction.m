@@ -37,10 +37,19 @@
 
 - (LSCValue *)invokeWithArguments:(NSArray<LSCValue *> *)arguments
 {
+    return [self invokeWithArguments:arguments scriptController:nil];
+}
+
+- (LSCValue *)invokeWithArguments:(NSArray<LSCValue *> *)arguments
+                 scriptController:(LSCScriptController *)scriptController
+{
     __block LSCValue *retValue = nil;
     [self.context.optQueue performAction:^{
         
-        lua_State *state = self.context.currentSession.state;
+        LSCSession *session = self.context.currentSession;
+        lua_State *state = session.state;
+        
+        session.scriptController = scriptController;
         
         int errFuncIndex = [self.context catchLuaExceptionWithState:state
                                                               queue:self.context.optQueue];
@@ -101,6 +110,8 @@
         
         //释放内存
         [self.context gc];
+        
+        session.scriptController = nil;
         
     }];
     

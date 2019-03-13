@@ -10,6 +10,7 @@
 
 @class LSCValue;
 @class LSCError;
+@class LSCScriptController;
 
 /**
  会话，从Lua调用原生方法时依靠此会话来处理参数和返回值
@@ -24,7 +25,12 @@
 /**
  最近一次的错误信息
  */
-@property (nonatomic, readonly) LSCError *lastError;
+@property (nonatomic, strong, readonly) LSCError *lastError;
+
+/**
+ 执行脚本配置
+ */
+@property (nonatomic, strong) LSCScriptController *scriptController;
 
 /**
  解析并获取参数

@@ -24,6 +24,7 @@ namespace cn
             class LuaExportTypeDescriptor;
             class LuaOperationQueue;
             class LuaError;
+            class LuaScriptController;
 
             /**
              * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。
@@ -199,11 +200,27 @@ namespace cn
                 LuaValue* evalScript(std::string const& script);
 
                 /**
+                 * 解析脚本
+                 * @param script 脚本内容
+                 * @param scriptController 脚本控制器
+                 * @return 返回值
+                 */
+                LuaValue* evalScript(std::string const& script, LuaScriptController *scriptController);
+
+                /**
                  * 从lua文件中解析脚本
                  *
                  * @param path lua文件路径
                  */
                 LuaValue* evalScriptFromFile(std::string const& path);
+
+                /**
+                 * 从lua文件中解析脚本
+                 * @param path lua文件路径
+                 * @param scriptController 脚本控制器
+                 * @return 返回值
+                 */
+                LuaValue* evalScriptFromFile(std::string const& path, LuaScriptController *scriptController);
 
                 /**
                  * 调用方法
@@ -212,6 +229,15 @@ namespace cn
                  * @param arguments 参数列表
                  */
                 LuaValue* callMethod(std::string const& methodName, LuaArgumentList *arguments);
+
+                /**
+                 * 调用方法
+                 * @param methodName 方法名称
+                 * @param arguments 参数列表
+                 * @param scriptController 脚本控制器
+                 * @return 返回值
+                 */
+                LuaValue* callMethod(std::string const& methodName, LuaArgumentList *arguments, LuaScriptController *scriptController);
 
                 /**
                  * 注册方法
@@ -227,6 +253,14 @@ namespace cn
                  * @param arguments 参数列表
                  */
                 void runThread(LuaFunction *handler, LuaArgumentList *arguments);
+
+                /**
+                 * 执行线程
+                 * @param handler 线程处理器
+                 * @param arguments 参数列表
+                 * @param scriptController 脚本控制器
+                 */
+                void runThread(LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController);
 
             public:
                 

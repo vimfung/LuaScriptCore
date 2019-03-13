@@ -301,4 +301,12 @@
     return luaD_rawrunprotected(state, func, userdata);
 }
 
++ (void)setHook:(lua_State *)state
+           hook:(lua_Hook)hook
+           mask:(int)mask
+          count:(int)count
+{
+    lua_sethook(state, hook, mask, count);
+}
+
 @end

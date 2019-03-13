@@ -11,6 +11,7 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @class LSCContext;
+@class LSCScriptController;
 
 /**
  线程对象
@@ -23,10 +24,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, weak, readonly) LSCContext *context;
 
 /**
+ 执行脚本配置
+ */
+@property (nonatomic, strong, nullable) LSCScriptController *scriptController;
+
+/**
  初始化
 
  @param context 上下文对象
- @param handler 线程处理
  @return 线程对象
  */
 - (instancetype)initWithContext:(LSCContext *)context;

@@ -253,6 +253,22 @@
 		7C8EA2C11FCFBB06000F58BF /* LSCExportTypeAnnotation.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2971FCFBA11000F58BF /* LSCExportTypeAnnotation.h */; };
 		7C930FC71FC67D9900A3C035 /* Test1.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C930FC61FC67D9900A3C035 /* Test1.lua */; };
 		7C980A731EAF48A20052914E /* Test2.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C980A721EAF48A20052914E /* Test2.lua */; };
+		7CA2395B2237A09500068612 /* LSCScriptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CA239592237A09500068612 /* LSCScriptController.m */; };
+		7CA2395C2237A09500068612 /* LSCScriptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CA239592237A09500068612 /* LSCScriptController.m */; };
+		7CA2395D2237A7BC00068612 /* LSCScriptController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CA2395A2237A09500068612 /* LSCScriptController.h */; };
+		7CA2395E2237A7CE00068612 /* LSCScriptController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CA2395A2237A09500068612 /* LSCScriptController.h */; };
+		7CA239622237F86000068612 /* LuaRunScriptConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA239602237F86000068612 /* LuaRunScriptConfig.swift */; };
+		7CA239632237F86000068612 /* LuaRunScriptConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA239602237F86000068612 /* LuaRunScriptConfig.swift */; };
+		7CA239642237F8DD00068612 /* LSCScriptController.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CA2395A2237A09500068612 /* LSCScriptController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		7CA239652237F90E00068612 /* LSCError.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CC1E4402236478500C321F8 /* LSCError.h */; };
+		7CA239662237F90E00068612 /* LSCScriptController+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CA2395F2237ADE600068612 /* LSCScriptController+Private.h */; };
+		7CA239672237F97D00068612 /* LSCError.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CC1E4412236478500C321F8 /* LSCError.m */; };
+		7CA239682237F97E00068612 /* LSCError.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CC1E4412236478500C321F8 /* LSCError.m */; };
+		7CA239692237F98100068612 /* LSCScriptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CA239592237A09500068612 /* LSCScriptController.m */; };
+		7CA2396A2237F98100068612 /* LSCScriptController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CA239592237A09500068612 /* LSCScriptController.m */; };
+		7CA2396B2237FB8000068612 /* LSCError.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CC1E4402236478500C321F8 /* LSCError.h */; };
+		7CA2396C2237FB8000068612 /* LSCScriptController.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CA2395A2237A09500068612 /* LSCScriptController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		7CA2396D2237FB8000068612 /* LSCScriptController+Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 7CA2395F2237ADE600068612 /* LSCScriptController+Private.h */; };
 		7CABEDA720D398AF00F5BDE3 /* test.out in Resources */ = {isa = PBXBuildFile; fileRef = 7CABEDA620D398AF00F5BDE3 /* test.out */; };
 		7CBA740120FDBB8E003AD193 /* lauxlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 7CBA73AB20FDBB8E003AD193 /* lauxlib.c */; };
 		7CBA740220FDBB8E003AD193 /* lauxlib.c in Sources */ = {isa = PBXBuildFile; fileRef = 7CBA73AB20FDBB8E003AD193 /* lauxlib.c */; };
@@ -502,6 +518,7 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
+				7CA2395E2237A7CE00068612 /* LSCScriptController.h in CopyFiles */,
 				7C8D53A31FD7E0A400C76F49 /* LSCExportTypeDescriptor.h in CopyFiles */,
 				7C8D53A41FD7E0A400C76F49 /* LSCExportMethodDescriptor.h in CopyFiles */,
 				7C8D53A51FD7E0A400C76F49 /* LSCExportPropertyDescriptor.h in CopyFiles */,
@@ -524,6 +541,7 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
+				7CA2395D2237A7BC00068612 /* LSCScriptController.h in CopyFiles */,
 				7C8D53A01FD7DD5600C76F49 /* LSCExportTypeDescriptor.h in CopyFiles */,
 				7C8D53A11FD7DD5600C76F49 /* LSCExportMethodDescriptor.h in CopyFiles */,
 				7C8D53A21FD7DD5600C76F49 /* LSCExportPropertyDescriptor.h in CopyFiles */,
@@ -638,6 +656,10 @@
 		7C8EA2AD1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCExportPropertyDescriptor.m; path = Code/LSCExportPropertyDescriptor.m; sourceTree = "<group>"; };
 		7C930FC61FC67D9900A3C035 /* Test1.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = Test1.lua; sourceTree = "<group>"; };
 		7C980A721EAF48A20052914E /* Test2.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Test2.lua; sourceTree = "<group>"; };
+		7CA239592237A09500068612 /* LSCScriptController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LSCScriptController.m; path = Code/LSCScriptController.m; sourceTree = "<group>"; };
+		7CA2395A2237A09500068612 /* LSCScriptController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LSCScriptController.h; path = Code/LSCScriptController.h; sourceTree = "<group>"; };
+		7CA2395F2237ADE600068612 /* LSCScriptController+Private.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "LSCScriptController+Private.h"; path = "Code/LSCScriptController+Private.h"; sourceTree = "<group>"; };
+		7CA239602237F86000068612 /* LuaRunScriptConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuaRunScriptConfig.swift; sourceTree = "<group>"; };
 		7CABEDA620D398AF00F5BDE3 /* test.out */ = {isa = PBXFileReference; lastKnownFileType = file; path = test.out; sourceTree = "<group>"; };
 		7CBA73AB20FDBB8E003AD193 /* lauxlib.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = lauxlib.c; sourceTree = "<group>"; };
 		7CBA73AC20FDBB8E003AD193 /* lmem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lmem.h; sourceTree = "<group>"; };
@@ -793,6 +815,7 @@
 				7C8D53A61FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift */,
 				7C8D53A91FD7F27F00C76F49 /* LuaExportMethodDescriptor.swift */,
 				7C8D53AC1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift */,
+				7CA239602237F86000068612 /* LuaRunScriptConfig.swift */,
 			);
 			name = "LuaScriptCore-Swift";
 			path = "Code-Swift";
@@ -918,6 +941,9 @@
 				7C4E068321EF24A400BAA2C8 /* LSCTable.m */,
 				7CC1E4402236478500C321F8 /* LSCError.h */,
 				7CC1E4412236478500C321F8 /* LSCError.m */,
+				7CA2395A2237A09500068612 /* LSCScriptController.h */,
+				7CA239592237A09500068612 /* LSCScriptController.m */,
+				7CA2395F2237ADE600068612 /* LSCScriptController+Private.h */,
 			);
 			name = LuaScriptCore;
 			sourceTree = "<group>";
@@ -1034,6 +1060,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7CA2396C2237FB8000068612 /* LSCScriptController.h in Headers */,
 				7C8EA2AF1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */,
 				7C8EA2B51FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */,
 				7C8EA2A51FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */,
@@ -1047,6 +1074,8 @@
 				7C8EA2691FCFAD56000F58BF /* LSCTuple.h in Headers */,
 				7CBA745420FDBB8E003AD193 /* llex.h in Headers */,
 				7CBA745C20FDBB8E003AD193 /* lparser.h in Headers */,
+				7CA2396B2237FB8000068612 /* LSCError.h in Headers */,
+				7CA2396D2237FB8000068612 /* LSCScriptController+Private.h in Headers */,
 				7C177BB91DEFDE49008C9DF1 /* LSCContext.h in Headers */,
 				7CBA745620FDBB8E003AD193 /* ltm.h in Headers */,
 				7CBA748820FDBB8E003AD193 /* lstring.h in Headers */,
@@ -1101,6 +1130,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7CA239642237F8DD00068612 /* LSCScriptController.h in Headers */,
 				7C8EA2AE1FCFBA5F000F58BF /* LSCExportPropertyDescriptor.h in Headers */,
 				7C8EA2B41FCFBA5F000F58BF /* LSCExportMethodDescriptor.h in Headers */,
 				7C8EA2A41FCFBA52000F58BF /* LSCExportTypeDescriptor.h in Headers */,
@@ -1115,6 +1145,8 @@
 				7CBA745320FDBB8E003AD193 /* llex.h in Headers */,
 				7CBA745B20FDBB8E003AD193 /* lparser.h in Headers */,
 				7CF700EB21DB28C7006DAEE3 /* LSCCoroutine.h in Headers */,
+				7CA239652237F90E00068612 /* LSCError.h in Headers */,
+				7CA239662237F90E00068612 /* LSCScriptController+Private.h in Headers */,
 				7C238F441DEED3A1009CB024 /* LSCPointer.h in Headers */,
 				7CBA745520FDBB8E003AD193 /* ltm.h in Headers */,
 				7CBA748720FDBB8E003AD193 /* lstring.h in Headers */,
@@ -1340,7 +1372,7 @@
 					};
 					7C6B152D1D6B2B2500489D9E = {
 						CreatedOnToolsVersion = 7.3;
-						LastSwiftMigration = 0810;
+						LastSwiftMigration = 1010;
 					};
 					7C8C2D501D38C0C0009345EB = {
 						CreatedOnToolsVersion = 7.3;
@@ -1506,6 +1538,7 @@
 				7CBA741A20FDBB8E003AD193 /* lstate.c in Sources */,
 				7C177BBA1DEFDE49008C9DF1 /* LSCContext.m in Sources */,
 				7C8EA27E1FCFAD99000F58BF /* LSCManagedValue.m in Sources */,
+				7CA239632237F86000068612 /* LuaRunScriptConfig.swift in Sources */,
 				7C177BB71DEFDE0F008C9DF1 /* LuaValue.swift in Sources */,
 				7C58934B1E309CE000FF2E10 /* LuaTuple.swift in Sources */,
 				7CBA744820FDBB8E003AD193 /* lstring.c in Sources */,
@@ -1525,6 +1558,7 @@
 				7C8EA26D1FCFAD56000F58BF /* LSCTuple.m in Sources */,
 				7CBA746A20FDBB8E003AD193 /* loslib.c in Sources */,
 				7CBA74BA20FDBB8E003AD193 /* ldo.c in Sources */,
+				7CA239682237F97E00068612 /* LSCError.m in Sources */,
 				7CBA74B420FDBB8E003AD193 /* ltm.c in Sources */,
 				7C8EA2891FCFADA5000F58BF /* LSCSession.m in Sources */,
 				7CBA742E20FDBB8E003AD193 /* lvm.c in Sources */,
@@ -1536,6 +1570,7 @@
 				7CBA74AA20FDBB8E003AD193 /* lparser.c in Sources */,
 				7CBA749020FDBB8E003AD193 /* ltablib.c in Sources */,
 				7C8EA2931FCFADB5000F58BF /* LSCEngineAdapter.m in Sources */,
+				7CA2396A2237F98100068612 /* LSCScriptController.m in Sources */,
 				7CBA749C20FDBB8E003AD193 /* lbaselib.c in Sources */,
 				7C8D53AE1FD7F2CF00C76F49 /* LuaExportPropertyDescriptor.swift in Sources */,
 				7CF700F021DB28C7006DAEE3 /* LSCCoroutine.m in Sources */,
@@ -1576,6 +1611,7 @@
 				7CBA741920FDBB8E003AD193 /* lstate.c in Sources */,
 				7C58934A1E309CE000FF2E10 /* LuaTuple.swift in Sources */,
 				7C25E3461FC809EB005E0322 /* LuaExportTypeAnnotation.swift in Sources */,
+				7CA239622237F86000068612 /* LuaRunScriptConfig.swift in Sources */,
 				7C8D53A71FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift in Sources */,
 				7C177BB41DEFDE0F008C9DF1 /* LuaPointer.swift in Sources */,
 				7CBA744720FDBB8E003AD193 /* lstring.c in Sources */,
@@ -1595,6 +1631,7 @@
 				7C8EA2B81FCFBA5F000F58BF /* LSCExportPropertyDescriptor.m in Sources */,
 				7CBA746920FDBB8E003AD193 /* loslib.c in Sources */,
 				7CBA74B920FDBB8E003AD193 /* ldo.c in Sources */,
+				7CA239672237F97D00068612 /* LSCError.m in Sources */,
 				7CBA74B320FDBB8E003AD193 /* ltm.c in Sources */,
 				7C8EA26C1FCFAD56000F58BF /* LSCTuple.m in Sources */,
 				7CBA742D20FDBB8E003AD193 /* lvm.c in Sources */,
@@ -1606,6 +1643,7 @@
 				7CBA74A920FDBB8E003AD193 /* lparser.c in Sources */,
 				7CBA748F20FDBB8E003AD193 /* ltablib.c in Sources */,
 				7C238F371DEED3A1009CB024 /* LSCContext.m in Sources */,
+				7CA239692237F98100068612 /* LSCScriptController.m in Sources */,
 				7CBA749B20FDBB8E003AD193 /* lbaselib.c in Sources */,
 				7C177BB01DEFDE0F008C9DF1 /* LuaContext.swift in Sources */,
 				7CF700EF21DB28C7006DAEE3 /* LSCCoroutine.m in Sources */,
@@ -1704,6 +1742,7 @@
 				7C238E5E1DEECBDB009CB024 /* LSCPointer.m in Sources */,
 				7CBA741420FDBB8E003AD193 /* lopcodes.c in Sources */,
 				7CBA743E20FDBB8E003AD193 /* linit.c in Sources */,
+				7CA2395C2237A09500068612 /* LSCScriptController.m in Sources */,
 				7CBA745820FDBB8E003AD193 /* ltable.c in Sources */,
 				7CBA746C20FDBB8E003AD193 /* lgc.c in Sources */,
 				7CBA740220FDBB8E003AD193 /* lauxlib.c in Sources */,
@@ -1764,6 +1803,7 @@
 				7C8EA2A61FCFBA52000F58BF /* LSCExportTypeDescriptor.m in Sources */,
 				7CBA741320FDBB8E003AD193 /* lopcodes.c in Sources */,
 				7CBA743D20FDBB8E003AD193 /* linit.c in Sources */,
+				7CA2395B2237A09500068612 /* LSCScriptController.m in Sources */,
 				7CBA745720FDBB8E003AD193 /* ltable.c in Sources */,
 				7CBA746B20FDBB8E003AD193 /* lgc.c in Sources */,
 				7CBA740120FDBB8E003AD193 /* lauxlib.c in Sources */,
