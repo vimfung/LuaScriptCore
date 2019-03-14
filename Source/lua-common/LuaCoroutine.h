@@ -32,7 +32,6 @@ namespace cn {
                 /**
                  * 初始化
                  * @param context 上下文对象
-                 * @param handler 线程执行方法
                  */
                 LuaCoroutine(LuaContext *context);
 

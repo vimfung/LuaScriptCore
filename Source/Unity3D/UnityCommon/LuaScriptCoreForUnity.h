@@ -56,6 +56,29 @@ extern "C" {
 	LuaScriptCoreApi extern int createLuaContext();
     
     /**
+     创建脚本控制器
+
+     @return 脚本控制器标识
+     */
+    LuaScriptCoreApi extern int createLuaScriptController();
+    
+    
+    /**
+     设置脚本超时时间
+
+     @param scriptControllerId 脚本控制器标识
+     @param timeout 超时时间
+     */
+    LuaScriptCoreApi extern void scriptControllerSetTimeout(int scriptControllerId, int timeout);
+    
+    /**
+     强制退出脚本
+
+     @param scriptControllerId 脚本控制器标识
+     */
+    LuaScriptCoreApi extern void scriptControllerForceExit(int scriptControllerId);
+    
+    /**
      释放对象
      
      @param objectId 对象ID
@@ -128,11 +151,12 @@ extern "C" {
      
      @param nativeContextId 本地上下文对象ID
      @param script Lua脚本
+     @param scriptControllerId 脚本控制器标识
      @param result 返回值(输出参数)
      
      @return 返回值的缓冲区大小
      */
-	LuaScriptCoreApi extern int evalScript(int nativeContextId, const char *script, const void **result);
+	LuaScriptCoreApi extern int evalScript(int nativeContextId, const char *script, int scriptControllerId, const void **result);
     
     
     /**
@@ -140,11 +164,12 @@ extern "C" {
 
      @param nativeContextId 本地上下文对象ID
      @param filePath Lua文件路径
+     @param scriptControllerId 脚本控制器标识
      @param result 返回值（输出参数）
      
      @return 返回值的缓冲区大小
      */
-	LuaScriptCoreApi extern int evalScriptFromFile(int nativeContextId, const char *filePath, const void **result);
+	LuaScriptCoreApi extern int evalScriptFromFile(int nativeContextId, const char *filePath, int scriptControllerId, const void **result);
     
     /**
      调用Lua方法
@@ -152,11 +177,12 @@ extern "C" {
      @param nativeContextId 本地上下文对象ID
      @param methodName 方法名称
      @param params 参数列表
+     @param scriptControllerId 脚本控制器标识
      @param result 返回值（输出参数）
      
      @return 返回值的缓冲区大小
      */
-	LuaScriptCoreApi extern int callMethod(int nativeContextId, const char* methodName, const void *params, const void **result);
+	LuaScriptCoreApi extern int callMethod(int nativeContextId, const char* methodName, const void *params, int scriptControllerId, const void **result);
     
     /**
      调用Lua方法
@@ -164,11 +190,12 @@ extern "C" {
      @param nativeContextId 本地上下文对象ID
      @param function 方法
      @param params 参数列表
+     @param scriptControllerId 脚本控制器标识
      @param result 返回值（输出参数）
      
      @return 返回值的缓冲区大小
      */
-    LuaScriptCoreApi extern int invokeLuaFunction(int nativeContextId, const void* function, const void *params, const void **result);
+    LuaScriptCoreApi extern int invokeLuaFunction(int nativeContextId, const void* function, const void *params, int scriptControllerId, const void **result);
     
     
     /**
@@ -214,6 +241,20 @@ extern "C" {
                                              LuaInstanceFieldSetterHandlerPtr instanceFieldSetterRouteHandler,
                                              LuaInstanceMethodHandlerPtr instanceMethodRouteHandler,
                                              LuaModuleMethodHandlerPtr classMethodRouteHandler);
+    
+    
+    /**
+     执行线程
+
+     @param nativeContextId 上下文标识
+     @param function 线程处理器
+     @param params 参数列表
+     @param scriptControllerId 脚本控制器标识
+     */
+    LuaScriptCoreApi extern void runThread(int nativeContextId,
+                                           const void* function,
+                                           const void *params,
+                                           int scriptControllerId);
     
 #if defined (__cplusplus)
 }

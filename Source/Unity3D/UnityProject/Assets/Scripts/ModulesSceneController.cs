@@ -31,8 +31,9 @@ public class ModulesSceneController : MonoBehaviour {
 				break;
 			case "Encoding":
 			case "Path":
+			case "Thread":
 				_selectedItem = "Foundation";
-				listVC.dataSource = new List<string> () {"Encoding", "Path"};
+				listVC.dataSource = new List<string> () {"Encoding", "Path", "Thread"};
 				listVC.reloadData ();
 				break;
 			case "HTTP":
@@ -70,7 +71,7 @@ public class ModulesSceneController : MonoBehaviour {
 				{
 				case "Foundation":
 					_selectedItem = itemData;
-					listVC.dataSource = new List<string> () {"Encoding", "Path"};
+					listVC.dataSource = new List<string> () {"Encoding", "Path", "Thread"};
 					listVC.reloadData();
 					break;
 				case "Network":
@@ -86,6 +87,11 @@ public class ModulesSceneController : MonoBehaviour {
 				case "Path":
 					_selectedItem = itemData;
 					listVC.dataSource = new List<string> () {"App Path", "Home Path", "Documents Path", "Caches Path", "Tmp Path", "Exists Path"};
+					listVC.reloadData();
+					break;
+				case "Thread":
+					_selectedItem = itemData;
+					listVC.dataSource = new List<string> () {"Start Thread", "Stop Thread"};
 					listVC.reloadData();
 					break;
 				case "HTTP":
@@ -156,6 +162,14 @@ public class ModulesSceneController : MonoBehaviour {
 				case "Download File":
 					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Network/Sample/HTTP-Sample.lua");
 					LuaContext.currentContext.evalScript("HTTP_Sample_download()");
+					break;
+				case "Start Thread":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Thread-Sample.lua");
+					LuaContext.currentContext.evalScript("Thread_Sample_run()");
+					break;
+				case "Stop Thread":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Thread-Sample.lua");
+					LuaContext.currentContext.evalScript("Thread_Sample_stop()");
 					break;
 				}
 

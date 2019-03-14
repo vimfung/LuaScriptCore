@@ -29,6 +29,7 @@
 #include "LuaTmpValue.hpp"
 #include "LuaObjectDescriptor.h"
 #include "StringUtils.h"
+#include "LuaScriptController.h"
 
 #if defined (__cplusplus)
 extern "C" {
@@ -186,6 +187,33 @@ extern "C" {
         return context -> objectId();
     }
     
+    int createLuaScriptController()
+    {
+        LuaScriptController *controller = new LuaScriptController();
+        LuaObjectManager::SharedInstance() -> putObject(controller);
+        controller -> release();
+        
+        return controller -> objectId();
+    }
+    
+    void scriptControllerSetTimeout(int scriptControllerId, int timeout)
+    {
+        LuaScriptController *scriptController = dynamic_cast<LuaScriptController *>(LuaObjectManager::SharedInstance() -> getObject(scriptControllerId));
+        if (scriptController != NULL)
+        {
+            scriptController -> setTimeout(timeout);
+        }
+    }
+    
+    void scriptControllerForceExit(int scriptControllerId)
+    {
+        LuaScriptController *scriptController = dynamic_cast<LuaScriptController *>(LuaObjectManager::SharedInstance() -> getObject(scriptControllerId));
+        if (scriptController != NULL)
+        {
+            scriptController -> forceExit();
+        }
+    }
+    
     /**
      添加Lua的搜索路径
      
@@ -245,12 +273,14 @@ extern "C" {
      
      @return 值对象
      */
-    int evalScript(int nativeContextId, const char* script, const void** result)
+    int evalScript(int nativeContextId, const char* script, int scriptControllerId, const void** result)
     {
         LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
         if (context != NULL)
         {
-            LuaValue *value = context -> evalScript(script);
+            LuaScriptController *scriptController = dynamic_cast<LuaScriptController *>(LuaObjectManager::SharedInstance() -> getObject(scriptControllerId));
+            
+            LuaValue *value = context -> evalScript(script, scriptController);
             
             LuaObjectManager::SharedInstance() -> putObject(value);
             int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
@@ -272,12 +302,14 @@ extern "C" {
      
      @return 返回值的缓冲区大小
      */
-    int evalScriptFromFile(int nativeContextId, const char* filePath, const void** result)
+    int evalScriptFromFile(int nativeContextId, const char* filePath, int scriptControllerId, const void** result)
     {
         LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
         if (context != NULL)
         {
-            LuaValue *value = context -> evalScriptFromFile(filePath);
+            LuaScriptController *scriptController = dynamic_cast<LuaScriptController *>(LuaObjectManager::SharedInstance() -> getObject(scriptControllerId));
+            
+            LuaValue *value = context -> evalScriptFromFile(filePath, scriptController);
             
             LuaObjectManager::SharedInstance() -> putObject(value);
             int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
@@ -364,11 +396,13 @@ extern "C" {
      
      @return 返回值的缓冲区大小
      */
-    int callMethod(int nativeContextId, const char* methodName, const void *params, const void** result)
+    int callMethod(int nativeContextId, const char* methodName, const void *params, int scriptControllerId, const void** result)
     {
         LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
         if (context != NULL)
         {
+            LuaScriptController *scriptController = dynamic_cast<LuaScriptController *>(LuaObjectManager::SharedInstance() -> getObject(scriptControllerId));
+            
             LuaArgumentList args;
             
             if (params != NULL)
@@ -388,7 +422,7 @@ extern "C" {
 
             }
             
-            LuaValue *retValue = context -> callMethod(methodName, &args);
+            LuaValue *retValue = context -> callMethod(methodName, &args, scriptController);
             
             LuaObjectManager::SharedInstance() -> putObject(retValue);
             int bufSize = LuaObjectEncoder::encodeObject(context, retValue, result);
@@ -418,11 +452,13 @@ extern "C" {
      
      @return 返回值的缓冲区大小
      */
-    int invokeLuaFunction(int nativeContextId, const void* function, const void *params, const void **result)
+    int invokeLuaFunction(int nativeContextId, const void* function, const void *params, int scriptControllerId, const void **result)
     {
         LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
         if (context != NULL && function != NULL)
         {
+            LuaScriptController *scriptController = dynamic_cast<LuaScriptController *>(LuaObjectManager::SharedInstance() -> getObject(scriptControllerId));
+            
             LuaObjectDecoder *decoder = new LuaObjectDecoder(context, function);
             LuaFunction *func = dynamic_cast<LuaFunction *>(decoder -> readObject());
             decoder -> release();
@@ -445,7 +481,7 @@ extern "C" {
                 decoder -> release();
             }
             
-            LuaValue *retValue = func -> invoke(&args);
+            LuaValue *retValue = func -> invoke(&args, scriptController);
             
             LuaObjectManager::SharedInstance() -> putObject(retValue);
             int bufSize = LuaObjectEncoder::encodeObject(context, retValue, result);
@@ -610,6 +646,52 @@ extern "C" {
         }
         
         return typeDescriptor != NULL ? typeDescriptor -> objectId() : -1;
+    }
+    
+    void runThread(int nativeContextId,
+                   const void* function,
+                   const void *params,
+                   int scriptControllerId)
+    {
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(nativeContextId));
+        if (context != NULL && function != NULL)
+        {
+            LuaScriptController *scriptController = dynamic_cast<LuaScriptController *>(LuaObjectManager::SharedInstance() -> getObject(scriptControllerId));
+            
+            LuaObjectDecoder *decoder = new LuaObjectDecoder(context, function);
+            LuaFunction *func = dynamic_cast<LuaFunction *>(decoder -> readObject());
+            decoder -> release();
+            
+            LuaArgumentList args;
+            
+            if (params != NULL)
+            {
+                LuaObjectDecoder *decoder = new LuaObjectDecoder(context, params);
+                int size = decoder -> readInt32();
+                
+                for (int i = 0; i < size; i++)
+                {
+                    LuaValue *value = dynamic_cast<LuaValue *>(decoder -> readObject());
+                    if (value != NULL)
+                    {
+                        args.push_back(value);
+                    }
+                }
+                decoder -> release();
+            }
+            
+            context -> runThread(func, &args, scriptController);
+            
+            //释放参数内存
+            for (LuaArgumentList::iterator it = args.begin(); it != args.end(); ++it)
+            {
+                LuaValue *value = *it;
+                value -> release();
+            }
+            
+            //释放方法
+            func -> release();
+        }
     }
     
 #if defined (__cplusplus)

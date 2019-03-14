@@ -41,6 +41,22 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="arguments">Arguments.</param>
 		public LuaValue invoke(List<LuaValue> arguments)
 		{
+			return invoke (arguments, null);
+		}
+
+		/// <summary>
+		/// 调用方法
+		/// </summary>
+		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptController">脚本控制器</param>
+		public LuaValue invoke(List<LuaValue> arguments, LuaScriptController scriptController)
+		{
+			int scriptControllerId = 0;
+			if (scriptController != null)
+			{
+				scriptControllerId = scriptController.objectId;
+			}
+
 			IntPtr funcPtr = IntPtr.Zero;
 			IntPtr argsPtr = IntPtr.Zero;
 			IntPtr resultPtr = IntPtr.Zero;
@@ -66,7 +82,7 @@ namespace cn.vimfung.luascriptcore
 				Marshal.Copy (bytes, 0, argsPtr, bytes.Length);
 			}
 
-			int size = NativeUtils.invokeLuaFunction (_context.objectId, funcPtr, argsPtr, out resultPtr);
+			int size = NativeUtils.invokeLuaFunction (_context.objectId, funcPtr, argsPtr, scriptControllerId, out resultPtr);
 
 			if (argsPtr != IntPtr.Zero)
 			{
@@ -83,6 +99,18 @@ namespace cn.vimfung.luascriptcore
 			}
 
 			return new LuaValue ();
+		}
+
+		/// <summary>
+		/// 获取上下文对象
+		/// </summary>
+		/// <value>上下文对象.</value>
+		public LuaContext context
+		{
+			get
+			{
+				return _context;
+			}
 		}
 	}
 }

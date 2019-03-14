@@ -11,6 +11,7 @@
 #include "LuaExportsTypeManager.hpp"
 #include "LuaOperationQueue.h"
 #include "LuaScriptController.h"
+#include <sys/time.h>
 
 using namespace cn::vimfung::luascriptcore;
 

@@ -111,6 +111,28 @@ namespace cn.vimfung.luascriptcore
 		internal extern static int createLuaContext();
 
 		/// <summary>
+		/// 创建脚本控制器
+		/// </summary>
+		/// <returns>脚本控制器对象标识.</returns>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static int createLuaScriptController ();
+
+		/// <summary>
+		/// 设置脚本控制器超时
+		/// </summary>
+		/// <param name="scriptControllerId">脚本控制器标识.</param>
+		/// <param name="timeout">超时时间，单位：秒，如果传入0则为不限制超时.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void scriptControllerSetTimeout (int scriptControllerId, int timeout);
+
+		/// <summary>
+		/// 强制退出脚本执行
+		/// </summary>
+		/// <param name="scriptControllerId">脚本控制器标识.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void scriptControllerForceExit (int scriptControllerId);
+
+		/// <summary>
 		/// 添加Lua的搜索路径，如果在采用require方法时无法导入其他路径脚本，可能是由于脚本文件的所在路径不在lua的搜索路径中。
 		/// 可通过此方法进行添加。
 		/// </summary>
@@ -160,9 +182,10 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>返回值的缓冲区大小</returns>
 		/// <param name="contextId">Lua上下文对象的本地标识</param>
 		/// <param name="script">Lua脚本</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
-		internal extern static int evalScript(int contextId, string script, out IntPtr resultBuffer);
+		internal extern static int evalScript(int contextId, string script, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 从Lua文件中解析Lua脚本
@@ -170,9 +193,10 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>返回值的缓冲区大小</returns>
 		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
 		/// <param name="filePath">Lua脚本文件路径</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
-		internal extern static int evalScriptFromFile(int nativeContextId, string filePath, out IntPtr resultBuffer);
+		internal extern static int evalScriptFromFile(int nativeContextId, string filePath, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 调用Lua方法
@@ -181,9 +205,10 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
 		/// <param name="methodName">方法名称</param>
 		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
-		internal extern static int callMethod(int nativeContextId, string methodName, IntPtr arguments, out IntPtr resultBuffer);
+		internal extern static int callMethod(int nativeContextId, string methodName, IntPtr arguments, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 注册lua方法
@@ -201,9 +226,10 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">Lua上下文对象的本地标识.</param>
 		/// <param name="function">方法.</param>
 		/// <param name="arguments">参数列表.</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
-		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, out IntPtr resultBuffer);  
+		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId, out IntPtr resultBuffer);  
 
 		/// <summary>
 		/// 释放本地对象
@@ -264,6 +290,16 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void releaseValue (int nativeContextId, IntPtr value);
 
 		/// <summary>
+		/// 执行线程
+		/// </summary>
+		/// <param name="nativeContextId">上下文标识</param>
+		/// <param name="function">方法.</param>
+		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static void runThread (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId);
+
+		/// <summary>
 		/// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。
 		/// </summary>
 		/// <param name="fp">方法回调</param>
@@ -300,6 +336,28 @@ namespace cn.vimfung.luascriptcore
         /// <returns>Lua上下文对象的本地标识</returns>
         [DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static int createLuaContext();
+
+		/// <summary>
+		/// 创建脚本控制器
+		/// </summary>
+		/// <returns>脚本控制器对象标识.</returns>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+		internal extern static int createLuaScriptController ();
+
+		/// <summary>
+		/// 设置脚本控制器超时
+		/// </summary>
+		/// <param name="scriptControllerId">脚本控制器标识.</param>
+		/// <param name="timeout">超时时间，单位：秒，如果传入0则为不限制超时.</param>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+		internal extern static void scriptControllerSetTimeout (int scriptControllerId, int timeout);
+
+		/// <summary>
+		/// 强制退出脚本执行
+		/// </summary>
+		/// <param name="scriptControllerId">脚本控制器标识.</param>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+		internal extern static void scriptControllerForceExit (int scriptControllerId);
 
 		/// <summary>
 		/// 添加Lua的搜索路径，如果在采用require方法时无法导入其他路径脚本，可能是由于脚本文件的所在路径不在lua的搜索路径中。
@@ -351,9 +409,10 @@ namespace cn.vimfung.luascriptcore
         /// <returns>返回值的缓冲区大小</returns>
         /// <param name="contextId">Lua上下文对象的本地标识</param>
         /// <param name="script">Lua脚本</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
         /// <param name="resultBuffer">返回值缓冲区</param>
         [DllImport("LuaScriptCore-Unity-Win64")]
-		internal extern static int evalScript(int contextId, string script, out IntPtr resultBuffer);
+		internal extern static int evalScript(int contextId, string script, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 从Lua文件中解析Lua脚本
@@ -361,9 +420,10 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>返回值的缓冲区大小</returns>
 		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
 		/// <param name="filePath">Lua脚本文件路径</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-Win64")]
-		internal extern static int evalScriptFromFile(int nativeContextId, string filePath, out IntPtr resultBuffer);
+		internal extern static int evalScriptFromFile(int nativeContextId, string filePath, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 调用Lua方法
@@ -372,9 +432,10 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
 		/// <param name="methodName">方法名称</param>
 		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-Win64")]
-		internal extern static int callMethod(int nativeContextId, string methodName, IntPtr arguments, out IntPtr resultBuffer);
+		internal extern static int callMethod(int nativeContextId, string methodName, IntPtr arguments, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 注册lua方法
@@ -392,9 +453,10 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">Lua上下文对象的本地标识.</param>
 		/// <param name="function">方法.</param>
 		/// <param name="arguments">参数列表.</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-Win64")]
-        internal extern static int invokeLuaFunction(int nativeContextId, IntPtr function, IntPtr arguments, out IntPtr resultBuffer);
+		internal extern static int invokeLuaFunction(int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId, out IntPtr resultBuffer);
 
         /// <summary>
         /// 释放本地对象
@@ -454,6 +516,16 @@ namespace cn.vimfung.luascriptcore
         [DllImport("LuaScriptCore-Unity-Win64")]
         internal extern static void releaseValue(int nativeContextId, IntPtr value);
 
+		/// <summary>
+		/// 执行线程
+		/// </summary>
+		/// <param name="nativeContextId">上下文标识</param>
+		/// <param name="function">方法.</param>
+		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+		internal extern static void runThread (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId);
+
         /// <summary>
         /// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。
         /// </summary>
@@ -511,6 +583,28 @@ namespace cn.vimfung.luascriptcore
 		internal extern static int createLuaContext();
 
 		/// <summary>
+		/// 创建脚本控制器
+		/// </summary>
+		/// <returns>脚本控制器对象标识.</returns>
+		[DllImport("__Internal")]
+		internal extern static int createLuaScriptController ();
+
+		/// <summary>
+		/// 设置脚本控制器超时
+		/// </summary>
+		/// <param name="scriptControllerId">脚本控制器标识.</param>
+		/// <param name="timeout">超时时间，单位：秒，如果传入0则为不限制超时.</param>
+		[DllImport("__Internal")]
+		internal extern static void scriptControllerSetTimeout (int scriptControllerId, int timeout);
+
+		/// <summary>
+		/// 强制退出脚本执行
+		/// </summary>
+		/// <param name="scriptControllerId">脚本控制器标识.</param>
+		[DllImport("__Internal")]
+		internal extern static void scriptControllerForceExit (int scriptControllerId);
+
+		/// <summary>
 		/// 添加Lua的搜索路径，如果在采用require方法时无法导入其他路径脚本，可能是由于脚本文件的所在路径不在lua的搜索路径中。
 		/// 可通过此方法进行添加。
 		/// </summary>
@@ -541,9 +635,10 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>返回值的缓冲区大小</returns>
 		/// <param name="contextId">Lua上下文对象的本地标识</param>
 		/// <param name="script">Lua脚本</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区</param>
 		[DllImport("__Internal")]
-		internal extern static int evalScript(int contextId, string script, out IntPtr resultBuffer);
+		internal extern static int evalScript(int contextId, string script, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 从Lua文件中解析Lua脚本
@@ -551,9 +646,10 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>返回值的缓冲区大小</returns>
 		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
 		/// <param name="filePath">Lua脚本文件路径</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("__Internal")]
-		internal extern static int evalScriptFromFile(int nativeContextId, string filePath, out IntPtr resultBuffer);
+		internal extern static int evalScriptFromFile(int nativeContextId, string filePath, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 调用Lua方法
@@ -562,9 +658,10 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
 		/// <param name="methodName">方法名称</param>
 		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("__Internal")]
-		internal extern static int callMethod(int nativeContextId, string methodName, IntPtr arguments, out IntPtr resultBuffer);
+		internal extern static int callMethod(int nativeContextId, string methodName, IntPtr arguments, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 注册lua方法
@@ -582,9 +679,10 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">Lua上下文对象的本地标识.</param>
 		/// <param name="function">方法.</param>
 		/// <param name="arguments">参数列表.</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("__Internal")]
-		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, out IntPtr resultBuffer);
+		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 释放本地对象
@@ -643,6 +741,16 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="value">值对象.</param>
 		[DllImport("__Internal")]
 		internal extern static void releaseValue (int nativeContextId, IntPtr value);
+
+		/// <summary>
+		/// 执行线程
+		/// </summary>
+		/// <param name="nativeContextId">上下文标识</param>
+		/// <param name="function">方法.</param>
+		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
+		[DllImport("__Internal")]
+		internal extern static void runThread (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId);
 
 #elif UNITY_ANDROID
 
@@ -694,6 +802,28 @@ namespace cn.vimfung.luascriptcore
 		internal extern static int createLuaContext();
 
 		/// <summary>
+		/// 创建脚本控制器
+		/// </summary>
+		/// <returns>脚本控制器对象标识.</returns>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static int createLuaScriptController ();
+
+		/// <summary>
+		/// 设置脚本控制器超时
+		/// </summary>
+		/// <param name="scriptControllerId">脚本控制器标识.</param>
+		/// <param name="timeout">超时时间，单位：秒，如果传入0则为不限制超时.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static void scriptControllerSetTimeout (int scriptControllerId, int timeout);
+
+		/// <summary>
+		/// 强制退出脚本执行
+		/// </summary>
+		/// <param name="scriptControllerId">脚本控制器标识.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static void scriptControllerForceExit (int scriptControllerId);
+
+		/// <summary>
 		/// 添加Lua的搜索路径，如果在采用require方法时无法导入其他路径脚本，可能是由于脚本文件的所在路径不在lua的搜索路径中。
 		/// 可通过此方法进行添加。
 		/// </summary>
@@ -724,9 +854,10 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>返回值的缓冲区大小</returns>
 		/// <param name="contextId">Lua上下文对象的本地标识</param>
 		/// <param name="script">Lua脚本</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
-		internal extern static int evalScript(int contextId, string script, out IntPtr resultBuffer);
+		internal extern static int evalScript(int contextId, string script, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 从Lua文件中解析Lua脚本
@@ -734,9 +865,10 @@ namespace cn.vimfung.luascriptcore
 		/// <returns>返回值的缓冲区大小</returns>
 		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
 		/// <param name="filePath">Lua脚本文件路径</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
-		internal extern static int evalScriptFromFile(int nativeContextId, string filePath, out IntPtr resultBuffer);
+		internal extern static int evalScriptFromFile(int nativeContextId, string filePath, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 调用Lua方法
@@ -745,9 +877,10 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="nativeContextId">Lua上下文对象的本地标识</param>
 		/// <param name="methodName">方法名称</param>
 		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
-		internal extern static int callMethod(int nativeContextId, string methodName, IntPtr arguments, out IntPtr resultBuffer);
+		internal extern static int callMethod(int nativeContextId, string methodName, IntPtr arguments, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 注册lua方法
@@ -767,7 +900,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="arguments">参数列表.</param>
 		/// <param name="resultBuffer">返回值缓冲区.</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
-		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, out IntPtr resultBuffer);
+		internal extern static int invokeLuaFunction (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId, out IntPtr resultBuffer);
 
 		/// <summary>
 		/// 释放本地对象
@@ -826,6 +959,16 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="value">值对象.</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
 		internal extern static void releaseValue (int nativeContextId, IntPtr value);
+
+		/// <summary>
+		/// 执行线程
+		/// </summary>
+		/// <param name="nativeContextId">上下文标识</param>
+		/// <param name="function">方法.</param>
+		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptControllerId">脚本控制器标识</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static void runThread (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId);
 #endif
 	}
 }

@@ -315,9 +315,37 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="script">Lua脚本</param>
 		public LuaValue evalScript(string script)
 		{
+			return evalScript (script, null);
+		}
+
+		/// <summary>
+		/// 解析Lua脚本
+		/// </summary>
+		/// <returns>返回值.</returns>
+		/// <param name="script">脚本内容.</param>
+		/// <param name="scriptController">脚本控制器.</param>
+		public LuaValue evalScript(string script, LuaScriptController scriptController)
+		{
 			IntPtr resultPtr = IntPtr.Zero;
-			int size = NativeUtils.evalScript (_nativeObjectId, script, out resultPtr);
+
+			int scriptControllerId = 0;
+			if (scriptController != null)
+			{
+				scriptControllerId = scriptController.objectId;
+			}
+
+			int size = NativeUtils.evalScript (_nativeObjectId, script, scriptControllerId, out resultPtr);
 			return LuaObjectDecoder.DecodeObject (resultPtr, size, this) as LuaValue;
+		}
+
+		/// <summary>
+		/// 从Lua文件中解析脚本
+		/// </summary>
+		/// <returns>返回值</returns>
+		/// <param name="filePath">脚本文件路径.</param>
+		public LuaValue evalScriptFromFile(string filePath)
+		{
+			return evalScriptFromFile (filePath, null);
 		}
 
 		/// <summary>
@@ -325,7 +353,8 @@ namespace cn.vimfung.luascriptcore
 		/// </summary>
 		/// <returns>返回值</returns>
 		/// <param name="filePath">Lua脚本文件路径</param>
-		public LuaValue evalScriptFromFile(string filePath)
+		/// <param name="scriptController">脚本控制器</param>
+		public LuaValue evalScriptFromFile(string filePath, LuaScriptController scriptController)
 		{
 #if UNITY_ANDROID && !UNITY_EDITOR
 			if (!filePath.StartsWith("/") || filePath.StartsWith(Application.streamingAssetsPath, true, null))
@@ -358,8 +387,14 @@ namespace cn.vimfung.luascriptcore
 
 #endif
 
+			int scriptControllerId = 0;
+			if (scriptController != null)
+			{
+				scriptControllerId = scriptController.objectId;
+			}
+
 			IntPtr resultPtr;
-			int size = NativeUtils.evalScriptFromFile (_nativeObjectId, filePath, out resultPtr);
+			int size = NativeUtils.evalScriptFromFile (_nativeObjectId, filePath, scriptControllerId, out resultPtr);
 			LuaValue retValue = LuaObjectDecoder.DecodeObject (resultPtr, size, this) as LuaValue;
 
 			return retValue;
@@ -374,6 +409,24 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="arguments">调用参数列表</param>
 		public LuaValue callMethod(string methodName, List<LuaValue> arguments)
 		{
+			return callMethod (methodName, arguments, null);
+		}
+
+		/// <summary>
+		/// 调用Lua方法
+		/// </summary>
+		/// <returns>返回值.</returns>
+		/// <param name="methodName">方法名称.</param>
+		/// <param name="arguments">参数列表</param>
+		/// <param name="scriptController">脚本控制器</param>
+		public LuaValue callMethod(string methodName, List<LuaValue> arguments, LuaScriptController scriptController)
+		{
+			int scriptControllerId = 0;
+			if (scriptController != null)
+			{
+				scriptControllerId = scriptController.objectId;
+			}
+
 			IntPtr argsPtr = IntPtr.Zero;
 			IntPtr resultPtr = IntPtr.Zero;
 
@@ -391,13 +444,13 @@ namespace cn.vimfung.luascriptcore
 				Marshal.Copy (bytes, 0, argsPtr, bytes.Length);
 			}
 
-			int size = NativeUtils.callMethod (_nativeObjectId, methodName, argsPtr, out resultPtr);
+			int size = NativeUtils.callMethod (_nativeObjectId, methodName, argsPtr, scriptControllerId, out resultPtr);
 
 			if (argsPtr != IntPtr.Zero)
 			{
 				Marshal.FreeHGlobal (argsPtr);
 			}
-				
+
 			if (size > 0)
 			{
 				return LuaObjectDecoder.DecodeObject (resultPtr, size, this) as LuaValue;
@@ -422,6 +475,66 @@ namespace cn.vimfung.luascriptcore
 
 			IntPtr fp = Marshal.GetFunctionPointerForDelegate(_methodHandleDelegate);
 			NativeUtils.registerMethod (_nativeObjectId, methodName, fp);
+		}
+
+		/// <summary>
+		/// 执行线程
+		/// </summary>
+		/// <param name="handler">线程处理器.</param>
+		/// <param name="arguments">请求参数.</param>
+		public void runThread(LuaFunction handler, List<LuaValue> arguments)
+		{
+			runThread (handler, arguments, null);
+		}
+
+		/// <summary>
+		/// 执行线程
+		/// </summary>
+		/// <param name="handler">线程处理器.</param>
+		/// <param name="arguments">参数列表.</param>
+		/// <param name="scriptController">脚本控制器.</param>
+		public void runThread(LuaFunction handler, List<LuaValue> arguments, LuaScriptController scriptController)
+		{
+			int scriptControllerId = 0;
+			if (scriptController != null)
+			{
+				scriptControllerId = scriptController.objectId;
+			}
+
+			IntPtr funcPtr = IntPtr.Zero;
+			IntPtr argsPtr = IntPtr.Zero;
+
+			LuaObjectEncoder funcEncoder = new LuaObjectEncoder (this);
+			funcEncoder.writeObject (handler);
+
+			byte[] bytes = funcEncoder.bytes;
+			funcPtr = Marshal.AllocHGlobal (bytes.Length);
+			Marshal.Copy (bytes, 0, funcPtr, bytes.Length);
+
+			if (arguments != null)
+			{
+				LuaObjectEncoder argEncoder = new LuaObjectEncoder (this);
+				argEncoder.writeInt32 (arguments.Count);
+				foreach (LuaValue value in arguments)
+				{
+					argEncoder.writeObject (value);
+				}
+
+				bytes = argEncoder.bytes;
+				argsPtr = Marshal.AllocHGlobal (bytes.Length);
+				Marshal.Copy (bytes, 0, argsPtr, bytes.Length);
+			}
+
+			NativeUtils.runThread (this.objectId, funcPtr, argsPtr, scriptControllerId);
+
+			if (argsPtr != IntPtr.Zero)
+			{
+				Marshal.FreeHGlobal (argsPtr);
+			}
+			if (funcPtr != IntPtr.Zero)
+			{
+				Marshal.FreeHGlobal (funcPtr);
+			}
 		}
 
 		/// <summary>

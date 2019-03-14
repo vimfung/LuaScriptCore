@@ -85,22 +85,32 @@ static int objectCreateHandler (lua_State *state)
         {
             LuaObjectDescriptor *objectDescriptor = typeDescriptor -> createInstance(session);
 
-            manager -> _initLuaObject(objectDescriptor);
-            objectDescriptor -> release();
+            if (objectDescriptor != NULL)
+            {
+                manager -> _initLuaObject(objectDescriptor);
+                objectDescriptor -> release();
+            }
+            else
+            {
+                throw "unknown error!";
+            }
+            
         }
         catch (std::exception & e)
         {
-            std::string errMsg = StringUtils::format("construct instance fail :  %s", e.what());
+            std::string errMsg = StringUtils::format("construct `%s` instance fail :  %s", typeDescriptor -> typeName().c_str(), e.what());
             session -> reportLuaException(errMsg);
         }
         catch (...)
         {
-            session -> reportLuaException("construct instance fail : Unknown Error!");
+            std::string errMsg = StringUtils::format("construct `%s` instance fail : Unknown Error!", typeDescriptor -> typeName().c_str());
+            session -> reportLuaException(errMsg);
         }
 
     }
     else
     {
+        
         session -> reportLuaException("can't construct instance, Invalid type!");
     }
 

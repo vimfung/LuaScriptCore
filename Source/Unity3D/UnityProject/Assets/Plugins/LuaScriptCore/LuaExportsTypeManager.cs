@@ -599,7 +599,7 @@ namespace cn.vimfung.luascriptcore
 				if (instance != null && m != null)
 				{
 					ArrayList argsArr = parseMethodParameters (m, getArgumentList(context, argumentsBuffer, bufferSize));
-					object ret = m.Invoke (instance, argsArr != null ? argsArr.ToArray() : null);
+					object ret = m.Invoke (instance, argsArr != null && argsArr.Count > 0  ? argsArr.ToArray() : null);
 
 					LuaValue retValue = new LuaValue (ret);
 
@@ -1066,19 +1066,21 @@ namespace cn.vimfung.luascriptcore
 		{
 			ArrayList argsArr = null;
 			ParameterInfo[] parameters = m.GetParameters ();
-			if (parameters.Length > 0 && arguments != null) 
+			if (parameters.Length > 0) 
 			{
 				int i = 0;
 				argsArr = new ArrayList ();
 				foreach (ParameterInfo p in parameters) 
 				{
-					if (i >= arguments.Count) 
+					if (i >= arguments.Count)
 					{
-						break;
+						argsArr.Add (null);
 					}
-
-					object value = getNativeValueForLuaValue(p.ParameterType, arguments[i]);
-					argsArr.Add (value);
+					else
+					{
+						object value = getNativeValueForLuaValue(p.ParameterType, arguments[i]);
+						argsArr.Add (value);
+					}
 
 					i++;
 				}

@@ -29,7 +29,6 @@
 
 #include <sys/time.h>
 #include <unistd.h>
-#include <LuaDefine.h>
 
 #endif
 
@@ -110,7 +109,6 @@ static void threadHandler(LuaContext *context, LuaFunction *handler, LuaArgument
         }
 
         //弹出返回值
-        LOGI("=========thread completed");
         LuaEngineAdapter::pop(state, returnCount);
     }
     else
