@@ -77,6 +77,7 @@ LOCAL_SRC_FILES := \
     ../../../../../lua-common/LuaCoroutine.cpp \
     ../../../../../lua-common/LuaError.cpp \
     ../../../../../lua-common/LuaScriptController.cpp \
+    ../../../../../lua-common/LuaTable.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../lua-core/src

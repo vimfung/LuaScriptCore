@@ -39,7 +39,10 @@ void LuaManagedObject::serialization (LuaObjectEncoder *encoder)
 LuaManagedObject::~LuaManagedObject()
 {
     //清除对象在交互层的引用
-    _context -> getDataExchanger() -> clearObject(this);
+    if (_context != NULL)
+    {
+        _context -> getDataExchanger() -> clearObject(this);
+    }
 }
 
 LuaContext *LuaManagedObject::getContext()

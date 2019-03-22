@@ -16,6 +16,7 @@
 #include "LuaEngineAdapter.hpp"
 #include "LuaExportTypeDescriptor.hpp"
 #include "LuaOperationQueue.h"
+#include "LuaTable.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -104,6 +105,10 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
                     //出栈前一结果
                     LuaEngineAdapter::pop(state, 1);
 
+                    LuaTable *table = NULL;
+                    const void *userdata = LuaEngineAdapter::toPointer(state, -1);
+                    objectId = StringUtils::format("%p", userdata);
+
                     LuaValueMap dictValue;
                     LuaValueList arrayValue;
                     bool isArray = true;
@@ -167,14 +172,17 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
                         LuaEngineAdapter::pop(state, 1);
                     }
 
-                    if (isArray)
+                    if (isArray && arrayValue.size() > 0)
                     {
-                        value = LuaValue::ArrayValue(arrayValue);
+                        table = new LuaTable(arrayValue, objectId, _context);
                     }
                     else
                     {
-                        value = LuaValue::DictonaryValue(dictValue);
+                        table = new LuaTable(dictValue, objectId, _context);
                     }
+
+                    value = new LuaValue(table);
+                    table -> release();
                 }
 
                 break;
@@ -260,13 +268,9 @@ void LuaDataExchanger::pushStack(LuaValue *value, lua_State *state, LuaOperation
                 LuaEngineAdapter::pushBoolean(state, value -> toBoolean());
                 break;
             case LuaValueTypeArray:
-            {
-                pushStackByTable(value -> toArray(), state, queue);
-                break;
-            }
             case LuaValueTypeMap:
             {
-                pushStackByTable(value -> toMap(), state, queue);
+                pushStackByObject(value -> toTable(), state, queue);
                 break;
             }
             case LuaValueTypeData:
@@ -547,26 +551,51 @@ void LuaDataExchanger::endGetVarsTable(lua_State *state, LuaOperationQueue *queu
 
 void LuaDataExchanger::pushStackByObject(LuaManagedObject *object, lua_State *state, LuaOperationQueue *queue)
 {
+    //LuaFunction\LuaPointer\ObjectDescription\LuaTable
+    
+    ///TODO: 这里的层级关系有点混乱，LuaTable并没有按照标准化流程进行push，主要原因在于：
+    ///1. DataExchange的pushTable方法不对外公开
+    ///2. 由于协程的加入，目前LuaManageObject内部现在无法触达DataExchange。
+    ///基于上面两点，后续需要进行通盘考虑改造
+    
+    LuaTable *table = dynamic_cast<LuaTable *>(object);
+    if (table != NULL && table -> getExchangeId().empty())
+    {
+        //无关联ID时需要将table中的字典/数组入栈
+        if (table -> isArray())
+        {
+            pushStackByTable((LuaValueList *)table -> getValueObject(), state, queue);
+        }
+        else
+        {
+            pushStackByTable((LuaValueMap *)table -> getValueObject(), state, queue);
+        }
+        
+        return;
+    }
+    
+    
     auto handler = [this, object, state, queue](){
 
-        //LSCFunction\LSCPointer\NSObject
         beginGetVarsTable(state, queue);
 
         std::string linkId = object -> getExchangeId();
-
+        
+        //先从表中查找关联对象
         LuaEngineAdapter::getField(state, -1, linkId.c_str());
         if (LuaEngineAdapter::isNil(state, -1))
         {
             //弹出变量
             LuaEngineAdapter::pop(state, 1);
-
+            
             //_vars_表中没有对应对象引用，则创建对应引用对象
-            object -> push(_context);
-
+            object -> push(state, queue);
+            
             //放入_vars_表中，修复如果对象从未在lua回调回来时，无法找到对应对象问题。
             LuaEngineAdapter::pushValue(state, -1);
             LuaEngineAdapter::setField(state, -3, linkId.c_str());
         }
+        
 
         //将值放入_G之前，目的为了让doActionInVarsTable将_vars_和_G出栈，而不影响该变量值入栈回传Lua
         LuaEngineAdapter::insert(state, -3);

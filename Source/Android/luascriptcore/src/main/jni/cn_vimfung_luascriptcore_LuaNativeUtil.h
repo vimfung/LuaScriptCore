@@ -115,6 +115,8 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_scriptControl
 
 JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_scriptControllerForceExit(JNIEnv *, jclass, jobject);
 
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_luaValueSetObject(JNIEnv *, jclass, jobject, jobject, jstring, jobject);
+
 #ifdef __cplusplus
 }
 #endif

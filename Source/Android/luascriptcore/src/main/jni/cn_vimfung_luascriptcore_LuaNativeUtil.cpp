@@ -529,3 +529,46 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_scriptControl
         scriptController -> forceExit();
     }
 }
+
+JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_luaValueSetObject(
+        JNIEnv *env,
+        jclass type,
+        jobject jcontext,
+        jobject jvalue,
+        jstring keyPath,
+        jobject jObject)
+{
+
+    jobject retObject = NULL;
+    const char *keyPathCStr = env -> GetStringUTFChars(keyPath, 0);
+
+    LuaContext *context = LuaJavaConverter::convertToContextByJLuaContext(env, jcontext);
+    if (context != NULL)
+    {
+        LuaValue *value = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, jvalue);
+        LuaValue *object = NULL;
+        if (jObject != NULL)
+        {
+            object = LuaJavaConverter::convertToLuaValueByJLuaValue(env, context, jObject);
+        }
+
+        if (value != NULL)
+        {
+            value -> setObject(keyPathCStr, object);
+            retObject = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, value);
+
+            value -> release();
+        }
+
+        if (object != NULL)
+        {
+            object -> release();
+        }
+    }
+
+
+    env -> ReleaseStringUTFChars(keyPath, keyPathCStr);
+    env -> DeleteLocalRef(keyPath);
+
+    return retObject;
+}

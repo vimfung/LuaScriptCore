@@ -1,9 +1,6 @@
 package cn.vimfung.luascriptcore;
 
-import android.util.Log;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +13,20 @@ public class LuaValue extends LuaBaseObject
 {
     private Object _valueContainer;
     private LuaValueType _type;
+    private LuaContext _context;    //从JNI层回来的对象会带上这个字段
+    private int _tableId;           //Map和Array类型下的Table标识
+
+    @Override
+    protected void finalize() throws Throwable
+    {
+        if (_tableId > 0)
+        {
+            //释放table对象
+            LuaNativeUtil.releaseNativeObject(_tableId);
+        }
+
+        super.finalize();
+    }
 
     /**
      * 初始化一个空值的LuaValue对象
@@ -732,5 +743,18 @@ public class LuaValue extends LuaBaseObject
     public Object toObject()
     {
         return _valueContainer;
+    }
+
+    /**
+     * 设置对象对象
+     * @param keyPath  键名路径，如：key1.key2.key3
+     * @param object 对象
+     */
+    public void setObject(String keyPath, Object object)
+    {
+        if (valueType() == LuaValueType.Map)
+        {
+            _valueContainer = LuaNativeUtil.luaValueSetObject(_context, this, keyPath, new LuaValue(object));
+        }
     }
 }

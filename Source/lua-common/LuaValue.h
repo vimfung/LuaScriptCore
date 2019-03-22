@@ -26,6 +26,7 @@ namespace cn
             class LuaPointer;
             class LuaObjectDescriptor;
             class LuaExportTypeDescriptor;
+            class LuaTable;
 
             /**
              * Lua值，用于Lua与C＋＋中交互数据使用
@@ -56,7 +57,7 @@ namespace cn
                  * @param context 上下文对象
                  */
                 void managedObject(LuaContext *context);
-
+                
             public:
                 /**
                  * 初始化
@@ -155,6 +156,12 @@ namespace cn
                  * @param value 导出Lua类型
                  */
                 LuaValue (LuaExportTypeDescriptor *value);
+
+                /**
+                 * 初始化
+                 * @param value 表类型
+                 */
+                LuaValue (LuaTable *value);
 
                 /**
                  * 析构
@@ -274,6 +281,13 @@ namespace cn
                  * @return 导出Lua类型
                  */
                 virtual LuaExportTypeDescriptor* toType();
+                
+                /**
+                 转换为LuaTable对象
+                 
+                 @return LuaTable对象
+                 */
+                virtual LuaTable* toTable();
 
                 /**
                  * 入栈数据
@@ -281,6 +295,14 @@ namespace cn
                  * @param context 上下文对象
                  */
                 virtual void push(LuaContext *context);
+                
+                /**
+                 将一个对象放入字典中。注：该方法只有在type为LuaValueTypeMap时有效
+
+                 @param keyPath 对应的键名路径，例如："key"、"key1.key2"
+                 @param object 放入字典的对象
+                 */
+                void setObject(std::string keyPath, LuaValue *object);
 
             public:
 
@@ -392,6 +414,13 @@ namespace cn
                 static LuaValue* ObjectValue(LuaObjectDescriptor *value);
 
                 /**
+                 * 创建一个Table值对象
+                 * @param value Table对象
+                 * @return 值对象
+                 */
+                static LuaValue* TableValue(LuaTable *value);
+
+                /**
                  * 根据栈中位置创建值对象
                  *
                  * @param context 上下文对象
@@ -411,6 +440,8 @@ namespace cn
                  @return 值对象
                  */
                 static LuaValue* TmpValue(LuaContext *context, int index);
+                
+                
             };
             
         }

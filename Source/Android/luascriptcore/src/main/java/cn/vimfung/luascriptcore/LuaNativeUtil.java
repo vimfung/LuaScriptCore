@@ -186,4 +186,14 @@ public class LuaNativeUtil
      */
     public static native void scriptControllerForceExit(LuaScriptController controller);
 
+    /**
+     * LuaValue设置对应键名指向对象，仅用于ValueType为Map
+     * @param context 上下文对象
+     * @param value 值对象
+     * @param keyPath 键名路径
+     * @param object 对象
+     * @return 返回更新后对象
+     */
+    public static native Object luaValueSetObject(LuaContext context, LuaValue value, String keyPath, LuaValue object);
+
 }

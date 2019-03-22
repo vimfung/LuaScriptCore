@@ -14,6 +14,7 @@
 #include "LuaContext.h"
 #include "LuaValue.h"
 #include "LuaPointer.h"
+#include "LuaTable.hpp"
 
 LuaContext* LuaJavaConverter::convertToContextByJLuaContext(JNIEnv *env, jobject context)
 {
@@ -482,6 +483,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
     static jmethodID toObjectId = env -> GetMethodID(jLuaValueClass, "toObject", "()Ljava/lang/Object;");
     static jmethodID toTupleId = env -> GetMethodID(jLuaValueClass, "toTuple", "()Lcn/vimfung/luascriptcore/LuaTuple;");
 
+    static jfieldID  tableIdFieldId = env -> GetFieldID(jLuaValueClass, "_tableId", "I");
+
     jobject itemType = env -> CallObjectMethod(value, typeMethodId);
     jint valueType = env -> CallIntMethod(itemType, typeValueMethodId);
     env -> DeleteLocalRef(itemType);
@@ -528,62 +531,83 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
         }
         case LuaValueTypeArray:
         {
-            static jclass jListClass = LuaJavaType::listClass(env);
-            static jmethodID getMethodId = env -> GetMethodID(jListClass, "get", "(I)Ljava/lang/Object;");
-            static jmethodID sizeMethodId = env -> GetMethodID(jListClass, "size", "()I");
-
-            LuaValueList list;
-            jobject arrayList = env -> CallObjectMethod(value, toListMethodId);
-            jint len = env -> CallIntMethod(arrayList, sizeMethodId);
-            for (int i = 0; i < len; ++i)
+            //先检查是否存在tableId
+            int tableId = env -> GetIntField(value, tableIdFieldId);
+            if (tableId > 0)
             {
-                jobject item = env -> CallObjectMethod(arrayList, getMethodId, i);
-                LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
-                list.push_back(valueItem);
-                env -> DeleteLocalRef(item);
+                //直接获取LuaTable对象
+                LuaTable *table = (LuaTable *)LuaObjectManager::SharedInstance() -> getObject(tableId);
+                retValue = LuaValue::TableValue(table);
             }
+            else
+            {
+                static jclass jListClass = LuaJavaType::listClass(env);
+                static jmethodID getMethodId = env -> GetMethodID(jListClass, "get", "(I)Ljava/lang/Object;");
+                static jmethodID sizeMethodId = env -> GetMethodID(jListClass, "size", "()I");
 
-            retValue = LuaValue::ArrayValue(list);
+                LuaValueList list;
+                jobject arrayList = env -> CallObjectMethod(value, toListMethodId);
+                jint len = env -> CallIntMethod(arrayList, sizeMethodId);
+                for (int i = 0; i < len; ++i)
+                {
+                    jobject item = env -> CallObjectMethod(arrayList, getMethodId, i);
+                    LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
+                    list.push_back(valueItem);
+                    env -> DeleteLocalRef(item);
+                }
 
-            env -> DeleteLocalRef(arrayList);
+                retValue = LuaValue::ArrayValue(list);
+
+                env -> DeleteLocalRef(arrayList);
+            }
             break;
         }
         case LuaValueTypeMap:
         {
-            static jclass jHashMapClass = LuaJavaType::mapClass(env);
-            static jmethodID getMethodId = env -> GetMethodID(jHashMapClass, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
-            static jmethodID sizeMethodId = env -> GetMethodID(jHashMapClass, "size", "()I");
-            static jmethodID keySetMethodId = env -> GetMethodID(jHashMapClass, "keySet", "()Ljava/util/Set;");
-
-            static jclass jSetClass = (jclass)env -> NewGlobalRef(LuaJavaEnv::findClass(env, "java/util/Set"));
-            static jmethodID toArrayMethodId = env -> GetMethodID(jSetClass, "toArray", "()[Ljava/lang/Object;");
-
-            LuaValueMap map;
-            jobject hashMap = env -> CallObjectMethod(value, toMapMethodId);
-            jint len = env -> CallIntMethod(hashMap, sizeMethodId);
-
-            jobject keySet= env -> CallObjectMethod(hashMap, keySetMethodId);
-            jobjectArray keys = (jobjectArray)env -> CallObjectMethod(keySet, toArrayMethodId);
-
-            for (int i = 0; i < len; ++i)
+            int tableId = env -> GetIntField(value, tableIdFieldId);
+            if (tableId > 0)
             {
-                jobject key = env -> GetObjectArrayElement(keys, i);
-                jobject item = env -> CallObjectMethod(hashMap, getMethodId, key);
-
-                const char *keyStr = env -> GetStringUTFChars((jstring)key, NULL);
-                LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
-                map[keyStr] = valueItem;
-                env -> ReleaseStringUTFChars((jstring)key, keyStr);
-
-                env -> DeleteLocalRef(item);
-                env -> DeleteLocalRef(key);
+                //直接获取LuaTable对象
+                LuaTable *table = (LuaTable *)LuaObjectManager::SharedInstance() -> getObject(tableId);
+                retValue = LuaValue::TableValue(table);
             }
+            else
+            {
+                static jclass jHashMapClass = LuaJavaType::mapClass(env);
+                static jmethodID getMethodId = env -> GetMethodID(jHashMapClass, "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+                static jmethodID sizeMethodId = env -> GetMethodID(jHashMapClass, "size", "()I");
+                static jmethodID keySetMethodId = env -> GetMethodID(jHashMapClass, "keySet", "()Ljava/util/Set;");
 
-            retValue = LuaValue::DictonaryValue(map);
+                static jclass jSetClass = (jclass)env -> NewGlobalRef(LuaJavaEnv::findClass(env, "java/util/Set"));
+                static jmethodID toArrayMethodId = env -> GetMethodID(jSetClass, "toArray", "()[Ljava/lang/Object;");
 
-            env -> DeleteLocalRef(keys);
-            env -> DeleteLocalRef(keySet);
-            env -> DeleteLocalRef(hashMap);
+                LuaValueMap map;
+                jobject hashMap = env -> CallObjectMethod(value, toMapMethodId);
+                jint len = env -> CallIntMethod(hashMap, sizeMethodId);
+
+                jobject keySet= env -> CallObjectMethod(hashMap, keySetMethodId);
+                jobjectArray keys = (jobjectArray)env -> CallObjectMethod(keySet, toArrayMethodId);
+
+                for (int i = 0; i < len; ++i)
+                {
+                    jobject key = env -> GetObjectArrayElement(keys, i);
+                    jobject item = env -> CallObjectMethod(hashMap, getMethodId, key);
+
+                    const char *keyStr = env -> GetStringUTFChars((jstring)key, NULL);
+                    LuaValue *valueItem = LuaJavaConverter::convertToLuaValueByJObject(env, context, item);
+                    map[keyStr] = valueItem;
+                    env -> ReleaseStringUTFChars((jstring)key, keyStr);
+
+                    env -> DeleteLocalRef(item);
+                    env -> DeleteLocalRef(key);
+                }
+
+                retValue = LuaValue::DictonaryValue(map);
+
+                env -> DeleteLocalRef(keys);
+                env -> DeleteLocalRef(keySet);
+                env -> DeleteLocalRef(hashMap);
+            }
 
             break;
         }
@@ -871,7 +895,10 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContex
     {
         static jclass jLuaValue = LuaJavaType::luaValueClass(env);
         static jmethodID jNilInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(I)V");
+        static jfieldID jContextFieldId = env -> GetFieldID(jLuaValue, "_context", "Lcn/vimfung/luascriptcore/LuaContext;");
         jmethodID initMethodId = jNilInitMethodId;
+
+        int tableId = 0;
 
         switch (luaValue->getType())
         {
@@ -903,12 +930,18 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContex
             {
                 static jmethodID arrayInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILjava/util/List;)V");
                 initMethodId = arrayInitMethodId;
+
+                LuaTable *table = luaValue -> toTable();
+                tableId = LuaObjectManager::SharedInstance() -> putObject(table);
                 break;
             }
             case LuaValueTypeMap:
             {
                 static jmethodID mapInitMethodId = env -> GetMethodID(jLuaValue, "<init>", "(ILjava/util/Map;)V");
                 initMethodId = mapInitMethodId;
+
+                LuaTable *table = luaValue -> toTable();
+                tableId = LuaObjectManager::SharedInstance() -> putObject(table);
                 break;
             }
             case LuaValueTypePtr:
@@ -948,7 +981,17 @@ jobject LuaJavaConverter::convertToJavaLuaValueByLuaValue(JNIEnv *env, LuaContex
             jobject jObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, luaValue);
             retObj = env -> NewObject(jLuaValue, initMethodId, luaValue -> objectId(), jObj);
             env -> DeleteLocalRef(jObj);
+
+            if (tableId > 0)
+            {
+                //设置TableID到luaValue中
+                static jfieldID tableIdFieldID = env -> GetFieldID(jLuaValue, "_tableId", "I");
+                env -> SetIntField(retObj, tableIdFieldID, tableId);
+            }
         }
+
+        jobject jContext = LuaJavaEnv::getJavaLuaContext(env, context);
+        env -> SetObjectField(retObj, jContextFieldId, jContext);
     }
 
     return retObj;

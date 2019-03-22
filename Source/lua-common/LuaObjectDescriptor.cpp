@@ -156,7 +156,6 @@ void LuaObjectDescriptor::push(lua_State *state, LuaOperationQueue *queue)
     if (_typeDescriptor != NULL)
     {
         //如果为导出类型
-        ///TODO:xxx
         getContext() -> getExportsTypeManager() -> createLuaObject(this);
         return;
     }

@@ -19,6 +19,7 @@
 #include "LuaExportTypeDescriptor.hpp"
 #include "LuaExportsTypeManager.hpp"
 #include "LuaTmpValue.hpp"
+#include "LuaTable.hpp"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -81,7 +82,7 @@ LuaValue::LuaValue(LuaValueList value)
         : LuaObject()
 {
     _type = LuaValueTypeArray;
-    _value = new LuaValueList(value);
+    _value = new LuaTable(value, "", NULL);
     _hasManagedObject = false;
 }
 
@@ -89,7 +90,7 @@ LuaValue::LuaValue(LuaValueMap value)
         : LuaObject()
 {
     _type = LuaValueTypeMap;
-    _value = new LuaValueMap (value);
+    _value = new LuaTable(value, "", NULL);
     _hasManagedObject = false;
 }
 
@@ -234,6 +235,15 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
     }
 }
 
+LuaValue::LuaValue (LuaTable *value)
+{
+    _type = value -> isArray() ? LuaValueTypeArray : LuaValueTypeMap;
+
+    value -> retain();
+    _value = (void *)value;
+    _hasManagedObject = false;
+}
+
 LuaValue::~LuaValue()
 {
     if (_hasManagedObject && _context != NULL)
@@ -244,37 +254,13 @@ LuaValue::~LuaValue()
 
     if (_value != NULL)
     {
-        if (_type == LuaValueTypeArray)
-        {
-            //对于Table类型需要释放其子对象内存
-            LuaValueList *arrayValue = static_cast<LuaValueList *> (_value);
-            if (arrayValue != NULL)
-            {
-                //为数组对象
-                for (LuaValueList::iterator i = arrayValue -> begin(); i != arrayValue -> end(); ++i)
-                {
-                    LuaValue *value = *i;
-                    value -> release();
-                }
-            }
-        }
-        else if (_type == LuaValueTypeMap)
-        {
-            //为字典对象
-            LuaValueMap *mapValue = static_cast<LuaValueMap *> (_value);
-            if (mapValue != NULL)
-            {
-                for (LuaValueMap::iterator i = mapValue -> begin(); i != mapValue -> end(); ++i)
-                {
-                    i->second->release();
-                }
-            }
-        }
-        else if (_type == LuaValueTypePtr
+        if (_type == LuaValueTypePtr
                  || _type == LuaValueTypeObject
                  || _type == LuaValueTypeFunction
                  || _type == LuaValueTypeTuple
-                 || _type == LuaValueTypeClass)
+                 || _type == LuaValueTypeClass
+                 || _type == LuaValueTypeArray
+                 || _type == LuaValueTypeMap)
         {
             ((LuaObject *)_value) -> release();
         }
@@ -283,7 +269,9 @@ LuaValue::~LuaValue()
             && _type != LuaValueTypeObject
             && _type != LuaValueTypeFunction
             && _type != LuaValueTypeTuple
-            && _type != LuaValueTypeClass)
+            && _type != LuaValueTypeClass
+            && _type != LuaValueTypeArray
+            && _type != LuaValueTypeMap)
         {
             if (_type == LuaValueTypeString)
             {
@@ -354,6 +342,11 @@ LuaValue* LuaValue::TupleValue(LuaTuple *value)
 }
 
 LuaValue* LuaValue::ObjectValue(LuaObjectDescriptor *value)
+{
+    return new LuaValue(value);
+}
+
+LuaValue* LuaValue::TableValue(LuaTable *value)
 {
     return new LuaValue(value);
 }
@@ -451,7 +444,8 @@ LuaValueList* LuaValue::toArray()
 {
     if (_type == LuaValueTypeArray)
     {
-        return static_cast<LuaValueList *>(_value);
+        LuaTable *table = (LuaTable *)_value;
+        return static_cast<LuaValueList *>(table -> getValueObject());
     }
 
     return NULL;
@@ -461,7 +455,8 @@ LuaValueMap* LuaValue::toMap()
 {
     if (_type == LuaValueTypeMap)
     {
-        return static_cast<LuaValueMap *>(_value);
+        LuaTable *table = (LuaTable *)_value;
+        return static_cast<LuaValueMap *>(table -> getValueObject());
     }
 
     return NULL;
@@ -518,6 +513,16 @@ LuaObjectDescriptor* LuaValue::toObject()
         return (LuaObjectDescriptor *)((LuaPointer *)_value) -> getValue() -> value;
     }
 
+    return NULL;
+}
+
+LuaTable* LuaValue::toTable()
+{
+    if (getType() == LuaValueTypeArray || getType() == LuaValueTypeMap)
+    {
+        return (LuaTable *)_value;
+    }
+    
     return NULL;
 }
 
@@ -627,5 +632,13 @@ void LuaValue::managedObject(LuaContext *context)
     {
         _hasManagedObject = true;
         _context -> getDataExchanger() -> retainLuaObject(this);
+    }
+}
+
+void LuaValue::setObject(std::string keyPath, LuaValue *object)
+{
+    if (getType() == LuaValueTypeMap)
+    {
+        toTable() -> setObject(keyPath, object);
     }
 }
