@@ -300,11 +300,23 @@ namespace cn.vimfung.luascriptcore
 		internal extern static void runThread (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId);
 
 		/// <summary>
+		/// 设置指定table的键值
+		/// </summary>
+		/// <returns>缓存大小</returns>
+		/// <param name="tableId">table标识.</param>
+		/// <param name="keyPath">键名路径.</param>
+		/// <param name="value">值.</param>
+		/// <param name="resultBuffer">返回缓存，用于同步LuaValue中的Map对象.</param>
+		[DllImport("LuaScriptCore-Unity-OSX")]
+		internal extern static int tableSetObject (int tableId, string keyPath, IntPtr value, IntPtr resultBuffer);
+
+		/// <summary>
 		/// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。
 		/// </summary>
 		/// <param name="fp">方法回调</param>
 		[DllImport("LuaScriptCore-Unity-OSX")]
 		private extern static void setUnityDebugLog (IntPtr fp);
+
 
 #elif UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
 
@@ -525,6 +537,17 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="scriptControllerId">脚本控制器标识</param>
 		[DllImport("LuaScriptCore-Unity-Win64")]
 		internal extern static void runThread (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId);
+
+		/// <summary>
+		/// 设置指定table的键值
+		/// </summary>
+		/// <returns>缓存大小</returns>
+		/// <param name="tableId">table标识.</param>
+		/// <param name="keyPath">键名路径.</param>
+		/// <param name="value">值.</param>
+		/// <param name="resultBuffer">返回缓存，用于同步LuaValue中的Map对象.</param>
+		[DllImport("LuaScriptCore-Unity-Win64")]
+		internal extern static int tableSetObject (int tableId, string keyPath, IntPtr value, IntPtr resultBuffer);
 
         /// <summary>
         /// 设置Unity调试日志接口，用于Lua中输出日志到Unity的编辑器控制台, Editor特有。
@@ -752,6 +775,17 @@ namespace cn.vimfung.luascriptcore
 		[DllImport("__Internal")]
 		internal extern static void runThread (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId);
 
+		/// <summary>
+		/// 设置指定table的键值
+		/// </summary>
+		/// <returns>缓存大小</returns>
+		/// <param name="tableId">table标识.</param>
+		/// <param name="keyPath">键名路径.</param>
+		/// <param name="value">值.</param>
+		/// <param name="resultBuffer">返回缓存，用于同步LuaValue中的Map对象.</param>
+		[DllImport("__Internal")]
+		internal extern static int tableSetObject (int tableId, string keyPath, IntPtr value, IntPtr resultBuffer);
+
 #elif UNITY_ANDROID
 
 		/// <summary>
@@ -969,6 +1003,17 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="scriptControllerId">脚本控制器标识</param>
 		[DllImport("LuaScriptCore-Unity-Android")]
 		internal extern static void runThread (int nativeContextId, IntPtr function, IntPtr arguments, int scriptControllerId);
+
+		/// <summary>
+		/// 设置指定table的键值
+		/// </summary>
+		/// <returns>缓存大小</returns>
+		/// <param name="tableId">table标识.</param>
+		/// <param name="keyPath">键名路径.</param>
+		/// <param name="value">值.</param>
+		/// <param name="resultBuffer">返回缓存，用于同步LuaValue中的Map对象.</param>
+		[DllImport("LuaScriptCore-Unity-Android")]
+		internal extern static int tableSetObject (int tableId, string keyPath, IntPtr value, IntPtr resultBuffer);
 #endif
 	}
 }

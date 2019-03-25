@@ -256,6 +256,21 @@ extern "C" {
                                            const void *params,
                                            int scriptControllerId);
     
+    
+    /**
+     Table设置指定键名对象
+
+     @param tableId table标识
+     @param keyPath 键名路径
+     @param object 对象
+     @param result 返回新的字典集合
+     @return 返回值的缓存长度
+     */
+    LuaScriptCoreApi extern int tableSetObject(int tableId,
+                                               const char *keyPath,
+                                               const void *object,
+                                               const void **result);
+    
 #if defined (__cplusplus)
 }
 #endif

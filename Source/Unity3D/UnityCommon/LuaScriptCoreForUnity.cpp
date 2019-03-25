@@ -30,6 +30,7 @@
 #include "LuaObjectDescriptor.h"
 #include "StringUtils.h"
 #include "LuaScriptController.h"
+#include "LuaTable.hpp"
 
 #if defined (__cplusplus)
 extern "C" {
@@ -692,6 +693,34 @@ extern "C" {
             //释放方法
             func -> release();
         }
+    }
+    
+    extern int tableSetObject(int tableId,
+                              const char *keyPath,
+                              const void *object,
+                              const void **result)
+    {
+        LuaTable *table = dynamic_cast<LuaTable *>(LuaObjectManager::SharedInstance() -> getObject(tableId));
+        if (table != NULL)
+        {
+            LuaObjectDecoder *decoder = new LuaObjectDecoder(table -> getContext(), object);
+            
+            LuaValue *value = dynamic_cast<LuaValue *>(decoder -> readObject());
+            table -> setObject(keyPath, value);
+            
+            decoder -> release();
+            
+            LuaValue *resultValue = LuaValue::TableValue(table);
+            
+            LuaObjectManager::SharedInstance() -> putObject(resultValue);
+            
+            int bufSize = LuaObjectEncoder::encodeObject(table -> getContext(), resultValue, result);
+            resultValue -> release();
+            
+            return bufSize;
+        }
+        
+        return 0;
     }
     
 #if defined (__cplusplus)

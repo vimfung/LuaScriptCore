@@ -26,7 +26,7 @@ using namespace cn::vimfung::luascriptcore;
 DECLARE_NATIVE_CLASS(LuaValue);
 
 LuaValue::LuaValue()
-        : LuaObject()
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeNil;
     _value = NULL;
@@ -34,7 +34,7 @@ LuaValue::LuaValue()
 }
 
 LuaValue::LuaValue(long value)
-        : LuaObject()
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeInteger;
     _intValue = (lua_Integer)value;
@@ -43,7 +43,7 @@ LuaValue::LuaValue(long value)
 }
 
 LuaValue::LuaValue(bool value)
-        : LuaObject()
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeBoolean;
     _booleanValue = value;
@@ -52,7 +52,7 @@ LuaValue::LuaValue(bool value)
 }
 
 LuaValue::LuaValue(double value)
-        : LuaObject()
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeNumber;
     _numberValue = value;
@@ -61,7 +61,7 @@ LuaValue::LuaValue(double value)
 }
 
 LuaValue::LuaValue(std::string const& value)
-        : LuaObject()
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeString;
     _value = new std::string(value);
@@ -69,7 +69,7 @@ LuaValue::LuaValue(std::string const& value)
 }
 
 LuaValue::LuaValue(const char *bytes, size_t length)
-        : LuaObject()
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeData;
     _bytesLen = length;
@@ -79,7 +79,7 @@ LuaValue::LuaValue(const char *bytes, size_t length)
 }
 
 LuaValue::LuaValue(LuaValueList value)
-        : LuaObject()
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeArray;
     _value = new LuaTable(value, "", NULL);
@@ -87,7 +87,7 @@ LuaValue::LuaValue(LuaValueList value)
 }
 
 LuaValue::LuaValue(LuaValueMap value)
-        : LuaObject()
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeMap;
     _value = new LuaTable(value, "", NULL);
@@ -95,7 +95,7 @@ LuaValue::LuaValue(LuaValueMap value)
 }
 
 LuaValue::LuaValue (LuaPointer *value)
-        :LuaObject()
+        :LuaObject(), _context(NULL)
 {
     _type = LuaValueTypePtr;
 
@@ -105,6 +105,7 @@ LuaValue::LuaValue (LuaPointer *value)
 }
 
 LuaValue::LuaValue (LuaObjectDescriptor *value)
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeObject;
 
@@ -114,6 +115,7 @@ LuaValue::LuaValue (LuaObjectDescriptor *value)
 }
 
 LuaValue::LuaValue(LuaFunction *value)
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeFunction;
 
@@ -123,6 +125,7 @@ LuaValue::LuaValue(LuaFunction *value)
 }
 
 LuaValue::LuaValue (LuaTuple *value)
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeTuple;
 
@@ -132,6 +135,7 @@ LuaValue::LuaValue (LuaTuple *value)
 }
 
 LuaValue::LuaValue (LuaExportTypeDescriptor *value)
+        : LuaObject(), _context(NULL)
 {
     _type = LuaValueTypeClass;
 
@@ -149,6 +153,19 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
 	_numberValue = 0;
 	_booleanValue = false;
 	_bytesLen = 0;
+    
+    int contextId = decoder -> readInt32();
+    if (contextId > 0)
+    {
+        _context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(contextId));
+    }
+    else
+    {
+        _context = NULL;
+    }
+    
+    int tableId = decoder -> readInt32();
+    
     _type = (LuaValueType)decoder -> readInt16();
 
     switch (_type)
@@ -170,31 +187,50 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
             break;
         case LuaValueTypeArray:
         {
-            int size = decoder -> readInt32();
-            LuaValueList *list = new LuaValueList();
-            for (int i = 0; i < size; i++)
+            LuaTable *table = NULL;
+            if (tableId > 0)
             {
-                LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
-                list -> push_back(item);
+                table = dynamic_cast<LuaTable *>(LuaObjectManager::SharedInstance() -> getObject(tableId));
             }
-            _value = list;
+            else
+            {
+                int size = decoder -> readInt32();
+                LuaValueList list;
+                for (int i = 0; i < size; i++)
+                {
+                    LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
+                    list.push_back(item);
+                }
+                table = new LuaTable(list, "", _context);
+            }
+           
+            _value = table;
             break;
         }
         case LuaValueTypeMap:
         {
-            int size = decoder -> readInt32();
-            LuaValueMap *map = new LuaValueMap();
-            for (int i = 0; i < size; i++)
+            LuaTable *table = NULL;
+            if (tableId > 0)
             {
-                std::string key = decoder -> readString();
-                LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
-                if (item != NULL)
-                {
-                    (*map)[key] = item;
-                }
-                
+                table = dynamic_cast<LuaTable *>(LuaObjectManager::SharedInstance() -> getObject(tableId));
             }
-            _value = map;
+            else
+            {
+                int size = decoder -> readInt32();
+                LuaValueMap map;
+                for (int i = 0; i < size; i++)
+                {
+                    std::string key = decoder -> readString();
+                    LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
+                    if (item != NULL)
+                    {
+                        map[key] = item;
+                    }
+                }
+                table = new LuaTable(map, "", _context);
+            }
+            
+            _value = table;
             break;
         }
         case LuaValueTypeTuple:
@@ -236,6 +272,7 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
 }
 
 LuaValue::LuaValue (LuaTable *value)
+        : LuaObject(), _context(NULL)
 {
     _type = value -> isArray() ? LuaValueTypeArray : LuaValueTypeMap;
 
@@ -529,6 +566,27 @@ LuaTable* LuaValue::toTable()
 void LuaValue::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
+    
+    //增加contextId和tableId
+    if (_context != NULL)
+    {
+        encoder -> writeInt32(_context -> objectId());
+    }
+    else
+    {
+        encoder -> writeInt32(0);
+    }
+    
+    if (getType() == LuaValueTypeArray || getType() == LuaValueTypeMap)
+    {
+        LuaTable *table = toTable();
+        LuaObjectManager::SharedInstance() -> putObject(table);
+        encoder -> writeInt32(table -> objectId());
+    }
+    else
+    {
+        encoder -> writeInt32(0);
+    }
     
     encoder -> writeInt16(getType());
     

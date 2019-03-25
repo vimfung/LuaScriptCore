@@ -27,6 +27,16 @@ namespace cn.vimfung.luascriptcore
 	{
 		private LuaValueType _type;
 		private object _value;
+		private int _tableId;
+		private LuaContext _context;
+
+		~LuaValue ()
+		{
+			if (_tableId > 0)
+			{
+				NativeUtils.releaseObject (_tableId);
+			}
+		}
 
 		/// <summary>
 		/// 初始化一个Nil值
@@ -302,6 +312,16 @@ namespace cn.vimfung.luascriptcore
 		{
 			base.serialization (encoder);
 
+			if (_context != null)
+			{
+				encoder.writeInt32 (_context.objectId);
+			}
+			else
+			{
+				encoder.writeInt32 (0);
+			}
+
+			encoder.writeInt32 (_tableId);
 			encoder.writeInt16 ((Int16)type);
 
 			switch (type)
@@ -398,6 +418,10 @@ namespace cn.vimfung.luascriptcore
 		public LuaValue (LuaObjectDecoder decoder)
 			: base(decoder)
 		{
+
+			int contextId = decoder.readInt32 ();
+			_context = LuaContext.getContext (contextId);
+			_tableId = decoder.readInt32 ();
 			_type = (LuaValueType)decoder.readInt16 ();
 			_value = null;
 
@@ -617,6 +641,42 @@ namespace cn.vimfung.luascriptcore
 			}
 
 			return _value;
+		}
+
+		/// <summary>
+		/// 设置对象
+		/// </summary>
+		/// <param name="keyPath">键名路径.</param>
+		/// <param name="value">值.</param>
+		public void setObject(String keyPath, object value)
+		{
+			if (_context != null && _tableId > 0 && type == LuaValueType.Map)
+			{
+				LuaValue objectValue = new LuaValue (value);
+
+				IntPtr resultPtr = IntPtr.Zero;
+
+				IntPtr valuePtr = IntPtr.Zero;
+				LuaObjectEncoder encoder = new LuaObjectEncoder (_context);
+				encoder.writeObject (objectValue);
+
+				byte[] bytes = encoder.bytes;
+				valuePtr = Marshal.AllocHGlobal (bytes.Length);
+				Marshal.Copy (bytes, 0, valuePtr, bytes.Length);
+
+				int bufferLen = NativeUtils.tableSetObject (_tableId, keyPath, valuePtr, resultPtr);
+
+				if (bufferLen > 0)
+				{
+					LuaValue resultValue = LuaObjectDecoder.DecodeObject (resultPtr, bufferLen, _context) as LuaValue;
+					_value = resultValue._value;
+				}
+
+				if (valuePtr != IntPtr.Zero)
+				{
+					Marshal.FreeHGlobal (valuePtr);
+				}
+			}
 		}
 	}
 }
