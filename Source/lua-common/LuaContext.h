@@ -8,7 +8,6 @@
 #include "lua.hpp"
 #include "LuaObject.h"
 #include "LuaDefined.h"
-#include "LuaFunction.h"
 
 namespace cn
 {
@@ -25,6 +24,7 @@ namespace cn
             class LuaOperationQueue;
             class LuaError;
             class LuaScriptController;
+			class LuaFunction;
 
             /**
              * Lua上下文环境, 维护原生代码与Lua之间交互的核心类型。

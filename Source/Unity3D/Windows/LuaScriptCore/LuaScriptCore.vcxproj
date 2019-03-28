@@ -83,8 +83,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\lua-common\LuaContext.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaCoroutine.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaDataExchanger.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaEngineAdapter.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaError.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaExportMethodDescriptor.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaExportPropertyDescriptor.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaExportsTypeManager.cpp" />
@@ -98,8 +100,11 @@
     <ClCompile Include="..\..\..\lua-common\LuaObjectDescriptor.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectEncoder.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaObjectManager.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaOperationQueue.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaPointer.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaScriptController.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaSession.cpp" />
+    <ClCompile Include="..\..\..\lua-common\LuaTable.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaTmpValue.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaTuple.cpp" />
     <ClCompile Include="..\..\..\lua-common\LuaValue.cpp" />
@@ -147,9 +152,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lua-common\LuaContext.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaCoroutine.h" />
     <ClInclude Include="..\..\..\lua-common\LuaDataExchanger.h" />
     <ClInclude Include="..\..\..\lua-common\LuaDefined.h" />
     <ClInclude Include="..\..\..\lua-common\LuaEngineAdapter.hpp" />
+    <ClInclude Include="..\..\..\lua-common\LuaError.h" />
     <ClInclude Include="..\..\..\lua-common\LuaExportMethodDescriptor.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaExportPropertyDescriptor.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaExportsTypeManager.hpp" />
@@ -164,8 +171,11 @@
     <ClInclude Include="..\..\..\lua-common\LuaObjectEncoder.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectManager.h" />
     <ClInclude Include="..\..\..\lua-common\LuaObjectSerializationTypes.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaOperationQueue.h" />
     <ClInclude Include="..\..\..\lua-common\LuaPointer.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaScriptController.h" />
     <ClInclude Include="..\..\..\lua-common\LuaSession.h" />
+    <ClInclude Include="..\..\..\lua-common\LuaTable.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaTmpValue.hpp" />
     <ClInclude Include="..\..\..\lua-common\LuaTuple.h" />
     <ClInclude Include="..\..\..\lua-common\LuaValue.h" />

@@ -11,7 +11,11 @@
 #include "StringUtils.h"
 #include "LuaScriptController.h"
 
+#if !_WINDOWS
+
 #include <sys/time.h>
+
+#endif
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -25,16 +29,32 @@ typedef std::map<std::string, LuaSession*> LuaSessionMap;
  */
 static LuaSessionMap _hookSessions;
 
+#if _WINDOWS
+
+static INT64 getCurrentTime()
+{
+	time_t rawtime;
+	return (INT64)(time(&rawtime) * 1000);
+}
+
+#else
+
 /**
- * 获取当前时间戳
- * @return 时间戳
- */
+* 获取当前时间戳
+* @return 时间戳
+*/
 static int64_t getCurrentTime()
 {
-    struct timeval tv;
-    gettimeofday(&tv,NULL);    //该函数在sys/time.h头文件中
-    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+
+	struct timeval tv;
+	gettimeofday(&tv, NULL);    //该函数在sys/time.h头文件中
+	return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+
 }
+
+#endif
+
+
 
 static void hookLineFunc(lua_State *state, lua_Debug *ar)
 {

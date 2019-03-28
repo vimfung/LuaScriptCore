@@ -174,7 +174,7 @@ namespace cn.vimfung.luascriptcore
 				#else
 
 
-				if (!path.StartsWith("/"))
+				if (!path.StartsWith("/") && !path.StartsWith(Application.streamingAssetsPath))
 				{
 					path = string.Format("{0}/{1}", Application.streamingAssetsPath, path);
 				}

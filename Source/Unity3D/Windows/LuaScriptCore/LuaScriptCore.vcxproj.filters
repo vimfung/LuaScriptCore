@@ -219,6 +219,21 @@
     <ClCompile Include="..\..\..\lua-common\LuaTmpValue.cpp">
       <Filter>Source Files\lua-common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaOperationQueue.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaError.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaTable.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaScriptController.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\lua-common\LuaCoroutine.cpp">
+      <Filter>Source Files\lua-common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\lua-core\src\lapi.h">
@@ -390,6 +405,21 @@
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\lua-common\LuaTmpValue.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaOperationQueue.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaTable.hpp">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaError.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaScriptController.h">
+      <Filter>Header Files\lua-common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\lua-common\LuaCoroutine.h">
       <Filter>Header Files\lua-common</Filter>
     </ClInclude>
   </ItemGroup>
