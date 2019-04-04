@@ -18,6 +18,11 @@ public class LuaContext: NSObject
         self.rawContext = LSCContext();
     }
     
+    public init (config : LuaConfig)
+    {
+        self.rawContext = LSCContext(config: config);
+    }
+    
     /// 添加搜索路径，对于不在应用主Bundle根目录的lua脚本如果需要require时，则需要指定其搜索路径。
     ///
     /// - Parameter path: 路径字符串

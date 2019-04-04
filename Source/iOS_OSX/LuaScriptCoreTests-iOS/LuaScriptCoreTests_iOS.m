@@ -18,8 +18,8 @@
 #import "Env.h"
 #import "SubLuaLog.h"
 #import "LSCOperationQueue.h"
+#import "LSCConfig.h"
 #import <objc/message.h>
-#import <JavaScriptCore/JavaScriptCore.h>
 
 #import "LSCEngineAdapter.h"
 
@@ -45,6 +45,13 @@
         NSLog(@"error = %@", message);
         
     }];
+}
+
+- (void)testFullExportName
+{
+    self.context.config.fullExportName = YES;
+    [self.context evalScriptFromString:@"local p = Person('vim'); p:speakWithAge(18);"];
+    
 }
 
 /**

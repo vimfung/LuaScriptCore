@@ -17,6 +17,7 @@
 #import "LSCExportTypeAnnotation.h"
 #import "LSCExportPropertyDescriptor.h"
 #import "LSCVirtualInstance.h"
+#import "LSCConfig.h"
 #import <objc/runtime.h>
 
 /**
@@ -902,30 +903,60 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
 - (NSString *)_getLuaMethodNameWithSelectorName:(NSString *)selectorName
 {
     NSString *luaName = selectorName;
+
+    if ([luaName hasPrefix:@"init"])
+    {
+        //检测是否为初始化方法
+        if (luaName.length > 4)
+        {
+            unichar ch = [luaName characterAtIndex:4];
+            if (ch > 'A' && ch < 'Z')
+            {
+                return @"init";
+            }
+        }
+        else
+        {
+            return @"init";
+        }
+    }
     
-    NSRange range = [luaName rangeOfString:@":"];
-    if (range.location != NSNotFound)
+    if (self.context.config.fullExportName)
     {
-        luaName = [luaName substringToIndex:range.location];
+        //使用完整限定名称
+        luaName = [selectorName stringByReplacingOccurrencesOfString:@":" withString:@"_"];
+        if ([luaName hasSuffix:@"_"])
+        {
+            luaName = [luaName substringWithRange:NSMakeRange(0, luaName.length - 1)];
+        }
     }
-
-    range = [luaName rangeOfString:@"With"];
-    if (range.location != NSNotFound)
+    else
     {
-        luaName = [luaName substringToIndex:range.location];
+        NSRange range = [luaName rangeOfString:@":"];
+        if (range.location != NSNotFound)
+        {
+            luaName = [luaName substringToIndex:range.location];
+        }
+        
+        range = [luaName rangeOfString:@"With"];
+        if (range.location != NSNotFound)
+        {
+            luaName = [luaName substringToIndex:range.location];
+        }
+        
+        range = [luaName rangeOfString:@"At"];
+        if (range.location != NSNotFound)
+        {
+            luaName = [luaName substringToIndex:range.location];
+        }
+        
+        range = [luaName rangeOfString:@"By"];
+        if (range.location != NSNotFound)
+        {
+            luaName = [luaName substringToIndex:range.location];
+        }
     }
-
-    range = [luaName rangeOfString:@"At"];
-    if (range.location != NSNotFound)
-    {
-        luaName = [luaName substringToIndex:range.location];
-    }
-
-    range = [luaName rangeOfString:@"By"];
-    if (range.location != NSNotFound)
-    {
-        luaName = [luaName substringToIndex:range.location];
-    }
+    
 
     return luaName;
 }

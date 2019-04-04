@@ -14,6 +14,7 @@
 #import "LSCTuple.h"
 #import "LSCCoroutine+Private.h"
 #import "LSCError.h"
+#import "LSCConfig.h"
 #import <objc/runtime.h>
 
 /**
@@ -32,25 +33,17 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
 @implementation LSCContext
 
-- (instancetype)init
-{
-    return [self initWithCreateStateHandler:^lua_State *{
-       
-        return [LSCEngineAdapter newState];
-        
-    }];
-}
-
-- (instancetype)initWithCreateStateHandler:(lua_State* (^)(void))handler
+- (instancetype)initWithConfig:(LSCConfig *)config
 {
     if (self = [super init])
     {
+        _config = config;
         self.methodBlocks = [NSMutableDictionary dictionary];
         
         self.optQueue = [[LSCOperationQueue alloc] init];
         [self.optQueue performAction:^{
             
-            lua_State *state = handler();
+            lua_State *state = [LSCEngineAdapter newState];
             
             [LSCEngineAdapter gc:state what:LSCGCTypeStop data:0];
             
@@ -86,7 +79,13 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
             
         }];
     }
+    
     return self;
+}
+
+- (instancetype)init
+{
+    return [self initWithConfig:[LSCConfig defaultConfig]];
 }
 
 - (void)dealloc

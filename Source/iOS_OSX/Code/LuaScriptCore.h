@@ -15,6 +15,7 @@
 #import "LSCTuple.h"
 #import "LSCManagedValue.h"
 #import "LSCScriptController.h"
+#import "LSCConfig.h"
 
 #import "LSCExportType.h"
 #import "LSCExportTypeAnnotation.h"

@@ -11,11 +11,33 @@
 
 @class LSCFunction;
 @class LSCScriptController;
+@class LSCConfig;
 
 /**
  *  Lua上下文对象
  */
 @interface LSCContext : NSObject
+
+/**
+ 配置信息
+ */
+@property (nonatomic, strong, readonly) LSCConfig *config;
+
+
+/**
+ 初始化
+
+ @return 上下文对象
+ */
+- (instancetype)init;
+
+/**
+ 初始化
+
+ @param config 配置信息
+ @return 上下文对象
+ */
+- (instancetype)initWithConfig:(LSCConfig *)config;
 
 /**
  抛出异常

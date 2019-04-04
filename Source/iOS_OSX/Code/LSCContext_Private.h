@@ -53,14 +53,6 @@
 @property (nonatomic, strong) LSCExportsTypeManager *exportsTypeManager;
 
 /**
- 初始化
-
- @param handler 创建State处理器
- @return 上下文对象
- */
-- (instancetype)initWithCreateStateHandler:(lua_State* (^)(void))handler;
-
-/**
  通过状态设置当前会话
 
  @param state 状态
