@@ -153,6 +153,17 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="path">路径.</param>
 		public void addSearchPath(string path)
 		{
+			Regex regext = new Regex ("/([^/]+)[.]([^/]+)$");
+			if (!regext.IsMatch (path))
+			{
+				if (!path.EndsWith ("/"))
+				{
+					path += "/";
+				}	
+
+				path += "?.lua";
+			}
+
 			if (!path.StartsWith ("/") || path.StartsWith(Application.streamingAssetsPath))
 			{
 				#if UNITY_ANDROID && !UNITY_EDITOR
@@ -183,7 +194,7 @@ namespace cn.vimfung.luascriptcore
 			}
 
 
-			NativeUtils.addSearchPath (_nativeObjectId, path + "/?.lua");
+			NativeUtils.addSearchPath (_nativeObjectId, path);
 		}
 
 		/// <summary>

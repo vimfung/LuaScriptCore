@@ -127,11 +127,18 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 - (void)addSearchPath:(NSString *)path
 {
     NSMutableString *fullPath = [NSMutableString stringWithString:path];
-    if (![path hasSuffix:@"/"])
+    
+    NSRegularExpression *regExp = [[NSRegularExpression alloc] initWithPattern:@"/([^/]+)[.]([^/]+)$" options:NSRegularExpressionCaseInsensitive error:nil];
+    NSTextCheckingResult *result = [regExp firstMatchInString:path options:NSMatchingReportProgress range:NSMakeRange(0, fullPath.length)];
+    
+    if (!result)
     {
-        [fullPath appendString:@"/"];
+        if (![path hasSuffix:@"/"])
+        {
+            [fullPath appendString:@"/"];
+        }
+        [fullPath appendString:@"?.lua"];
     }
-    [fullPath appendString:@"?.lua"];
     
     [self setSearchPath:fullPath];
 }

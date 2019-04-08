@@ -232,7 +232,19 @@ public class LuaContext extends LuaBaseObject
      */
     public void addSearchPath (String path)
     {
-        LuaNativeUtil.addSearchPath(_nativeId, path + "/?.lua");
+        String regExp = "/([^/]+)[.]([^/]+)$";
+        if (!Pattern.matches(regExp, path))
+        {
+            regExp = "/$";
+            if (Pattern.matches(regExp, path))
+            {
+                path = path + "/";
+            }
+
+            path = path + "?.lua";
+        }
+
+        LuaNativeUtil.addSearchPath(_nativeId, path);
     }
 
     /**

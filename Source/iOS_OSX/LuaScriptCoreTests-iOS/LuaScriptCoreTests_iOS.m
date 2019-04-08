@@ -38,7 +38,7 @@
     self.context = [Env defaultContext];
     
     NSBundle *bundle = [NSBundle bundleForClass:[LuaScriptCoreTests_iOS class]];
-    [self.context addSearchPath:bundle.resourcePath];
+    [self.context addSearchPath:[bundle.resourcePath stringByAppendingString:@"/"]];
     
     [self.context onException:^(NSString *message) {
        
