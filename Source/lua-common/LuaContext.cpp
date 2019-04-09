@@ -64,9 +64,8 @@ static void _raiseLuaException(lua_State *state, void *ud)
  * @param arguments 参数列表
  * @param scriptController 脚本控制器
  */
-static void threadHandler(LuaContext *context, LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController)
+static void threadHandler(LuaCoroutine *coroutine, LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController)
 {
-    LuaCoroutine *coroutine = new LuaCoroutine(context);
     lua_State *state = coroutine -> getState();
 
     //设置脚本执行配置
@@ -85,7 +84,7 @@ static void threadHandler(LuaContext *context, LuaFunction *handler, LuaArgument
     }
 
     int top = LuaEngineAdapter::getTop(state);
-    context -> getDataExchanger() -> getLuaObject(handler, state, NULL);
+    coroutine -> getContext() -> getDataExchanger() -> getLuaObject(handler, state, NULL);
 
     if (LuaEngineAdapter::isFunction(state, -1))
     {
@@ -95,7 +94,7 @@ static void threadHandler(LuaContext *context, LuaFunction *handler, LuaArgument
         for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
         {
             LuaValue *item = *i;
-            context -> getDataExchanger() -> pushStack(item);
+            coroutine -> getContext() -> getDataExchanger() -> pushStack(item);
         }
 
         if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == LUA_OK)
@@ -129,7 +128,7 @@ static void threadHandler(LuaContext *context, LuaFunction *handler, LuaArgument
     delete arguments;
 
     //释放内存
-    context -> gc();
+    coroutine -> getContext() -> gc();
 
     //取消设置脚本执行配置
     coroutine -> setScriptController(NULL);
@@ -326,37 +325,6 @@ LuaContext::LuaContext(std::string const& platform)
     //注册错误捕获方法
     registerMethod(CatchLuaExceptionHandlerName, catchLuaExceptionHandler);
 }
-
-//LuaContext::LuaContext(std::string const& platform, std::function<lua_State*(void)> const& createStateHandler)
-//    : LuaObject()
-//{
-//    _operationQueue = new LuaOperationQueue();
-//
-//    _isActive = true;
-//    _exceptionHandler = NULL;
-//    _dataExchanger = new LuaDataExchanger(this);
-//
-//    _operationQueue -> performAction([this, createStateHandler]() {
-//
-//        lua_State *state = createStateHandler();
-//
-//        LuaEngineAdapter::GC(state, LUA_GCSTOP, 0);
-//        //加载标准库
-//        LuaEngineAdapter::openLibs(state);
-//        LuaEngineAdapter::GC(state, LUA_GCRESTART, 0);
-//
-//        _mainSession = new LuaSession(state, this, false);
-//
-//    });
-//
-//    _currentSession = NULL;
-//
-//    //初始化类型导出管理器
-//    _exportsTypeManager = new LuaExportsTypeManager(this, platform);
-//
-//    //注册错误捕获方法
-//    registerMethod(CatchLuaExceptionHandlerName, catchLuaExceptionHandler);
-//}
 
 LuaContext::~LuaContext()
 {
@@ -790,6 +758,9 @@ void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments)
 
 void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController)
 {
+    //创建协程
+    LuaCoroutine *coroutine = new LuaCoroutine(this);
+
     //赋值参数列表
     LuaArgumentList *args = new LuaArgumentList();
     for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
@@ -799,7 +770,7 @@ void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments, Lua
         args -> push_back(item);
     }
 
-    std::thread t(&threadHandler, this, handler, args, scriptController);
+    std::thread t(&threadHandler, coroutine, handler, args, scriptController);
     t.detach();
 }
 

@@ -235,8 +235,7 @@ public class LuaContext extends LuaBaseObject
         String regExp = "/([^/]+)[.]([^/]+)$";
         if (!Pattern.matches(regExp, path))
         {
-            regExp = "/$";
-            if (Pattern.matches(regExp, path))
+            if (!path.endsWith("/"))
             {
                 path = path + "/";
             }

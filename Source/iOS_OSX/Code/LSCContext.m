@@ -59,7 +59,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
         
         //设置搜索路径
         NSString *resourcePath = [[NSBundle mainBundle] resourcePath];
-        [self addSearchPath:resourcePath];
+        [self addSearchPath:[resourcePath stringByAppendingString:@"/"]];
         
         //初始化数据交换器
         self.dataExchanger = [[LSCDataExchanger alloc] initWithContext:self];
@@ -444,10 +444,11 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 {
     //创建一个协程状态
     __weak typeof(self) theContext = self;
+    LSCCoroutine *coroutine = [[LSCCoroutine alloc] initWithContext:theContext];
+    
     dispatch_queue_t queue = dispatch_queue_create("ThreadQueue", DISPATCH_QUEUE_SERIAL);
     dispatch_async(queue, ^{
         
-        LSCCoroutine *coroutine = [[LSCCoroutine alloc] initWithContext:theContext];
         lua_State *state = coroutine.state;
         
         coroutine.scriptController = scriptController;
