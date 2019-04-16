@@ -56,7 +56,7 @@ namespace cn {
                 /**
                  析构对象
                  */
-                ~LuaExportTypeDescriptor();
+                virtual ~LuaExportTypeDescriptor();
 
                 /**
                  * 获取原生类型名称

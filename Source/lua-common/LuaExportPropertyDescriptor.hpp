@@ -53,7 +53,7 @@ namespace cn
                 /**
                  销毁对象
                  */
-                ~LuaExportPropertyDescriptor();
+                virtual ~LuaExportPropertyDescriptor();
                 
                 /**
                  是否能读

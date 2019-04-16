@@ -33,6 +33,7 @@
 #endif
 
 #include "LuaError.h"
+#include "LuaScriptController.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -55,86 +56,6 @@ static void _raiseLuaException(lua_State *state, void *ud)
 {
     const char *msg = (const char *)ud;
     LuaEngineAdapter::error(state, msg);
-}
-
-/**
- * 线程处理器
- * @param context 上下文对象
- * @param handler 线程处理器
- * @param arguments 参数列表
- * @param scriptController 脚本控制器
- */
-static void threadHandler(LuaCoroutine *coroutine, LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController)
-{
-    lua_State *state = coroutine -> getState();
-
-    //设置脚本执行配置
-    coroutine->setScriptController(scriptController);
-
-    //获取捕获错误方法索引
-    int errFuncIndex = 0;
-    LuaEngineAdapter::getGlobal(state, CatchLuaExceptionHandlerName);
-    if (LuaEngineAdapter::isFunction(state, -1))
-    {
-        errFuncIndex = LuaEngineAdapter::getTop(state);
-    }
-    else
-    {
-        LuaEngineAdapter::pop(state, 1);
-    }
-
-    int top = LuaEngineAdapter::getTop(state);
-    coroutine -> getContext() -> getDataExchanger() -> getLuaObject(handler, state, NULL);
-
-    if (LuaEngineAdapter::isFunction(state, -1))
-    {
-
-        int returnCount = 0;
-
-        for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
-        {
-            LuaValue *item = *i;
-            coroutine -> getContext() -> getDataExchanger() -> pushStack(item);
-        }
-
-        if (LuaEngineAdapter::pCall(state, (int)arguments -> size(), LUA_MULTRET, errFuncIndex) == LUA_OK)
-        {
-            returnCount = LuaEngineAdapter::getTop(state) - top;
-        }
-        else
-        {
-            //调用失败
-            returnCount = LuaEngineAdapter::getTop(state) - top;
-        }
-
-        //弹出返回值
-        LuaEngineAdapter::pop(state, returnCount);
-    }
-    else
-    {
-        //弹出func
-        LuaEngineAdapter::pop(state, 1);
-    }
-
-    //移除异常捕获方法
-    LuaEngineAdapter::remove(state, errFuncIndex);
-
-    //释放参数
-    for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
-    {
-        LuaValue *item = *i;
-        item -> release();
-    }
-    delete arguments;
-
-    //释放内存
-    coroutine -> getContext() -> gc();
-
-    //取消设置脚本执行配置
-    coroutine -> setScriptController(NULL);
-
-    //释放协程
-    coroutine -> release();
 }
 
 /**
@@ -317,7 +238,7 @@ LuaContext::LuaContext(std::string const& platform)
 
     });
 
-    _currentSession = NULL;
+//    _currentSession = NULL;
 
     //初始化类型导出管理器
     _exportsTypeManager = new LuaExportsTypeManager(this, platform);
@@ -350,9 +271,12 @@ LuaSession* LuaContext::getMainSession()
 
 LuaSession* LuaContext::getCurrentSession()
 {
-    if (_currentSession != NULL)
+    std::thread::id tid = std::this_thread::get_id();
+
+    LuaSessionMap::iterator it = _sessionMap.find(tid);
+    if (it != _sessionMap.end())
     {
-        return _currentSession;
+        return it -> second;
     }
 
     return _mainSession;
@@ -360,26 +284,47 @@ LuaSession* LuaContext::getCurrentSession()
 
 LuaSession* LuaContext::makeSession(lua_State *state, bool lightweight)
 {
+
+    std::thread::id tid = std::this_thread::get_id();
+
     LuaSession *session = new LuaSession(state, this, lightweight);
-    session -> prevSession = _currentSession;
-    _currentSession = session;
+
+    LuaSessionMap::iterator it = _sessionMap.find(tid);
+    if (it != _sessionMap.end())
+    {
+        session -> prevSession = it -> second;
+    }
+
+    _sessionMap[tid] = session;
 
     return getCurrentSession();
 }
 
 void LuaContext::destorySession(LuaSession *session)
 {
-    raiseException(session -> getLastError());
-    session -> clearError();
+    std::thread::id tid = std::this_thread::get_id();
 
-    if (_currentSession == session)
+    raiseException(session->getLastError());
+    session->clearError();
+
+    LuaSessionMap::iterator it = _sessionMap.find(tid);
+    if (it != _sessionMap.end() && it -> second == session)
     {
-        _currentSession = _currentSession -> prevSession;
+        LuaSession *prevSession = it -> second -> prevSession;
+        if (prevSession != NULL)
+        {
+            _sessionMap[tid] = prevSession;
+        }
+        else
+        {
+            _sessionMap.erase(tid);
+        }
+
     }
 
     if (_mainSession != session)
     {
-        session -> release();
+        session->release();
     }
 }
 
@@ -633,11 +578,11 @@ LuaValue* LuaContext::evalScriptFromFile(std::string const& path, LuaScriptContr
             retValue = LuaValue::NilValue();
         }
 
-        //释放内存
-        gc();
-
         //取消脚本执行配置
         session -> setScriptController(NULL);
+
+        //释放内存
+        gc();
 
     });
 
@@ -751,27 +696,16 @@ void LuaContext::registerMethod(std::string const& methodName, LuaMethodHandler 
     }
 }
 
-void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments)
+void LuaContext::runThread(LuaFunction *handler, LuaArgumentList arguments)
 {
     LuaContext::runThread(handler, arguments, NULL);
 }
 
-void LuaContext::runThread(LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController)
+void LuaContext::runThread(LuaFunction *handler, LuaArgumentList arguments, LuaScriptController *scriptController)
 {
     //创建协程
     LuaCoroutine *coroutine = new LuaCoroutine(this);
-
-    //赋值参数列表
-    LuaArgumentList *args = new LuaArgumentList();
-    for (LuaArgumentList::iterator i = arguments -> begin(); i != arguments -> end() ; ++i)
-    {
-        LuaValue *item = *i;
-        item -> retain();
-        args -> push_back(item);
-    }
-
-    std::thread t(&threadHandler, coroutine, handler, args, scriptController);
-    t.detach();
+    coroutine -> run(handler, arguments, scriptController);
 }
 
 LuaMethodHandler LuaContext::getMethodHandler(std::string const& methodName)

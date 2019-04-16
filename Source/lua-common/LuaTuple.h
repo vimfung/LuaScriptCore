@@ -40,7 +40,7 @@ namespace cn {
                 /**
                  销毁对象
                  */
-                ~LuaTuple();
+                virtual ~LuaTuple();
                 
                 /**
                  获取类型名称

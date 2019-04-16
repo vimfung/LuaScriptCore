@@ -22,12 +22,17 @@ using namespace cn::vimfung::luascriptcore;
 /**
  * 会话表
  */
-typedef std::map<std::string, LuaSession*> LuaSessionMap;
+typedef std::map<std::string, LuaSession*> LuaSessionHookMap;
 
 /**
  * 钩子会话映射表
  */
-static LuaSessionMap _hookSessions;
+static LuaSessionHookMap _hookSessions;
+
+/**
+* 钩子协程信号量
+*/
+static std::mutex _hookSessionsMutex;
 
 #if _WINDOWS
 
@@ -59,7 +64,7 @@ static int64_t getCurrentTime()
 static void hookLineFunc(lua_State *state, lua_Debug *ar)
 {
     std::string key = StringUtils::format("%p", state);
-    LuaSessionMap::iterator it = _hookSessions.find(key);
+    LuaSessionHookMap::iterator it = _hookSessions.find(key);
     if (it != _hookSessions.end())
     {
         LuaSession *session = it -> second;
@@ -86,7 +91,7 @@ static void hookLineFunc(lua_State *state, lua_Debug *ar)
 }
 
 LuaSession::LuaSession(lua_State *state, LuaContext *context, bool lightweight)
-    : _state(state), _context(context), _lightweight(lightweight), _lastError(NULL), _scriptController(NULL)
+    : _state(state), _context(context), _lightweight(lightweight), _lastError(NULL), _scriptController(NULL), prevSession(NULL)
 {
 
 }
@@ -189,6 +194,8 @@ void LuaSession::reportLuaException(std::string const& message)
 
 void LuaSession::setScriptController(LuaScriptController *scriptController)
 {
+    std::lock_guard<std::mutex> lck(_hookSessionsMutex);
+
     if (scriptController == NULL)
     {
         //取消脚本控制器
@@ -197,17 +204,14 @@ void LuaSession::setScriptController(LuaScriptController *scriptController)
             return;
         }
 
-        if (_scriptController != NULL)
-        {
-            //重置标识
-            _scriptController -> isForceExit = false;
-            _scriptController -> startTime = 0;
-            _scriptController -> release();
-            _scriptController = NULL;
-        }
+        //重置标识
+        _scriptController -> isForceExit = false;
+        _scriptController -> startTime = 0;
+        _scriptController -> release();
+        _scriptController = NULL;
 
         std::string key = StringUtils::format("%p", _state);
-        LuaSessionMap::iterator it = _hookSessions.find(key);
+        LuaSessionHookMap::iterator it = _hookSessions.find(key);
         if (it != _hookSessions.end())
         {
             _hookSessions.erase(it);
@@ -221,7 +225,7 @@ void LuaSession::setScriptController(LuaScriptController *scriptController)
     }
 
     std::string key = StringUtils::format("%p", _state);
-    LuaSessionMap::iterator it = _hookSessions.find(key);
+    LuaSessionHookMap::iterator it = _hookSessions.find(key);
     if (it != _hookSessions.end())
     {
         LuaSession *oldSession = it -> second;

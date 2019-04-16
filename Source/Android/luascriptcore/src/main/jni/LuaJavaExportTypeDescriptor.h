@@ -31,7 +31,7 @@ public:
     /**
      * 释放对象
      */
-    ~LuaJavaExportTypeDescriptor();
+    virtual ~LuaJavaExportTypeDescriptor();
 
     /**
      * 获取Java类型

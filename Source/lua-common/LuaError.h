@@ -43,7 +43,7 @@ namespace cn {
                 /**
                  * 析构对象
                  */
-                ~LuaError();
+                virtual ~LuaError();
 
             public:
 

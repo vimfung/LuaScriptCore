@@ -49,7 +49,7 @@ namespace cn
                 /**
                  对象析构
                  */
-                ~LuaTable();
+                virtual ~LuaTable();
                 
             private:
                 

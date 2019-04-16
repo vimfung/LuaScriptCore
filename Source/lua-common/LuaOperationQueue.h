@@ -40,7 +40,7 @@ namespace cn {
                 /**
                  * 销毁
                  */
-                ~LuaOperationQueue();
+                virtual ~LuaOperationQueue();
 
                 /**
                  * 执行操作

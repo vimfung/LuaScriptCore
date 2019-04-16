@@ -47,7 +47,7 @@ namespace cn {
                 /**
                  销毁对象
                  */
-                ~LuaExportsTypeManager();
+                virtual ~LuaExportsTypeManager();
                 
                 /**
                  获取上下文对象

@@ -59,9 +59,14 @@ namespace cn
                 LuaSession *_mainSession;
 
                 /**
+                 * 会话映射表，用于记录各个线程的会话链
+                 */
+                LuaSessionMap _sessionMap;
+
+                /**
                  * 当前会话对象
                  */
-                LuaSession *_currentSession;
+//                LuaSession *_currentSession;
                 
                 /**
                  导出类型管理器
@@ -95,7 +100,7 @@ namespace cn
                 /**
                  * 销毁上下文对象
                  */
-                ~LuaContext();
+                virtual ~LuaContext();
 
             private:
 
@@ -252,7 +257,7 @@ namespace cn
                  * @param handler  线程处理器
                  * @param arguments 参数列表
                  */
-                void runThread(LuaFunction *handler, LuaArgumentList *arguments);
+                void runThread(LuaFunction *handler, LuaArgumentList arguments);
 
                 /**
                  * 执行线程
@@ -260,7 +265,7 @@ namespace cn
                  * @param arguments 参数列表
                  * @param scriptController 脚本控制器
                  */
-                void runThread(LuaFunction *handler, LuaArgumentList *arguments, LuaScriptController *scriptController);
+                void runThread(LuaFunction *handler, LuaArgumentList arguments, LuaScriptController *scriptController);
 
             public:
                 

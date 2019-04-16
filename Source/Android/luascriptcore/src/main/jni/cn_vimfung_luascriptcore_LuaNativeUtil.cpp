@@ -482,7 +482,7 @@ JNIEXPORT void JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_runThread(JNI
 
             LuaScriptController *scriptController = LuaJavaConverter::convertToScriptControllerByJScriptController(env, jscriptController);
 
-            context -> runThread(value -> toFunction(), &argumentList, scriptController);
+            context -> runThread(value -> toFunction(), argumentList, scriptController);
 
             //释放参数内存
             for (LuaArgumentList::iterator it = argumentList.begin(); it != argumentList.end() ; ++it)

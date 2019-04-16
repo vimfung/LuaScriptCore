@@ -33,6 +33,7 @@ using namespace cn::vimfung::luascriptcore;
 static int typeMappingHandler(lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
+
     LuaSession *session = manager -> context() -> makeSession(state, false);
 
 
@@ -130,6 +131,7 @@ static int objectCreateHandler (lua_State *state)
 static int subClassHandler (lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
+
     LuaContext *context = manager -> context();
     LuaSession *session = context -> makeSession(state, false);
 
@@ -169,7 +171,7 @@ static int subClassHandler (lua_State *state)
     }
     
     context -> destorySession(session);
-    
+
     return 0;
 }
 
@@ -182,7 +184,7 @@ static int subClassHandler (lua_State *state)
 static int subclassOfHandler (lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-    
+
     LuaContext *context = manager -> context();
     LuaSession *session = context -> makeSession(state, false);
 
@@ -233,7 +235,7 @@ static int subclassOfHandler (lua_State *state)
     LuaEngineAdapter::pushBoolean(state, flag);
 
     context -> destorySession(session);
-    
+
     return 1;
 }
 
@@ -245,6 +247,7 @@ static int subclassOfHandler (lua_State *state)
  */
 static int classToStringHandler (lua_State *state)
 {
+
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
 
     LuaContext *context = manager -> context();
@@ -269,6 +272,7 @@ static int classToStringHandler (lua_State *state)
     }
     
     context -> destorySession(session);
+
     return 1;
 }
 
@@ -281,9 +285,10 @@ static int classToStringHandler (lua_State *state)
  */
 static int objectDestroyHandler (lua_State *state)
 {
+    LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
+
     if (LuaEngineAdapter::getTop(state) > 0 && LuaEngineAdapter::isUserdata(state, 1))
     {
-        LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toUserdata(state, LuaEngineAdapter::upValueIndex(1));
         LuaContext *context = manager -> context();
         
         //判断context是否激活状态，由于调用lua_close时GC会回收对象触发该方法，如果继续执行下面操作会导致崩溃。因此，在这里需要进行判断。
@@ -367,7 +372,7 @@ static int prototypeToStringHandler (lua_State *state)
     }
 
     context -> destorySession(session);
-    
+
     return 1;
 }
 
@@ -381,7 +386,7 @@ static int prototypeToStringHandler (lua_State *state)
 static int objectToStringHandler (lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-    
+
     LuaSession *session = manager -> context() -> makeSession(state, false);
     
     LuaArgumentList args;
@@ -460,7 +465,7 @@ static int instanceOfHandler (lua_State *state)
 
     LuaEngineAdapter::pushBoolean(state, flag);
     context -> destorySession(session);
-    
+
     return 1;
 }
 
@@ -473,8 +478,9 @@ static int instanceOfHandler (lua_State *state)
 static int classMethodRouteHandler(lua_State *state)
 {
     int retCount = 0;
-    
+
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
+
     const char *methodName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(2));
     LuaContext *context = manager -> context();
     LuaSession *session = context -> makeSession(state, false);
@@ -557,6 +563,7 @@ static int instanceMethodRouteHandler(lua_State *state)
     int returnCount = 0;
     
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
+
     LuaExportTypeDescriptor *typeDescriptor = (LuaExportTypeDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
     std::string methodName = LuaEngineAdapter::toString(state, LuaEngineAdapter::upValueIndex(3));
     
@@ -626,6 +633,7 @@ static int instanceMethodRouteHandler(lua_State *state)
 static int instanceNewIndexHandler (lua_State *state)
 {
     LuaExportsTypeManager *manager = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
+
     LuaObjectDescriptor *instance = (LuaObjectDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
     
     LuaSession *session = manager -> context() -> makeSession(state, true);
@@ -689,7 +697,7 @@ static int instanceNewIndexHandler (lua_State *state)
 static int globalIndexMetaMethodHandler(lua_State *state)
 {
     LuaExportsTypeManager *exporter = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
-    
+
     LuaSession *session = exporter -> context() -> makeSession(state, true);
     
     //获取key
@@ -724,7 +732,7 @@ static int globalIndexMetaMethodHandler(lua_State *state)
     }
     
     exporter -> context() -> destorySession(session);
-    
+
     return 1;
 }
 
@@ -737,8 +745,9 @@ static int globalIndexMetaMethodHandler(lua_State *state)
 static int instanceIndexHandler(lua_State *state)
 {
     int retValueCount = 1;
-    
+
     LuaExportsTypeManager *exporter = (LuaExportsTypeManager *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(1));
+
     LuaObjectDescriptor *instance = (LuaObjectDescriptor *)LuaEngineAdapter::toPointer(state, LuaEngineAdapter::upValueIndex(2));
 
     LuaSession *session = exporter -> context() -> makeSession(state, true);

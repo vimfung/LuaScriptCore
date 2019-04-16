@@ -10,6 +10,7 @@
 #include <list>
 #include <vector>
 #include <deque>
+#include <thread>
 
 namespace cn
 {
@@ -21,6 +22,7 @@ namespace cn
             class LuaModule;
             class LuaValue;
             class LuaObject;
+            class LuaSession;
 
             enum LuaValueType
             {
@@ -53,6 +55,7 @@ namespace cn
             typedef std::deque<LuaValue *> LuaValueList;
             typedef std::map<std::string, LuaValue*> LuaValueMap;
             typedef std::map<int, LuaObject*> LuaObjectMap;
+            typedef std::map<std::thread::id, LuaSession*> LuaSessionMap;
 
             /**
              * 导出原生类型处理器

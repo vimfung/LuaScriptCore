@@ -5,15 +5,16 @@
 #ifndef ANDROID_LUATHREAD_H
 #define ANDROID_LUATHREAD_H
 
-
 #include "lua.h"
 #include "LuaObject.h"
+#include "LuaDefined.h"
 
 namespace cn {
     namespace vimfung {
         namespace luascriptcore {
 
             class LuaContext;
+            class LuaFunction;
             class LuaScriptController;
 
             /**
@@ -38,7 +39,7 @@ namespace cn {
                 /**
                  * 释放对象
                  */
-                ~LuaCoroutine();
+                virtual ~LuaCoroutine();
 
             public:
 
@@ -65,6 +66,14 @@ namespace cn {
                  * @param scriptController 脚本控制器，设置为NULL时表示清空控制器
                  */
                 void setScriptController(LuaScriptController *scriptController);
+
+                /**
+                 * 执行协程
+                 * @param handler 事件处理器
+                 * @param arguments 参数列表
+                 * @param scriptController 脚本控制器
+                 */
+                void run(LuaFunction *handler, LuaArgumentList arguments, LuaScriptController *scriptController);
             };
         }
     }
