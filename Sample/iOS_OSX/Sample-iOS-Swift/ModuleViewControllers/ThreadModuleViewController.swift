@@ -29,6 +29,8 @@ class ThreadModuleViewController: UITableViewController {
         {
         case 0:
             _ = context.evalScript(script: "Thread_Sample_run()");
+        case 1:
+            _ = context.evalScript(script: "Thread_Sample_stop()");
         default:
             break;
         }

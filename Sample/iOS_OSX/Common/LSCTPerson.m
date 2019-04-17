@@ -9,6 +9,7 @@
 #import "LSCTPerson.h"
 #import "LSCValue.h"
 #import "LSCFunction.h"
+#import "Env.h"
 
 @interface LSCTPerson ()
 
@@ -32,6 +33,12 @@
 {
     NSLog(@"Person name = %@", p.name);
     return p;
+}
+
++ (LSCTPerson *)createPersonError
+{
+    [Env.defaultContext raiseExceptionWithMessage:@"can't create person"];
+    return [[LSCTPerson alloc] init];
 }
 
 @end

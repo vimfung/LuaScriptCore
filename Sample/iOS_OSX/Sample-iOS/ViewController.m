@@ -11,6 +11,7 @@
 #import "LogModule.h"
 #import "LSCTPerson.h"
 #import "LSCTNativeData.h"
+#import "Env.h"
 
 @interface ViewController ()
 
@@ -71,9 +72,8 @@
 - (IBAction)evalScriptButtonClickedHandler:(id)sender
 {
     //解析并执行Lua脚本
-      LSCValue *retValue =
-          [self.context evalScriptFromString:@"print(10);return 'Hello World';"];
-      NSLog(@"%@", [retValue toString]);
+    LSCValue *value = [self.context evalScriptFromString:@"print(\"Hello World!\"); return 1024"];
+    NSLog(@"ret value = %@", value);
 }
 
 
@@ -84,13 +84,13 @@
  */
 - (IBAction)regMethodClickedHandler:(id)sender
 {
-    if (!self.hasRegMethod) {
+    if (!self.hasRegMethod)
+    {
         self.hasRegMethod = YES;
+        
         //注册方法
-        [self.context
-         registerMethodWithName:@"getDeviceInfo"
-         block:^LSCValue *(NSArray *arguments) {
-             
+        [self.context registerMethodWithName:@"getDeviceInfo" block:^LSCValue *(NSArray *arguments) {
+
              NSMutableDictionary *info =
              [NSMutableDictionary dictionary];
              [info setObject:[UIDevice currentDevice].name
@@ -102,29 +102,16 @@
              [info
               setObject:[UIDevice currentDevice].systemVersion
               forKey:@"systemVersion"];
-             
-             
+
+
              return [LSCValue dictionaryValue:info];
-             
+
          }];
-        //注册方法sleep
-        [self.context registerMethodWithName:@"sleepx" block:^LSCValue *(NSArray *arguments) {
-            LSCValue *v1 = arguments[0];
-            int second = (int)[v1 toInteger];
-            if (second <= 0) {
-                second = 0;
-            }
-            sleep(second);
-           
-            return [LSCValue booleanValue:YES];
-        }];
-        
+
     }
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        //调用脚本
-        [self.context evalScriptFromFile:@"main.lua"];
-        
-    });
+    
+    //调用脚本
+    [self.context evalScriptFromFile:@"main.lua"];
 }
 
 

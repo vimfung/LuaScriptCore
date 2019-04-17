@@ -47,6 +47,11 @@
     }];
 }
 
+
+/**
+ 预期结果
+ vim 1 years old
+ */
 - (void)testFullExportName
 {
     self.context.config.fullExportName = YES;

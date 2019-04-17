@@ -32,19 +32,8 @@ class LuaScriptCore_iOS_SwiftTests: XCTestCase {
     /// 预期结果
     func testThread()
     {
-        let exp:XCTestExpectation = XCTestExpectation(description: "");
-        
-        let t:LuaCoroutine = LuaCoroutine(context: _context!) { (arguments) -> LuaValue? in
-            
-            print("\(String(describing: arguments))");
-            exp.fulfill();
-            
-            return nil;
-        };
-        
-        t.resume(arguments: [LuaValue(intValue: 1024)]);
-        
-        self.wait(for: [exp], timeout: 3000);
+        let value : LuaValue? = _context?.evalScript(script: "return function () print(\"Hello World!\"); end");
+        _context?.runThread(function: (value?.functionValue)!, arguments: []);
     }
     
     /// 预期结果

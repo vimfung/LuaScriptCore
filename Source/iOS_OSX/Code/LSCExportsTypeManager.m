@@ -169,10 +169,12 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
         //由于Swift的类型名称为“模块名称.类型名称”，因此尝试拼接模块名称后进行类型检测
         [[NSBundle allBundles] enumerateObjectsUsingBlock:^(NSBundle * _Nonnull bundle, NSUInteger idx, BOOL * _Nonnull stop) {
            
-            NSString *bundleName = bundle.infoDictionary[@"CFBundleName"];
-            if (bundleName)
+            NSString *moduleName = bundle.executablePath.lastPathComponent;
+            moduleName = [moduleName stringByReplacingOccurrencesOfString:@"-" withString:@"_"];
+            
+            if (moduleName)
             {
-                NSString *targetName = [NSString stringWithFormat:@"%@.%@", bundleName, typeName];
+                NSString *targetName = [NSString stringWithFormat:@"%@.%@", moduleName, typeName];
                 cls = NSClassFromString(targetName);
                 if (cls != NULL)
                 {

@@ -70,6 +70,8 @@
 		7C88E8B120240654000C15D5 /* LuaScriptCore_OSX_Swift.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 7C88E8A220240504000C15D5 /* LuaScriptCore_OSX_Swift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		7CA46E5A1DEFFE3C0014253A /* LogModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA46E591DEFFE3C0014253A /* LogModule.swift */; };
 		7CA46E5C1DEFFE820014253A /* LSCTPerson.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */; };
+		7CC1E437223643CC00C321F8 /* Env.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CC1E436223643CC00C321F8 /* Env.m */; };
+		7CC1E438223643CC00C321F8 /* Env.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CC1E436223643CC00C321F8 /* Env.m */; };
 		7CCA263B1EA45634007F20A9 /* LSCTNativeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */; };
 		7CCA263C1EA45634007F20A9 /* LSCTNativeData.m in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */; };
 		7CCA263E1EA4754E007F20A9 /* LSCTNativeData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */; };
@@ -289,6 +291,8 @@
 		7C8C2DE01D38C345009345EB /* Sample-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sample-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7CA46E591DEFFE3C0014253A /* LogModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogModule.swift; sourceTree = "<group>"; };
 		7CA46E5B1DEFFE820014253A /* LSCTPerson.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTPerson.swift; sourceTree = "<group>"; };
+		7CC1E435223643CC00C321F8 /* Env.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Env.h; sourceTree = "<group>"; };
+		7CC1E436223643CC00C321F8 /* Env.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Env.m; sourceTree = "<group>"; };
 		7CCA26391EA45634007F20A9 /* LSCTNativeData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LSCTNativeData.h; sourceTree = "<group>"; };
 		7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LSCTNativeData.m; sourceTree = "<group>"; };
 		7CCA263D1EA4754E007F20A9 /* LSCTNativeData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTNativeData.swift; sourceTree = "<group>"; };
@@ -705,6 +709,8 @@
 				7CE625291D93B435007533D7 /* LSCTPerson.m */,
 				7CCA26391EA45634007F20A9 /* LSCTNativeData.h */,
 				7CCA263A1EA45634007F20A9 /* LSCTNativeData.m */,
+				7CC1E435223643CC00C321F8 /* Env.h */,
+				7CC1E436223643CC00C321F8 /* Env.m */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -1035,6 +1041,7 @@
 				7CE6251C1D93B3C8007533D7 /* LogModule.m in Sources */,
 				7CE6252B1D93B435007533D7 /* LSCTPerson.m in Sources */,
 				7C5A61811D6AE2A3007D4308 /* AppDelegate.m in Sources */,
+				7CC1E438223643CC00C321F8 /* Env.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1057,6 +1064,7 @@
 				7C6B12831D6AFD1400489D9E /* main.m in Sources */,
 				7C6B127E1D6AFD1400489D9E /* AppDelegate.m in Sources */,
 				7C49AE41212BC5850031D627 /* ModuleListViewController.m in Sources */,
+				7CC1E437223643CC00C321F8 /* Env.m in Sources */,
 				7CF700E021DB094C006DAEE3 /* LSCThread.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

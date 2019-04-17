@@ -9,6 +9,8 @@
 #import "ThreadModuleViewController.h"
 #import "LuaScriptCore.h"
 
+static LSCScriptController *config = nil;
+
 @interface ThreadModuleViewController ()
 
 @property (nonatomic, strong) LSCContext *context;
@@ -19,6 +21,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    config = [[LSCScriptController alloc] init];
     
     self.context = [[LSCContext alloc] init];
     [self.context onException:^(NSString *message) {
@@ -39,6 +43,10 @@
         case 0:
             //Run Thread
             [self.context evalScriptFromString:@"Thread_Sample_run()"];
+            break;
+        case 1:
+            //Stop Thread
+            [self.context evalScriptFromString:@"Thread_Sample_stop()"];
             break;
         default:
             break;
