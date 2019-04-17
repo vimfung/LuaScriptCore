@@ -38,6 +38,7 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     if (self = [super init])
     {
         _config = config;
+        self.sessionMap = [NSMutableDictionary dictionary];
         self.methodBlocks = [NSMutableDictionary dictionary];
         
         self.optQueue = [[LSCOperationQueue alloc] init];
@@ -105,9 +106,12 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 
 - (LSCSession *)currentSession
 {
-    if (_currentSession)
+    NSString *tid = [NSString stringWithFormat:@"%p", [NSThread currentThread]];
+    LSCSession *session = self.sessionMap[tid];
+    
+    if (session)
     {
-        return _currentSession;
+        return session;
     }
     
     return _mainSession;
@@ -533,9 +537,16 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
 - (LSCSession *)makeSessionWithState:(lua_State *)state
                          lightweight:(BOOL)lightweight
 {
+    NSString *tid = [NSString stringWithFormat:@"%p", [NSThread currentThread]];
     LSCSession *session = [[LSCSession alloc] initWithState:state context:self lightweight:lightweight];
-    session.prevSession = _currentSession;
-    self.currentSession = session;
+    
+    LSCSession *prevSession = self.sessionMap[tid];
+    if (prevSession)
+    {
+        session.prevSession = prevSession;
+    }
+    
+    [self.sessionMap setObject:session forKey:tid];
     
     return session;
 }
@@ -545,9 +556,14 @@ static NSString *const LSCCacheLuaExceptionHandlerName = @"__catchExcepitonHandl
     [self raiseExceptionWithError:session.lastError];
     [session clearError];
     
-    if (_currentSession == session)
+    NSString *tid = [NSString stringWithFormat:@"%p", [NSThread currentThread]];
+    if (session.prevSession)
     {
-        self.currentSession = session.prevSession;
+        [self.sessionMap setObject:session.prevSession forKey:tid];
+    }
+    else
+    {
+        [self.sessionMap removeObjectForKey:tid];
     }
 }
 

@@ -40,7 +40,7 @@
  获取当前会话，每次与Lua进行交互都会产生一个会话，该会话在交互结束后销毁.
  借助该会话可以解析Lua传递的参数，并且可以给Lua设置返回值
  */
-@property (nonatomic, strong) LSCSession *currentSession;
+@property (nonatomic, strong, readonly) LSCSession *currentSession;
 
 /**
  获取主会话对象
@@ -51,6 +51,11 @@
  导出类型管理器
  */
 @property (nonatomic, strong) LSCExportsTypeManager *exportsTypeManager;
+
+/**
+ 会话表，用于记录不同线程下的会话链，key为线程标识。
+ */
+@property (nonatomic, strong) NSMutableDictionary<NSString *, LSCSession *> *sessionMap;
 
 /**
  通过状态设置当前会话
