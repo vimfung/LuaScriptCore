@@ -175,6 +175,7 @@
 		7C83F3EE1ECD498400177720 /* Chinese.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3ED1ECD498400177720 /* Chinese.m */; };
 		7C83F3F11ECD499600177720 /* English.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3F01ECD499600177720 /* English.m */; };
 		7C83F3F41ECD49BB00177720 /* America.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C83F3F31ECD49BB00177720 /* America.m */; };
+		7C878CE12268C6DF005E598A /* files in Resources */ = {isa = PBXBuildFile; fileRef = 7C878CE02268C6DF005E598A /* files */; };
 		7C896D2E2092CDDB00BF8A81 /* class.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C896D2D2092CDDB00BF8A81 /* class.lua */; };
 		7C8D53A01FD7DD5600C76F49 /* LSCExportTypeDescriptor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2A21FCFBA52000F58BF /* LSCExportTypeDescriptor.h */; };
 		7C8D53A11FD7DD5600C76F49 /* LSCExportMethodDescriptor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C8EA2AC1FCFBA5F000F58BF /* LSCExportMethodDescriptor.h */; };
@@ -639,6 +640,7 @@
 		7C83F3F01ECD499600177720 /* English.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = English.m; sourceTree = "<group>"; };
 		7C83F3F21ECD49BB00177720 /* America.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = America.h; sourceTree = "<group>"; };
 		7C83F3F31ECD49BB00177720 /* America.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = America.m; sourceTree = "<group>"; };
+		7C878CE02268C6DF005E598A /* files */ = {isa = PBXFileReference; lastKnownFileType = folder; path = files; sourceTree = "<group>"; };
 		7C896D2D2092CDDB00BF8A81 /* class.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = class.lua; sourceTree = "<group>"; };
 		7C8C2D511D38C0C0009345EB /* libLuaScriptCore-iOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libLuaScriptCore-iOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C8D53A61FD7F1AA00C76F49 /* LuaExportTypeDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LuaExportTypeDescriptor.swift; sourceTree = "<group>"; };
@@ -858,6 +860,7 @@
 		7C651B5D1DD96CB8001C2552 /* LuaScriptCoreTests-iOS */ = {
 			isa = PBXGroup;
 			children = (
+				7C878CE02268C6DF005E598A /* files */,
 				7CABEDA620D398AF00F5BDE3 /* test.out */,
 				7C651B5E1DD96CB8001C2552 /* LuaScriptCoreTests_iOS.m */,
 				7C651B601DD96CB8001C2552 /* Info.plist */,
@@ -1455,6 +1458,7 @@
 				7C4E068121EF1AC900BAA2C8 /* config.lua in Resources */,
 				7C651B681DD970AC001C2552 /* Test.lua in Resources */,
 				7CFC23C21FECA090007B7835 /* definedProperty.lua in Resources */,
+				7C878CE12268C6DF005E598A /* files in Resources */,
 				7C980A731EAF48A20052914E /* Test2.lua in Resources */,
 				7C896D2E2092CDDB00BF8A81 /* class.lua in Resources */,
 				7C930FC71FC67D9900A3C035 /* Test1.lua in Resources */,

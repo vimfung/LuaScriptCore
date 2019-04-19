@@ -59,6 +59,7 @@ public class ModulesActivity extends AppCompatActivity {
         else if (parentItem.equals("Thread"))
         {
             modules.add("Run Thread");
+            modules.add("Stop Thread");
         }
         else if (parentItem.equals("HTTP"))
         {
@@ -152,6 +153,10 @@ public class ModulesActivity extends AppCompatActivity {
                         if (item.equals("Run Thread"))
                         {
                             luaContext.evalScript("Thread_Sample_run()");
+                        }
+                        else if (item.equals("Stop Thread"))
+                        {
+                            luaContext.evalScript("Thread_Sample_stop()");
                         }
                     }
                     else if (finalParentItem.equals("HTTP"))

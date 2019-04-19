@@ -1,6 +1,7 @@
 package cn.vimfung.luascriptcore.sample;
 
 import android.content.Context;
+import android.util.Log;
 
 import cn.vimfung.luascriptcore.LuaContext;
 
