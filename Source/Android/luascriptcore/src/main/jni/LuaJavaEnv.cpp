@@ -180,17 +180,25 @@ static void _luaExceptionHandler (LuaContext *context, std::string const& messag
     jobject jcontext = LuaJavaEnv::getJavaLuaContext(env, context);
     if (jcontext != NULL)
     {
-        jfieldID exceptHandlerFieldId = env -> GetFieldID(env -> GetObjectClass(jcontext), "_exceptionHandler", "Lcn/vimfung/luascriptcore/LuaExceptionHandler;");
+        jclass contextCls = env -> GetObjectClass(jcontext);
+
+        jfieldID exceptHandlerFieldId = env -> GetFieldID(contextCls, "_exceptionHandler", "Lcn/vimfung/luascriptcore/LuaExceptionHandler;");
         jobject exceptHandler = env -> GetObjectField(jcontext, exceptHandlerFieldId);
         if (exceptHandler != NULL)
         {
+            jclass exceptHandlerCls = env -> GetObjectClass(exceptHandler);
+
             jstring messageStr = env -> NewStringUTF(message.c_str());
-            jmethodID onExceptMethodId = env -> GetMethodID(env -> GetObjectClass(exceptHandler), "onException", "(Ljava/lang/String;)V");
+            jmethodID onExceptMethodId = env -> GetMethodID(exceptHandlerCls, "onException", "(Ljava/lang/String;)V");
             env -> CallVoidMethod(exceptHandler, onExceptMethodId, messageStr);
             env -> DeleteLocalRef(messageStr);
 
+            env -> DeleteLocalRef(exceptHandlerCls);
+
             env -> DeleteLocalRef(exceptHandler);
         }
+
+        env -> DeleteLocalRef(contextCls);
     }
 
     LuaJavaEnv::resetEnv(env);
@@ -340,7 +348,8 @@ void LuaJavaEnv::associcateInstance(JNIEnv *env, jobject instance, cn::vimfung::
     if (env -> IsInstanceOf(instance, LuaJavaType::luaBaseObjectClass(env)) == JNI_TRUE)
     {
         //设置instance的nativeId为LuaObjectDescriptor的objectId
-        jfieldID nativeFieldId = env -> GetFieldID(env -> GetObjectClass(instance), "_nativeId", "I");
+        jclass  instanceCls = env -> GetObjectClass(instance);
+        jfieldID nativeFieldId = env -> GetFieldID(instanceCls, "_nativeId", "I");
         env -> SetIntField(instance, nativeFieldId, descriptor -> objectId());
 
         std::map<int, LuaObjectDescriptor*>::iterator it =  _instanceMap.find(descriptor -> objectId());
@@ -348,6 +357,8 @@ void LuaJavaEnv::associcateInstance(JNIEnv *env, jobject instance, cn::vimfung::
         {
             _instanceMap[descriptor -> objectId()] = descriptor;
         }
+
+        env -> DeleteLocalRef(instanceCls);
     }
 }
 
@@ -355,7 +366,9 @@ void LuaJavaEnv::removeAssociateInstance(JNIEnv *env, jobject instance)
 {
     if (env -> IsInstanceOf(instance, LuaJavaType::luaBaseObjectClass(env)) == JNI_TRUE)
     {
-        jfieldID nativeFieldId = env->GetFieldID(env->GetObjectClass(instance), "_nativeId", "I");
+        jclass instanceCls = env->GetObjectClass(instance);
+
+        jfieldID nativeFieldId = env->GetFieldID(instanceCls, "_nativeId", "I");
         jint nativeId = env->GetIntField(instance, nativeFieldId);
 
         std::map<int, LuaObjectDescriptor*>::iterator it =  _instanceMap.find(nativeId);
@@ -363,6 +376,8 @@ void LuaJavaEnv::removeAssociateInstance(JNIEnv *env, jobject instance)
         {
             _instanceMap.erase(it);
         }
+
+        env -> DeleteLocalRef(instanceCls);
     }
 }
 
@@ -372,7 +387,9 @@ LuaObjectDescriptor* LuaJavaEnv::getAssociateInstanceRef(JNIEnv *env, jobject in
 
     if (instance != NULL && env -> IsInstanceOf(instance, LuaJavaType::luaBaseObjectClass(env)) == JNI_TRUE)
     {
-        jfieldID nativeFieldId = env -> GetFieldID(env -> GetObjectClass(instance), "_nativeId", "I");
+        jclass  instanceCls = env -> GetObjectClass(instance);
+
+        jfieldID nativeFieldId = env -> GetFieldID(instanceCls, "_nativeId", "I");
         jint nativeId = env -> GetIntField(instance, nativeFieldId);
 
         std::map<int, LuaObjectDescriptor*>::iterator it =  _instanceMap.find(nativeId);
@@ -380,6 +397,8 @@ LuaObjectDescriptor* LuaJavaEnv::getAssociateInstanceRef(JNIEnv *env, jobject in
         {
             objectDescriptor = it -> second;
         }
+
+        env -> DeleteLocalRef(instanceCls);
 
     }
 
@@ -409,8 +428,10 @@ std::string LuaJavaEnv::getJavaClassNameByInstance(JNIEnv *env, jobject instance
     std::string className;
     if (env -> IsInstanceOf(instance, LuaJavaType::luaObjectClass(env)) == JNI_TRUE)
     {
+        jclass  instanceCls = env -> GetObjectClass(instance);
+
         jmethodID getModuleNameMethodId = env -> GetStaticMethodID(LuaJavaType::moduleClass(env), "_getModuleName", "(Ljava/lang/Class;)Ljava/lang/String;");
-        jstring jclassName = (jstring)env -> CallStaticObjectMethod(LuaJavaType::moduleClass(env), getModuleNameMethodId, env -> GetObjectClass(instance));
+        jstring jclassName = (jstring)env -> CallStaticObjectMethod(LuaJavaType::moduleClass(env), getModuleNameMethodId, instanceCls);
         if (jclassName != NULL)
         {
             const char *classNameCStr = env -> GetStringUTFChars(jclassName, NULL);
@@ -418,6 +439,8 @@ std::string LuaJavaEnv::getJavaClassNameByInstance(JNIEnv *env, jobject instance
             env -> ReleaseStringUTFChars(jclassName, classNameCStr);
             env -> DeleteLocalRef(jclassName);
         }
+
+        env -> DeleteLocalRef(instanceCls);
     }
 
     return className;
@@ -457,6 +480,8 @@ std::string LuaJavaEnv::getJavaClassName(JNIEnv *env, jclass cls, bool simpleNam
     name = nameCStr;
     env -> ReleaseStringUTFChars(className, nameCStr);
     env -> DeleteLocalRef(className);
+
+    env -> DeleteLocalRef(clsClazz);
 
     return name;
 }

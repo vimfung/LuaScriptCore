@@ -447,6 +447,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJObject(JNIEnv *env, LuaContext *
                 objDesc = new LuaJavaObjectDescriptor(context, env, object);
             }
 
+            env -> DeleteLocalRef(objType);
+
             needRelease = true;
         }
 
@@ -709,6 +711,8 @@ LuaValue* LuaJavaConverter::convertToLuaValueByJLuaValue(JNIEnv *env, LuaContext
                     {
                         objDesc = new LuaJavaObjectDescriptor(context, env, obj);
                     }
+
+                    env -> DeleteLocalRef(objType);
 
                     needRelease = true;
                 }
