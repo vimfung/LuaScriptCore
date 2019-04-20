@@ -681,7 +681,7 @@ extern "C" {
                 decoder -> release();
             }
             
-            context -> runThread(func, &args, scriptController);
+            context -> runThread(func, args, scriptController);
             
             //释放参数内存
             for (LuaArgumentList::iterator it = args.begin(); it != args.end(); ++it)
