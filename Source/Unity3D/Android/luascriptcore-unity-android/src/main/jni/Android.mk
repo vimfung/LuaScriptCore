@@ -72,6 +72,10 @@ LOCAL_SRC_FILES := \
 	../../../../../../lua-common/LuaExportPropertyDescriptor.cpp \
 	../../../../../../lua-common/LuaTmpValue.cpp \
 	../../../../../../lua-common/LuaOperationQueue.cpp \
+	../../../../../../lua-common/LuaCoroutine.cpp \
+    ../../../../../../lua-common/LuaError.cpp \
+    ../../../../../../lua-common/LuaScriptController.cpp \
+    ../../../../../../lua-common/LuaTable.cpp \
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../../../../../../lua-core/src

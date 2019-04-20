@@ -98,7 +98,7 @@ static const char * CatchLuaExceptionHandlerName = "__catchExcepitonHandler";
 
 /**
  * 线程处理器
- * @param context 上下文对象
+ * @param coroutine 协程对象
  * @param handler 线程处理器
  * @param arguments 参数列表
  * @param scriptController 脚本控制器
