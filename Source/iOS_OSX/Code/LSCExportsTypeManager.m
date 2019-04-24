@@ -167,7 +167,17 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
     if (cls == NULL)
     {
         //由于Swift的类型名称为“模块名称.类型名称”，因此尝试拼接模块名称后进行类型检测
-        [[NSBundle allBundles] enumerateObjectsUsingBlock:^(NSBundle * _Nonnull bundle, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSMutableArray<NSBundle *> *allBundles = [NSMutableArray array];
+        if ([NSBundle allBundles].count > 0)
+        {
+            [allBundles addObjectsFromArray:[NSBundle allBundles]];
+        }
+        if ([NSBundle allFrameworks].count > 0)
+        {
+            [allBundles addObjectsFromArray:[NSBundle allFrameworks]];
+        }
+        
+        [allBundles enumerateObjectsUsingBlock:^(NSBundle * _Nonnull bundle, NSUInteger idx, BOOL * _Nonnull stop) {
            
             NSString *moduleName = bundle.executablePath.lastPathComponent;
             moduleName = [moduleName stringByReplacingOccurrencesOfString:@"-" withString:@"_"];
@@ -245,12 +255,41 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
 {
     if (![alias isEqualToString:@"Object"])
     {
-        Class cls = NSClassFromString(name);
+        __block NSString *typeName = name;
+        __block Class cls = NSClassFromString(typeName);
         if (cls == NULL)
         {
             //由于Swift的类型名称为“模块名称.类型名称”，因此尝试拼接模块名称后进行类型检测
             NSString *fullName = [NSString stringWithFormat:@"%@.%@", [NSProcessInfo processInfo].processName, name];
             cls = NSClassFromString(fullName);
+            
+            NSMutableArray<NSBundle *> *allBundles = [NSMutableArray array];
+            if ([NSBundle allBundles].count > 0)
+            {
+                [allBundles addObjectsFromArray:[NSBundle allBundles]];
+            }
+            if ([NSBundle allFrameworks].count > 0)
+            {
+                [allBundles addObjectsFromArray:[NSBundle allFrameworks]];
+            }
+            
+            [allBundles enumerateObjectsUsingBlock:^(NSBundle * _Nonnull bundle, NSUInteger idx, BOOL * _Nonnull stop) {
+                
+                NSString *moduleName = bundle.executablePath.lastPathComponent;
+                moduleName = [moduleName stringByReplacingOccurrencesOfString:@"-" withString:@"_"];
+                
+                if (moduleName)
+                {
+                    NSString *targetName = [NSString stringWithFormat:@"%@.%@", moduleName, name];
+                    cls = NSClassFromString(targetName);
+                    if (cls != NULL)
+                    {
+                        typeName = targetName;
+                        *stop = YES;
+                    }
+                }
+                
+            }];
         }
         
         if (cls != NULL)
@@ -259,7 +298,7 @@ static NSMutableDictionary<NSString *, NSString *> *exportTypesMapping = nil;
                 && [cls conformsToProtocol:@protocol(LSCExportType)])
             {
                 //记录映射关系
-                [exportTypesMapping setObject:NSStringFromClass(cls) forKey:alias];
+                [exportTypesMapping setObject:typeName forKey:alias];
                 return YES;
             }
         }
