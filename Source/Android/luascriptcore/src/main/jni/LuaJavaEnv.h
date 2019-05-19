@@ -173,11 +173,32 @@ public:
      */
     static jclass findClass(JNIEnv *env, std::string className);
 
+    /**
+     * 创建Java字符串，使用该方法可以避免因为字符编码问题导致的异常。
+     *
+     * @param env JNI环境
+     * @param str 字符串
+     * @return Java字符串
+     */
+    static jstring newString(JNIEnv *env, std::string str);
+
 private:
 
     JNIEnv *_jniEnv;
     bool _attachedThread;
     int _count;
+
+    /**
+     * 修复UTF字符串转换报错。
+     * 由于某些字符编码对于JVM来说并不支持，调用JNI的NewStringUTF会抛出下面异常
+     * "NI DETECTED ERROR IN APPLICATION: input is not valid Modified UTF-8: illegal start byte xxxx"
+     * 可以使用该方法先进行修复转换，然后再创建字符串。
+     *
+     * 注：对于特殊字符串转换后将会已?号代替
+     *
+     * @param bytes 字符串
+     */
+    static void fixedUTFString(char* bytes);
 
 };
 

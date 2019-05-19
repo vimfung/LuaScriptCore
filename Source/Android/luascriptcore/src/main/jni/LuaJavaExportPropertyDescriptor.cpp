@@ -32,8 +32,7 @@ LuaValue* LuaJavaExportPropertyDescriptor::invokeGetter(LuaSession *session, Lua
         jmethodID invokeMethodId = env -> GetMethodID(LuaJavaType::exportTypeManagerClass(env), "getterMethodRoute", "(Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/Object;Ljava/lang/String;)Lcn/vimfung/luascriptcore/LuaValue;");
 
         jobject jContext = LuaJavaEnv::getJavaLuaContext(env, context);
-
-        jstring methodName = env -> NewStringUTF(name().c_str());
+        jstring methodName = LuaJavaEnv::newString(env, name());
 
         LuaJavaObjectDescriptor *objectDescriptor = (LuaJavaObjectDescriptor *)instance;
         jobject jReturnValue = env -> CallObjectMethod(jExportTypeManager, invokeMethodId, jContext, objectDescriptor -> getJavaObject(), methodName);
@@ -66,7 +65,7 @@ void LuaJavaExportPropertyDescriptor::invokeSetter(LuaSession *session, LuaObjec
         jmethodID invokeMethodId = env -> GetMethodID(LuaJavaType::exportTypeManagerClass(env), "setterMethodRoute", "(Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/Object;Ljava/lang/String;Lcn/vimfung/luascriptcore/LuaValue;)V");
 
         jobject jContext = LuaJavaEnv::getJavaLuaContext(env, context);
-        jstring methodName = env -> NewStringUTF(name().c_str());
+        jstring methodName = LuaJavaEnv::newString(env, name());
 
         LuaJavaObjectDescriptor *objectDescriptor = (LuaJavaObjectDescriptor *)instance;
 

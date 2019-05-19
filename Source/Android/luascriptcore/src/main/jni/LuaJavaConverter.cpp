@@ -760,7 +760,7 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
             }
             case LuaValueTypeString:
             {
-                retObj = env->NewStringUTF(luaValue->toString().c_str());
+                retObj = LuaJavaEnv::newString(env, luaValue -> toString());
                 break;
             }
             case LuaValueTypeData:
@@ -811,7 +811,8 @@ jobject LuaJavaConverter::convertToJavaObjectByLuaValue(JNIEnv *env, LuaContext 
                         std::string key = i -> first;
                         LuaValue *item = i -> second;
 
-                        jstring keyStr = env -> NewStringUTF(key.c_str());
+                        jstring keyStr = LuaJavaEnv::newString(env, key);
+
                         jobject itemObj = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, item);
                         if (keyStr != NULL && itemObj != NULL)
                         {

@@ -76,7 +76,7 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
             static jmethodID invokeMethodID = env -> GetMethodID(contenxtClass, "methodInvoke", "(Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
             static jclass luaValueClass = LuaJavaType::luaValueClass(env);
 
-            jstring jMethodName = env -> NewStringUTF(methodName.c_str());
+            jstring jMethodName = LuaJavaEnv::newString(env, methodName);
 
             //参数
             jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
@@ -134,7 +134,7 @@ static LuaValue* _luaThreadHandler (LuaContext *context, const std::string & met
             static jmethodID invokeMethodID = env -> GetMethodID(contenxtClass, "methodInvoke", "(Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
             static jclass luaValueClass = LuaJavaType::luaValueClass(env);
 
-            jstring jMethodName = env -> NewStringUTF(methodName.c_str());
+            jstring jMethodName = LuaJavaEnv::newString(env, methodName);
 
             //参数
             jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
@@ -188,7 +188,7 @@ static void _luaExceptionHandler (LuaContext *context, std::string const& messag
         {
             jclass exceptHandlerCls = env -> GetObjectClass(exceptHandler);
 
-            jstring messageStr = env -> NewStringUTF(message.c_str());
+            jstring messageStr = LuaJavaEnv::newString(env, message);
             jmethodID onExceptMethodId = env -> GetMethodID(exceptHandlerCls, "onException", "(Ljava/lang/String;)V");
             env -> CallVoidMethod(exceptHandler, onExceptMethodId, messageStr);
             env -> DeleteLocalRef(messageStr);
@@ -214,7 +214,7 @@ static void _luaExportsNativeTypeHandler(LuaContext *context, std::string const&
         static jclass contenxtClass = LuaJavaType::contextClass(env);
         static jmethodID invokeMethodID = env -> GetMethodID(contenxtClass, "exportsNativeType", "(Ljava/lang/String;)V");
 
-        jstring jTypeName = env -> NewStringUTF(typeName.c_str());
+        jstring jTypeName = LuaJavaEnv::newString(env, typeName);
 
         env -> CallVoidMethod(jcontext, invokeMethodID, jTypeName);
 
@@ -507,4 +507,79 @@ jobject LuaJavaEnv::getExportTypeManager(JNIEnv *env)
 jclass LuaJavaEnv::findClass(JNIEnv *env, std::string className)
 {
     return env -> FindClass(className.c_str());
+}
+
+jstring LuaJavaEnv::newString(JNIEnv *env, std::string str)
+{
+    const char *cstr = str.c_str();
+    LuaJavaEnv::fixedUTFString((char *)cstr);
+    return env -> NewStringUTF(cstr);
+}
+
+
+void LuaJavaEnv::fixedUTFString(char* bytes)
+{
+    char three = 0;
+    while (*bytes != '\0')
+    {
+        unsigned char utf8 = (unsigned char)*(bytes++);
+        three = 0;
+        // Switch on the high four bits.
+        switch (utf8 >> 4)
+        {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07:
+                // Bit pattern 0xxx. No need for any extra bytes.
+                break;
+            case 0x08:
+            case 0x09:
+            case 0x0a:
+            case 0x0b:
+            case 0x0f:
+                /*
+                 * Bit pattern 10xx or 1111, which are illegal start bytes.
+                 * Note: 1111 is valid for normal UTF-8, but not the
+                 * modified UTF-8 used here.
+                 */
+                LOGI("-------------- Bit pattern 10xx or 1111");
+                *(bytes-1) = '?';
+                break;
+            case 0x0e:
+                // Bit pattern 1110, so there are two additional bytes.
+                LOGI("-------------- Bit pattern 1110");
+                utf8 = (unsigned char)*(bytes++);
+                if ((utf8 & 0xc0) != 0x80)
+                {
+                    --bytes;
+                    *(bytes-1) = '?';
+                    break;
+                }
+                three = 1;
+                // Fall through to take care of the final byte.
+            case 0x0c:
+            case 0x0d:
+                // Bit pattern 110x, so there is one additional byte.
+                LOGI("-------------- Bit pattern 110x");
+                utf8 = (unsigned char)*(bytes++);
+                if ((utf8 & 0xc0) != 0x80)
+                {
+                    --bytes;
+                    if (three)
+                    {
+                        --bytes;
+                    }
+
+                    *(bytes-1)='?';
+                }
+                break;
+            default:
+                break;
+        }
+    }
 }

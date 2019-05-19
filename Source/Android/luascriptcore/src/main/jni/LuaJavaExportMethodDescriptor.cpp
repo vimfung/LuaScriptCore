@@ -43,7 +43,8 @@ LuaValue* LuaJavaExportMethodDescriptor::invokeClassMethod(LuaSession *session, 
     jobject jContext = LuaJavaEnv::getJavaLuaContext(env, context);
 
     std::string methodNameString = StringUtils::format("%s_%s", name().c_str(), methodSignature().c_str());
-    jstring methodName = env -> NewStringUTF(methodNameString.c_str());
+
+    jstring methodName = LuaJavaEnv::newString(env, methodNameString);
 
     int index = 0;
     jobjectArray jArgs = env -> NewObjectArray((jsize)arguments.size(), LuaJavaType::luaValueClass(env), NULL);
@@ -84,7 +85,7 @@ LuaValue* LuaJavaExportMethodDescriptor::invokeInstanceMethod(LuaSession *sessio
     jobject jContext = LuaJavaEnv::getJavaLuaContext(env, context);
 
     std::string methodNameString = StringUtils::format("%s_%s", name().c_str(), methodSignature().c_str());
-    jstring methodName = env -> NewStringUTF(methodNameString.c_str());
+    jstring methodName = LuaJavaEnv::newString(env, methodNameString);
 
     LuaArgumentList::iterator it = arguments.begin();
     LuaJavaObjectDescriptor *objectDescriptor = (LuaJavaObjectDescriptor *)((*it) -> toObject());
