@@ -79,7 +79,7 @@ static LuaValue* _luaMethodHandler (LuaContext *context, std::string methodName,
             jstring jMethodName = LuaJavaEnv::newString(env, methodName);
 
             //参数
-            jobjectArray argumentArr = env -> NewObjectArray(arguments.size(), luaValueClass, NULL);
+            jobjectArray argumentArr = env -> NewObjectArray((jsize)arguments.size(), luaValueClass, NULL);
             int index = 0;
             for (LuaArgumentList::iterator it = arguments.begin(); it != arguments.end(); it ++)
             {
@@ -547,12 +547,10 @@ void LuaJavaEnv::fixedUTFString(char* bytes)
                  * Note: 1111 is valid for normal UTF-8, but not the
                  * modified UTF-8 used here.
                  */
-                LOGI("-------------- Bit pattern 10xx or 1111");
                 *(bytes-1) = '?';
                 break;
             case 0x0e:
                 // Bit pattern 1110, so there are two additional bytes.
-                LOGI("-------------- Bit pattern 1110");
                 utf8 = (unsigned char)*(bytes++);
                 if ((utf8 & 0xc0) != 0x80)
                 {
@@ -565,7 +563,6 @@ void LuaJavaEnv::fixedUTFString(char* bytes)
             case 0x0c:
             case 0x0d:
                 // Bit pattern 110x, so there is one additional byte.
-                LOGI("-------------- Bit pattern 110x");
                 utf8 = (unsigned char)*(bytes++);
                 if ((utf8 & 0xc0) != 0x80)
                 {

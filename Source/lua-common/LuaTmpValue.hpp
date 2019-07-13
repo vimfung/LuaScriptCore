@@ -167,13 +167,6 @@ namespace cn
                 virtual LuaExportTypeDescriptor* toType();
                 
                 /**
-                 转换为LuaTable对象
-                 
-                 @return LuaTable对象
-                 */
-                virtual LuaTable* toTable();
-                
-                /**
                  * 入栈数据
                  *
                  * @param context 上下文对象

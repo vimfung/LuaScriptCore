@@ -9,6 +9,7 @@
 #include "LuaJavaConverter.h"
 #include "LuaJavaExportTypeDescriptor.h"
 #include "LuaJavaObjectDescriptor.h"
+#include "LuaDefine.h"
 
 LuaJavaExportMethodDescriptor::LuaJavaExportMethodDescriptor(std::string name, std::string methodSignature, LuaJavaMethodType type)
     : LuaExportMethodDescriptor(name, methodSignature)
@@ -81,7 +82,6 @@ LuaValue* LuaJavaExportMethodDescriptor::invokeInstanceMethod(LuaSession *sessio
 
     jobject jExportTypeManager = LuaJavaEnv::getExportTypeManager(env);
     jmethodID invokeMethodId = env -> GetMethodID(LuaJavaType::exportTypeManagerClass(env), "instanceMethodRoute", "(Lcn/vimfung/luascriptcore/LuaContext;Ljava/lang/Object;Ljava/lang/String;[Lcn/vimfung/luascriptcore/LuaValue;)Lcn/vimfung/luascriptcore/LuaValue;");
-
     jobject jContext = LuaJavaEnv::getJavaLuaContext(env, context);
 
     std::string methodNameString = StringUtils::format("%s_%s", name().c_str(), methodSignature().c_str());
@@ -103,7 +103,6 @@ LuaValue* LuaJavaExportMethodDescriptor::invokeInstanceMethod(LuaSession *sessio
         index++;
     }
 
-    LuaJavaExportTypeDescriptor *javaTypeDescriptor = (LuaJavaExportTypeDescriptor *)typeDescriptor;
     jobject jReturnValue = env -> CallObjectMethod(jExportTypeManager, invokeMethodId, jContext, objectDescriptor -> getJavaObject(), methodName, jArgs);
 
     env -> DeleteLocalRef(methodName);

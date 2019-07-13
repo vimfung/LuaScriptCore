@@ -85,8 +85,6 @@ static int methodRouteHandler(lua_State *state) {
         if (retValue != NULL)
         {
             returnCount = session -> setReturnValue(retValue);
-
-            retValue -> push(context);
             retValue -> release();
         }
 

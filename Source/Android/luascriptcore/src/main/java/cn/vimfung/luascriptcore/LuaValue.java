@@ -1,5 +1,7 @@
 package cn.vimfung.luascriptcore;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,19 +16,7 @@ public class LuaValue extends LuaBaseObject
     private Object _valueContainer;
     private LuaValueType _type;
     private LuaContext _context;    //从JNI层回来的对象会带上这个字段
-    private int _tableId;           //Map和Array类型下的Table标识
-
-    @Override
-    protected void finalize() throws Throwable
-    {
-        if (_tableId > 0)
-        {
-            //释放table对象
-            LuaNativeUtil.releaseNativeObject(_tableId);
-        }
-
-        super.finalize();
-    }
+    private String _tableId;           //Map和Array类型下的Table标识
 
     /**
      * 初始化一个空值的LuaValue对象
@@ -257,10 +247,11 @@ public class LuaValue extends LuaBaseObject
      * @param nativeId 本地对象标识
      * @param value 数组
      */
-    protected LuaValue (int nativeId, List<?> value)
+    protected LuaValue (int nativeId, List<?> value, String tableId)
     {
         super(nativeId);
         setArrayListValue(value);
+        _tableId = tableId;
     }
 
     /**
@@ -288,10 +279,11 @@ public class LuaValue extends LuaBaseObject
      * @param nativeId 本地对象标识
      * @param value 哈希表
      */
-    protected LuaValue (int nativeId, Map<?, ?> value)
+    protected LuaValue (int nativeId, Map<?, ?> value, String tableId)
     {
         super(nativeId);
         setHasMapValue(value);
+        _tableId = tableId;
     }
 
     /**
@@ -756,5 +748,14 @@ public class LuaValue extends LuaBaseObject
         {
             _valueContainer = LuaNativeUtil.luaValueSetObject(_context, this, keyPath, new LuaValue(object));
         }
+    }
+
+    /**
+     * 获取table标识
+     * @return table标识
+     */
+    protected String getTableId()
+    {
+        return _tableId;
     }
 }

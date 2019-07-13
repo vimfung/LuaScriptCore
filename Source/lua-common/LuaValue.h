@@ -41,6 +41,7 @@ namespace cn
                 size_t _bytesLen;
                 void *_value;
                 bool _hasManagedObject;
+                std::string _tableId;   //用于记录lua中table类型变量的对应标志
                 
             protected:
                 
@@ -57,6 +58,18 @@ namespace cn
                  * @param context 上下文对象
                  */
                 void managedObject(LuaContext *context);
+
+                /**
+                 * 设置指定键对象
+                 * @param map 字典
+                 * @param keys 键名数组，带层级关系
+                 * @param keyIndex 键名在数组中的索引
+                 * @param object 对象
+                 */
+                void setObject(LuaValueMap *map,
+                               std::deque<std::string> keys,
+                               int keyIndex,
+                               LuaValue *object);
                 
             public:
                 /**
@@ -112,15 +125,17 @@ namespace cn
                  * 初始化
                  *
                  * @param value LuaValue列表
+                 * @param tableId table标志
                  */
-                LuaValue (LuaValueList value);
+                LuaValue (LuaValueList value, std::string tableId);
 
                 /**
                  * 初始化
                  *
                  * @param value LuaValue字典
+                 * @param tableId table标志
                  */
-                LuaValue (LuaValueMap value);
+                LuaValue (LuaValueMap value, std::string tableId);
 
                 /**
                  * 初始化
@@ -156,12 +171,6 @@ namespace cn
                  * @param value 导出Lua类型
                  */
                 LuaValue (LuaExportTypeDescriptor *value);
-
-                /**
-                 * 初始化
-                 * @param value 表类型
-                 */
-                LuaValue (LuaTable *value);
 
                 /**
                  * 析构
@@ -281,13 +290,6 @@ namespace cn
                  * @return 导出Lua类型
                  */
                 virtual LuaExportTypeDescriptor* toType();
-                
-                /**
-                 转换为LuaTable对象
-                 
-                 @return LuaTable对象
-                 */
-                virtual LuaTable* toTable();
 
                 /**
                  * 入栈数据
@@ -295,14 +297,21 @@ namespace cn
                  * @param context 上下文对象
                  */
                 virtual void push(LuaContext *context);
+
+                /**
+                 * 获取table标志，仅当type为Array或者Map时有效
+                 * @return table标志
+                 */
+                std::string tableId();
                 
                 /**
                  将一个对象放入字典中。注：该方法只有在type为LuaValueTypeMap时有效
 
                  @param keyPath 对应的键名路径，例如："key"、"key1.key2"
                  @param object 放入字典的对象
+                 @param context 上下文对象
                  */
-                void setObject(std::string keyPath, LuaValue *object);
+                void setObject(std::string keyPath, LuaValue *object, LuaContext *context);
 
             public:
 
@@ -363,19 +372,21 @@ namespace cn
                  * 创建一个数组值对象
                  *
                  * @param value 数组
+                 * @param tableId table标志
                  *
                  * @return 值对象
                  */
-                static LuaValue* ArrayValue(LuaValueList value);
+                static LuaValue* ArrayValue(LuaValueList value, std::string tableId);
 
                 /**
                  * 创建一个字典值对象
                  *
                  * @param value 字典
+                 * @param tableId table标志
                  *
                  * @return 值对象
                  */
-                static LuaValue* DictonaryValue(LuaValueMap value);
+                static LuaValue* DictonaryValue(LuaValueMap value, std::string tableId);
 
                 /**
                  * 创建一个指针值对象
@@ -412,13 +423,6 @@ namespace cn
                  * @return 值对象
                  */
                 static LuaValue* ObjectValue(LuaObjectDescriptor *value);
-
-                /**
-                 * 创建一个Table值对象
-                 * @param value Table对象
-                 * @return 值对象
-                 */
-                static LuaValue* TableValue(LuaTable *value);
 
                 /**
                  * 根据栈中位置创建值对象

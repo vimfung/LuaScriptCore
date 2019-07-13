@@ -157,12 +157,12 @@ std::list<std::string> LuaExportTypeDescriptor::instanceMethodNameList()
     return nameList;
 }
 
-LuaExportMethodDescriptor* LuaExportTypeDescriptor::getClassMethod(std::string const& methodName, LuaArgumentList arguments)
+LuaExportMethodDescriptor* LuaExportTypeDescriptor::getClassMethod(std::string const& methodName, LuaArgumentList &arguments)
 {
     return filterMethod(methodName, arguments, true);
 }
 
-LuaExportMethodDescriptor* LuaExportTypeDescriptor::getInstanceMethod(std::string const& methodName, LuaArgumentList arguments)
+LuaExportMethodDescriptor* LuaExportTypeDescriptor::getInstanceMethod(std::string const& methodName, LuaArgumentList &arguments)
 {
     return filterMethod(methodName, arguments, false);
 }

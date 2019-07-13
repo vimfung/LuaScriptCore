@@ -127,17 +127,21 @@ namespace cn {
                  * 入栈表格
                  *
                  * @param list 数组
+                 * @param tableId table标识
                  * @param state 状态
                  * @param queue 队列
                  */
-                void pushStackByTable(LuaValueList *list, lua_State *state, LuaOperationQueue *queue);
+                void pushStackByTable(LuaValueList *list, std::string tableId, lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  * 入栈表格
                  *
                  * @param map 字典
+                 * @param tableId table标识
+                 * @param state 状态
+                 * @param queue 队列
                  */
-                void pushStackByTable(LuaValueMap *map, lua_State *state, LuaOperationQueue *queue);
+                void pushStackByTable(LuaValueMap *map, std::string tableId, lua_State *state, LuaOperationQueue *queue);
 
                 /**
                  * 开始获取_vars_表

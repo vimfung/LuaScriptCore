@@ -554,7 +554,7 @@ JNIEXPORT jobject JNICALL Java_cn_vimfung_luascriptcore_LuaNativeUtil_luaValueSe
 
         if (value != NULL)
         {
-            value -> setObject(keyPathCStr, object);
+            value -> setObject(keyPathCStr, object, context);
             retObject = LuaJavaConverter::convertToJavaObjectByLuaValue(env, context, value);
 
             value -> release();

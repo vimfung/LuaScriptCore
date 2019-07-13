@@ -84,8 +84,7 @@ add_library( # Sets the name of the library.
              ../../../../../lua-common/LuaExportTypeDescriptor.cpp
              ../../../../../lua-common/LuaExportPropertyDescriptor.cpp
              ../../../../../lua-common/LuaError.cpp
-             ../../../../../lua-common/LuaScriptController.cpp
-             ../../../../../lua-common/LuaTable.cpp)
+             ../../../../../lua-common/LuaScriptController.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because system libraries are included in the search path by

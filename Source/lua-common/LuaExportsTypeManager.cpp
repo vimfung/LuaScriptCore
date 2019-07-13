@@ -580,6 +580,8 @@ static int instanceMethodRouteHandler(lua_State *state)
     }
     else
     {
+
+
         LuaArgumentList args;
         session -> parseArguments(args);
 

@@ -19,7 +19,8 @@
 #include "LuaExportTypeDescriptor.hpp"
 #include "LuaExportsTypeManager.hpp"
 #include "LuaTmpValue.hpp"
-#include "LuaTable.hpp"
+#include "StringUtils.h"
+#include "LuaOperationQueue.h"
 
 using namespace cn::vimfung::luascriptcore;
 
@@ -78,19 +79,19 @@ LuaValue::LuaValue(const char *bytes, size_t length)
     _hasManagedObject = false;
 }
 
-LuaValue::LuaValue(LuaValueList value)
-        : LuaObject(), _context(NULL)
+LuaValue::LuaValue(LuaValueList value, std::string tableId)
+        : LuaObject(), _context(NULL), _tableId(tableId)
 {
     _type = LuaValueTypeArray;
-    _value = new LuaTable(value, "", NULL);
+    _value = new LuaValueList(value);
     _hasManagedObject = false;
 }
 
-LuaValue::LuaValue(LuaValueMap value)
-        : LuaObject(), _context(NULL)
+LuaValue::LuaValue(LuaValueMap value, std::string tableId)
+        : LuaObject(), _context(NULL), _tableId(tableId)
 {
     _type = LuaValueTypeMap;
-    _value = new LuaTable(value, "", NULL);
+    _value = new LuaValueMap(value);
     _hasManagedObject = false;
 }
 
@@ -163,8 +164,8 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
     {
         _context = NULL;
     }
-    
-    int tableId = decoder -> readInt32();
+    ///TODO: 调整C#下tableID的类型，让其直接关联lua中的tableId
+    std::string tableId = decoder -> readString();
     
     _type = (LuaValueType)decoder -> readInt16();
 
@@ -187,50 +188,34 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
             break;
         case LuaValueTypeArray:
         {
-            LuaTable *table = NULL;
-            if (tableId > 0)
+            _tableId = tableId;
+
+            int size = decoder -> readInt32();
+            LuaValueList list;
+            for (int i = 0; i < size; i++)
             {
-                table = dynamic_cast<LuaTable *>(LuaObjectManager::SharedInstance() -> getObject(tableId));
+                LuaValue *item = dynamic_cast<LuaValue *>(decoder->readObject());
+                list.push_back(item);
             }
-            else
-            {
-                int size = decoder -> readInt32();
-                LuaValueList list;
-                for (int i = 0; i < size; i++)
-                {
-                    LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
-                    list.push_back(item);
-                }
-                table = new LuaTable(list, "", _context);
-            }
-           
-            _value = table;
+            _value = new LuaValueList(list);
             break;
         }
         case LuaValueTypeMap:
         {
-            LuaTable *table = NULL;
-            if (tableId > 0)
+            _tableId = tableId;
+
+            int size = decoder -> readInt32();
+            LuaValueMap map;
+            for (int i = 0; i < size; i++)
             {
-                table = dynamic_cast<LuaTable *>(LuaObjectManager::SharedInstance() -> getObject(tableId));
-            }
-            else
-            {
-                int size = decoder -> readInt32();
-                LuaValueMap map;
-                for (int i = 0; i < size; i++)
+                std::string key = decoder -> readString();
+                LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
+                if (item != NULL)
                 {
-                    std::string key = decoder -> readString();
-                    LuaValue *item = dynamic_cast<LuaValue *>(decoder -> readObject());
-                    if (item != NULL)
-                    {
-                        map[key] = item;
-                    }
+                    map[key] = item;
                 }
-                table = new LuaTable(map, "", _context);
             }
-            
-            _value = table;
+            _value = new LuaValueMap(map);
             break;
         }
         case LuaValueTypeTuple:
@@ -271,16 +256,6 @@ LuaValue::LuaValue(LuaObjectDecoder *decoder)
     }
 }
 
-LuaValue::LuaValue (LuaTable *value)
-        : LuaObject(), _context(NULL)
-{
-    _type = value -> isArray() ? LuaValueTypeArray : LuaValueTypeMap;
-
-    value -> retain();
-    _value = (void *)value;
-    _hasManagedObject = false;
-}
-
 LuaValue::~LuaValue()
 {
     if (_hasManagedObject && _context != NULL)
@@ -295,25 +270,55 @@ LuaValue::~LuaValue()
                  || _type == LuaValueTypeObject
                  || _type == LuaValueTypeFunction
                  || _type == LuaValueTypeTuple
-                 || _type == LuaValueTypeClass
-                 || _type == LuaValueTypeArray
-                 || _type == LuaValueTypeMap)
+                 || _type == LuaValueTypeClass)
         {
             ((LuaObject *)_value) -> release();
+        }
+        else if (_type == LuaValueTypeArray)
+        {
+            //对于Table类型需要释放其子对象内存
+            LuaValueList *arrayValue = static_cast<LuaValueList *> (_value);
+            if (arrayValue != NULL)
+            {
+                //为数组对象
+                for (LuaValueList::iterator i = arrayValue -> begin(); i != arrayValue -> end(); ++i)
+                {
+                    LuaValue *value = *i;
+                    value -> release();
+                }
+            }
+        }
+        else if (_type == LuaValueTypeMap)
+        {
+            //为字典对象
+            LuaValueMap *mapValue = static_cast<LuaValueMap *> (_value);
+            if (mapValue != NULL)
+            {
+                for (LuaValueMap::iterator i = mapValue -> begin(); i != mapValue -> end(); ++i)
+                {
+                    i -> second -> release();
+                }
+            }
         }
 
         if (_type != LuaValueTypePtr
             && _type != LuaValueTypeObject
             && _type != LuaValueTypeFunction
             && _type != LuaValueTypeTuple
-            && _type != LuaValueTypeClass
-            && _type != LuaValueTypeArray
-            && _type != LuaValueTypeMap)
+            && _type != LuaValueTypeClass)
         {
-            if (_type == LuaValueTypeString)
+            switch (_type)
             {
-                //fixed：string无法直接通过delete释放，需要使用swap来实现释放操作
-                std::string().swap(*((std::string *)_value));
+                case LuaValueTypeString:
+                    //fixed：string无法直接通过delete释放，需要使用swap来实现释放操作
+                    std::string().swap(*((std::string *)_value));
+                    break;
+                case LuaValueTypeMap:
+                    LuaValueMap().swap(*((LuaValueMap *)_value));
+                    break;
+                case LuaValueTypeArray:
+                    LuaValueList().swap(*((LuaValueList *)_value));
+                    break;
             }
 
             delete[] (char *)_value;
@@ -353,14 +358,14 @@ LuaValue* LuaValue::DataValue(const char *bytes, size_t length)
     return new LuaValue(bytes, length);
 }
 
-LuaValue* LuaValue::ArrayValue(LuaValueList value)
+LuaValue* LuaValue::ArrayValue(LuaValueList value, std::string tableId)
 {
-    return new LuaValue(value);
+    return new LuaValue(value, tableId);
 }
 
-LuaValue* LuaValue::DictonaryValue(LuaValueMap value)
+LuaValue* LuaValue::DictonaryValue(LuaValueMap value, std::string tableId)
 {
-    return new LuaValue(value);
+    return new LuaValue(value, tableId);
 }
 
 LuaValue* LuaValue::PointerValue(LuaPointer *value)
@@ -379,11 +384,6 @@ LuaValue* LuaValue::TupleValue(LuaTuple *value)
 }
 
 LuaValue* LuaValue::ObjectValue(LuaObjectDescriptor *value)
-{
-    return new LuaValue(value);
-}
-
-LuaValue* LuaValue::TableValue(LuaTable *value)
 {
     return new LuaValue(value);
 }
@@ -481,8 +481,7 @@ LuaValueList* LuaValue::toArray()
 {
     if (_type == LuaValueTypeArray)
     {
-        LuaTable *table = (LuaTable *)_value;
-        return static_cast<LuaValueList *>(table -> getValueObject());
+        return static_cast<LuaValueList *>(_value);
     }
 
     return NULL;
@@ -492,8 +491,7 @@ LuaValueMap* LuaValue::toMap()
 {
     if (_type == LuaValueTypeMap)
     {
-        LuaTable *table = (LuaTable *)_value;
-        return static_cast<LuaValueMap *>(table -> getValueObject());
+        return static_cast<LuaValueMap *>(_value);
     }
 
     return NULL;
@@ -553,16 +551,6 @@ LuaObjectDescriptor* LuaValue::toObject()
     return NULL;
 }
 
-LuaTable* LuaValue::toTable()
-{
-    if (getType() == LuaValueTypeArray || getType() == LuaValueTypeMap)
-    {
-        return (LuaTable *)_value;
-    }
-    
-    return NULL;
-}
-
 void LuaValue::serialization (LuaObjectEncoder *encoder)
 {
     LuaObject::serialization(encoder);
@@ -576,17 +564,8 @@ void LuaValue::serialization (LuaObjectEncoder *encoder)
     {
         encoder -> writeInt32(0);
     }
-    
-    if (getType() == LuaValueTypeArray || getType() == LuaValueTypeMap)
-    {
-        LuaTable *table = toTable();
-        LuaObjectManager::SharedInstance() -> putObject(table);
-        encoder -> writeInt32(table -> objectId());
-    }
-    else
-    {
-        encoder -> writeInt32(0);
-    }
+
+    encoder -> writeString(_tableId);
     
     encoder -> writeInt16(getType());
     
@@ -693,10 +672,96 @@ void LuaValue::managedObject(LuaContext *context)
     }
 }
 
-void LuaValue::setObject(std::string keyPath, LuaValue *object)
+std::string LuaValue::tableId()
+{
+    return _tableId;
+}
+
+void LuaValue::setObject(std::string keyPath, LuaValue *object, LuaContext *context)
 {
     if (getType() == LuaValueTypeMap)
     {
-        toTable() -> setObject(keyPath, object);
+        std::deque<std::string> keys = StringUtils::split(keyPath, ".", false);
+        setObject(toMap(), keys, 0, object);
+
+        if (context != NULL)
+        {
+            context -> getOperationQueue() -> performAction([=](){
+
+                lua_State *state = context -> getCurrentSession() -> getState();
+                context -> getDataExchanger() -> getLuaObject(this);
+
+                if (LuaEngineAdapter::type(state, -1) == LUA_TTABLE)
+                {
+                    //先寻找对应的table对象
+                    bool hasExists = true;
+                    if (keys.size() > 1)
+                    {
+                        for (int i = 0; i < keys.size() - 1; i++)
+                        {
+                            std::string key = keys[i];
+                            LuaEngineAdapter::pushString(state, key.c_str());
+                            LuaEngineAdapter::rawGet(state, -2);
+
+                            if (LuaEngineAdapter::type(state, -1) == LUA_TTABLE)
+                            {
+                                //移除前一个table对象
+                                LuaEngineAdapter::remove(state, -2);
+                            }
+                            else
+                            {
+                                hasExists = false;
+                                LuaEngineAdapter::pop(state, 1);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (hasExists)
+                    {
+                        std::string key = keys[keys.size() - 1];
+                        LuaEngineAdapter::pushString(state, key.c_str());
+                        context -> getDataExchanger() -> pushStack(object);
+                        LuaEngineAdapter::rawSet(state, -3);
+                    }
+                }
+
+                LuaEngineAdapter::pop(state, 1);
+
+            });
+        }
+    }
+}
+
+void LuaValue::setObject(LuaValueMap *map,
+                         std::deque<std::string> keys,
+                         int keyIndex,
+                         LuaValue *object)
+{
+    if (keyIndex < keys.size())
+    {
+        std::string key = keys[keyIndex];
+        if (keys.size() == keyIndex + 1)
+        {
+            //最后一个元素
+            if (object != NULL)
+            {
+                object -> retain();
+                (*map)[key] = object;
+            }
+            else
+            {
+                map -> erase(key);
+            }
+        }
+        else
+        {
+            LuaValue *value = (*map)[key];
+            if (value != NULL && value -> getType() == LuaValueTypeMap)
+            {
+                LuaValueMap *subMap = value -> toMap();
+                setObject(subMap, keys, keyIndex + 1, object);
+            }
+        }
     }
 }

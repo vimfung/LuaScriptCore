@@ -138,7 +138,7 @@ namespace cn {
                  @param arguments 传入参数
                  @return 方法描述
                  */
-                LuaExportMethodDescriptor* getClassMethod(std::string const& methodName, LuaArgumentList arguments);
+                LuaExportMethodDescriptor* getClassMethod(std::string const& methodName, LuaArgumentList &arguments);
                 
                 /**
                  获取实例方法
@@ -147,7 +147,7 @@ namespace cn {
                  @param arguments 传入参数
                  @return 方法描述
                  */
-                LuaExportMethodDescriptor* getInstanceMethod(std::string const& methodName, LuaArgumentList arguments);
+                LuaExportMethodDescriptor* getInstanceMethod(std::string const& methodName, LuaArgumentList &arguments);
                 
                 /**
                  获取属性

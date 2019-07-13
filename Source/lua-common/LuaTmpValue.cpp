@@ -127,12 +127,6 @@ LuaExportTypeDescriptor* LuaTmpValue::toType()
     return _parsedValue -> toType();
 }
 
-LuaTable* LuaTmpValue::toTable()
-{
-    _parseValue();
-    return _parsedValue -> toTable();
-}
-
 void LuaTmpValue::push(LuaContext *context)
 {
     if (_parsedValue != NULL)

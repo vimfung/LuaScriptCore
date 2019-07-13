@@ -351,6 +351,7 @@ class LuaExportTypeManager
             try
             {
                 Object instance = constructor.newInstance(args.toArray(new Object[0]));
+
                 return new LuaValue(instance);
             }
             catch (Exception e)
@@ -483,7 +484,6 @@ class LuaExportTypeManager
             Class type = instance.getClass();
             if (_regFieldMethods.containsKey(type) && _regFieldMethods.get(type).containsKey(fieldName))
             {
-                //将LuaValue数组转换为对象数组
                 Field field =  _regFieldMethods.get(type).get(fieldName);
                 if (field == null)
                 {
@@ -517,8 +517,6 @@ class LuaExportTypeManager
             Class type = instance.getClass();
             if (_regFieldMethods.containsKey(type) && _regFieldMethods.get(type).containsKey(fieldName))
             {
-                //将LuaValue数组转换为对象数组
-                ArrayList argumentArray = new ArrayList();
                 Field field =  _regFieldMethods.get(type).get(fieldName);
                 if (field == null)
                 {
