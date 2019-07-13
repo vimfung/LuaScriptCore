@@ -30,7 +30,6 @@
 #include "LuaObjectDescriptor.h"
 #include "StringUtils.h"
 #include "LuaScriptController.h"
-#include "LuaTable.hpp"
 
 #if defined (__cplusplus)
 extern "C" {
@@ -695,27 +694,30 @@ extern "C" {
         }
     }
     
-    extern int tableSetObject(int tableId,
+    extern int tableSetObject(int contextId,
+                              const void *valueData,
                               const char *keyPath,
                               const void *object,
                               const void **result)
     {
-        LuaTable *table = dynamic_cast<LuaTable *>(LuaObjectManager::SharedInstance() -> getObject(tableId));
-        if (table != NULL)
+        
+        LuaContext *context = dynamic_cast<LuaContext *>(LuaObjectManager::SharedInstance() -> getObject(contextId));
+        if (context != NULL)
         {
-            LuaObjectDecoder *decoder = new LuaObjectDecoder(table -> getContext(), object);
-            
-            LuaValue *value = dynamic_cast<LuaValue *>(decoder -> readObject());
-            table -> setObject(keyPath, value);
-            
+            LuaObjectDecoder *decoder = new LuaObjectDecoder(context, valueData);
+            LuaValue *value =  (LuaValue *)decoder -> readObject();
             decoder -> release();
             
-            LuaValue *resultValue = LuaValue::TableValue(table);
+            LuaObjectDecoder *objDecoder = new LuaObjectDecoder(context, object);
+            LuaValue *objValue = dynamic_cast<LuaValue *>(objDecoder -> readObject());
+            objDecoder -> release();
             
-            LuaObjectManager::SharedInstance() -> putObject(resultValue);
+            value -> setObject(keyPath, objValue, context);
             
-            int bufSize = LuaObjectEncoder::encodeObject(table -> getContext(), resultValue, result);
-            resultValue -> release();
+            int bufSize = LuaObjectEncoder::encodeObject(context, value, result);
+            
+            objValue -> release();
+            value -> release();
             
             return bufSize;
         }

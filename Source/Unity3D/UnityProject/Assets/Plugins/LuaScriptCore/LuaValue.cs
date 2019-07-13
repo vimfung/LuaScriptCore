@@ -27,16 +27,8 @@ namespace cn.vimfung.luascriptcore
 	{
 		private LuaValueType _type;
 		private object _value;
-		private int _tableId;
+		private string _tableId;
 		private LuaContext _context;
-
-		~LuaValue ()
-		{
-			if (_tableId > 0)
-			{
-				NativeUtils.releaseObject (_tableId);
-			}
-		}
 
 		/// <summary>
 		/// 初始化一个Nil值
@@ -321,7 +313,7 @@ namespace cn.vimfung.luascriptcore
 				encoder.writeInt32 (0);
 			}
 
-			encoder.writeInt32 (_tableId);
+			encoder.writeString (_tableId);
 			encoder.writeInt16 ((Int16)type);
 
 			switch (type)
@@ -421,7 +413,7 @@ namespace cn.vimfung.luascriptcore
 
 			int contextId = decoder.readInt32 ();
 			_context = LuaContext.getContext (contextId);
-			_tableId = decoder.readInt32 ();
+			_tableId = decoder.readString ();
 			_type = (LuaValueType)decoder.readInt16 ();
 			_value = null;
 
@@ -475,6 +467,7 @@ namespace cn.vimfung.luascriptcore
 			}
 			catch(FormatException ex)
 			{
+				Debug.LogFormat ("{0}", ex.Message);
 				return 0;
 			}
 		}
@@ -491,6 +484,7 @@ namespace cn.vimfung.luascriptcore
 			}
 			catch (FormatException ex)
 			{
+				Debug.LogFormat ("{0}", ex.Message);
 				return false;
 			}
 		}
@@ -507,6 +501,7 @@ namespace cn.vimfung.luascriptcore
 			}
 			catch (FormatException ex)
 			{
+				Debug.LogFormat ("{0}", ex.Message);
 				return 0.0;
 			}
 
@@ -536,6 +531,7 @@ namespace cn.vimfung.luascriptcore
 			}
 			catch (FormatException ex)
 			{
+				Debug.LogFormat ("{0}", ex.Message);
 				return null;
 			}
 		}
@@ -552,6 +548,7 @@ namespace cn.vimfung.luascriptcore
 			}
 			catch (FormatException ex)
 			{
+				Debug.LogFormat ("{0}", ex.Message);
 				return null;
 			}
 		}
@@ -650,7 +647,7 @@ namespace cn.vimfung.luascriptcore
 		/// <param name="value">值.</param>
 		public void setObject(String keyPath, object value)
 		{
-			if (_context != null && _tableId > 0 && type == LuaValueType.Map)
+			if (_context != null && _tableId != null && type == LuaValueType.Map)
 			{
 				LuaValue objectValue = new LuaValue (value);
 
@@ -658,13 +655,21 @@ namespace cn.vimfung.luascriptcore
 
 				IntPtr valuePtr = IntPtr.Zero;
 				LuaObjectEncoder encoder = new LuaObjectEncoder (_context);
-				encoder.writeObject (objectValue);
+				encoder.writeObject (this);
+				byte[] valueBytes = encoder.bytes;
+				valuePtr = Marshal.AllocHGlobal (valueBytes.Length);
+				Marshal.Copy (valueBytes, 0, valuePtr, valueBytes.Length);
 
-				byte[] bytes = encoder.bytes;
-				valuePtr = Marshal.AllocHGlobal (bytes.Length);
-				Marshal.Copy (bytes, 0, valuePtr, bytes.Length);
 
-				int bufferLen = NativeUtils.tableSetObject (_tableId, keyPath, valuePtr, resultPtr);
+				IntPtr objPtr = IntPtr.Zero;
+				LuaObjectEncoder objEncoder = new LuaObjectEncoder (_context);
+				objEncoder.writeObject (objectValue);
+
+				byte[] bytes = objEncoder.bytes;
+				objPtr = Marshal.AllocHGlobal (bytes.Length);
+				Marshal.Copy (bytes, 0, objPtr, bytes.Length);
+
+				int bufferLen = NativeUtils.tableSetObject (_context.objectId, valuePtr, keyPath, objPtr, resultPtr);
 
 				if (bufferLen > 0)
 				{
@@ -675,6 +680,11 @@ namespace cn.vimfung.luascriptcore
 				if (valuePtr != IntPtr.Zero)
 				{
 					Marshal.FreeHGlobal (valuePtr);
+				}
+
+				if (objPtr != IntPtr.Zero)
+				{
+					Marshal.FreeHGlobal (objPtr);
 				}
 			}
 		}

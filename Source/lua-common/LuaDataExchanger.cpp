@@ -104,7 +104,6 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
                     //出栈前一结果
                     LuaEngineAdapter::pop(state, 1);
 
-                    LuaTable *table = NULL;
                     const void *userdata = LuaEngineAdapter::toPointer(state, -1);
                     objectId = StringUtils::format("%p", userdata);
 
@@ -556,7 +555,7 @@ void LuaDataExchanger::endGetVarsTable(lua_State *state, LuaOperationQueue *queu
 
 void LuaDataExchanger::pushStackByObject(LuaManagedObject *object, lua_State *state, LuaOperationQueue *queue)
 {
-    //LuaFunction\LuaPointer\ObjectDescription\LuaTable
+    //LuaFunction\LuaPointer\ObjectDescription
     auto handler = [this, object, state, queue](){
 
         beginGetVarsTable(state, queue);

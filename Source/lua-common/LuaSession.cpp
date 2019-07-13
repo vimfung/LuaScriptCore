@@ -14,7 +14,6 @@
 #if !_WINDOWS
 
 #include <sys/time.h>
-#include <LuaDefine.h>
 
 #endif
 

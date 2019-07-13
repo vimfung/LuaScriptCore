@@ -26,7 +26,6 @@ namespace cn
             class LuaPointer;
             class LuaObjectDescriptor;
             class LuaExportTypeDescriptor;
-            class LuaTable;
 
             /**
              * Lua值，用于Lua与C＋＋中交互数据使用

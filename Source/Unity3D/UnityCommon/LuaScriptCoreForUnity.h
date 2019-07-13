@@ -260,13 +260,15 @@ extern "C" {
     /**
      Table设置指定键名对象
 
-     @param tableId table标识
+     @param contextId 上下文标识
+     @param valueData 值对象
      @param keyPath 键名路径
      @param object 对象
      @param result 返回新的字典集合
      @return 返回值的缓存长度
      */
-    LuaScriptCoreApi extern int tableSetObject(int tableId,
+    LuaScriptCoreApi extern int tableSetObject(int contextId,
+                                               const void *valueData,
                                                const char *keyPath,
                                                const void *object,
                                                const void **result);
