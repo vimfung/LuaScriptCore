@@ -53,6 +53,13 @@ namespace cn
                  @return 分割后字符串数组
                  */
                 static std::deque<std::string> split(std::string text, std::string const& delimStr, bool repeatedCharIgnored);
+
+                /**
+                 * 判断是否为UTF8字符串
+                 * @param text 待检测字符串
+                 * @return true 为UTF8字符串，否则不是
+                 */
+                static bool isUTF8String(std::string const& text);
             };
         }
     }

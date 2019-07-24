@@ -38,6 +38,7 @@
     [self.context evalScriptFromFile:@"Path-Sample.lua"];
     [self.context evalScriptFromFile:@"HTTP-Sample.lua"];
     [self.context evalScriptFromFile:@"Thread-Sample.lua"];
+    [self.context evalScriptFromFile:@"Crypto-Sample.lua"];
 }
 
 #pragma mark - NSOutlineViewDataSource
@@ -46,11 +47,11 @@
 {
     if (!item)
     {
-        return 4;
+        return 5;
     }
     else if ([item isEqualToString:@"Encoding"])
     {
-        return 2;
+        return 8;
     }
     else if ([item isEqualToString:@"Path"])
     {
@@ -63,6 +64,10 @@
     else if ([item isEqualToString:@"Thread"])
     {
         return 1;
+    }
+    else if ([item isEqualToString:@"Crypto"])
+    {
+        return 4;
     }
     
     return 0;
@@ -82,6 +87,8 @@
                 return @"HTTP";
             case 3:
                 return @"Thread";
+            case 4:
+                return @"Crypto";
             default:
                 return @"";
         }
@@ -94,6 +101,18 @@
                 return @"Url Encode";
             case 1:
                 return @"Url Decode";
+            case 2:
+                return @"Base64 Encode";
+            case 3:
+                return @"Base64 Decode";
+            case 4:
+                return @"JSON Encode";
+            case 5:
+                return @"JSON Decode";
+            case 6:
+                return @"Hex Encode";
+            case 7:
+                return @"Hex Decode";
             default:
                 return @"";
         }
@@ -142,6 +161,22 @@
                 break;
         }
     }
+    else if ([item isEqualToString:@"Crypto"])
+    {
+        switch (index)
+        {
+            case 0:
+                return @"MD5";
+            case 1:
+                return @"SHA1";
+            case 2:
+                return @"HMAC-MD5";
+            case 3:
+                return @"HMAC-SHA1";
+            default:
+                break;
+        }
+    }
     
     return @"";
 }
@@ -152,7 +187,8 @@
         || [item isEqualToString:@"Encoding"]
         || [item isEqualToString:@"Path"]
         || [item isEqualToString:@"HTTP"]
-        || [item isEqualToString:@"Thread"])
+        || [item isEqualToString:@"Thread"]
+        || [item isEqualToString:@"Crypto"])
     {
         return YES;
     }
@@ -174,6 +210,30 @@
     else if ([item isEqualToString:@"Url Decode"])
     {
         [self.context evalScriptFromString:@"Encoding_Sample_urlDecode()"];
+    }
+    else if([item isEqualToString:@"Base64 Encode"])
+    {
+        [self.context evalScriptFromString:@"Encoding_Sample_base64Encode()"];
+    }
+    else if([item isEqualToString:@"Base64 Decode"])
+    {
+        [self.context evalScriptFromString:@"Encoding_Sample_base64Decode()"];
+    }
+    else if([item isEqualToString:@"JSON Encode"])
+    {
+        [self.context evalScriptFromString:@"Encoding_Sample_jsonEndode()"];
+    }
+    else if([item isEqualToString:@"JSON Decode"])
+    {
+        [self.context evalScriptFromString:@"Encoding_Sample_jsonDecode()"];
+    }
+    else if([item isEqualToString:@"Hex Encode"])
+    {
+        [self.context evalScriptFromString:@"Encoding_Sample_hexEncode()"];
+    }
+    else if([item isEqualToString:@"Hex Decode"])
+    {
+        [self.context evalScriptFromString:@"Encoding_Sample_hexDecode()"];
     }
     else if ([item isEqualToString:@"App Path"])
     {
@@ -214,6 +274,22 @@
     else if ([item isEqualToString:@"Run Thread"])
     {
         [self.context evalScriptFromString:@"Thread_Sample_run()"];
+    }
+    else if ([item isEqualToString:@"MD5"])
+    {
+        [self.context evalScriptFromString:@"Crypto_Sample_md5()"];
+    }
+    else if ([item isEqualToString:@"SHA1"])
+    {
+        [self.context evalScriptFromString:@"Crypto_Sample_sha1()"];
+    }
+    else if ([item isEqualToString:@"HMAC-MD5"])
+    {
+        [self.context evalScriptFromString:@"Crypto_Sample_hmacMD5()"];
+    }
+    else if ([item isEqualToString:@"HMAC-SHA1"])
+    {
+        [self.context evalScriptFromString:@"Crypto_Sample_hmacSHA1()"];
     }
 }
 

@@ -22,8 +22,8 @@ android {
     }
     sourceSets {
         main {
-            java.srcDirs = ["./src/main/java", "../../../Modules/Foundation/Android", "../../../Modules/Network/Android"];
-            assets.srcDirs = ["./src/main/assets", "../../../Modules/Foundation/Lua", "../../../Modules/Foundation/Sample", "../../../Modules/Network/Lua", "../../../Modules/Network/Sample"];
+            java.srcDirs = ["./src/main/java", "../../../Modules/Foundation/Android", "../../../Modules/Network/Android", "../../../Modules/Crypto/Android"];
+            assets.srcDirs = ["./src/main/assets", "../../../Modules/Foundation/Lua", "../../../Modules/Foundation/Sample", "../../../Modules/Network/Lua", "../../../Modules/Network/Sample", "../../../Modules/Crypto/Lua", "../../../Modules/Crypto/Sample"];
         }
     }
 }

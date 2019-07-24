@@ -74,7 +74,9 @@ LuaValue* LuaDataExchanger::getValue(int stackIndex)
                 size_t len = 0;
                 const char *bytes = LuaEngineAdapter::toLString(state, stackIndex, &len);
 
-                if (*(bytes + len) != '\0' || std::strlen(bytes) != len)
+                //fixed: 解决部分二进制数据流长度无法判断时，改用UTF-8编码判断
+                //所有非UTF-8编码字符串均转换为二进制数据
+                if (*(bytes + len) != '\0' || std::strlen(bytes) != len || !StringUtils::isUTF8String(bytes))
                 {
                     //为二进制数据流
                     value = LuaValue::DataValue(bytes, len);

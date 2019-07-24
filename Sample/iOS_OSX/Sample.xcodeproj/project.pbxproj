@@ -31,6 +31,10 @@
 		7C21ED361DEFC39400507DA2 /* test.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C210E031DCB5FD3000838F9 /* test.lua */; };
 		7C21ED381DEFCEFA00507DA2 /* LogModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED371DEFCEFA00507DA2 /* LogModule.swift */; };
 		7C21ED3D1DEFD41200507DA2 /* LSCTPerson.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C21ED3C1DEFD41200507DA2 /* LSCTPerson.swift */; };
+		7C333AE622B5C4980017B892 /* CryptoModuleViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C333AE522B5C4980017B892 /* CryptoModuleViewController.m */; };
+		7C333AEF22B5C8090017B892 /* LSCCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C333AEE22B5C8090017B892 /* LSCCrypto.swift */; };
+		7C333AF022B5C8090017B892 /* LSCCrypto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C333AEE22B5C8090017B892 /* LSCCrypto.swift */; };
+		7C333AF222B5CD0F0017B892 /* CryptoModuleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C333AF122B5CD0F0017B892 /* CryptoModuleViewController.swift */; };
 		7C44C776212A68C8004D8D6F /* LSCHTTPTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C775212A68C8004D8D6F /* LSCHTTPTask.m */; };
 		7C44C777212A68C8004D8D6F /* LSCHTTPTask.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C775212A68C8004D8D6F /* LSCHTTPTask.m */; };
 		7C44C77E212AA0F6004D8D6F /* LSCEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C44C77D212AA0F6004D8D6F /* LSCEncoding.m */; };
@@ -55,6 +59,16 @@
 		7C5A61871D6AE2A3007D4308 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C5A61861D6AE2A3007D4308 /* ViewController.m */; };
 		7C5A61891D6AE2A3007D4308 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C5A61881D6AE2A3007D4308 /* Assets.xcassets */; };
 		7C5A618C1D6AE2A3007D4308 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C5A618A1D6AE2A3007D4308 /* Main.storyboard */; };
+		7C6A515222B32BA30004B842 /* LSCCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6A515122B32BA30004B842 /* LSCCrypto.m */; };
+		7C6A515322B32BA30004B842 /* LSCCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6A515122B32BA30004B842 /* LSCCrypto.m */; };
+		7C6A515522B330040004B842 /* Crypto.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C6A515422B330040004B842 /* Crypto.lua */; };
+		7C6A515622B330040004B842 /* Crypto.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C6A515422B330040004B842 /* Crypto.lua */; };
+		7C6A515722B330040004B842 /* Crypto.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C6A515422B330040004B842 /* Crypto.lua */; };
+		7C6A515822B330040004B842 /* Crypto.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C6A515422B330040004B842 /* Crypto.lua */; };
+		7C6A515A22B330450004B842 /* Crypto-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C6A515922B330450004B842 /* Crypto-Sample.lua */; };
+		7C6A515B22B330450004B842 /* Crypto-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C6A515922B330450004B842 /* Crypto-Sample.lua */; };
+		7C6A515C22B330450004B842 /* Crypto-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C6A515922B330450004B842 /* Crypto-Sample.lua */; };
+		7C6A515D22B330450004B842 /* Crypto-Sample.lua in Resources */ = {isa = PBXBuildFile; fileRef = 7C6A515922B330450004B842 /* Crypto-Sample.lua */; };
 		7C6B127E1D6AFD1400489D9E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 7C6B12741D6AFD1400489D9E /* AppDelegate.m */; };
 		7C6B127F1D6AFD1400489D9E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C6B12751D6AFD1400489D9E /* Assets.xcassets */; };
 		7C6B12801D6AFD1400489D9E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6B12761D6AFD1400489D9E /* LaunchScreen.storyboard */; };
@@ -250,6 +264,10 @@
 		7C21ED101DEFBE9A00507DA2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7C21ED371DEFCEFA00507DA2 /* LogModule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LogModule.swift; sourceTree = "<group>"; };
 		7C21ED3C1DEFD41200507DA2 /* LSCTPerson.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSCTPerson.swift; sourceTree = "<group>"; };
+		7C333AE422B5C4980017B892 /* CryptoModuleViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CryptoModuleViewController.h; sourceTree = "<group>"; };
+		7C333AE522B5C4980017B892 /* CryptoModuleViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CryptoModuleViewController.m; sourceTree = "<group>"; };
+		7C333AEE22B5C8090017B892 /* LSCCrypto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSCCrypto.swift; sourceTree = "<group>"; };
+		7C333AF122B5CD0F0017B892 /* CryptoModuleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryptoModuleViewController.swift; sourceTree = "<group>"; };
 		7C44C774212A68C8004D8D6F /* LSCHTTPTask.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCHTTPTask.h; sourceTree = "<group>"; };
 		7C44C775212A68C8004D8D6F /* LSCHTTPTask.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCHTTPTask.m; sourceTree = "<group>"; };
 		7C44C77C212AA0F6004D8D6F /* LSCEncoding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCEncoding.h; sourceTree = "<group>"; };
@@ -277,6 +295,10 @@
 		7C5A61881D6AE2A3007D4308 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C5A618B1D6AE2A3007D4308 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		7C5A618D1D6AE2A3007D4308 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7C6A515022B32BA30004B842 /* LSCCrypto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LSCCrypto.h; sourceTree = "<group>"; };
+		7C6A515122B32BA30004B842 /* LSCCrypto.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LSCCrypto.m; sourceTree = "<group>"; };
+		7C6A515422B330040004B842 /* Crypto.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = Crypto.lua; sourceTree = "<group>"; };
+		7C6A515922B330450004B842 /* Crypto-Sample.lua */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Crypto-Sample.lua"; sourceTree = "<group>"; };
 		7C6B12731D6AFD1400489D9E /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		7C6B12741D6AFD1400489D9E /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		7C6B12751D6AFD1400489D9E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -399,6 +421,7 @@
 		7C44C761212A4DAE004D8D6F /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				7C6A514122B32B480004B842 /* Crypto */,
 				7C8472DF217F098200D235F3 /* UI */,
 				7C44C778212AA090004D8D6F /* Foundation */,
 				7C44C762212A4DAE004D8D6F /* Network */,
@@ -495,6 +518,7 @@
 				7C49AE49212BC8F60031D627 /* PathModuleViewController.swift */,
 				7C49AE4B212BCA150031D627 /* HttpModuleViewController.swift */,
 				7C14122B21DC530300952871 /* ThreadModuleViewController.swift */,
+				7C333AF122B5CD0F0017B892 /* CryptoModuleViewController.swift */,
 			);
 			path = ModuleViewControllers;
 			sourceTree = "<group>";
@@ -522,6 +546,58 @@
 				7C5A61831D6AE2A3007D4308 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		7C6A514122B32B480004B842 /* Crypto */ = {
+			isa = PBXGroup;
+			children = (
+				7C6A514222B32B480004B842 /* iOS */,
+				7C6A514322B32B480004B842 /* Lua */,
+				7C6A514522B32B480004B842 /* Sample */,
+			);
+			path = Crypto;
+			sourceTree = "<group>";
+		};
+		7C6A514222B32B480004B842 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				7C6A514E22B32B660004B842 /* OC */,
+				7C6A514F22B32B660004B842 /* Swift */,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		7C6A514322B32B480004B842 /* Lua */ = {
+			isa = PBXGroup;
+			children = (
+				7C6A515422B330040004B842 /* Crypto.lua */,
+			);
+			path = Lua;
+			sourceTree = "<group>";
+		};
+		7C6A514522B32B480004B842 /* Sample */ = {
+			isa = PBXGroup;
+			children = (
+				7C6A515922B330450004B842 /* Crypto-Sample.lua */,
+			);
+			path = Sample;
+			sourceTree = "<group>";
+		};
+		7C6A514E22B32B660004B842 /* OC */ = {
+			isa = PBXGroup;
+			children = (
+				7C6A515022B32BA30004B842 /* LSCCrypto.h */,
+				7C6A515122B32BA30004B842 /* LSCCrypto.m */,
+			);
+			path = OC;
+			sourceTree = "<group>";
+		};
+		7C6A514F22B32B660004B842 /* Swift */ = {
+			isa = PBXGroup;
+			children = (
+				7C333AEE22B5C8090017B892 /* LSCCrypto.swift */,
+			);
+			path = Swift;
 			sourceTree = "<group>";
 		};
 		7C6B12721D6AFD1400489D9E /* Sample-iOS */ = {
@@ -684,6 +760,8 @@
 				7CE28F60212BA81C0042A3DC /* PathModuleViewController.m */,
 				7CF700E521DB0D09006DAEE3 /* ThreadModuleViewController.h */,
 				7CF700E621DB0D09006DAEE3 /* ThreadModuleViewController.m */,
+				7C333AE422B5C4980017B892 /* CryptoModuleViewController.h */,
+				7C333AE522B5C4980017B892 /* CryptoModuleViewController.m */,
 			);
 			path = ModuleViewControllers;
 			sourceTree = "<group>";
@@ -912,6 +990,8 @@
 				7CFE0B511DF00E4200C41B89 /* main.lua in Resources */,
 				7CE28F50212BA1880042A3DC /* Path-Sample.lua in Resources */,
 				7CFE0B521DF00E4200C41B89 /* todo.lua in Resources */,
+				7C6A515822B330040004B842 /* Crypto.lua in Resources */,
+				7C6A515D22B330450004B842 /* Crypto-Sample.lua in Resources */,
 				7CD374CF21378988007C55ED /* HTTP.lua in Resources */,
 				7CFE0B531DF00E4200C41B89 /* test.lua in Resources */,
 				7C177C161DEFEE73008C9DF1 /* Assets.xcassets in Resources */,
@@ -924,8 +1004,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C14123421DC596E00952871 /* Thread-Sample.lua in Resources */,
+				7C6A515C22B330450004B842 /* Crypto-Sample.lua in Resources */,
 				7C21ED331DEFC39400507DA2 /* dkjson.lua in Resources */,
 				7CE28F4A212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
+				7C6A515722B330040004B842 /* Crypto.lua in Resources */,
 				7CD374CE21378988007C55ED /* HTTP.lua in Resources */,
 				7C21ED341DEFC39400507DA2 /* main.lua in Resources */,
 				7C21ED351DEFC39400507DA2 /* todo.lua in Resources */,
@@ -953,6 +1035,8 @@
 				7CE28F4E212BA1880042A3DC /* Path-Sample.lua in Resources */,
 				7C210E051DCB5FD3000838F9 /* test.lua in Resources */,
 				7CD374CD21378988007C55ED /* HTTP.lua in Resources */,
+				7C6A515622B330040004B842 /* Crypto.lua in Resources */,
+				7C6A515B22B330450004B842 /* Crypto-Sample.lua in Resources */,
 				7C44C789212AB472004D8D6F /* HTTP-Sample.lua in Resources */,
 				7CE28F49212BA1770042A3DC /* Encoding-Sample.lua in Resources */,
 				7C5A618C1D6AE2A3007D4308 /* Main.storyboard in Resources */,
@@ -975,8 +1059,10 @@
 				7C44C788212AB472004D8D6F /* HTTP-Sample.lua in Resources */,
 				7CD374D121378AE1007C55ED /* timg.jpeg in Resources */,
 				7CCF836E211BF91800BF7723 /* hello.lua in Resources */,
+				7C6A515522B330040004B842 /* Crypto.lua in Resources */,
 				7CE625161D93B3AA007533D7 /* todo.lua in Resources */,
 				7CE625121D93B3AA007533D7 /* dkjson.lua in Resources */,
+				7C6A515A22B330450004B842 /* Crypto-Sample.lua in Resources */,
 				7CE28F4D212BA1880042A3DC /* Path-Sample.lua in Resources */,
 				7CD374C621378979007C55ED /* Foundation.lua in Resources */,
 			);
@@ -990,6 +1076,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7CA46E5C1DEFFE820014253A /* LSCTPerson.swift in Sources */,
+				7C333AF022B5C8090017B892 /* LSCCrypto.swift in Sources */,
 				7C49AE4F212BCA940031D627 /* LSCHTTPTask.swift in Sources */,
 				7C14123721DC59B300952871 /* LSCThread.swift in Sources */,
 				7C49AE54212C15310031D627 /* ModulesViewController.swift in Sources */,
@@ -1013,6 +1100,7 @@
 				7C21ED071DEFBE9A00507DA2 /* ViewController.swift in Sources */,
 				7C21ED051DEFBE9A00507DA2 /* AppDelegate.swift in Sources */,
 				7C49AE4C212BCA150031D627 /* HttpModuleViewController.swift in Sources */,
+				7C333AF222B5CD0F0017B892 /* CryptoModuleViewController.swift in Sources */,
 				7C14123621DC59B300952871 /* LSCThread.swift in Sources */,
 				7C14122C21DC530300952871 /* ThreadModuleViewController.swift in Sources */,
 				7C49AE48212BC75C0031D627 /* EncodingModuleViewController.swift in Sources */,
@@ -1020,6 +1108,7 @@
 				7CE28F70212BB79B0042A3DC /* LSCPath.swift in Sources */,
 				7C49AE4E212BCA940031D627 /* LSCHTTPTask.swift in Sources */,
 				7CCA263E1EA4754E007F20A9 /* LSCTNativeData.swift in Sources */,
+				7C333AEF22B5C8090017B892 /* LSCCrypto.swift in Sources */,
 				7C49AE4A212BC8F60031D627 /* PathModuleViewController.swift in Sources */,
 				7C49AE51212BE5140031D627 /* LSCHTTPFile.swift in Sources */,
 			);
@@ -1040,6 +1129,7 @@
 				7CF700E121DB094C006DAEE3 /* LSCThread.m in Sources */,
 				7CE6251C1D93B3C8007533D7 /* LogModule.m in Sources */,
 				7CE6252B1D93B435007533D7 /* LSCTPerson.m in Sources */,
+				7C6A515322B32BA30004B842 /* LSCCrypto.m in Sources */,
 				7C5A61811D6AE2A3007D4308 /* AppDelegate.m in Sources */,
 				7CC1E438223643CC00C321F8 /* Env.m in Sources */,
 			);
@@ -1062,8 +1152,10 @@
 				7C44C77E212AA0F6004D8D6F /* LSCEncoding.m in Sources */,
 				7C6B12841D6AFD1400489D9E /* ViewController.m in Sources */,
 				7C6B12831D6AFD1400489D9E /* main.m in Sources */,
+				7C6A515222B32BA30004B842 /* LSCCrypto.m in Sources */,
 				7C6B127E1D6AFD1400489D9E /* AppDelegate.m in Sources */,
 				7C49AE41212BC5850031D627 /* ModuleListViewController.m in Sources */,
+				7C333AE622B5C4980017B892 /* CryptoModuleViewController.m in Sources */,
 				7CC1E437223643CC00C321F8 /* Env.m in Sources */,
 				7CF700E021DB094C006DAEE3 /* LSCThread.m in Sources */,
 			);

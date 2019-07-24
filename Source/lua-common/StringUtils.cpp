@@ -105,3 +105,62 @@ std::deque<std::string> StringUtils::split(std::string text, std::string const& 
     return resultStringVector;
 }
 
+bool StringUtils::isUTF8String(std::string const& text)
+{
+    static unsigned long CHECK_LENGTH = 16;
+
+    unsigned long length = text.size();
+    int check_sub = 0;
+    int i = 0;
+
+    if ( length > CHECK_LENGTH )  //只取前面特定长度的字符来验证即可
+    {
+        length = CHECK_LENGTH;
+    }
+
+    for ( ; i < length; i ++ )
+    {
+        if ( check_sub == 0 )
+        {
+            if ( (text[i] >> 7) == 0 )         //0xxx xxxx
+            {
+                continue;
+            }
+            else if ( (text[i] & 0xE0) == 0xC0 ) //110x xxxx
+            {
+                check_sub = 1;
+            }
+            else if ( (text[i] & 0xF0) == 0xE0 ) //1110 xxxx
+            {
+                check_sub = 2;
+            }
+            else if ( (text[i] & 0xF8) == 0xF0 ) //1111 0xxx
+            {
+                check_sub = 3;
+            }
+            else if ( (text[i] & 0xFC) == 0xF8 ) //1111 10xx
+            {
+                check_sub = 4;
+            }
+            else if ( (text[i] & 0xFE) == 0xFC ) //1111 110x
+            {
+                check_sub = 5;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if ( (text[i] & 0xC0) != 0x80 )
+            {
+                return false;
+            }
+            check_sub --;
+        }
+    }
+
+    return true;
+}
+

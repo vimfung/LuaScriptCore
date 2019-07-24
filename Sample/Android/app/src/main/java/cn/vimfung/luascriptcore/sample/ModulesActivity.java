@@ -37,6 +37,7 @@ public class ModulesActivity extends AppCompatActivity {
             modules.add("Path");
             modules.add("Thread");
             modules.add("HTTP");
+            modules.add("Crypto");
         }
         else if (parentItem.equals("Encoding"))
         {
@@ -46,6 +47,8 @@ public class ModulesActivity extends AppCompatActivity {
             modules.add("Base64 Decode");
             modules.add("JSON Encode");
             modules.add("JSON Decode");
+            modules.add("Hex Encode");
+            modules.add("Hex Decode");
         }
         else if (parentItem.equals("Path"))
         {
@@ -67,6 +70,13 @@ public class ModulesActivity extends AppCompatActivity {
             modules.add("POST Request");
             modules.add("Upload File");
             modules.add("Download File");
+        }
+        else if(parentItem.equals("Crypto"))
+        {
+            modules.add("MD5");
+            modules.add("SHA1");
+            modules.add("HMAC-MD5");
+            modules.add("HMAC-SHA1");
         }
 
         final String finalParentItem = parentItem;
@@ -115,6 +125,14 @@ public class ModulesActivity extends AppCompatActivity {
                         else if (item.equals("JSON Decode"))
                         {
                             luaContext.evalScript("Encoding_Sample_jsonDecode()");
+                        }
+                        else if (item.equals("Hex Encode"))
+                        {
+                            luaContext.evalScript("Encoding_Sample_hexEncode()");
+                        }
+                        else if (item.equals("Hex Decode"))
+                        {
+                            luaContext.evalScript("Encoding_Sample_hexDecode()");
                         }
                     }
                     else if (finalParentItem.equals("Path"))
@@ -178,6 +196,27 @@ public class ModulesActivity extends AppCompatActivity {
                         else if (item.equals("Download File"))
                         {
                             luaContext.evalScript("HTTP_Sample_download()");
+                        }
+                    }
+                    else if(finalParentItem.equals("Crypto"))
+                    {
+                        luaContext.evalScriptFromFile("Crypto-Sample.lua");
+
+                        if (item.equals("MD5"))
+                        {
+                            luaContext.evalScript("Crypto_Sample_md5()");
+                        }
+                        else if (item.equals("SHA1"))
+                        {
+                            luaContext.evalScript("Crypto_Sample_sha1()");
+                        }
+                        else if (item.equals("HMAC-MD5"))
+                        {
+                            luaContext.evalScript("Crypto_Sample_hmacMD5()");
+                        }
+                        else if (item.equals("HMAC-SHA1"))
+                        {
+                            luaContext.evalScript("Crypto_Sample_hmacSHA1()");
                         }
                     }
                 }

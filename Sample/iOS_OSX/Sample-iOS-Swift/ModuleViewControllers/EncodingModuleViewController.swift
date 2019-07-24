@@ -38,6 +38,10 @@ class EncodingModuleViewController: UITableViewController {
             _ = context.evalScript(script: "Encoding_Sample_jsonEndode()");
         case 5:
             _ = context.evalScript(script: "Encoding_Sample_jsonDecode()");
+        case 6:
+            _ = context.evalScript(script: "Encoding_Sample_hexEncode()");
+        case 7:
+            _ = context.evalScript(script: "Encoding_Sample_hexDecode()");
         default:
             break;
         }

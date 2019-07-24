@@ -59,6 +59,14 @@
             //JSON Decode
             [self.context evalScriptFromString:@"Encoding_Sample_jsonDecode()"];
             break;
+        case 6:
+            //Hex Encode
+            [self.context evalScriptFromString:@"Encoding_Sample_hexEncode()"];
+            break;
+        case 7:
+            //Hex Decode
+            [self.context evalScriptFromString:@"Encoding_Sample_hexDecode()"];
+            break;
         default:
             break;
     }

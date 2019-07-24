@@ -25,6 +25,7 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         _ = context.evalScript(filePath: "Path-Sample.lua");
         _ = context.evalScript(filePath: "HTTP-Sample.lua");
         _ = context.evalScript(filePath: "Thread-Sample.lua");
+        _ = context.evalScript(filePath: "Crypto-Sample.lua");
     }
     
     func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int
@@ -32,11 +33,11 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         let strItem : String? = item as? String;
         if strItem == nil
         {
-            return 4;
+            return 5;
         }
         else if (strItem == "Encoding")
         {
-            return 2;
+            return 8;
         }
         else if (strItem == "Path")
         {
@@ -49,6 +50,10 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         else if (strItem == "Thread")
         {
             return 1;
+        }
+        else if (strItem == "Crypto")
+        {
+            return 4;
         }
         
         return 0;
@@ -69,6 +74,8 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
                 return "HTTP";
             case 3:
                 return "Thread";
+            case 4:
+                return "Crypto";
             default:
                 return "";
             }
@@ -81,6 +88,18 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
                 return "Url Encode";
             case 1:
                 return "Url Decode";
+            case 2:
+                return "Base64 Encode";
+            case 3:
+                return "Base64 Decode";
+            case 4:
+                return "JSON Encode";
+            case 5:
+                return "JSON Decode";
+            case 6:
+                return "Hex Encode";
+            case 7:
+                return "Hex Decode";
             default:
                 return "";
             }
@@ -129,6 +148,22 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
                 return "";
             }
         }
+        else if strItem == "Crypto"
+        {
+            switch (index)
+            {
+            case 0:
+                return "MD5";
+            case 1:
+                return "SHA1";
+            case 2:
+                return "HMAC-MD5";
+            case 3:
+                return "HMAC-SHA1";
+            default:
+                return "";
+            }
+        }
         
         return "";
     }
@@ -140,7 +175,8 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
             || strItem == "Encoding"
             || strItem == "Path"
             || strItem == "HTTP"
-            || strItem == "Thread")
+            || strItem == "Thread"
+            || strItem == "Crypto")
         {
             return true;
         }
@@ -163,6 +199,30 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         else if item == "Url Decode"
         {
             _ = context.evalScript(script: "Encoding_Sample_urlDecode()");
+        }
+        else if item == "Base64 Encode"
+        {
+            _ = context.evalScript(script: "Encoding_Sample_base64Encode()");
+        }
+        else if item == "Base64 Decode"
+        {
+            _ = context.evalScript(script: "Encoding_Sample_base64Decode()");
+        }
+        else if item == "JSON Encode"
+        {
+            _ = context.evalScript(script: "Encoding_Sample_jsonEndode()");
+        }
+        else if item == "JSON Decode"
+        {
+            _ = context.evalScript(script: "Encoding_Sample_jsonDecode()");
+        }
+        else if item == "Hex Encode"
+        {
+            _ = context.evalScript(script: "Encoding_Sample_hexEncode()");
+        }
+        else if item == "Hex Decode"
+        {
+            _ = context.evalScript(script: "Encoding_Sample_hexDecode()");
         }
         else if item == "App Path"
         {
@@ -203,6 +263,22 @@ class ModulesViewController: NSViewController, NSOutlineViewDataSource, NSOutlin
         else if item == "Run Thread"
         {
             _ = context.evalScript(script: "Thread_Sample_run()");
+        }
+        else if item == "MD5"
+        {
+            _ = context.evalScript(script: "Crypto_Sample_md5()");
+        }
+        else if item == "SHA1"
+        {
+            _ = context.evalScript(script: "Crypto_Sample_sha1()");
+        }
+        else if item == "HMAC-MD5"
+        {
+            _ = context.evalScript(script: "Crypto_Sample_hmacMD5()");
+        }
+        else if item == "HMAC-SHA1"
+        {
+            _ = context.evalScript(script: "Crypto_Sample_hmacSHA1()");
         }
     }
 }
