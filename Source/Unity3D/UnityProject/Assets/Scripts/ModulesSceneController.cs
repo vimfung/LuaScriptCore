@@ -25,8 +25,9 @@ public class ModulesSceneController : MonoBehaviour {
 			{
 			case "Foundation":
 			case "Network":
+			case "Crypto":
 				_selectedItem = null;
-				listVC.dataSource = new List<string> () {"Foundation", "Network"};
+				listVC.dataSource = new List<string> () {"Foundation", "Network", "Crypto"};
 				listVC.reloadData ();
 				break;
 			case "Encoding":
@@ -41,6 +42,14 @@ public class ModulesSceneController : MonoBehaviour {
 				listVC.dataSource = new List<string> () {"HTTP"};
 				listVC.reloadData ();
 				break;
+			case "MD5":
+			case "SHA1":
+			case "HMAC-MD5":
+			case "HMAC-SHA1":
+				_selectedItem = "Crypto";
+				listVC.dataSource = new List<string> () {"MD5", "SHA1", "HMAC-MD5", "HMAC-SHA1"};
+				listVC.reloadData ();
+				break;
 			}
 		}
 	}
@@ -51,6 +60,7 @@ public class ModulesSceneController : MonoBehaviour {
 
 		context.addSearchPath ("LuaScriptCore_Modules/Foundation");
 		context.addSearchPath ("LuaScriptCore_Modules/Network");
+		context.addSearchPath ("LuaScriptCore_Modules/Crypto");
 
 		context.onException ((msg) => {
 
@@ -79,9 +89,14 @@ public class ModulesSceneController : MonoBehaviour {
 					listVC.dataSource = new List<string> () {"HTTP"};
 					listVC.reloadData();
 					break;
+				case "Crypto":
+					_selectedItem = itemData;
+					listVC.dataSource = new List<string> () {"MD5", "SHA1", "HMAC-MD5", "HMAC-SHA1"};
+					listVC.reloadData();
+					break;
 				case "Encoding":
 					_selectedItem = itemData;
-					listVC.dataSource = new List<string> () {"URL Encode", "URL Decode", "Base64 Encode", "Base64 Decode", "JSON Encode", "JSON Decode"};
+					listVC.dataSource = new List<string> () {"URL Encode", "URL Decode", "Base64 Encode", "Base64 Decode", "JSON Encode", "JSON Decode", "Hex Encode", "Hex Decode"};
 					listVC.reloadData();
 					break;
 				case "Path":
@@ -122,6 +137,14 @@ public class ModulesSceneController : MonoBehaviour {
 				case "JSON Decode":
 					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Encoding-Sample.lua");
 					LuaContext.currentContext.evalScript("Encoding_Sample_jsonDecode()");
+					break;
+				case "Hex Encode":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Encoding-Sample.lua");
+					LuaContext.currentContext.evalScript("Encoding_Sample_hexEncode()");
+					break;
+				case "Hex Decode":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Encoding-Sample.lua");
+					LuaContext.currentContext.evalScript("Encoding_Sample_hexDecode()");
 					break;
 				case "App Path":
 					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Path-Sample.lua");
@@ -171,13 +194,29 @@ public class ModulesSceneController : MonoBehaviour {
 					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Foundation/Sample/Thread-Sample.lua");
 					LuaContext.currentContext.evalScript("Thread_Sample_stop()");
 					break;
+				case "MD5":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Crypto/Sample/Crypto-Sample.lua");
+					LuaContext.currentContext.evalScript("Crypto_Sample_md5()");
+					break;
+				case "SHA1":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Crypto/Sample/Crypto-Sample.lua");
+					LuaContext.currentContext.evalScript("Crypto_Sample_sha1()");
+					break;
+				case "HMAC-MD5":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Crypto/Sample/Crypto-Sample.lua");
+					LuaContext.currentContext.evalScript("Crypto_Sample_hmacMD5()");
+					break;
+				case "HMAC-SHA1":
+					LuaContext.currentContext.evalScriptFromFile("LuaScriptCore_Modules/Crypto/Sample/Crypto-Sample.lua");
+					LuaContext.currentContext.evalScript("Crypto_Sample_hmacSHA1()");
+					break;
 				}
 
 			};
 
 		};
 
-		listVC.dataSource = new List<string> () {"Foundation", "Network"};
+		listVC.dataSource = new List<string> () {"Foundation", "Network", "Crypto"};
 		listVC.reloadData ();
 	}
 
