@@ -166,24 +166,24 @@ print (obj);
 
 更新内容：
 
-1.新增线程执行功能，可以通过LuaContext的runThread方法将一个lua方法执行在不同的线程中。
-2.LuaValue新增setObject方法，允许直接为table对象设置和删除键值对，而不是通过返回值的方法进行调整。
-3.新增LuaContext的脚本执行控制接口，可以通过LuaScriptController来强制中断脚本执行。
-4.iOS / OSX 平台下增加初始化上下文时传入配置接口，允许导出类方法名称时使用完整名称。
-5.优化addSearchPath方法，可以加入lua文件以外的文件路径
-6.优化Android和Unity3D下的抛出Lua异常操作
-7.修复抛出异常时导致内存泄漏和程序死锁问题
-8.修复iOS / OSX 平台下使用Swift的@objc导出类无法找到问题
-9.修复Android平台下传递数组中包含导出类型对象时产生JNI栈溢出问题。
-10.修复Android平台下，从原生层传入基础类型数组时无法转换到lua中使用问题。
-11.修复Android平台下LuaValue无法识别传入byte[]类型问题。
-12.修复Android平台下，对象方法传入float、int、long类型参数时无法识别问题。
-13.修复Android平台下，对象方法返回值为float时无法识别问题。
-14.修复Android平台下LuaTuple返回基础类型值不正确问题
-15.修复Android平台下LuaTuple设置List类型为返回值时获取不到列表内容问题
-16.修复Android平台下循环调用方法时导致崩溃问题
-17.修复Android平台下创建类对象是内存泄漏问题
-18.修复Unity3D下LuaValue转换为object时，如果数据为数组或者字典里面的元素没有解包问题。
+1. 新增线程执行功能，可以通过LuaContext的runThread方法将一个lua方法执行在不同的线程中。
+2. LuaValue新增setObject方法，允许直接为table对象设置和删除键值对，而不是通过返回值的方法进行调整。
+3. 新增LuaContext的脚本执行控制接口，可以通过LuaScriptController来强制中断脚本执行。
+4. iOS / OSX 平台下增加初始化上下文时传入配置接口，允许导出类方法名称时使用完整名称。
+5. 优化addSearchPath方法，可以加入lua文件以外的文件路径
+6. 优化Android和Unity3D下的抛出Lua异常操作
+7. 修复抛出异常时导致内存泄漏和程序死锁问题
+8. 修复iOS / OSX 平台下使用Swift的@objc导出类无法找到问题
+9. 修复Android平台下传递数组中包含导出类型对象时产生JNI栈溢出问题。
+10. 修复Android平台下，从原生层传入基础类型数组时无法转换到lua中使用问题。
+11. 修复Android平台下LuaValue无法识别传入byte[]类型问题。
+12. 修复Android平台下，对象方法传入float、int、long类型参数时无法识别问题。
+13. 修复Android平台下，对象方法返回值为float时无法识别问题。
+14. 修复Android平台下LuaTuple返回基础类型值不正确问题
+15. 修复Android平台下LuaTuple设置List类型为返回值时获取不到列表内容问题
+16. 修复Android平台下循环调用方法时导致崩溃问题
+17. 修复Android平台下创建类对象是内存泄漏问题
+18. 修复Unity3D下LuaValue转换为object时，如果数据为数组或者字典里面的元素没有解包问题。
 
 ## [更多更新历史](https://github.com/vimfung/LuaScriptCore/wiki/%E6%9B%B4%E6%96%B0%E5%8E%86%E5%8F%B2)
 
