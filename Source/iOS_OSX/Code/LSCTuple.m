@@ -28,12 +28,18 @@
 
 - (void)addReturnValue:(id)returnValue
 {
+    if (!returnValue)
+    {
+        returnValue = [NSNull null];
+    }
+    
     [self.returnValues addObject:returnValue];
 }
 
 - (id)returnValueForIndex:(NSInteger)index
 {
-    return self.returnValues[index];
+    id retVal = self.returnValues[index];
+    return [retVal isKindOfClass:[NSNull class]] ? nil : retVal;
 }
 
 - (NSString *)description
