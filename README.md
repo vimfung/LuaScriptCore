@@ -189,7 +189,7 @@ print (obj);
 
 # 建议&支持
 
-如问题请[与我联系](mailto:vimfung@qq.com)
+如问题请[与我联系](mailto:luascriptcore@163.com)
 
 ![QQ技术讨论群](https://cloud.githubusercontent.com/assets/3739609/22011176/a05d3ca6-dcc8-11e6-8378-6ff68fb0ab9c.png)
 
