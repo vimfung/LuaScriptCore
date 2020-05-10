@@ -319,6 +319,8 @@ LuaValue::~LuaValue()
                 case LuaValueTypeArray:
                     LuaValueList().swap(*((LuaValueList *)_value));
                     break;
+                default:
+                    break;
             }
 
             delete[] (char *)_value;

@@ -180,7 +180,7 @@ LuaExportPropertyDescriptor* LuaExportTypeDescriptor::getProperty(std::string co
 
 LuaObjectDescriptor* LuaExportTypeDescriptor::createInstance(LuaSession *session)
 {
-    return new LuaObjectDescriptor(NULL, this);
+    return new LuaObjectDescriptor(NULL, NULL, this);
 }
 
 void LuaExportTypeDescriptor::destroyInstance(LuaSession *session, LuaObjectDescriptor *objectDescriptor)
