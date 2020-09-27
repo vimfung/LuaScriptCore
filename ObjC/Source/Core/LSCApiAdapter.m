@@ -1216,6 +1216,58 @@ static char *const LSCRetainVarsTableName = "_retainVars_";
     [mainState unlock];
 }
 
+- (void)setTableValue:(id<LSCValueType>)value
+           forKeyPath:(NSString *)keyPath
+               withId:(NSString *)tableId
+              context:(LSCContext *)context
+{
+    NSArray<NSString *> *keys = [keyPath componentsSeparatedByString:@"."];
+    
+    LSCMainState *mainState = context.mainState;
+    [mainState lock];
+    
+    lua_State *rawState = mainState.currentState.rawState;
+    
+    [self pushLuaObjectWithId:tableId context:context];
+    if (lua_istable(rawState, -1))
+    {
+        //先寻找对应的table对象
+        BOOL hasExists = YES;
+        if (keys.count > 1)
+        {
+            for (NSInteger i = 0; i < keys.count - 1; i++)
+            {
+                NSString *key = keys[i];
+                lua_pushstring(rawState, key.UTF8String);
+                lua_rawget(rawState, -2);
+                
+                if (lua_istable(rawState, -1))
+                {
+                    lua_remove(rawState, -2);
+                }
+                else
+                {
+                    hasExists = NO;
+                    lua_pop(rawState, 1);
+                    break;
+                }
+            }
+        }
+        
+        //设置对象
+        if (hasExists)
+        {
+            lua_pushstring(rawState, keys.lastObject.UTF8String);
+            [value pushWithContext:context];
+            lua_rawset(rawState, -3);
+        }
+    }
+    lua_pop(rawState, 1);
+    
+    [mainState unlock];
+    
+}
+
 #pragma mark - C Function
 
 /**

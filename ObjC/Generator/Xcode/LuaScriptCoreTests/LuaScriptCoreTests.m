@@ -93,6 +93,21 @@
     [func invokeWithArguments:nil context:self.context];
 }
 
+- (void)testDict
+{
+    LSCDictionaryValue *dictValue = [self.context evalScriptFromString:@"testDict = {a=1, b='Hello', d={e=true}}; return testDict"];
+    [dictValue setObject:[LSCValue createValue:@1024] forKeyPath:@"c"];
+    [dictValue setObject:[LSCValue createValue:@"World"] forKeyPath:@"a"];
+    [dictValue setObject:[LSCValue createValue:@NO] forKeyPath:@"d.f"];
+    dictValue = [self.context evalScriptFromString:@"print(testDict.a, testDict.b, testDict.c, testDict.d.e, testDict.d.f); return testDict;"];
+    NSDictionary *dict = dictValue.rawValue;
+    XCTAssertTrue([dict[@"a"] isEqualToString:@"World"]
+                  && [dict[@"b"] isEqualToString:@"Hello"]
+                  && [dict[@"c"] isEqual:@1024]
+                  && [dict[@"d"][@"e"] isEqual:@YES]
+                  && [dict[@"d"][@"f"] isEqual:@NO]);
+}
+
 - (void)testFunction
 {
     //本地方法 - 不带参数

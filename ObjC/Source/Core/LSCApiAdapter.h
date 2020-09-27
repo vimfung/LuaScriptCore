@@ -215,6 +215,20 @@ NS_ASSUME_NONNULL_BEGIN
                     option:(LSCSetLuaObjectOption)option
                    context:(LSCContext *)context;
 
+
+/**
+ 设置Table的值
+
+ @param value 值对象
+ @param keyPath 对应的键名路径，例如："key"、"key1.key2"
+ @param tableId Table的标识
+ @param context 上下文
+ */
+- (void)setTableValue:(id<LSCValueType>)value
+           forKeyPath:(NSString *)keyPath
+               withId:(NSString *)tableId
+              context:(LSCContext *)context;
+
 /**
  获取栈中数据的类型
 
