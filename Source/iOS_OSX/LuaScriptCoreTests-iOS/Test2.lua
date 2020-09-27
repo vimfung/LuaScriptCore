@@ -1,3 +1,0 @@
-local tbl = {};
-
-grabegecollect();

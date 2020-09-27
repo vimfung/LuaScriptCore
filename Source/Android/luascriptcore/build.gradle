@@ -1,6 +1,0 @@
-apply from: './compile.gradle'
-//apply from: './compile-5.1.5.gradle'    //lua 5.1.5 版本
-
-android {
-    buildToolsVersion '28.0.3'
-}

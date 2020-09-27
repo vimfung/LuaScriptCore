@@ -1,4 +1,0 @@
-include ':app'
-
-include 'luascriptcore'
-project(':luascriptcore').projectDir = new File(settingsDir, '../../Source/Android/luascriptcore')
