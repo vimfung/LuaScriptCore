@@ -123,7 +123,7 @@
 @* template.
 @@ LUA_EXECDIR in a Windows path is replaced by the executable's
 @* directory.
-@@ LUA_IGMARK is a mark to ignore all before it when bulding the
+@@ LUA_IGMARK is a mark to ignore all before it when building the
 @* luaopen_ function name.
 ** CHANGE them if for some reason your system cannot use those
 ** characters. (E.g., if one of those characters is a common character
